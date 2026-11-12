@@ -15,7 +15,6 @@ use App\Models\Source;
 use App\Services\ApiKeyIssuerService;
 use App\Services\PerimeterResolverService;
 use App\Services\PrincipalLifecycleService;
-use InvalidArgumentException;
 
 it('isolates overlapping company and product slugs across organisations', function (): void {
     $orgA = Organisation::factory()->create(['slug' => 'acme', 'name' => 'Acme A']);
