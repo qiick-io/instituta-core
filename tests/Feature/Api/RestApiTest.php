@@ -175,14 +175,35 @@ it('honours an active freeze by serving only pinned commits', function (): void 
         ->assertJsonPath('vault_version_id', $vault->id);
 });
 
-it('returns 501 for search until an FTS driver exists', function (): void {
+it('searches inside the perimeter over REST', function (): void {
     $seed = restSeedOwnerKey();
 
+    $item = Item::factory()->create([
+        'organisation_id' => $seed['org']->id,
+        'company_id' => $seed['company']->id,
+        'product_id' => $seed['product']->id,
+        'source_id' => $seed['source']->id,
+        'title' => 'Brand voice',
+        'summary' => 'Brand voice rules',
+        'path' => 'rules/brand.md',
+        'stable_key' => 'rules/brand',
+        'visibility' => VisibilityEnum::Internal,
+    ]);
+    ItemSection::factory()->create([
+        'item_id' => $item->id,
+        'organisation_id' => $seed['org']->id,
+        'company_id' => $seed['company']->id,
+        'product_id' => $seed['product']->id,
+        'anchor' => 'body',
+        'heading' => 'Body',
+        'body' => 'Use a calm teal brand voice.',
+    ]);
+
     $this->getJson(
-        '/api/v1/search?scope='.$seed['org']->id.'&q=brand',
+        '/api/v1/search?scope='.$seed['org']->id.'&q=brand+voice',
         restAuth($seed),
-    )->assertStatus(501)
-        ->assertJsonPath('message', 'search driver not supported');
+    )->assertOk()
+        ->assertJsonFragment(['id' => $item->id]);
 });
 
 it('exposes scopes for the authenticated key', function (): void {

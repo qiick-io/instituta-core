@@ -240,15 +240,42 @@ it('honours an active freeze by serving only pinned commits', function (): void 
         });
 });
 
-it('refuses search until an FTS driver exists', function (): void {
+it('searches inside the perimeter over HTTP MCP', function (): void {
     config(['instituta.mcp.enabled' => true]);
     $seed = seedOwnerKey();
+
+    $item = Item::factory()->create([
+        'organisation_id' => $seed['org']->id,
+        'company_id' => $seed['company']->id,
+        'product_id' => $seed['product']->id,
+        'source_id' => $seed['source']->id,
+        'title' => 'Brand voice',
+        'summary' => 'Brand voice rules',
+        'path' => 'rules/brand.md',
+        'stable_key' => 'rules/brand',
+        'visibility' => VisibilityEnum::Internal,
+    ]);
+    ItemSection::factory()->create([
+        'item_id' => $item->id,
+        'organisation_id' => $seed['org']->id,
+        'company_id' => $seed['company']->id,
+        'product_id' => $seed['product']->id,
+        'anchor' => 'body',
+        'heading' => 'Body',
+        'body' => 'Use a calm teal brand voice.',
+    ]);
+
     $perimeter = app(PerimeterResolverService::class)->fromApiKey($seed['key']->fresh('principal'));
     request()->attributes->set('instituta.api_key', $seed['key']);
     request()->attributes->set('instituta.perimeter', $perimeter);
 
-    HttpBrainServer::tool(InstitutaSearchTool::class, ['q' => 'brand'])
-        ->assertHasErrors(['search driver not supported']);
+    HttpBrainServer::tool(InstitutaSearchTool::class, ['q' => 'brand voice'])
+        ->assertOk()
+        ->assertStructuredContent(function (AssertableJson $json) use ($item): void {
+            $ids = collect($json->toArray()['results'] ?? [])->pluck('id')->all();
+            expect($ids)->toContain($item->id);
+            $json->etc();
+        });
 });
 
 it('exposes scopes for the authenticated key', function (): void {
