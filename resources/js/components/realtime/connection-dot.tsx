@@ -4,10 +4,7 @@ import { cn } from '@/lib/utils';
 
 /** State of the app's realtime (WebSocket) connection. */
 export type ConnectionState =
-    | 'connected'
-    | 'connecting'
-    | 'disabled'
-    | 'offline';
+    'connected' | 'connecting' | 'disabled' | 'offline';
 
 /**
  * Green when connected, amber while connecting, grey when realtime is off, red
