@@ -8,19 +8,26 @@ use App\Brain\Enums\VisibilityEnum;
 use App\Mcp\Servers\HttpBrainServer;
 use App\Mcp\Tools\Http\InstitutaGetSectionTool;
 use App\Mcp\Tools\Http\InstitutaGetTool;
+use App\Mcp\Tools\Http\InstitutaGraphTool;
 use App\Mcp\Tools\Http\InstitutaListTool;
+use App\Mcp\Tools\Http\InstitutaOutlineTool;
+use App\Mcp\Tools\Http\InstitutaResolveTool;
 use App\Mcp\Tools\Http\InstitutaScopesTool;
 use App\Mcp\Tools\Http\InstitutaSearchTool;
+use App\Mcp\Tools\Http\InstitutaTableTool;
 use App\Models\Company;
 use App\Models\ContextFreeze;
 use App\Models\ContractCall;
 use App\Models\Grant;
 use App\Models\Item;
+use App\Models\ItemLink;
 use App\Models\ItemSection;
 use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\Product;
 use App\Models\Source;
+use App\Models\StructuredRow;
+use App\Models\StructuredTable;
 use App\Models\VaultVersion;
 use App\Services\ApiKeyIssuerService;
 use App\Services\PerimeterResolverService;
@@ -297,4 +304,167 @@ it('returns a section when present', function (): void {
             ->where('section.anchor', 'overview')
             ->where('section.body', 'Hello')
             ->etc());
+});
+
+it('returns outline get table resolve and graph for in-perimeter items', function (): void {
+    config(['instituta.mcp.enabled' => true]);
+    $seed = seedOwnerKey();
+
+    $item = Item::factory()->create([
+        'organisation_id' => $seed['org']->id,
+        'company_id' => $seed['company']->id,
+        'product_id' => $seed['product']->id,
+        'source_id' => $seed['source']->id,
+        'path' => 'rules/full.md',
+        'stable_key' => 'rules/full',
+        'title' => 'Full item',
+        'resolution_key' => 'theme.primary',
+        'visibility' => VisibilityEnum::Internal,
+    ]);
+    ItemSection::factory()->create([
+        'item_id' => $item->id,
+        'organisation_id' => $seed['org']->id,
+        'company_id' => $seed['company']->id,
+        'product_id' => $seed['product']->id,
+        'anchor' => 'body',
+        'heading' => 'Body',
+        'level' => 2,
+        'position' => 0,
+        'body' => 'Section body',
+        'blocks' => [['type' => 'paragraph', 'text' => 'Section body']],
+    ]);
+    $table = StructuredTable::factory()->create([
+        'item_id' => $item->id,
+        'organisation_id' => $seed['org']->id,
+        'company_id' => $seed['company']->id,
+        'product_id' => $seed['product']->id,
+        'table_key' => 'tokens',
+        'columns' => ['name', 'value'],
+        'position' => 0,
+    ]);
+    StructuredRow::factory()->create([
+        'structured_table_id' => $table->id,
+        'item_id' => $item->id,
+        'organisation_id' => $seed['org']->id,
+        'company_id' => $seed['company']->id,
+        'product_id' => $seed['product']->id,
+        'values' => ['name' => 'primary', 'value' => '#0F766E'],
+        'position' => 0,
+    ]);
+    StructuredRow::factory()->create([
+        'structured_table_id' => $table->id,
+        'item_id' => $item->id,
+        'organisation_id' => $seed['org']->id,
+        'company_id' => $seed['company']->id,
+        'product_id' => $seed['product']->id,
+        'values' => ['name' => 'muted', 'value' => '#94A3B8'],
+        'position' => 1,
+    ]);
+
+    $neighbour = Item::factory()->create([
+        'organisation_id' => $seed['org']->id,
+        'company_id' => $seed['company']->id,
+        'product_id' => $seed['product']->id,
+        'source_id' => $seed['source']->id,
+        'path' => 'rules/neighbour.md',
+        'stable_key' => 'rules/neighbour',
+        'title' => 'Neighbour',
+    ]);
+    ItemLink::factory()->create([
+        'from_item_id' => $item->id,
+        'to_item_id' => $neighbour->id,
+        'organisation_id' => $seed['org']->id,
+        'company_id' => $seed['company']->id,
+        'product_id' => $seed['product']->id,
+        'target' => $neighbour->stable_key,
+        'relation' => 'links_to',
+    ]);
+
+    $perimeter = app(PerimeterResolverService::class)->fromApiKey($seed['key']->fresh('principal'));
+    request()->attributes->set('instituta.api_key', $seed['key']);
+    request()->attributes->set('instituta.perimeter', $perimeter);
+
+    HttpBrainServer::tool(InstitutaGetTool::class, ['id' => $item->id])
+        ->assertOk()
+        ->assertStructuredContent(fn (AssertableJson $json) => $json
+            ->where('item.id', $item->id)
+            ->has('item.sections')
+            ->has('item.tables')
+            ->etc());
+
+    HttpBrainServer::tool(InstitutaOutlineTool::class, ['id' => $item->stable_key])
+        ->assertOk()
+        ->assertStructuredContent(fn (AssertableJson $json) => $json
+            ->where('outline.stable_key', 'rules/full')
+            ->has('outline.sections')
+            ->etc());
+
+    HttpBrainServer::tool(InstitutaTableTool::class, [
+        'id' => $item->id,
+        'table_key' => 'tokens',
+        'filter' => ['name' => 'primary'],
+    ])
+        ->assertOk()
+        ->assertStructuredContent(function (AssertableJson $json): void {
+            $rows = $json->toArray()['table']['rows'] ?? [];
+            expect($rows)->toHaveCount(1)
+                ->and($rows[0]['value'])->toBe('#0F766E');
+            $json->etc();
+        });
+
+    HttpBrainServer::tool(InstitutaResolveTool::class, ['product_id' => $seed['product']->id])
+        ->assertOk()
+        ->assertStructuredContent(function (AssertableJson $json): void {
+            $keys = collect($json->toArray()['entries'] ?? [])->pluck('resolution_key')->all();
+            expect($keys)->toContain('theme.primary');
+            $json->etc();
+        });
+
+    HttpBrainServer::tool(InstitutaGraphTool::class, ['id' => $item->id, 'depth' => 1])
+        ->assertOk()
+        ->assertStructuredContent(function (AssertableJson $json) use ($item, $neighbour): void {
+            $ids = collect($json->toArray()['nodes'] ?? [])->pluck('id')->all();
+            expect($ids)->toContain($item->id)->and($ids)->toContain($neighbour->id);
+            $json->etc();
+        });
+});
+
+it('authenticates a valid bearer key over HTTP MCP', function (): void {
+    config(['instituta.mcp.enabled' => true]);
+    $seed = seedOwnerKey();
+
+    $this->postJson('/mcp', [
+        'jsonrpc' => '2.0',
+        'id' => 1,
+        'method' => 'initialize',
+        'params' => [
+            'protocolVersion' => ProtocolVersion::initializeSupported()[0] ?? '2025-11-25',
+            'capabilities' => [],
+            'clientInfo' => ['name' => 'test', 'version' => '0'],
+        ],
+    ], [
+        ...mcpHeaders(),
+        'Authorization' => 'Bearer '.$seed['plain'],
+    ])->assertOk()
+        ->assertJsonPath('result.serverInfo.name', 'Instituta Brain');
+});
+
+it('rejects keys without brain:read over HTTP', function (): void {
+    config(['instituta.mcp.enabled' => true]);
+    $seed = seedOwnerKey();
+    $seed['key']->forceFill(['abilities' => []])->save();
+
+    $this->postJson('/mcp', [
+        'jsonrpc' => '2.0',
+        'id' => 1,
+        'method' => 'initialize',
+        'params' => [
+            'protocolVersion' => ProtocolVersion::initializeSupported()[0] ?? '2025-11-25',
+            'capabilities' => [],
+            'clientInfo' => ['name' => 'test', 'version' => '0'],
+        ],
+    ], [
+        ...mcpHeaders(),
+        'Authorization' => 'Bearer '.$seed['plain'],
+    ])->assertForbidden();
 });
