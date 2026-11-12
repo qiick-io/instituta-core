@@ -6,6 +6,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | MCP (HTTP)
+    |--------------------------------------------------------------------------
+    |
+    | HTTP MCP is off by default. Writes stay off for the MVP.
+    |
+    */
+
+    'mcp' => [
+        'enabled' => (bool) env('INSTITUTA_MCP_ENABLED', false),
+        'write_enabled' => (bool) env('INSTITUTA_MCP_WRITE_ENABLED', false),
+        'rate_limit_per_minute' => (int) env('INSTITUTA_MCP_RATE_LIMIT', 60),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Ingest
     |--------------------------------------------------------------------------
     |
