@@ -10,6 +10,22 @@ The maintainer is **Luca** (GitHub `LucaGiardi20`). Talk to him **in Italian**. 
 
 > **Working name.** "Instituta" is a working name pending an attorney (**Cogitata** is the reserve). The repo stays **private**. Do not register, buy, file, publish or post anything under the name: no Packagist package, no GHCR image, no domain, no npm package, no public repo, no social or marketplace listing. Keep the name in few places (config `app.name`, the `instituta:` Artisan namespace, the locale files), so a rename is a small PR.
 
+### Decisions already taken (2026-11-12)
+
+Luca answered these; do not ask them again. "Default" rows are choices made for you so you never block on them; follow them, say in the PR body that you did, and Luca can still change them later.
+
+| Topic | Decision |
+|---|---|
+| Repositories | **One repo**, `qiick-io/instituta-core` (see the box above). There is no `instituta-app`. |
+| Theme preset | **Teal** (`"uiPreset": "Teal"`, `@qiick/theme`), the `docs/new-product.md` default, until an Instituta preset exists in app-ui. Tokens only, so the later switch is one PR (install `@qiick/theme-<colour>`, change `uiPreset`). |
+| MySQL | **No MySQL search driver in v0.1.0.** The app runs and is tested on MySQL 8 (CI job), but search on MySQL answers with a clear "search driver not supported" error (HTTP 501 on REST, a tool error on MCP, an empty state with an explanation in the UI). Document it in the README and open an issue for a FULLTEXT driver in the `Later` milestone. Search drivers: `pgsql` (reference) and `sqlite` (FTS5). |
+| GitHub project | **Instituta**, private org project **#4** (`gh project … 4 --owner qiick-io`), linked to the repo, same fields as the Excubia board. Every issue and PR goes on it. |
+| Merge autonomy | **Like Excubia.** PR 1 (bootstrap) and PR 2 (standards + CI) wait for Luca's OK. From PR 3 on, merge your own **green** PRs into `develop` (squash) without asking and report afterwards. Always ask first for: a new Composer or npm dependency, any change to `docs/FORMAT.md` / `docs/CONTRACTS.md` (PR 3 itself waits for his review), anything marked `[plan]`, the reading view's layout (below), releases, tags and anything public. The repo has no branch protection (free plan), so "green" means every CI job green, by your own discipline. |
+| Resolution order (default) | **product > company / client > organisation**, every value with its origin. In case 2 the company layer is usually empty, so this equals the note's product > org. |
+| Dogfood sources (default) | Use the `local` provider on the maintainer's existing clones for dogfood: `LucaGiardi20/knowledge` (ask Luca for the folder once) and `../../app-ui`. No GitHub token is needed for the MVP; the `github` provider is built and tested with `Process::fake()` / `Http::fake()`, and a read-only token is added to `.env` only when Luca wants remote sync. **site-ui is skipped** until `qiick-io/site-ui` exists; adding it later is one `instituta:source:add`. |
+| Reading view (default) | app-ui has no long-form reading pattern. Compose the reading view **only from existing `@qiick` items** (`page-layout`, `page-header`, `scroll-area`, `sources` / `marker` for citation chips, `table`, `data-table`, `code-block`, `collapsible`, `aspect-ratio`, `carousel` for the image gallery) with a sticky outline, no new visual primitives, and record it in `app-ui.overrides.json` with the reason "no app-ui reading pattern yet; proposed upstream". That PR waits for Luca's OK before merge, and its body proposes the pattern for app-ui. |
+| Still a question | A **graph library** (new dependency): propose one with size, licence and maintenance, and wait. |
+
 ---
 
 ## 0. Read these first, in this order
@@ -73,7 +89,7 @@ Three levels from day one: **organisation → companies / clients → products**
 
 Out of the MVP, and the schema must not block them: teams inside a product (case 10's hook), mergers, per-country data residency.
 
-Resolution with three levels: the note fixes **product > org**. With a company / client level in between, resolve **product > company / client > organisation**, where the company level is usually empty in case 2. This is an interpretation: confirm it with Luca in the PR that implements the resolver (see section 6).
+Resolution with three levels: the note fixes **product > org**. With a company / client level in between, resolve **product > company / client > organisation**, where the company level is usually empty in case 2. This is the default Luca accepted on 2026-11-12 (see "Decisions already taken").
 
 ---
 
@@ -148,7 +164,7 @@ Everything below is in the schema from the first migration PR, even where the MV
 
 ### 3.4 Search
 
-- Stack default is **SQLite** (install, tests, CI) with MySQL 8 and PostgreSQL 17 supported (`standards/rules/stack.md`); the note fixes **Postgres full-text search**. Reconciled: one `SearchIndexContract` with a **`pgsql` driver** (a `tsvector` column with a GIN index on `item_sections`, `websearch_to_tsquery`, `ts_rank`, `ts_headline` for short snippets; the reference driver for production and dogfood) and a **`sqlite` driver** (FTS5 virtual table) so the default install and the test suite work. Vendor SQL only inside the driver, behind a driver check. **MySQL:** ask Luca whether v0.1.0 ships a FULLTEXT driver or documents MySQL as unsupported for search until later.
+- Stack default is **SQLite** (install, tests, CI) with MySQL 8 and PostgreSQL 17 supported (`standards/rules/stack.md`); the note fixes **Postgres full-text search**. Reconciled: one `SearchIndexContract` with a **`pgsql` driver** (a `tsvector` column with a GIN index on `item_sections`, `websearch_to_tsquery`, `ts_rank`, `ts_headline` for short snippets; the reference driver for production and dogfood) and a **`sqlite` driver** (FTS5 virtual table) so the default install and the test suite work. Vendor SQL only inside the driver, behind a driver check. **MySQL:** no search driver in v0.1.0 (see "Decisions already taken"): a clear "not supported" error, documented, with an issue in `Later`.
 - Every search runs **inside the perimeter first** (scope columns + visibility + subtree), then ranks. Results return ids, titles, summaries, a short snippet and the citation, never full bodies.
 - Embeddings: **schema only** in the MVP: `embedding_models` (`name`, `version`, `dimensions`) and on each indexed section `embedding_model_id` + `embedded_at` (nullable). Vectors, when they come, carry the scope columns (embedding isolation) and are re-indexed when the model version changes.
 
@@ -203,20 +219,20 @@ Built with **app-ui** only: `@qiick` registry items → copy from excubia-app / 
 
 1. **Map** ("the whole brain"): areas (rules, decisions, style, glossary, design system, plans, connected systems), coverage counts, empty areas shown as gaps, "you are here". Not all the text at once. The reserved Armarium mark may illustrate it later; not the product icon.
 2. **Tree by meaning** (areas → types → items), not raw git paths, with a list view for each node.
-3. **Reading view:** app-ui typography, sticky outline, citations as chips (source, file, section, commit; registry `sources` / `marker` items), images as first-class blocks (one canonical image, the rest in a gallery, alt mandatory), narrative tables with the app-ui `table` (sticky header, scroll), structured tables with `data-table`. **app-ui has no long-form reading pattern yet** (site-ui has one, but site-ui is for the websites only): before you build this screen, propose the pattern to Luca (an app-ui `docs/` page + registry item, which lives in another repo and needs his OK).
+3. **Reading view:** app-ui typography, sticky outline, citations as chips (source, file, section, commit; registry `sources` / `marker` items), images as first-class blocks (one canonical image, the rest in a gallery, alt mandatory), narrative tables with the app-ui `table` (sticky header, scroll), structured tables with `data-table`. **app-ui has no long-form reading pattern yet** (site-ui has one, but site-ui is for the websites only): compose it from existing `@qiick` items as described in "Decisions already taken", record the override, and wait for Luca's OK on that PR.
 4. **Structured tables** for colour tokens and the app-ui / site-ui registries: a component shown with its preview where available, the tokens it uses, its rules and images, not raw `registry.json`.
 5. **Resolved view** per product: what the agent actually receives, each value with its origin (inherited vs overridden), ACL cuts and the token estimate, plus a per-item toggle **"what the agent would see"**.
 6. **Graph** (Graphify-like, simple, 2–3 days): always filtered by scope and grouped by area, starts from a selected node and shows neighbours (no hairball), click a node → reading view. No neural / brain clichés; not the home screen. A graph library is a new dependency: propose one and ask.
 
 Plus: login and account pages from the starter kit and app-ui `auth.md` (Fortify, 2FA, passkeys; no public registration: the first owner comes from `instituta:install`), a minimal **Sources** page (list, sync status, last commit, last sync report) and a read-only **Keys** list for the owner (create / revoke stay in Artisan in the MVP; ask before building more). Every string through `t('…')` in `en`, `it`, `de` (German formal "Sie"); light, dark and high contrast at WCAG 2.2 AA; control height 32 px by default; tokens only; the violet `ai` tokens only for AI surfaces (for example the "what the agent would see" panel).
 
-**Theme preset:** Instituta has no brand colour yet (brand, colour and logo are not started). Per `docs/new-product.md`, a product without its own preset uses **Teal** until the maintainer adds `@qiick/theme-<colour>` to app-ui. Teal is also Externa's colour, so ask Luca whether to start on Teal or wait for an Instituta preset; never edit surface tokens.
+**Theme preset:** Instituta has no brand colour yet (brand, colour and logo are not started). Per `docs/new-product.md` and Luca's answer, start on **Teal** until the maintainer adds `@qiick/theme-<colour>` to app-ui; never edit surface tokens.
 
 ---
 
 ## 6. Build plan: small PRs, in this order
 
-One issue → one branch → one PR, each with tests, the full quality gate green, and a PR body that says what, why, how it was verified and what is not done. Branch from `develop` as `<type>/<issue>-<kebab-slug>`; Conventional Commit PR titles; squash merge into `develop`. **Every merge needs Luca's OK in the chat** (Instituta is not in the merge-autonomy list) unless he grants autonomy for these repos. After each PR, report to him in Italian (section 9) and wait.
+One issue → one branch → one PR, each with tests, the full quality gate green, and a PR body that says what, why, how it was verified and what is not done. Branch from `develop` as `<type>/<issue>-<kebab-slug>`; Conventional Commit PR titles; squash merge into `develop`. **Merges follow "Decisions already taken":** PR 1 and PR 2 wait for Luca's OK; from PR 3 on, merge your own green PRs into `develop` and report afterwards, except where that table says to ask. After each PR, report to him in Italian (section 11).
 
 Local environment: Laravel Herd serves `https://instituta-core.test` (`herd link && herd secure`); use the Herd tools for dev processes, never your own server. Node 24 (`.nvmrc`; the default `node` in a shell may be older, so load Node 24 first). **One database per app:** SQLite `database/database.sqlite` by default and one Postgres database **`instituta_core`** for the search driver; for a clean state `php artisan migrate:fresh --seed` on it, never a copy. Remove any worktree, Herd site or extra database you create when its PR is merged or dropped, after checking for unpushed work.
 
@@ -226,19 +242,19 @@ Local environment: Laravel Herd serves `https://instituta-core.test` (`herd link
 | 2 | `chore: adopt the qiick standards pack`: `node ../../app-ui/scripts/new-product.mjs --target . --name instituta --preset <answer from section 5>` at app-ui **v0.6.0** (or the latest tag): `qiick-standards.json`, `components.json` pinned to the tag, `.github/workflows/qiick.yml`, the standards sync. Fill `tests/Arch/naming-architecture.php` (incl. the brain module's roles, section 7); repo section below the block in `AGENTS.md`; `php artisan boost:install`; own CI workflow (section 8); PHPStan **level 8, no baseline**; `coverage-floor.txt` after the first green coverage run; theme + `app-shell` from the registry. No `dependabot.yml`. | CI green on the PR; drift check green; list for Luca of the checks he would require (by convention: private repos on the free plan cannot be protected) |
 | 3 | `docs: brain format and contract`: `docs/FORMAT.md` (layout, `instituta.json` manifest, frontmatter fields, types, areas, visibility, the three dates, `resolution_key`, sidecars, typed blocks, how Basic Memory notes and shadcn registries map onto it), `docs/CONTRACTS.md` (section 4), `docs/SPEC.md` (the ten cases and what the app does for each, and the one-repo decision). **Stop for Luca's review**: this fixes the contract. | Luca approved the docs |
 | 4 | `feat(brain): read a brain repository`: the brain module (`app/Brain`) with the native, `basic-memory` (frontmatter, `## Observations` with `- [category] text #tag`, `## Relations` with `- verb [[Target]]`), `shadcn-registry` (`registry.json` → structured rows) and `markdown` adapters (sections by heading, typed blocks, deterministic summaries, sidecars), links → edges, citations with commit; never-ingest denylist; secret / PII scanner; `BrainModuleArchitectureTest`. New libraries (YAML, CommonMark) listed in the PR for Luca's OK. Fixtures are small synthetic repos, never copies of private content. | Pest covers every adapter, the denylist and the scanner; the arch test proves the module uses nothing from the app |
-| 5 | `feat(brain): scopes, inheritance and perimeter`: product > company / client > organisation with origins, `inherits_from_parent`, explicit groups, shared sources by id + version, visibility levels, `PerimeterData` filter (role, max visibility, subtree). Confirm the three-level resolution order with Luca in this PR. | tests for each of cases 1, 2, 3, 5, 6, 7, 10 at file level |
+| 5 | `feat(brain): scopes, inheritance and perimeter`: product > company / client > organisation with origins, `inherits_from_parent`, explicit groups, shared sources by id + version, visibility levels, `PerimeterData` filter (role, max visibility, subtree). Resolution order as decided (product > company / client > organisation). | tests for each of cases 1, 2, 3, 5, 6, 7, 10 at file level |
 | 6 | `feat: local reader cli and stdio mcp server`: `php artisan instituta:read --path=<repo> list|search|get|outline|resolve|graph|validate` and `php artisan instituta:mcp --path=<repo>` (stdio, `laravel/mcp`, section 4 tools, single-owner perimeter), both on the brain module only, no database. | an MCP client (Cursor) can query a fixture repo locally; shared contract tests |
 | 7 | `feat: tenancy, principals, keys and index schema`: every table of section 3 (forward-only migrations from now on), models with relations / casts / scopes only, factories with states, policies, `PerimeterData` resolution, the single query scope that applies it, `instituta:key:create|list|revoke`, expiry and deactivation cascades. **Isolation tests**: two organisations and two clients with overlapping slugs, each query path proves it sees only its own rows. | tests green incl. isolation; PHPStan 8; arch tests |
-| 8 | `feat(ingest): read-only sync of git sources`: `instituta:source:add`, `instituta:sync` + a queued `SyncSourceJob` (git fetch into `storage/instituta/sources/<id>`, read-only, via the brain module's reader), sync report, `source_versions` from tags, `vault_versions` per sync, denylist enforced again, scanner. Sources for dogfood: the knowledge repo, app-ui (org-level shared source, case 6), site-ui (**ask Luca where it lives**: `qiick-io/site-ui` does not exist yet). A read-only GitHub token comes from Luca, in `.env` only. | the dogfood sources sync on Luca's machine; `Process::fake()` in tests |
+| 8 | `feat(ingest): read-only sync of git sources`: `instituta:source:add`, `instituta:sync` + a queued `SyncSourceJob` (git fetch into `storage/instituta/sources/<id>`, read-only, via the brain module's reader), sync report, `source_versions` from tags, `vault_versions` per sync, denylist enforced again, scanner. Sources for dogfood: the knowledge repo and app-ui (org-level shared source, case 6) through the `local` provider; site-ui skipped until its repo exists; a GitHub token only when Luca asks for remote sync, in `.env` only. | the dogfood sources sync on Luca's machine; `Process::fake()` in tests |
 | 9 | `feat(mcp): scoped mcp server over http` with `laravel/mcp`, key auth, the section 4 tools on the database-backed implementation of the contract, `mcp.enabled` default off, audit rows in `contract_calls`, freeze honoured, rate limit. | the shared contract tests pass over HTTP MCP; a forbidden scope returns nothing, not an error leak |
 | 10 | `feat(api): rest v1 with the same contract`, OpenAPI file + route-coverage test. | same contract tests over REST |
-| 11 | `feat(search): postgres full-text and sqlite fts5 drivers`; CI job on PostgreSQL 17; MySQL per Luca's answer. | ranking + perimeter tests on both drivers |
-| 12 | UI, one PR per screen: shell + scope switcher; map; tree + list; reading view (after the pattern is agreed); structured tables; resolved view + "what the agent would see"; graph; sources page; keys list. | each with a Pest browser test (light and dark), axe smoke, `en` / `it` / `de` keys |
+| 11 | `feat(search): postgres full-text and sqlite fts5 drivers`; CI job on PostgreSQL 17; on MySQL the "not supported" error, its test, the README line and the `Later` issue. | ranking + perimeter tests on both drivers |
+| 12 | UI, one PR per screen: shell + scope switcher; map; tree + list; reading view (composed from existing items; waits for Luca's OK); structured tables; resolved view + "what the agent would see"; graph; sources page; keys list. | each with a Pest browser test (light and dark), axe smoke, `en` / `it` / `de` keys |
 | 13 | `feat: auth and keys hardening`: no public registration, `instituta:install` creates the first organisation, own company, owner user, principal and owner key; key expiry and revocation shown read-only in the UI; activity log for keys and syncs. | tests for deactivation cascade and expired keys on UI, MCP and REST |
 | 14 | `feat: export, freeze and distribution`: `instituta:export {company}` (the client subtree: its sources' commits, index JSON, a manifest; case 8), `instituta:freeze|unfreeze`, `instituta:install|upgrade`, `GET /health/live` and `/health/ready`. Dockerfile / GHCR / Packagist **only when Luca says so**. | tests; export of client A contains nothing of client B |
 | 15 | `test: isolation, a11y and dogfood pass`: a cross-tenant suite over UI, MCP, REST, search, graph, resolved view and export; axe smoke; a dogfood report (what was ingested, what the scanner skipped, what agents can ask). | suite green; report to Luca |
 
-Steps 3 and 5 contain decisions for Luca; do not run ahead of them.
+Step 3 (format and contract) waits for Luca's review; do not build steps 4 and later on a contract he has not approved.
 
 ---
 
@@ -501,7 +517,7 @@ npm run lint:i18n && npm run lint:standards
 node ../../app-ui/scripts/check-drift.mjs  # registry and standards drift
 ```
 
-CI: the app's own workflow (PHP 8.4 and 8.5 on SQLite, a PostgreSQL 17 job for search, MySQL 8 per Luca's answer, browser + accessibility smoke on PRs) plus `.github/workflows/qiick.yml` (`pr-title / commitlint`, `app-ui-drift / standards`, `app-ui-drift / drift`, `php-quality / php-quality`, `ui-quality / ui-quality`, `migrations-frozen / migrations-frozen`, `distribution-smoke / smoke`). Call the shared workflows with exactly those job ids.
+CI: the app's own workflow (PHP 8.4 and 8.5 on SQLite, a PostgreSQL 17 job for search, MySQL 8 (app tests; search returns "not supported"), browser + accessibility smoke on PRs) plus `.github/workflows/qiick.yml` (`pr-title / commitlint`, `app-ui-drift / standards`, `app-ui-drift / drift`, `php-quality / php-quality`, `ui-quality / ui-quality`, `migrations-frozen / migrations-frozen`, `distribution-smoke / smoke`). Call the shared workflows with exactly those job ids.
 
 Plus `php artisan instituta:read --path=tests/Brain/Fixtures/<repo> validate` on the fixture repos.
 
@@ -512,7 +528,7 @@ UI changes: check the page in the browser on `https://instituta-core.test`, ligh
 ## 9. Git, PRs, releases and settings
 
 - English in the repo; Conventional Commits (`feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `chore`, `ci`, `build`, `security`); one issue → one branch → one PR into `develop`; squash merge; PR body with what / why / `Closes #<issue>`.
-- **Metadata on every issue and PR when you create it:** assignee `LucaGiardi20`, labels from the repo's set (`type:*`, `area:*`, `priority:*`, `effort:*`, `needs-decision` for anything Luca must decide), milestone (`v0.1.0` = the read-only MVP, `v0.2.0` = writes as proposals, `Later`), and the GitHub project if Luca creates one for Instituta.
+- **Metadata on every issue and PR when you create it:** assignee `LucaGiardi20`, labels from the repo's set (`type:*`, `area:*`, `priority:*`, `effort:*`, `needs-decision` for anything Luca must decide), milestone (`v0.1.0` = the read-only MVP, `v0.2.0` = writes as proposals, `Later`), and the private GitHub project **Instituta (#4)**.
 - **Never push to `main`**, never commit directly to `develop`, never force-push a shared branch (update a PR branch by merging `develop` into it), never `--no-verify`, never `--admin` or any bypass. Commit as `LucaGiardi20`; check `gh api user -q .login` before any `gh` write. No attribution or `Co-authored-by` trailers. Never commit `.env`, keys, tokens, personal paths (`/Users/…`), e-mail addresses or phone numbers.
 - **Releases never without Luca's "rilascia"**: no merge into `main`, no tag, no GitHub Release, no Packagist, no GHCR. You may open a `develop → main` release PR when asked, then stop.
 - **Never add `.github/dependabot.yml`** (qiick: Dependabot alerts only, no automatic PRs).
@@ -531,8 +547,8 @@ Ask first, in Italian, and wait for his answer:
 - **Naming**: the product name, the package name, the `instituta:` Artisan namespace if the attorney says no (Cogitata is the reserve).
 - Any change to `docs/CONTRACTS.md` or `docs/FORMAT.md` after it is approved.
 - Extracting the brain module, or creating any second repo (a Composer SDK, a CLI): only when Luca says so, with a descriptive name, never a second "core".
-- Anything marked `[plan]` in the note, any feature from section 2.2 "Out", and every screen with no app-ui pattern (the reading view first).
-- The resolution order with three levels, MySQL search support, the theme preset, where site-ui lives, the read-only GitHub token, merge autonomy for these repos, and whether a GitHub project should be created for Instituta.
+- Anything marked `[plan]` in the note, any feature from section 2.2 "Out", and every screen with no app-ui pattern (the reading view is already settled in "Decisions already taken").
+- A graph library, and anything "Decisions already taken" does not cover. Never ask again what that table answers.
 - Any access to Klover, Cybergrant or Zerotredici: never.
 
 ## 11. How to report to Luca (Italian)
