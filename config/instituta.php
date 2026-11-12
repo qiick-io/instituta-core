@@ -21,6 +21,12 @@ return [
             'cybergrant',
             'zerotredici',
         ],
+
+        /*
+         * Optional read-only GitHub token for the github provider.
+         * Leave empty for local/git dogfood; remote github sync refuses without it.
+         */
+        'github_token' => env('INSTITUTA_GITHUB_TOKEN'),
     ],
 
 ];

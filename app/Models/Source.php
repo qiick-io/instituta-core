@@ -39,6 +39,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $last_synced_commit
  * @property SyncStatusEnum $sync_status
  * @property Carbon|null $last_synced_at
+ * @property array<string, mixed>|null $last_sync_report
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -59,6 +60,7 @@ use Illuminate\Support\Carbon;
     'last_synced_commit',
     'sync_status',
     'last_synced_at',
+    'last_sync_report',
 ])]
 class Source extends Model
 {
@@ -78,6 +80,7 @@ class Source extends Model
             'is_shared' => 'boolean',
             'sync_status' => SyncStatusEnum::class,
             'last_synced_at' => 'datetime',
+            'last_sync_report' => 'array',
         ];
     }
 
