@@ -30,32 +30,26 @@ final class AuthenticateApiKeyMiddleware
     {
         $plain = $this->bearerToken($request);
         if ($plain === null) {
-            return $this->unauthorized('Missing Bearer API key.');
+            return $this->unauthorized($request, 'Missing Bearer API key.');
         }
 
         $key = $this->keys->findByPlainSecret($plain);
         if ($key === null) {
-            return $this->unauthorized('Invalid API key.');
+            return $this->unauthorized($request, 'Invalid API key.');
         }
 
         if (! in_array(ApiKeyAbilityEnum::BrainRead->value, $key->abilities, true)) {
-            return response()->json([
-                'jsonrpc' => '2.0',
-                'error' => [
-                    'code' => -32003,
-                    'message' => 'Ability brain:read is required.',
-                ],
-            ], 403);
+            return $this->forbidden($request, 'Ability brain:read is required.');
         }
 
         try {
             $perimeter = $this->perimeters->fromApiKey($key->loadMissing('principal'));
         } catch (InvalidArgumentException $exception) {
-            return $this->unauthorized($exception->getMessage());
+            return $this->unauthorized($request, $exception->getMessage());
         } catch (Throwable $exception) {
             report($exception);
 
-            return $this->unauthorized('API key cannot be resolved.');
+            return $this->unauthorized($request, 'API key cannot be resolved.');
         }
 
         $key->forceFill(['last_used_at' => now()])->save();
@@ -78,8 +72,17 @@ final class AuthenticateApiKeyMiddleware
         return $token !== '' ? $token : null;
     }
 
-    private function unauthorized(string $message): Response
+    private function isRestApi(Request $request): bool
     {
+        return $request->is('api/*');
+    }
+
+    private function unauthorized(Request $request, string $message): Response
+    {
+        if ($this->isRestApi($request)) {
+            return response()->json(['message' => $message], 401);
+        }
+
         return response()->json([
             'jsonrpc' => '2.0',
             'error' => [
@@ -87,5 +90,20 @@ final class AuthenticateApiKeyMiddleware
                 'message' => $message,
             ],
         ], 401);
+    }
+
+    private function forbidden(Request $request, string $message): Response
+    {
+        if ($this->isRestApi($request)) {
+            return response()->json(['message' => $message], 403);
+        }
+
+        return response()->json([
+            'jsonrpc' => '2.0',
+            'error' => [
+                'code' => -32003,
+                'message' => $message,
+            ],
+        ], 403);
     }
 }
