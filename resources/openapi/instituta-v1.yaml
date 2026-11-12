@@ -1,460 +1,460 @@
 openapi: 3.1.0
 info:
-  title: Instituta Brain API
-  description: |
-    Read-only company-brain contract under `/api/v1`.
-    Same operations as HTTP MCP tools (`instituta_*`).
-    Auth: `Authorization: Bearer <api_key>` with ability `brain:read`.
-    Runtime JSON: `GET /api/v1/openapi.json` (no API key).
-  version: 0.1.0
+    title: Instituta Brain API
+    description: |
+        Read-only company-brain contract under `/api/v1`.
+        Same operations as HTTP MCP tools (`instituta_*`).
+        Auth: `Authorization: Bearer <api_key>` with ability `brain:read`.
+        Runtime JSON: `GET /api/v1/openapi.json` (no API key).
+    version: 0.1.0
 servers:
-  - url: '{baseUrl}/api/v1'
-    variables:
-      baseUrl:
-        default: http://instituta-core.test
-        description: Instituta app origin (no trailing slash)
+    - url: '{baseUrl}/api/v1'
+      variables:
+          baseUrl:
+              default: http://instituta-core.test
+              description: Instituta app origin (no trailing slash)
 tags:
-  - name: Contract
-  - name: Meta
+    - name: Contract
+    - name: Meta
 paths:
-  /openapi.json:
-    get:
-      tags: [Meta]
-      summary: OpenAPI 3.1 document as JSON
-      operationId: getOpenApi
-      security: []
-      responses:
-        '200':
-          description: Parsed OpenAPI document
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-  /scopes:
-    get:
-      tags: [Contract]
-      summary: Who am I / visible scopes
-      operationId: getScopes
-      security:
-        - ApiKeyBearer: []
-      responses:
-        '200':
-          description: Principal, perimeter, and visible scopes
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ScopesResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-  /items:
-    get:
-      tags: [Contract]
-      summary: List item summaries inside the key perimeter
-      operationId: listItems
-      security:
-        - ApiKeyBearer: []
-      parameters:
-        - $ref: '#/components/parameters/Scope'
-        - name: area
-          in: query
-          schema:
-            type: string
-        - name: type
-          in: query
-          schema:
-            type: string
-        - name: cursor
-          in: query
-          schema:
-            type: string
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 25
-      responses:
-        '200':
-          description: Cursor-paginated item summaries (no bodies)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ItemListResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-  /items/{id}:
-    get:
-      tags: [Contract]
-      summary: Get one item by id, stable_key, or path
-      operationId: getItem
-      security:
-        - ApiKeyBearer: []
-      parameters:
-        - $ref: '#/components/parameters/ItemId'
-      responses:
-        '200':
-          description: Full item with sections and tables
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ItemDetail'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /items/{id}/outline:
-    get:
-      tags: [Contract]
-      summary: Item outline (anchors, headings, levels)
-      operationId: getItemOutline
-      security:
-        - ApiKeyBearer: []
-      parameters:
-        - $ref: '#/components/parameters/ItemId'
-      responses:
-        '200':
-          description: Outline without bodies
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /items/{id}/sections/{anchor}:
-    get:
-      tags: [Contract]
-      summary: One section by anchor
-      operationId: getItemSection
-      security:
-        - ApiKeyBearer: []
-      parameters:
-        - $ref: '#/components/parameters/ItemId'
-        - name: anchor
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Section blocks and citation
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /items/{id}/tables/{key}:
-    get:
-      tags: [Contract]
-      summary: Structured table rows
-      operationId: getItemTable
-      security:
-        - ApiKeyBearer: []
-      parameters:
-        - $ref: '#/components/parameters/ItemId'
-        - name: key
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: filter
-          in: query
-          description: JSON object of exact column matches, or repeated filter[col]=value
-          schema:
-            oneOf:
-              - type: string
-              - type: object
-                additionalProperties: true
-      responses:
-        '200':
-          description: Table columns and rows
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /items/{id}/neighbours:
-    get:
-      tags: [Contract]
-      summary: Graph neighbours of an item
-      operationId: getItemNeighbours
-      security:
-        - ApiKeyBearer: []
-      parameters:
-        - $ref: '#/components/parameters/ItemId'
-        - name: depth
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 2
-            default: 1
-      responses:
-        '200':
-          description: Nodes and edges inside the perimeter
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /search:
-    get:
-      tags: [Contract]
-      summary: Full-text search inside the perimeter
-      operationId: searchItems
-      security:
-        - ApiKeyBearer: []
-      parameters:
-        - $ref: '#/components/parameters/Scope'
-        - name: q
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: area
-          in: query
-          schema:
-            type: string
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 20
-      responses:
-        '200':
-          description: Ranked hits without full bodies
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '501':
-          description: Search driver not supported (e.g. MySQL in v0.1.0)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Message'
-  /products/{id}/resolved:
-    get:
-      tags: [Contract]
-      summary: Resolved product view with origins
-      operationId: resolveProduct
-      security:
-        - ApiKeyBearer: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: area
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Resolved keys, origins, token estimate
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+    /openapi.json:
+        get:
+            tags: [Meta]
+            summary: OpenAPI 3.1 document as JSON
+            operationId: getOpenApi
+            security: []
+            responses:
+                '200':
+                    description: Parsed OpenAPI document
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: true
+    /scopes:
+        get:
+            tags: [Contract]
+            summary: Who am I / visible scopes
+            operationId: getScopes
+            security:
+                - ApiKeyBearer: []
+            responses:
+                '200':
+                    description: Principal, perimeter, and visible scopes
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ScopesResponse'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+    /items:
+        get:
+            tags: [Contract]
+            summary: List item summaries inside the key perimeter
+            operationId: listItems
+            security:
+                - ApiKeyBearer: []
+            parameters:
+                - $ref: '#/components/parameters/Scope'
+                - name: area
+                  in: query
+                  schema:
+                      type: string
+                - name: type
+                  in: query
+                  schema:
+                      type: string
+                - name: cursor
+                  in: query
+                  schema:
+                      type: string
+                - name: limit
+                  in: query
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 25
+            responses:
+                '200':
+                    description: Cursor-paginated item summaries (no bodies)
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ItemListResponse'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '422':
+                    $ref: '#/components/responses/ValidationError'
+    /items/{id}:
+        get:
+            tags: [Contract]
+            summary: Get one item by id, stable_key, or path
+            operationId: getItem
+            security:
+                - ApiKeyBearer: []
+            parameters:
+                - $ref: '#/components/parameters/ItemId'
+            responses:
+                '200':
+                    description: Full item with sections and tables
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ItemDetail'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /items/{id}/outline:
+        get:
+            tags: [Contract]
+            summary: Item outline (anchors, headings, levels)
+            operationId: getItemOutline
+            security:
+                - ApiKeyBearer: []
+            parameters:
+                - $ref: '#/components/parameters/ItemId'
+            responses:
+                '200':
+                    description: Outline without bodies
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: true
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /items/{id}/sections/{anchor}:
+        get:
+            tags: [Contract]
+            summary: One section by anchor
+            operationId: getItemSection
+            security:
+                - ApiKeyBearer: []
+            parameters:
+                - $ref: '#/components/parameters/ItemId'
+                - name: anchor
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: Section blocks and citation
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: true
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /items/{id}/tables/{key}:
+        get:
+            tags: [Contract]
+            summary: Structured table rows
+            operationId: getItemTable
+            security:
+                - ApiKeyBearer: []
+            parameters:
+                - $ref: '#/components/parameters/ItemId'
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                - name: filter
+                  in: query
+                  description: JSON object of exact column matches, or repeated filter[col]=value
+                  schema:
+                      oneOf:
+                          - type: string
+                          - type: object
+                            additionalProperties: true
+            responses:
+                '200':
+                    description: Table columns and rows
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: true
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /items/{id}/neighbours:
+        get:
+            tags: [Contract]
+            summary: Graph neighbours of an item
+            operationId: getItemNeighbours
+            security:
+                - ApiKeyBearer: []
+            parameters:
+                - $ref: '#/components/parameters/ItemId'
+                - name: depth
+                  in: query
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 2
+                      default: 1
+            responses:
+                '200':
+                    description: Nodes and edges inside the perimeter
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GraphResponse'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+    /search:
+        get:
+            tags: [Contract]
+            summary: Full-text search inside the perimeter
+            operationId: searchItems
+            security:
+                - ApiKeyBearer: []
+            parameters:
+                - $ref: '#/components/parameters/Scope'
+                - name: q
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                - name: area
+                  in: query
+                  schema:
+                      type: string
+                - name: limit
+                  in: query
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 50
+                      default: 20
+            responses:
+                '200':
+                    description: Ranked hits without full bodies
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: true
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '422':
+                    $ref: '#/components/responses/ValidationError'
+                '501':
+                    description: Search driver not supported (e.g. MySQL in v0.1.0)
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Message'
+    /products/{id}/resolved:
+        get:
+            tags: [Contract]
+            summary: Resolved product view with origins
+            operationId: resolveProduct
+            security:
+                - ApiKeyBearer: []
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                - name: area
+                  in: query
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: Resolved keys, origins, token estimate
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: true
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
 components:
-  securitySchemes:
-    ApiKeyBearer:
-      type: http
-      scheme: bearer
-      bearerFormat: API key
-      description: Instituta API key with ability brain:read
-  parameters:
-    Scope:
-      name: scope
-      in: query
-      required: true
-      description: Must match the API key perimeter scope_id
-      schema:
-        type: string
-    ItemId:
-      name: id
-      in: path
-      required: true
-      description: Item ULID, stable_key, or path
-      schema:
-        type: string
-  responses:
-    Unauthorized:
-      description: Missing or invalid API key
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Message'
-    Forbidden:
-      description: Authenticated but missing brain:read
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Message'
-    NotFound:
-      description: Unknown id or outside perimeter (no cross-tenant leak)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Message'
-    ValidationError:
-      description: Validation failed
-      content:
-        application/json:
-          schema:
+    securitySchemes:
+        ApiKeyBearer:
+            type: http
+            scheme: bearer
+            bearerFormat: API key
+            description: Instituta API key with ability brain:read
+    parameters:
+        Scope:
+            name: scope
+            in: query
+            required: true
+            description: Must match the API key perimeter scope_id
+            schema:
+                type: string
+        ItemId:
+            name: id
+            in: path
+            required: true
+            description: Item ULID, stable_key, or path
+            schema:
+                type: string
+    responses:
+        Unauthorized:
+            description: Missing or invalid API key
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/Message'
+        Forbidden:
+            description: Authenticated but missing brain:read
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/Message'
+        NotFound:
+            description: Unknown id or outside perimeter (no cross-tenant leak)
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/Message'
+        ValidationError:
+            description: Validation failed
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            message:
+                                type: string
+                            errors:
+                                type: object
+                                additionalProperties:
+                                    type: array
+                                    items:
+                                        type: string
+    schemas:
+        Message:
             type: object
             properties:
-              message:
-                type: string
-              errors:
-                type: object
-                additionalProperties:
-                  type: array
-                  items:
+                message:
                     type: string
-  schemas:
-    Message:
-      type: object
-      properties:
-        message:
-          type: string
-      required: [message]
-    Citation:
-      type: object
-      properties:
-        source:
-          type: string
-        path:
-          type: string
-        section:
-          type: ['string', 'null']
-        commit:
-          type: ['string', 'null']
-    ItemSummary:
-      type: object
-      properties:
-        id:
-          type: string
-        stable_key:
-          type: string
-        title:
-          type: string
-        summary:
-          type: string
-        area:
-          type: string
-        type:
-          type: string
-        visibility:
-          type: string
-          enum: [public, internal, restricted]
-        origin:
-          type: object
-          additionalProperties: true
-        citation:
-          $ref: '#/components/schemas/Citation'
-    ItemDetail:
-      allOf:
-        - $ref: '#/components/schemas/ItemSummary'
-        - type: object
-          properties:
-            sections:
-              type: array
-              items:
-                type: object
-                additionalProperties: true
-            tables:
-              type: array
-              items:
-                type: object
-                additionalProperties: true
-    ItemListResponse:
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/ItemSummary'
-        next_cursor:
-          type: ['string', 'null']
-        frozen:
-          type: boolean
-        vault_version_id:
-          type: string
-        label:
-          type: string
-    ScopesResponse:
-      type: object
-      properties:
-        principal:
-          type: object
-          additionalProperties: true
-        perimeter:
-          type: object
-          additionalProperties: true
-        scopes:
-          type: array
-          items:
-            type: object
-            additionalProperties: true
-    GraphResponse:
-      type: object
-      properties:
-        nodes:
-          type: array
-          items:
+            required: [message]
+        Citation:
             type: object
             properties:
-              id:
-                type: string
-              title:
-                type: string
-              area:
-                type: string
-        edges:
-          type: array
-          items:
+                source:
+                    type: string
+                path:
+                    type: string
+                section:
+                    type: ['string', 'null']
+                commit:
+                    type: ['string', 'null']
+        ItemSummary:
             type: object
             properties:
-              from:
-                type: string
-              to:
-                type: string
-              relation:
-                type: string
+                id:
+                    type: string
+                stable_key:
+                    type: string
+                title:
+                    type: string
+                summary:
+                    type: string
+                area:
+                    type: string
+                type:
+                    type: string
+                visibility:
+                    type: string
+                    enum: [public, internal, restricted]
+                origin:
+                    type: object
+                    additionalProperties: true
+                citation:
+                    $ref: '#/components/schemas/Citation'
+        ItemDetail:
+            allOf:
+                - $ref: '#/components/schemas/ItemSummary'
+                - type: object
+                  properties:
+                      sections:
+                          type: array
+                          items:
+                              type: object
+                              additionalProperties: true
+                      tables:
+                          type: array
+                          items:
+                              type: object
+                              additionalProperties: true
+        ItemListResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ItemSummary'
+                next_cursor:
+                    type: ['string', 'null']
+                frozen:
+                    type: boolean
+                vault_version_id:
+                    type: string
+                label:
+                    type: string
+        ScopesResponse:
+            type: object
+            properties:
+                principal:
+                    type: object
+                    additionalProperties: true
+                perimeter:
+                    type: object
+                    additionalProperties: true
+                scopes:
+                    type: array
+                    items:
+                        type: object
+                        additionalProperties: true
+        GraphResponse:
+            type: object
+            properties:
+                nodes:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            id:
+                                type: string
+                            title:
+                                type: string
+                            area:
+                                type: string
+                edges:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            from:
+                                type: string
+                            to:
+                                type: string
+                            relation:
+                                type: string
