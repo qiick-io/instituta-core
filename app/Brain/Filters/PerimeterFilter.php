@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Brain\Resolvers;
+namespace App\Brain\Filters;
 
 use App\Brain\Data\PerimeterData;
 use App\Brain\Data\ResolvedEntryData;

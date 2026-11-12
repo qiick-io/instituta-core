@@ -49,6 +49,16 @@ arch('brain scanners end with Scanner')
     ->classes()
     ->toHaveSuffix('Scanner');
 
+arch('brain filters end with Filter')
+    ->expect('App\Brain\Filters')
+    ->classes()
+    ->toHaveSuffix('Filter');
+
+arch('brain resolvers end with Resolver')
+    ->expect('App\Brain\Resolvers')
+    ->classes()
+    ->toHaveSuffix('Resolver');
+
 test('brain module source avoids config env and app helpers', function (): void {
     $root = dirname(__DIR__, 2).'/app/Brain';
     $violations = [];

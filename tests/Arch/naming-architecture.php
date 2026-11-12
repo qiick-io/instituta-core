@@ -56,6 +56,7 @@ return [
         'Brain\\Readers' => 'Reader',
         'Brain\\Adapters' => 'Adapter',
         'Brain\\Resolvers' => 'Resolver',
+        'Brain\\Filters' => 'Filter',
         'Brain\\Scanners' => 'Scanner',
         'Brain\\Tools' => 'Tool',
         'Brain\\Data' => 'Data',

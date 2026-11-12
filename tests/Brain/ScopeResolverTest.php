@@ -11,7 +11,7 @@ use App\Brain\Enums\PrincipalTypeEnum;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
-use App\Brain\Resolvers\PerimeterFilter;
+use App\Brain\Filters\PerimeterFilter;
 use App\Brain\Resolvers\ScopeResolver;
 
 function entry(
