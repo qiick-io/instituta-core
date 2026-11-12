@@ -1,9 +1,10 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import { UserMenuContent } from '@/components/user-menu-content';
 import {
     Sidebar,
     SidebarContent,
@@ -13,7 +14,9 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
+import { dashboard, logout } from '@/routes';
+import { edit as editProfile } from '@/routes/profile';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -27,7 +30,7 @@ const mainNavItems: NavItem[] = [
 const footerNavItems: NavItem[] = [
     {
         title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
+        href: 'https://github.com/qiick-io/instituta-core',
         icon: FolderGit2,
     },
     {
@@ -38,6 +41,9 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage().props;
+    const cleanup = useMobileNavigation();
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -58,7 +64,16 @@ export function AppSidebar() {
 
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavUser />
+                <NavUser user={auth.user}>
+                    {auth.user ? (
+                        <UserMenuContent
+                            user={auth.user}
+                            settingsHref={editProfile()}
+                            logoutHref={logout()}
+                            onNavigate={cleanup}
+                        />
+                    ) : null}
+                </NavUser>
             </SidebarFooter>
         </Sidebar>
     );

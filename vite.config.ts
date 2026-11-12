@@ -65,6 +65,9 @@ export default defineConfig({
         htmlWhitespaceSensitivity: 'css',
         ignorePatterns: [
             'docs/**',
+            '.github/copilot-instructions.md',
+            'CLAUDE.md',
+            'AGENTS.md',
             '.github/**',
             'composer.json',
             'resources/js/components/ui/*',

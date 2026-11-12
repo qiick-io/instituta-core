@@ -32,15 +32,18 @@ yarn-error.log
 /.amp
 /.claude
 /.codex
-/.cursor
+# Cursor: track shared rules/commands only
+/.cursor/*
+!/.cursor/rules/
+!/.cursor/rules/**
+!/.cursor/commands/
+!/.cursor/commands/**
 /.factory
 /.grok
 /.junie
 /.kiro
 /.pi
 /.mcp.json
-/AGENTS.md
-/CLAUDE.md
 /boost.json
 /opencode.json
 /opencode.jsonc

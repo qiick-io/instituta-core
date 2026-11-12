@@ -1,0 +1,50 @@
+{
+    "$schema": "https://unpkg.com/knip@6/schema.json",
+    "entry": ["resources/js/app.tsx", "resources/js/pages/**/*.tsx"],
+    "project": ["resources/js/**/*.{ts,tsx}"],
+    "ignore": [
+        "resources/js/actions/**",
+        "resources/js/components/admin/user-avatar.tsx",
+        "resources/js/components/app-header.tsx",
+        "resources/js/components/layout/page-header.tsx",
+        "resources/js/components/layout/page-layout.tsx",
+        "resources/js/components/realtime/connection-dot.tsx",
+        "resources/js/components/ui/**",
+        "resources/js/components/user-menu-content.tsx",
+        "resources/js/hooks/use-flash-toast.ts",
+        "resources/js/hooks/use-initials.tsx",
+        "resources/js/hooks/use-mobile-navigation.ts",
+        "resources/js/hooks/use-scroll-region.ts",
+        "resources/js/layouts/app/app-header-layout.tsx",
+        "resources/js/layouts/auth/auth-card-layout.tsx",
+        "resources/js/layouts/auth/auth-split-layout.tsx",
+        "resources/js/lib/avatar-tone.ts",
+        "resources/js/lib/list-per-page.ts",
+        "resources/js/lib/live-announcer.ts",
+        "resources/js/lib/scroll-cue.ts",
+        "resources/js/lib/toast.ts",
+        "resources/js/routes/**",
+        "resources/js/types/auth.ts",
+        "resources/js/types/ui.ts",
+        "resources/js/wayfinder/**"
+    ],
+    "ignoreDependencies": [
+        "concurrently",
+        "@radix-ui/react-avatar",
+        "@radix-ui/react-collapsible",
+        "@radix-ui/react-dropdown-menu",
+        "@radix-ui/react-navigation-menu",
+        "@radix-ui/react-select",
+        "@radix-ui/react-separator",
+        "@radix-ui/react-slot",
+        "@radix-ui/react-toggle",
+        "@radix-ui/react-toggle-group",
+        "@radix-ui/react-tooltip"
+    ],
+    "ignoreBinaries": ["oxlint"],
+    "ignoreExportsUsedInFile": true,
+    "ignoreIssues": {
+        "resources/js/types/auth.ts": ["types"],
+        "resources/js/types/ui.ts": ["types"]
+    }
+}
