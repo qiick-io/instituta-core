@@ -1,0 +1,115 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Brain\Enums\RoleEnum;
+use App\Brain\Enums\ScopeTypeEnum;
+use App\Brain\Enums\VisibilityEnum;
+use App\Enums\ApiKeyAbilityEnum;
+use App\Models\ApiKey;
+use App\Models\Principal;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+use InvalidArgumentException;
+
+/**
+ * Creates, lists and revokes API keys. Plain secret is shown once.
+ */
+final class ApiKeyIssuerService
+{
+    public function __construct(
+        private readonly PerimeterResolverService $perimeters = new PerimeterResolverService,
+    ) {}
+
+    /**
+     * @param  list<string>  $abilities
+     * @param  list<string>|null  $ipAllowlist
+     * @return array{key: ApiKey, plain: string}
+     */
+    public function create(
+        Principal $principal,
+        string $name,
+        ScopeTypeEnum $scopeType,
+        string $scopeId,
+        RoleEnum $role,
+        VisibilityEnum $maxVisibility,
+        array $abilities = [ApiKeyAbilityEnum::BrainRead->value],
+        ?array $ipAllowlist = null,
+        ?\DateTimeInterface $expiresAt = null,
+    ): array {
+        if (in_array(ApiKeyAbilityEnum::BrainWrite->value, $abilities, true)) {
+            throw new InvalidArgumentException('Ability brain:write is refused in the MVP.');
+        }
+
+        if ($abilities === []) {
+            $abilities = [ApiKeyAbilityEnum::BrainRead->value];
+        }
+
+        $secret = $this->makeSecret();
+
+        $key = new ApiKey([
+            'name' => $name,
+            'prefix' => ApiKey::DEFAULT_PREFIX,
+            'hash' => $secret['hash'],
+            'display_prefix' => $secret['display_prefix'],
+            'principal_id' => $principal->id,
+            'scope_type' => $scopeType,
+            'scope_id' => $scopeId,
+            'role' => $role,
+            'max_visibility' => $maxVisibility,
+            'abilities' => $abilities,
+            'ip_allowlist' => $ipAllowlist,
+            'expires_at' => $expiresAt,
+        ]);
+
+        // Validate perimeter before persisting.
+        $this->perimeters->fromApiKey($key->setRelation('principal', $principal));
+        $key->save();
+
+        return ['key' => $key, 'plain' => $secret['plain']];
+    }
+
+    /**
+     * @return Collection<int, ApiKey>
+     */
+    public function listForPrincipal(Principal $principal): Collection
+    {
+        return $principal->apiKeys()->orderByDesc('created_at')->get();
+    }
+
+    public function revoke(ApiKey $key): ApiKey
+    {
+        if ($key->revoked_at === null) {
+            $key->forceFill(['revoked_at' => now()])->save();
+        }
+
+        return $key;
+    }
+
+    public function findByPlainSecret(string $plain): ?ApiKey
+    {
+        /** @var ApiKey|null $key */
+        $key = ApiKey::query()
+            ->where('hash', hash('sha256', $plain))
+            ->first();
+
+        return $key;
+    }
+
+    /**
+     * @return array{plain: string, display_prefix: string, hash: string}
+     */
+    public function makeSecret(string $prefix = ApiKey::DEFAULT_PREFIX): array
+    {
+        $plain = $prefix.Str::random(40);
+        $displayPrefix = substr($plain, 0, 12);
+
+        return [
+            'plain' => $plain,
+            'display_prefix' => $displayPrefix,
+            'hash' => hash('sha256', $plain),
+        ];
+    }
+}
