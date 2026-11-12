@@ -52,12 +52,14 @@ return [
     ],
 
     'suffixes' => [
-        // Brain module roles (kickoff §2.1); empty until the module lands.
+        // Brain module roles (kickoff §2.1).
         'Brain\\Readers' => 'Reader',
         'Brain\\Adapters' => 'Adapter',
         'Brain\\Resolvers' => 'Resolver',
         'Brain\\Scanners' => 'Scanner',
         'Brain\\Tools' => 'Tool',
+        'Brain\\Data' => 'Data',
+        'Brain\\Exceptions' => 'Exception',
     ],
 
     'controllerPublicMethods' => [],

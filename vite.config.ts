@@ -78,6 +78,9 @@ export default defineConfig({
             'resources/js/components/admin/*',
             'resources/js/components/realtime/*',
             'resources/views/mail/*',
+            // Synthetic brain corpora: oxfmt must not rewrite fixture bodies
+            // (e.g. PEM fences that look like markdown frontmatter).
+            'tests/Brain/Fixtures/**',
         ],
         sortTailwindcss: {
             functions: ['clsx', 'cn', 'cva'],
