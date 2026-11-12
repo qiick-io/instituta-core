@@ -1,18 +1,18 @@
 {
-  "name": "fixture-ui",
-  "items": [
-    {
-      "name": "button",
-      "type": "registry:ui",
-      "title": "Button",
-      "description": "A button component.",
-      "categories": ["forms"]
-    },
-    {
-      "name": "card",
-      "type": "registry:ui",
-      "title": "Card",
-      "description": "A card container."
-    }
-  ]
+    "name": "fixture-ui",
+    "items": [
+        {
+            "name": "button",
+            "type": "registry:ui",
+            "title": "Button",
+            "description": "A button component.",
+            "categories": ["forms"]
+        },
+        {
+            "name": "card",
+            "type": "registry:ui",
+            "title": "Card",
+            "description": "A card container."
+        }
+    ]
 }

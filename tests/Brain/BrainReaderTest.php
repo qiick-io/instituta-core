@@ -134,5 +134,9 @@ it('reports path hygiene skips for vendor and env files', function (): void {
 
     expect($scanner->skipReasonForPath('vendor/autoload.php'))->toStartWith('path_hygiene:')
         ->and($scanner->skipReasonForPath('apps/.env.local'))->toStartWith('path_hygiene:')
-        ->and($scanner->skipReasonForContent('hello world'))->toBeNull();
+        ->and($scanner->skipReasonForContent('hello world'))->toBeNull()
+        ->and($scanner->skipReasonForContent('TOKEN=ghp_abcdefghijklmnopqrstuvwxyz0123456789'))->toBe('secret_pii:api_token')
+        ->and($scanner->skipReasonForContent('export DB_PASSWORD=s3cret'))->toBe('secret_pii:env_assignment')
+        ->and($scanner->skipReasonForContent('clone https://user:pass@example.com/repo.git'))->toBe('secret_pii:password_in_url')
+        ->and($scanner->skipReasonForContent('Call +1 415-555-2671 tomorrow'))->toBe('secret_pii:phone_number');
 });
