@@ -30,9 +30,11 @@ import {
 } from '@/components/ui/tooltip';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
-import { dashboard } from '@/routes';
+import { dashboard, logout } from '@/routes';
+import { edit as editProfile } from '@/routes/profile';
 import type { BreadcrumbItem, NavItem } from '@/types';
 
 type Props = {
@@ -67,6 +69,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     const page = usePage();
     const { auth } = page.props;
     const getInitials = useInitials();
+    const cleanup = useMobileNavigation();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
 
     return (
@@ -229,7 +232,12 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-56" align="end">
                                 {auth.user && (
-                                    <UserMenuContent user={auth.user} />
+                                    <UserMenuContent
+                                        user={auth.user}
+                                        settingsHref={editProfile()}
+                                        logoutHref={logout()}
+                                        onNavigate={cleanup}
+                                    />
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>

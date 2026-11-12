@@ -1,4 +1,195 @@
 {
+    "a11y": {
+        "breadcrumb": "Breadcrumb",
+        "close": "Close",
+        "loading": "Loading",
+        "moreActions": "More actions",
+        "notifications": "Notifications",
+        "notificationsUnread": "Notifications, {{count}} unread",
+        "saving": "Saving",
+        "scrollableTable": "Scrollable table",
+        "search": "Search",
+        "toggleSidebar": "Toggle sidebar",
+        "unreadCount": "{{count}} unread"
+    },
+    "ai": {
+        "fabDescription": "Quick assistant drawer. Open the full page for history.",
+        "fabTitle": "New chat",
+        "openFullPage": "Open full page",
+        "reasoning": {
+            "thinking": "Thinking…",
+            "thoughtFewSeconds": "Thought for a few seconds",
+            "thoughtFor_one": "Thought for {{count}} second",
+            "thoughtFor_other": "Thought for {{count}} seconds"
+        },
+        "sources": {
+            "used_one": "Used {{count}} source",
+            "used_other": "Used {{count}} sources"
+        },
+        "tool": {
+            "title": {
+                "running": "Using {{tool}}",
+                "done": "Used {{tool}}",
+                "error": "Could not use {{tool}}",
+                "denied": "Denied {{tool}}",
+                "approval": "{{tool}} needs your approval"
+            },
+            "provider": {
+                "web_search": "Searched the web"
+            },
+            "steps_one": "Done in {{count}} step",
+            "steps_other": "Done in {{count}} steps",
+            "stepsRunning_one": "Working, {{count}} step so far",
+            "stepsRunning_other": "Working, {{count}} steps so far"
+        },
+        "usage": {
+            "cache": "Cache",
+            "input": "Input",
+            "output": "Output",
+            "reasoning": "Reasoning",
+            "trigger": "Context used: {{percent}}"
+        },
+        "approval": {
+            "approve": "Approve",
+            "reject": "Reject"
+        }
+    },
+    "chat": {
+        "download": "Download",
+        "more": "More",
+        "pinned": "Pinned messages",
+        "reactionToggle": "{{emoji}} reaction: {{names}}",
+        "removePendingFile": "Remove file"
+    },
+    "commandPalette": {
+        "description": "Search pages, records and actions.",
+        "empty": "No results.",
+        "open": "Open the command palette",
+        "placeholder": "Search or jump to…",
+        "recent": "Recent",
+        "searchFailed": "Search failed. Showing local results only.",
+        "searching": "Searching…",
+        "title": "Command palette",
+        "trigger": "Search"
+    },
+    "common": {
+        "cancel": "Cancel",
+        "clearFilters": "Clear filters",
+        "delete": "Delete",
+        "noResults": "No results.",
+        "offline": "Offline",
+        "online": "Online",
+        "pageRange": "{{from}}–{{to}} of {{total}}",
+        "perPageOption": "{{count}} / page",
+        "rowsPerPage": "Rows per page",
+        "save": "Save",
+        "saved": "Saved",
+        "selectedCount": "{{count}} selected",
+        "sortAscending": "Sort ascending",
+        "sortDescending": "Sort descending"
+    },
+    "confirmDestructive": {
+        "typeToConfirm": "Type \"{{name}}\" to confirm"
+    },
+    "files": {
+        "card": {
+            "select": "Select {{name}}",
+            "moreActions": "More actions for {{name}}",
+            "tagsMenu_one": "{{count}} tag on {{name}}",
+            "tagsMenu_other": "{{count}} tags on {{name}}"
+        },
+        "loadMore": "Load more",
+        "loading": "Loading…"
+    },
+    "dateRangePicker": {
+        "startTime": "Start time",
+        "endTime": "End time",
+        "apply": "Apply"
+    },
+    "inbox": {
+        "detailDescription": "Item details and actions.",
+        "nextStep": "What to do",
+        "openFullPage": "Open full page",
+        "savedViews": "Saved views"
+    },
+    "picker": {
+        "clearSelection": "Clear selection",
+        "loading": "Loading…",
+        "noResults": "No results.",
+        "placeholder": "Select…",
+        "search": "Search…"
+    },
+    "realtime": {
+        "connected": "Realtime connected",
+        "connecting": "Connecting…",
+        "disabled": "Realtime off",
+        "offline": "Realtime offline"
+    },
+    "settings": {
+        "appearance": {
+            "dark": "Dark",
+            "light": "Light",
+            "system": "System"
+        }
+    },
+    "shortcuts": {
+        "description": "Shortcuts active on this screen.",
+        "groupGeneral": "General",
+        "groupList": "List",
+        "groupNavigation": "Navigation",
+        "showHelp": "Show keyboard shortcuts",
+        "singleKeyOff": "Single-key shortcuts are off in your settings; ⌘ / Ctrl shortcuts still work.",
+        "title": "Keyboard shortcuts"
+    },
+    "sidebarEntities": {
+        "filter": "Filter navigation",
+        "filterPlaceholder": "Filter…",
+        "needsAttention": "Needs attention",
+        "pin": "Pin {{name}}",
+        "pinHint": "Pin a project with the star to keep it here.",
+        "pinned": "Pinned",
+        "status": {
+            "good": "Healthy",
+            "warning": "Has warnings",
+            "critical": "Has critical problems"
+        },
+        "unpin": "Unpin {{name}}",
+        "viewAll": "View all"
+    },
+    "userMenu": {
+        "accessibility": "Accessibility",
+        "accessibilityOff": "Off",
+        "accessibilityOnCount": "{{count}} on",
+        "appearance": "Appearance",
+        "highContrast": "High contrast",
+        "language": "Language",
+        "logOut": "Log out",
+        "reduceMotion": "Reduce motion",
+        "settings": "Settings"
+    },
+    "viewTabs": {
+        "severity": {
+            "critical": "Has critical problems",
+            "warning": "Has warnings"
+        }
+    },
+    "tableDensity": {
+        "comfortable": "Comfortable",
+        "compact": "Compact",
+        "label": "Table density"
+    },
+    "notifications": {
+        "title": "Notifications",
+        "description": "Updates for you, newest first.",
+        "loading": "Loading…",
+        "empty": "No notifications yet.",
+        "loadFailed": "The notifications could not be loaded. Try again later.",
+        "updateFailed": "The notification could not be updated.",
+        "untitled": "Notification",
+        "markAllRead": "Mark all as read",
+        "markRead": "Mark as read",
+        "markUnread": "Mark as unread"
+    },
     "app": {
         "name": "Instituta"
     }

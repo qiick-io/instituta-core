@@ -1,0 +1,9 @@
+{
+    "$comment": "qiick standards pack: https://github.com/qiick-io/app-ui/tree/develop/standards",
+    "ref": "v0.6.1",
+    "uiPreset": "Teal",
+    "php": true,
+    "frontendRoots": ["resources/js"],
+    "oxlint": true,
+    "app": true
+}

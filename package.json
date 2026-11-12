@@ -9,9 +9,16 @@
         "dev": "vp dev",
         "check": "vp check",
         "check:fix": "vp check --fix",
-        "types:check": "tsc --noEmit"
+        "types:check": "tsc --noEmit",
+        "types": "tsc --noEmit",
+        "knip": "knip",
+        "lint": "vp check && node scripts/check-ui-tokens.mjs",
+        "lint:i18n": "oxlint -c .oxlintrc.i18n.json -A all -f json resources/js | node scripts/qiick-ratchet.mjs lint --rule i18next/no-literal-string --baseline i18n-literal-baseline.json",
+        "lint:standards": "oxlint -c .oxlintrc.standards.json -f json resources/js | node scripts/qiick-ratchet.mjs lint --rule eslint/no-restricted-imports,eslint/no-restricted-properties,eslint/id-length --baseline qiick-lint-baseline.json",
+        "lint:ui-tokens": "node scripts/check-ui-tokens.mjs"
     },
     "dependencies": {
+        "@inertiajs/core": "^3.11.0",
         "@inertiajs/react": "^3.0.0",
         "@inertiajs/vite": "^3.0.0",
         "@laravel/passkeys": "^0.2.0",
@@ -39,6 +46,7 @@
         "input-otp": "^1.4.2",
         "laravel-vite-plugin": "^3.0.0",
         "lucide-react": "^0.475.0",
+        "radix-ui": "^1.8.1",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
         "react-i18next": "^18.0.1",
@@ -54,6 +62,8 @@
         "@rolldown/plugin-babel": "^0.2.3",
         "@types/node": "^22.13.5",
         "babel-plugin-react-compiler": "^1.0.0",
+        "eslint-plugin-i18next": "^6.1.5",
+        "knip": "^6.45.1",
         "vite-plus": "1.4.0"
     },
     "optionalDependencies": {
