@@ -42,6 +42,7 @@ class SourceFactory extends Factory
             'last_synced_commit' => null,
             'sync_status' => SyncStatusEnum::Idle,
             'last_synced_at' => null,
+            'last_sync_report' => null,
         ];
     }
 
