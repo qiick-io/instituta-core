@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Actions\CreateApiKeyAction;
+use App\Actions\RevokeApiKeyAction;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
@@ -15,7 +17,6 @@ use App\Models\Source;
 use App\Models\User;
 use App\Models\VaultVersion;
 use App\Services\ActivityEventLoggerService;
-use App\Services\ApiKeyIssuerService;
 use App\Services\ClientExportService;
 use App\Services\ContextFreezeService;
 use App\Services\PrincipalLifecycleService;
@@ -108,8 +109,9 @@ it('logs grant creation and principal deactivation', function (): void {
 it('logs api key create and revoke with organisation stamp', function (): void {
     ['org' => $org, 'principal' => $principal] = activityOwnerContext();
 
-    $issuer = app(ApiKeyIssuerService::class);
-    $created = $issuer->create(
+    $issuer = app(CreateApiKeyAction::class);
+    $revoke = app(RevokeApiKeyAction::class);
+    $created = $issuer->execute(
         principal: $principal,
         name: 'audit-key',
         scopeType: ScopeTypeEnum::Organisation,
@@ -123,7 +125,7 @@ it('logs api key create and revoke with organisation stamp', function (): void {
         ->where('organisation_id', $org->id)
         ->exists())->toBeTrue();
 
-    $issuer->revoke($created['key']);
+    $revoke->execute($created['key']);
 
     expect(Activity::query()
         ->where('event', 'api_key.revoked')

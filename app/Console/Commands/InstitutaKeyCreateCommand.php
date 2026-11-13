@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Actions\CreateApiKeyAction;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Models\Principal;
-use App\Services\ApiKeyIssuerService;
 use Illuminate\Console\Command;
 use InvalidArgumentException;
 
@@ -25,7 +25,7 @@ class InstitutaKeyCreateCommand extends Command
 
     protected $description = 'Create an API key (plain secret shown once)';
 
-    public function handle(ApiKeyIssuerService $issuer): int
+    public function handle(CreateApiKeyAction $createApiKey): int
     {
         $principal = Principal::query()->find($this->argument('principal'));
         if ($principal === null) {
@@ -47,7 +47,7 @@ class InstitutaKeyCreateCommand extends Command
             $role = RoleEnum::from((string) $this->option('role'));
             $visibility = VisibilityEnum::from((string) $this->option('max-visibility'));
             $expires = $this->option('expires-at');
-            $result = $issuer->create(
+            $result = $createApiKey->execute(
                 principal: $principal,
                 name: $name,
                 scopeType: $scopeType,

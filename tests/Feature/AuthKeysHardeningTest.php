@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Actions\CreateApiKeyAction;
+use App\Actions\RevokeApiKeyAction;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
@@ -12,7 +14,6 @@ use App\Models\Grant;
 use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\User;
-use App\Services\ApiKeyIssuerService;
 use App\Services\PrincipalLifecycleService;
 use Illuminate\Support\Facades\File;
 use Spatie\Activitylog\Models\Activity;
@@ -87,8 +88,9 @@ it('rejects expired and revoked keys on REST', function (): void {
         'max_visibility' => VisibilityEnum::Restricted,
     ]);
 
-    $issuer = app(ApiKeyIssuerService::class);
-    $expired = $issuer->create(
+    $issuer = app(CreateApiKeyAction::class);
+    $revoke = app(RevokeApiKeyAction::class);
+    $expired = $issuer->execute(
         principal: $principal,
         name: 'expired',
         scopeType: ScopeTypeEnum::Organisation,
@@ -98,7 +100,7 @@ it('rejects expired and revoked keys on REST', function (): void {
     );
     $expired['key']->forceFill(['expires_at' => now()->subMinute()])->save();
 
-    $revoked = $issuer->create(
+    $revoked = $issuer->execute(
         principal: $principal,
         name: 'revoked',
         scopeType: ScopeTypeEnum::Organisation,
@@ -106,7 +108,7 @@ it('rejects expired and revoked keys on REST', function (): void {
         role: RoleEnum::Owner,
         maxVisibility: VisibilityEnum::Restricted,
     );
-    $issuer->revoke($revoked['key']);
+    $revoke->execute($revoked['key']);
 
     $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer '.$expired['plain']])
         ->assertUnauthorized();
@@ -129,8 +131,9 @@ it('rejects expired and revoked keys on MCP', function (): void {
         'max_visibility' => VisibilityEnum::Restricted,
     ]);
 
-    $issuer = app(ApiKeyIssuerService::class);
-    $expired = $issuer->create(
+    $issuer = app(CreateApiKeyAction::class);
+    $revoke = app(RevokeApiKeyAction::class);
+    $expired = $issuer->execute(
         principal: $principal,
         name: 'mcp-expired',
         scopeType: ScopeTypeEnum::Organisation,
@@ -140,7 +143,7 @@ it('rejects expired and revoked keys on MCP', function (): void {
     );
     $expired['key']->forceFill(['expires_at' => now()->subHour()])->save();
 
-    $revoked = $issuer->create(
+    $revoked = $issuer->execute(
         principal: $principal,
         name: 'mcp-revoked',
         scopeType: ScopeTypeEnum::Organisation,
@@ -148,7 +151,7 @@ it('rejects expired and revoked keys on MCP', function (): void {
         role: RoleEnum::Owner,
         maxVisibility: VisibilityEnum::Restricted,
     );
-    $issuer->revoke($revoked['key']);
+    $revoke->execute($revoked['key']);
 
     $payload = [
         'jsonrpc' => '2.0',
@@ -183,7 +186,7 @@ it('rejects REST after principal deactivation cascade', function (): void {
         'max_visibility' => VisibilityEnum::Restricted,
     ]);
 
-    $issued = app(ApiKeyIssuerService::class)->create(
+    $issued = app(CreateApiKeyAction::class)->execute(
         principal: $person,
         name: 'live',
         scopeType: ScopeTypeEnum::Organisation,

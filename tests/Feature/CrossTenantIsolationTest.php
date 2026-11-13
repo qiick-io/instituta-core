@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\CreateApiKeyAction;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
@@ -21,7 +22,6 @@ use App\Models\Product;
 use App\Models\Proposal;
 use App\Models\Source;
 use App\Models\User;
-use App\Services\ApiKeyIssuerService;
 use App\Services\ClientExportService;
 use App\Services\IndexedContractService;
 use App\Services\PerimeterResolverService;
@@ -69,7 +69,7 @@ function isolationSeed(): array
         'role' => RoleEnum::Owner,
         'max_visibility' => VisibilityEnum::Restricted,
     ]);
-    $keyA = app(ApiKeyIssuerService::class)->create(
+    $keyA = app(CreateApiKeyAction::class)->execute(
         principal: $principalA,
         name: 'tenant-a',
         scopeType: ScopeTypeEnum::Organisation,
@@ -137,7 +137,7 @@ function isolationSeed(): array
         'role' => RoleEnum::Owner,
         'max_visibility' => VisibilityEnum::Restricted,
     ]);
-    $keyB = app(ApiKeyIssuerService::class)->create(
+    $keyB = app(CreateApiKeyAction::class)->execute(
         principal: $principalB,
         name: 'tenant-b',
         scopeType: ScopeTypeEnum::Organisation,

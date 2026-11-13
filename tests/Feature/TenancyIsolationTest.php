@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Actions\CreateApiKeyAction;
+use App\Actions\RevokeApiKeyAction;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
@@ -12,7 +14,6 @@ use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\Product;
 use App\Models\Source;
-use App\Services\ApiKeyIssuerService;
 use App\Services\PerimeterResolverService;
 use App\Services\PrincipalLifecycleService;
 
@@ -83,8 +84,9 @@ it('isolates overlapping company and product slugs across organisations', functi
         'max_visibility' => VisibilityEnum::Restricted,
     ]);
 
-    $issuer = app(ApiKeyIssuerService::class);
-    $created = $issuer->create(
+    $issuer = app(CreateApiKeyAction::class);
+    $revoke = app(RevokeApiKeyAction::class);
+    $created = $issuer->execute(
         principal: $principalA,
         name: 'owner-a',
         scopeType: ScopeTypeEnum::Organisation,
@@ -126,8 +128,9 @@ it('stops keys when the owning person principal is deactivated', function (): vo
         'max_visibility' => VisibilityEnum::Internal,
     ]);
 
-    $issuer = app(ApiKeyIssuerService::class);
-    $personKey = $issuer->create(
+    $issuer = app(CreateApiKeyAction::class);
+    $revoke = app(RevokeApiKeyAction::class);
+    $personKey = $issuer->execute(
         principal: $person,
         name: 'person',
         scopeType: ScopeTypeEnum::Organisation,
@@ -135,7 +138,7 @@ it('stops keys when the owning person principal is deactivated', function (): vo
         role: RoleEnum::Owner,
         maxVisibility: VisibilityEnum::Restricted,
     )['key'];
-    $agentKey = $issuer->create(
+    $agentKey = $issuer->execute(
         principal: $agent,
         name: 'agent',
         scopeType: ScopeTypeEnum::Organisation,
@@ -198,7 +201,7 @@ it('refuses brain:write ability on issue', function (): void {
         'max_visibility' => VisibilityEnum::Restricted,
     ]);
 
-    expect(fn () => app(ApiKeyIssuerService::class)->create(
+    expect(fn () => app(CreateApiKeyAction::class)->execute(
         principal: $principal,
         name: 'bad',
         scopeType: ScopeTypeEnum::Organisation,
