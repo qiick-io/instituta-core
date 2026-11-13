@@ -664,9 +664,32 @@
             "event": "Event",
             "causer": "Causer",
             "dateFrom": "From",
-            "dateTo": "To"
+            "dateTo": "To",
+            "allCausers": "All users",
+            "allEvents": "All actions",
+            "allLogs": "All logs"
         },
-        "ip": "IP"
+        "ip": "IP",
+        "colDescription": "Description",
+        "expand": "Expand changes",
+        "collapse": "Collapse changes",
+        "system": "System",
+        "noChanges": "No field changes recorded.",
+        "events": {
+            "created": "Created",
+            "updated": "Updated",
+            "deleted": "Deleted",
+            "restored": "Restored",
+            "login": "Login",
+            "logout": "Logout",
+            "failed": "Failed login"
+        },
+        "logs": {
+            "default": "Application",
+            "auth": "Authentication",
+            "settings": "Settings",
+            "ai": "AI"
+        }
     },
     "users": {
         "confirm": {
@@ -780,6 +803,12 @@
             "title": "No proposals in this filter",
             "description": "Write proposals for the current scope show up here.",
             "filteredTitle": "No matching proposals",
+            "filteredDescription": "Try a different search or clear filters."
+        },
+        "activity": {
+            "title": "No activity yet",
+            "description": "Organisation audit entries appear here as people use the product.",
+            "filteredTitle": "No matching activity",
             "filteredDescription": "Try a different search or clear filters."
         }
     }

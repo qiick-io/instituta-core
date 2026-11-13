@@ -664,9 +664,32 @@
             "event": "Ereignis",
             "causer": "Verursacher",
             "dateFrom": "Von",
-            "dateTo": "Bis"
+            "dateTo": "Bis",
+            "allCausers": "Alle Benutzer",
+            "allEvents": "Alle Aktionen",
+            "allLogs": "Alle Logs"
         },
-        "ip": "IP"
+        "ip": "IP",
+        "colDescription": "Beschreibung",
+        "expand": "Änderungen aufklappen",
+        "collapse": "Änderungen einklappen",
+        "system": "System",
+        "noChanges": "Keine Feldänderungen erfasst.",
+        "events": {
+            "created": "Erstellt",
+            "updated": "Aktualisiert",
+            "deleted": "Gelöscht",
+            "restored": "Wiederhergestellt",
+            "login": "Anmeldung",
+            "logout": "Abmeldung",
+            "failed": "Fehlgeschlagene Anmeldung"
+        },
+        "logs": {
+            "default": "Anwendung",
+            "auth": "Authentifizierung",
+            "settings": "Einstellungen",
+            "ai": "KI"
+        }
     },
     "users": {
         "confirm": {
@@ -780,6 +803,12 @@
             "title": "Keine Vorschläge in diesem Filter",
             "description": "Schreibvorschläge für den aktuellen Scope erscheinen hier.",
             "filteredTitle": "Keine passenden Vorschläge",
+            "filteredDescription": "Andere Suche versuchen oder Filter zurücksetzen."
+        },
+        "activity": {
+            "title": "Noch keine Aktivität",
+            "description": "Organisations-Audit-Einträge erscheinen hier, wenn das Produkt genutzt wird.",
+            "filteredTitle": "Keine passende Aktivität",
             "filteredDescription": "Andere Suche versuchen oder Filter zurücksetzen."
         }
     }
