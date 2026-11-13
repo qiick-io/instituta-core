@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { reading, tree } from '@/routes/brain';
 
 type TreeItem = {
     id: string;
@@ -66,7 +67,7 @@ export default function BrainTree({
                                         })}
                                     </Badge>
                                     <Link
-                                        href="/brain/tree"
+                                        href={tree.url()}
                                         className="text-sm text-muted-foreground underline-offset-4 hover:underline"
                                     >
                                         {t('brain.tree.clearArea')}
@@ -95,7 +96,9 @@ export default function BrainTree({
                                             {group.items.map((item) => (
                                                 <li key={item.id}>
                                                     <Link
-                                                        href={`/brain/items/${encodeURIComponent(item.id)}`}
+                                                        href={reading.url(
+                                                            item.id,
+                                                        )}
                                                         className={cn(
                                                             'flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-muted/40',
                                                         )}
@@ -135,7 +138,7 @@ BrainTree.layout = {
     breadcrumbs: [
         {
             title: 'Tree',
-            href: '/brain/tree',
+            href: tree.url(),
         },
     ],
 };

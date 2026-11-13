@@ -21,6 +21,7 @@ import { listPerPageQuery } from '@/lib/list-per-page';
 import { normalizePaginated } from '@/lib/pagination';
 import type { LaravelPaginated } from '@/lib/pagination';
 import type { BreadcrumbItem, Paginated } from '@/types';
+import { index as activityIndex } from '@/routes/activity';
 
 type CauserOption = {
     id: number;
@@ -94,7 +95,7 @@ export default function ActivityIndex({
         () => [
             {
                 title: t('activity.title'),
-                href: '/activity',
+                href: activityIndex.url(),
             },
         ],
         [t],
@@ -122,7 +123,7 @@ export default function ActivityIndex({
                 overrides.date_to !== undefined ? overrides.date_to : dateTo;
 
             router.get(
-                '/activity',
+                activityIndex.url(),
                 {
                     search: nextSearch || undefined,
                     causer_id: nextCauserId || undefined,

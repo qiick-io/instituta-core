@@ -24,6 +24,8 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+import { tree } from '@/routes/brain';
+import { show as tablesShow } from '@/routes/brain/tables';
 
 function cellText(value: unknown): string {
     if (value === null || value === undefined) {
@@ -304,7 +306,10 @@ export default function BrainReading({ item }: Props) {
                                                     {table.table_key}
                                                 </h3>
                                                 <Link
-                                                    href={`/brain/tables/${encodeURIComponent(item.id)}/${encodeURIComponent(table.table_key)}`}
+                                                    href={tablesShow.url({
+                                                        item: item.id,
+                                                        table: table.table_key,
+                                                    })}
                                                     className="text-sm text-muted-foreground underline-offset-4 hover:underline"
                                                 >
                                                     {t(
@@ -370,7 +375,7 @@ BrainReading.layout = {
     breadcrumbs: [
         {
             title: 'Tree',
-            href: '/brain/tree',
+            href: tree.url(),
         },
         {
             title: 'Reading',

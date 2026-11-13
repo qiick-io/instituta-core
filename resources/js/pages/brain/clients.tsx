@@ -37,6 +37,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useDrawerDeepLink } from '@/hooks/use-drawer-deep-link';
+import { scope } from '@/routes/brain';
 import clientsRoutes from '@/routes/brain/clients';
 import type { BreadcrumbItem } from '@/types';
 
@@ -62,7 +63,7 @@ type Props = {
 
 function switchScope(scopeType: string, scopeId: string): void {
     router.post(
-        '/brain/scope',
+        scope.url(),
         {
             scope_type: scopeType,
             scope_id: scopeId,

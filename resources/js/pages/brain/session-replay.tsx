@@ -34,6 +34,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { sessionReplay } from '@/routes/brain';
 type PrincipalOption = {
     id: string;
     name: string;
@@ -117,7 +118,7 @@ function visitWith(
     overrides: Partial<Filters> & { page?: number; per_page?: number },
 ): void {
     router.get(
-        '/brain/session-replay',
+        sessionReplay.url(),
         {
             ...filters,
             ...overrides,
@@ -518,7 +519,7 @@ BrainSessionReplay.layout = {
     breadcrumbs: [
         {
             title: 'Session replay',
-            href: '/brain/session-replay',
+            href: sessionReplay.url(),
         },
     ],
 };

@@ -24,6 +24,7 @@ import {
 } from '@/lib/brain-graph-layout';
 import { cn } from '@/lib/utils';
 import '@xyflow/react/dist/style.css';
+import { reading } from '@/routes/brain';
 
 type BrainGraphNodeData = {
     title: string;
@@ -50,7 +51,7 @@ function BrainGraphNode({ id, data, selected }: NodeProps<BrainGraphFlowNode>) {
             onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
-                    router.visit(`/brain/items/${encodeURIComponent(id)}`);
+                    router.visit(reading.url(id));
                 }
             }}
         >
@@ -138,7 +139,7 @@ function BrainGraphCanvasInner({ rootId, nodes, edges }: Props) {
                 maxZoom={1.5}
                 proOptions={{ hideAttribution: true }}
                 onNodeClick={(_event, node) => {
-                    router.visit(`/brain/items/${encodeURIComponent(node.id)}`);
+                    router.visit(reading.url(node.id));
                 }}
             >
                 <Background
