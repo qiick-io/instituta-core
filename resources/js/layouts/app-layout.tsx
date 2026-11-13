@@ -1,15 +1,19 @@
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
-import type { BreadcrumbItem } from '@/types';
+import type { AppLayoutProps } from '@/types';
 
+/**
+ * Authenticated app layout wrapper. Passes header actions through to the sidebar shell.
+ */
 export default function AppLayout({
     breadcrumbs = [],
     children,
-}: {
-    breadcrumbs?: BreadcrumbItem[];
-    children: React.ReactNode;
-}) {
+    headerActions,
+}: AppLayoutProps) {
     return (
-        <AppLayoutTemplate breadcrumbs={breadcrumbs}>
+        <AppLayoutTemplate
+            breadcrumbs={breadcrumbs}
+            headerActions={headerActions}
+        >
             {children}
         </AppLayoutTemplate>
     );

@@ -11,11 +11,15 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { PermissionEnum } from '@/enums/permission-enum';
+import { useCan } from '@/hooks/use-can';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useScrollRegion } from '@/hooks/use-scroll-region';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
+import permissions from '@/routes/permissions';
 import { edit } from '@/routes/profile';
+import roles from '@/routes/roles';
 import { edit as editSecurity } from '@/routes/security';
 import { index as sessions } from '@/routes/sessions';
 import type { NavItem } from '@/types';
@@ -24,19 +28,20 @@ const DEFAULT_REPORT_BUG_URL =
     'https://github.com/qiick-io/instituta-core/issues/new';
 
 type SettingsLayoutProps = PropsWithChildren<{
-    /** Wider content pane for tables / matrices when Access pages land. */
+    /** Wider content pane for tables / matrices (Access pages). */
     wide?: boolean;
 }>;
 
 /**
  * Settings section layout with sidebar nav (client-only to avoid SSR mismatch).
- * Copied from externa-core: Account group only until Project / Access exist.
+ * Copied from externa-core / excubia-app: Account + Access (roles, permissions).
  */
 export default function SettingsLayout({
     children,
     wide = false,
 }: SettingsLayoutProps) {
     const { t } = useTranslation();
+    const { can } = useCan();
     const { isCurrentUrl } = useCurrentUrl();
     const scrollRegionRef = useScrollRegion<HTMLDivElement>();
 
@@ -61,6 +66,27 @@ export default function SettingsLayout({
             href: editAppearance(),
             icon: null,
         },
+    ];
+
+    const accessNavItems: NavItem[] = [
+        ...(can(PermissionEnum.CanShowRoles)
+            ? [
+                  {
+                      title: t('settings.layout.roles'),
+                      href: roles.index.url(),
+                      icon: null,
+                  },
+              ]
+            : []),
+        ...(can(PermissionEnum.CanShowPermissions)
+            ? [
+                  {
+                      title: t('settings.layout.permissions'),
+                      href: permissions.index.url(),
+                      icon: null,
+                  },
+              ]
+            : []),
     ];
 
     if (typeof window === 'undefined') {
@@ -107,6 +133,13 @@ export default function SettingsLayout({
                             t('settings.layout.sectionAccount'),
                             accountNavItems,
                         )}
+
+                        {accessNavItems.length > 0
+                            ? renderNavGroup(
+                                  t('settings.layout.sectionAccess'),
+                                  accessNavItems,
+                              )
+                            : null}
 
                         <SidebarGroup className="p-0">
                             <SidebarMenu>

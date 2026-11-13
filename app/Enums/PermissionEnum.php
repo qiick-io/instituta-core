@@ -39,4 +39,13 @@ enum PermissionEnum: string
     {
         return array_column(self::cases(), 'value');
     }
+
+    /**
+     * The resource a permission belongs to, for the role form sections
+     * (`can-create-users` → `users`, `can-manage-settings` → `settings`).
+     */
+    public function resource(): string
+    {
+        return (string) preg_replace('/^can-[a-z]+-/', '', $this->value);
+    }
 }

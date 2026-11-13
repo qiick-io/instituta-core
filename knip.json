@@ -29,7 +29,10 @@
         "resources/js/routes/**",
         "resources/js/types/auth.ts",
         "resources/js/types/ui.ts",
-        "resources/js/wayfinder/**"
+        "resources/js/wayfinder/**",
+        "resources/js/components/admin/data-table-faceted-filter.tsx",
+        "resources/js/components/admin/data-table.tsx",
+        "resources/js/lib/password-strength.ts"
     ],
     "ignoreDependencies": [
         "@radix-ui/react-avatar",

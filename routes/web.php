@@ -67,4 +67,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('activity', ActivityLogController::class)->name('activity.index');
 });
 
+require __DIR__.'/admin.php';
 require __DIR__.'/settings.php';
