@@ -33,9 +33,15 @@ final class GraphController extends Controller
         $perimeter = $principal === null ? null : $this->sessions->resolve($request, $principal);
 
         $depth = (int) $request->integer('depth', 1);
+        $hasExplicitItem = is_string($item) && $item !== '';
         $payload = $perimeter === null
             ? ['root' => null, 'nodes' => [], 'edges' => [], 'depth' => max(1, min(2, $depth))]
             : $this->graph->forItem($perimeter, $item, $depth);
+
+        // Match reading-view behaviour: an explicit out-of-perimeter id is not found.
+        if ($hasExplicitItem && ($payload['root']['id'] ?? null) !== $item) {
+            abort(404);
+        }
 
         return Inertia::render('brain/graph', [
             'hasPerimeter' => $perimeter !== null,
