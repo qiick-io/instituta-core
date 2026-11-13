@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Laravel\Fortify\Features;
 use Tests\TestCase;
 
 class PasswordConfirmationTest extends TestCase
@@ -20,7 +21,9 @@ class PasswordConfirmationTest extends TestCase
         $response->assertOk();
 
         $response->assertInertia(fn (Assert $page) => $page
-            ->component('auth/confirm-password'),
+            ->component('auth/confirm-password')
+            ->where('canManagePasskeys', Features::canManagePasskeys())
+            ->where('hasPasskeys', false),
         );
     }
 

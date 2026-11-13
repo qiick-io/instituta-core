@@ -841,5 +841,71 @@
             "goHome": "Back to dashboard",
             "signIn": "Sign in"
         }
+    },
+    "auth": {
+        "login": {
+            "title": "Log in to your account",
+            "description": "Enter your email and password below to log in",
+            "head": "Log in",
+            "forgotPassword": "Forgot password?",
+            "rememberMe": "Remember me",
+            "submit": "Log in",
+            "passkey": "Sign in with passkey",
+            "passkeyCancelled": "Passkey sign-in was cancelled.",
+            "passkeysUnsupported": "Passkeys are not supported in this browser.",
+            "passkeysNeedHttps": "Passkeys need HTTPS.",
+            "orContinueWithEmail": "or continue with email",
+            "oidc": "Sign in with SSO"
+        },
+        "forgotPassword": {
+            "title": "Forgot password",
+            "description": "Enter your email to receive a password reset link",
+            "head": "Forgot password",
+            "submit": "Email password reset link",
+            "orReturn": "Or, return to",
+            "logIn": "log in"
+        },
+        "resetPassword": {
+            "title": "Reset password",
+            "description": "Please enter your new password below",
+            "head": "Reset password",
+            "submit": "Reset password"
+        },
+        "confirmPassword": {
+            "title": "Confirm your password",
+            "description": "This is a secure area of the application. Please confirm your password before continuing.",
+            "head": "Confirm password",
+            "submit": "Confirm password",
+            "passkey": "Confirm with passkey",
+            "passkeyCancelled": "Passkey confirmation was cancelled.",
+            "orConfirmWithPasskey": "or confirm with passkey"
+        },
+        "verifyEmail": {
+            "title": "Verify email",
+            "description": "Please verify your email address by clicking on the link we just emailed to you.",
+            "head": "Email verification",
+            "linkSent": "A new verification link has been sent to the email address you provided during registration.",
+            "resend": "Resend verification email",
+            "logOut": "Log out"
+        },
+        "twoFactorChallenge": {
+            "head": "Two-factor authentication",
+            "recoveryTitle": "Recovery code",
+            "recoveryDescription": "Please confirm access to your account by entering one of your emergency recovery codes.",
+            "recoveryToggle": "login using an authentication code",
+            "authTitle": "Authentication code",
+            "authDescription": "Enter the authentication code provided by your authenticator application.",
+            "authToggle": "login using a recovery code",
+            "recoveryPlaceholder": "Enter recovery code",
+            "orYouCan": "or you can "
+        },
+        "register": {
+            "title": "Create an account",
+            "description": "Enter your details below to create your account",
+            "head": "Register",
+            "submit": "Create account",
+            "hasAccount": "Already have an account?",
+            "logIn": "Log in"
+        }
     }
 }

@@ -1,18 +1,33 @@
-// Components
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, setLayoutProps } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import InputError from '@/components/input-error';
+import { useTranslation } from 'react-i18next';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
+import {
+    Field,
+    FieldError,
+    FieldGroup,
+    FieldLabel,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { login } from '@/routes';
 import { email } from '@/routes/password';
 
+/**
+ * Request a password reset link.
+ * Copied from excubia-app `pages/auth/forgot-password.tsx` (layout via setLayoutProps).
+ */
 export default function ForgotPassword({ status }: { status?: string }) {
+    const { t } = useTranslation();
+
+    setLayoutProps({
+        title: t('auth.forgotPassword.title'),
+        description: t('auth.forgotPassword.description'),
+    });
+
     return (
         <>
-            <Head title="Forgot password" />
+            <Head title={t('auth.forgotPassword.head')} />
 
             {status && (
                 <div className="mb-4 text-center text-sm font-medium text-success">
@@ -21,11 +36,15 @@ export default function ForgotPassword({ status }: { status?: string }) {
             )}
 
             <div className="space-y-6">
-                <Form {...email.form()}>
+                <Form {...email.form()} noValidate>
                     {({ processing, errors }) => (
-                        <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                        <FieldGroup>
+                            <Field
+                                data-invalid={errors.email ? true : undefined}
+                            >
+                                <FieldLabel htmlFor="email">
+                                    {t('common.emailAddress')}
+                                </FieldLabel>
                                 <Input
                                     id="email"
                                     type="email"
@@ -33,10 +52,17 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     autoComplete="off"
                                     autoFocus
                                     placeholder="email@example.com"
+                                    aria-invalid={
+                                        errors.email ? true : undefined
+                                    }
+                                    aria-describedby={
+                                        errors.email ? 'email-error' : undefined
+                                    }
                                 />
-
-                                <InputError message={errors.email} />
-                            </div>
+                                <FieldError id="email-error">
+                                    {errors.email}
+                                </FieldError>
+                            </Field>
 
                             <div className="my-6 flex items-center justify-start">
                                 <Button
@@ -47,23 +73,20 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     {processing && (
                                         <LoaderCircle className="h-4 w-4 animate-spin" />
                                     )}
-                                    Email password reset link
+                                    {t('auth.forgotPassword.submit')}
                                 </Button>
                             </div>
-                        </>
+                        </FieldGroup>
                     )}
                 </Form>
 
                 <div className="space-x-1 text-center text-sm text-muted-foreground">
-                    <span>Or, return to</span>
-                    <TextLink href={login()}>log in</TextLink>
+                    <span>{t('auth.forgotPassword.orReturn')}</span>
+                    <TextLink href={login()}>
+                        {t('auth.forgotPassword.logIn')}
+                    </TextLink>
                 </div>
             </div>
         </>
     );
 }
-
-ForgotPassword.layout = {
-    title: 'Forgot password',
-    description: 'Enter your email to receive a password reset link',
-};
