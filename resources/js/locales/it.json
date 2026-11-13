@@ -340,7 +340,9 @@
             "cancel": "Annulla",
             "manageProducts": "Prodotti",
             "export": "Esporta",
-            "downloadExport": "Scarica export"
+            "downloadExport": "Scarica export",
+            "erase": "Cancella",
+            "eraseConfirm": "Cancellare tutto il contenuto indicizzato, le righe di replay e le chiavi nello scope di {{name}}? Operazione irreversibile."
         },
         "products": {
             "title": "Prodotti — {{client}}",

@@ -340,7 +340,9 @@
             "cancel": "Cancel",
             "manageProducts": "Products",
             "export": "Export",
-            "downloadExport": "Download export"
+            "downloadExport": "Download export",
+            "erase": "Erase",
+            "eraseConfirm": "Erase all indexed content, replay rows and scoped keys for {{name}}? This cannot be undone."
         },
         "products": {
             "title": "Products — {{client}}",

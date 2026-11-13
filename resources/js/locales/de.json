@@ -340,7 +340,9 @@
             "cancel": "Abbrechen",
             "manageProducts": "Produkte",
             "export": "Exportieren",
-            "downloadExport": "Export herunterladen"
+            "downloadExport": "Export herunterladen",
+            "erase": "Löschen",
+            "eraseConfirm": "Alle indexierten Inhalte, Replay-Zeilen und Scope-Keys für {{name}} löschen? Das kann nicht rückgängig gemacht werden."
         },
         "products": {
             "title": "Produkte — {{client}}",

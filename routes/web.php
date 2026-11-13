@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\Brain\ClientEraseController;
 use App\Http\Controllers\Brain\ClientExportController;
 use App\Http\Controllers\Brain\ClientProductsController;
 use App\Http\Controllers\Brain\ClientsController;
@@ -50,6 +51,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('brain.clients.export.store');
     Route::get('brain/clients/{company}/exports/{offboarding}/download', [ClientExportController::class, 'download'])
         ->name('brain.clients.export.download');
+    Route::post('brain/clients/{company}/exports/{offboarding}/erase', ClientEraseController::class)
+        ->name('brain.clients.export.erase');
     Route::get('activity', ActivityLogController::class)->name('activity.index');
 });
 

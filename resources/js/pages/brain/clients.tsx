@@ -23,6 +23,7 @@ type ClientRow = {
     name: string;
     slug: string;
     latest_export_id: string | null;
+    latest_export_status: string | null;
     products: ClientProduct[];
 };
 
@@ -45,6 +46,22 @@ function switchScope(scopeType: string, scopeId: string): void {
 function exportClient(clientId: string): void {
     router.post(
         `/brain/clients/${clientId}/export`,
+        {},
+        { preserveScroll: true },
+    );
+}
+
+function eraseClient(
+    clientId: string,
+    exportId: string,
+    confirmMessage: string,
+): void {
+    if (!window.confirm(confirmMessage)) {
+        return;
+    }
+
+    router.post(
+        `/brain/clients/${clientId}/exports/${exportId}/erase`,
         {},
         { preserveScroll: true },
     );
@@ -187,6 +204,36 @@ export default function BrainClients({ is_owner, clients }: Props) {
                                                             'brain.clients.downloadExport',
                                                         )}
                                                     </a>
+                                                </Button>
+                                            ) : null}
+                                            {client.latest_export_id !== null &&
+                                            client.latest_export_status ===
+                                                'exported' ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        const exportId =
+                                                            client.latest_export_id;
+
+                                                        if (exportId === null) {
+                                                            return;
+                                                        }
+
+                                                        eraseClient(
+                                                            client.id,
+                                                            exportId,
+                                                            t(
+                                                                'brain.clients.eraseConfirm',
+                                                                {
+                                                                    name: client.name,
+                                                                },
+                                                            ),
+                                                        );
+                                                    }}
+                                                >
+                                                    {t('brain.clients.erase')}
                                                 </Button>
                                             ) : null}
                                             <Button
