@@ -202,7 +202,8 @@
             "keys": "Keys",
             "activity": "Activity",
             "clients": "Clients",
-            "sessionReplay": "Session replay"
+            "sessionReplay": "Session replay",
+            "proposals": "Proposals"
         },
         "scope": {
             "label": "Scope",
@@ -398,6 +399,45 @@
                 "tool": "Tool",
                 "dateFrom": "From",
                 "dateTo": "To"
+            }
+        },
+        "proposals": {
+            "title": "Write proposals",
+            "description": "Review proposed brain changes for the current scope before they become git pull requests.",
+            "showDescription": "Inspect the proposed change, then accept or reject it.",
+            "empty": "No proposals in this filter.",
+            "colTitle": "Title",
+            "colAction": "Action",
+            "colStatus": "Status",
+            "colPath": "Path",
+            "colCreated": "Created",
+            "backToList": "Back to proposals",
+            "fieldStableKey": "Stable key",
+            "fieldPath": "Path",
+            "fieldArea": "Area",
+            "fieldMaterialisation": "Materialisation",
+            "fieldBranch": "Branch",
+            "fieldPullRequest": "Pull request",
+            "fieldMaterialisationError": "Materialisation error",
+            "bodyHeading": "Proposed body",
+            "bodyEmpty": "No body was attached to this proposal.",
+            "accept": "Accept",
+            "reject": "Reject",
+            "status": {
+                "open": "Open",
+                "accepted": "Accepted",
+                "rejected": "Rejected"
+            },
+            "action": {
+                "create": "Create",
+                "update": "Update",
+                "delete": "Delete"
+            },
+            "materialisation": {
+                "pending": "Pending",
+                "materialised": "Materialised",
+                "local_review": "Local review",
+                "failed": "Failed"
             }
         }
     },

@@ -7,6 +7,7 @@ use App\Http\Controllers\Brain\ClientProductsController;
 use App\Http\Controllers\Brain\ClientsController;
 use App\Http\Controllers\Brain\KeysController;
 use App\Http\Controllers\Brain\MapController;
+use App\Http\Controllers\Brain\ProposalsController;
 use App\Http\Controllers\Brain\ReadingController;
 use App\Http\Controllers\Brain\ResolvedController;
 use App\Http\Controllers\Brain\ScopeSwitcherController;
@@ -32,6 +33,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('brain/tables/{item}/{table}', [TablesController::class, 'show'])
         ->name('brain.tables.show');
     Route::get('brain/sources', SourcesController::class)->name('brain.sources');
+    Route::get('brain/proposals', [ProposalsController::class, 'index'])->name('brain.proposals.index');
+    Route::get('brain/proposals/{proposal}', [ProposalsController::class, 'show'])->name('brain.proposals.show');
+    Route::patch('brain/proposals/{proposal}', [ProposalsController::class, 'update'])->name('brain.proposals.update');
     Route::get('brain/keys', KeysController::class)->name('brain.keys');
     Route::get('brain/clients', [ClientsController::class, 'index'])->name('brain.clients.index');
     Route::get('brain/clients/create', [ClientsController::class, 'create'])->name('brain.clients.create');

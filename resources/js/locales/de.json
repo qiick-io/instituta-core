@@ -202,7 +202,8 @@
             "keys": "Schlüssel",
             "activity": "Aktivität",
             "clients": "Kunden",
-            "sessionReplay": "Sitzungs-Replay"
+            "sessionReplay": "Sitzungs-Replay",
+            "proposals": "Vorschläge"
         },
         "scope": {
             "label": "Bereich",
@@ -398,6 +399,45 @@
                 "tool": "Tool",
                 "dateFrom": "Von",
                 "dateTo": "Bis"
+            }
+        },
+        "proposals": {
+            "title": "Schreibvorschläge",
+            "description": "Prüfe vorgeschlagene Brain-Änderungen im aktuellen Umfang, bevor sie zu Git-Pull-Requests werden.",
+            "showDescription": "Prüfe die vorgeschlagene Änderung und akzeptiere oder lehne sie ab.",
+            "empty": "Keine Vorschläge in diesem Filter.",
+            "colTitle": "Titel",
+            "colAction": "Aktion",
+            "colStatus": "Status",
+            "colPath": "Pfad",
+            "colCreated": "Erstellt",
+            "backToList": "Zurück zu Vorschlägen",
+            "fieldStableKey": "Stabiler Schlüssel",
+            "fieldPath": "Pfad",
+            "fieldArea": "Bereich",
+            "fieldMaterialisation": "Materialisierung",
+            "fieldBranch": "Branch",
+            "fieldPullRequest": "Pull Request",
+            "fieldMaterialisationError": "Materialisierungsfehler",
+            "bodyHeading": "Vorgeschlagener Inhalt",
+            "bodyEmpty": "Dieser Vorschlag hat keinen Inhalt.",
+            "accept": "Akzeptieren",
+            "reject": "Ablehnen",
+            "status": {
+                "open": "Offen",
+                "accepted": "Akzeptiert",
+                "rejected": "Abgelehnt"
+            },
+            "action": {
+                "create": "Erstellen",
+                "update": "Aktualisieren",
+                "delete": "Löschen"
+            },
+            "materialisation": {
+                "pending": "Ausstehend",
+                "materialised": "Materialisiert",
+                "local_review": "Lokale Prüfung",
+                "failed": "Fehlgeschlagen"
             }
         }
     },

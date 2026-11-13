@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Brain\Data\PerimeterData;
+use App\Brain\Enums\RoleEnum;
 use App\Data\UpdateProposalStatusData;
 use App\Enums\ProposalMaterialisationStatusEnum;
 use App\Enums\ProposalStatusEnum;
 use App\Jobs\MaterialiseProposalJob;
 use App\Models\ApiKey;
 use App\Models\Proposal;
+use App\Models\User;
 use App\Services\ActivityEventLoggerService;
 use App\Services\ContractAuditService;
 use InvalidArgumentException;
@@ -31,11 +33,16 @@ final class UpdateProposalStatusAction
 
     public function execute(
         PerimeterData $perimeter,
-        ApiKey $apiKey,
+        ?ApiKey $apiKey,
         Proposal $proposal,
         UpdateProposalStatusData $payload,
         string $surface,
+        ?User $actor = null,
     ): Proposal {
+        if ($perimeter->role === RoleEnum::Guest) {
+            throw new InvalidArgumentException('Guests cannot accept or reject proposals.');
+        }
+
         if ($proposal->scope_type !== $perimeter->scopeType || $proposal->scope_id !== $perimeter->scopeId) {
             throw new InvalidArgumentException('Proposal is outside the key perimeter.');
         }
@@ -58,13 +65,22 @@ final class UpdateProposalStatusAction
         $proposal->forceFill($attributes)->save();
 
         $this->audit->record(
-            toolOrEndpoint: $surface === 'mcp' ? 'instituta_update_proposal' : 'PATCH /proposals/{id}',
+            toolOrEndpoint: match ($surface) {
+                'mcp' => 'instituta_update_proposal',
+                'web' => 'PATCH /brain/proposals/{id}',
+                default => 'PATCH /proposals/{id}',
+            },
             perimeter: $perimeter,
             apiKey: $apiKey,
             itemIds: [$proposal->id],
         );
 
-        $apiKey->loadMissing('principal.user');
+        $causer = $actor;
+        if ($causer === null && $apiKey !== null) {
+            $apiKey->loadMissing('principal.user');
+            $causer = $apiKey->principal?->user;
+        }
+
         $properties = [
             'organisation_id' => $proposal->organisation_id,
             'proposal_id' => $proposal->id,
@@ -72,10 +88,10 @@ final class UpdateProposalStatusAction
         ];
 
         if ($payload->status === ProposalStatusEnum::Accepted) {
-            $this->activity->proposalAccepted($proposal, $apiKey->principal?->user, $properties);
+            $this->activity->proposalAccepted($proposal, $causer, $properties);
             MaterialiseProposalJob::dispatch($proposal->id);
         } else {
-            $this->activity->proposalRejected($proposal, $apiKey->principal?->user, $properties);
+            $this->activity->proposalRejected($proposal, $causer, $properties);
         }
 
         return $proposal->refresh();
