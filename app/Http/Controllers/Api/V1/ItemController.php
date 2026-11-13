@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ListItemsRequest;
+use App\Http\Resources\Api\ApiMessageResource;
+use App\Http\Resources\Api\BrainContractResource;
 use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,10 +25,12 @@ final class ItemController extends Controller
 
         $perimeter = $this->perimeter($request);
         if ($validated['scope'] !== $perimeter->scopeId) {
-            return response()->json(['message' => 'Not found.'], 404);
+            return (new ApiMessageResource(['message' => 'Not found.']))
+                ->response()
+                ->setStatusCode(404);
         }
 
-        return response()->json(
+        return (new BrainContractResource(
             $this->contract->list(
                 $perimeter,
                 $this->apiKey($request),
@@ -35,7 +39,7 @@ final class ItemController extends Controller
                 $validated['cursor'] ?? null,
                 isset($validated['limit']) ? (int) $validated['limit'] : 25,
             ),
-        );
+        ))->response();
     }
 
     public function show(Request $request, string $id): JsonResponse
@@ -47,9 +51,11 @@ final class ItemController extends Controller
         );
 
         if ($item === null) {
-            return response()->json(['message' => 'Not found.'], 404);
+            return (new ApiMessageResource(['message' => 'Not found.']))
+                ->response()
+                ->setStatusCode(404);
         }
 
-        return response()->json($item);
+        return (new BrainContractResource($item))->response();
     }
 }

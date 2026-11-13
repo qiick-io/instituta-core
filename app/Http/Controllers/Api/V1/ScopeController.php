@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\BrainContractResource;
 use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,8 +19,8 @@ final class ScopeController extends Controller
 
     public function __invoke(Request $request): JsonResponse
     {
-        return response()->json(
+        return (new BrainContractResource(
             $this->contract->scopes($this->perimeter($request), $this->apiKey($request)),
-        );
+        ))->response();
     }
 }
