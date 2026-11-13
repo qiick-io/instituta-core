@@ -1,0 +1,68 @@
+name: docker
+
+on:
+  push:
+    branches: [develop, main]
+    tags: ["v*"]
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - Dockerfile
+      - docker-bake.hcl
+      - docker/**
+      - compose.yaml
+      - .env.docker*
+      - .github/workflows/docker.yml
+      - package.json
+      - package-lock.json
+      - vite.config.ts
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compose-config:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Prepare env
+        run: |
+          cp .env.docker.example .env
+          php -r "file_put_contents('.env', preg_replace('/^APP_KEY=.*/m', 'APP_KEY=base64:'.base64_encode(random_bytes(32)), file_get_contents('.env')));"
+      - name: Validate Compose
+        run: docker compose -f compose.yaml config --quiet
+
+  image-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: compose-config
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build development target
+        run: docker build --target development -t instituta:dev .
+      - name: Build production target
+        run: docker build --target production -t instituta:prod .
+      - name: Assert PHP 8.4+
+        run: |
+          set -euo pipefail
+          docker run --rm --entrypoint php instituta:prod -v | tee /tmp/php-v.txt
+          grep -E 'PHP 8\.(4|5)\.' /tmp/php-v.txt
+
+  # Multi-arch bake on develop/main only (no push). GHCR publish is maintainer-only on v* tags.
+  multiarch-bake:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: image-build
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Bake production (no push)
+        run: docker buildx bake -f docker-bake.hcl production
