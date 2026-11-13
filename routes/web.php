@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\Brain\ClientCompanyFormController;
 use App\Http\Controllers\Brain\ClientEraseController;
 use App\Http\Controllers\Brain\ClientExportController;
+use App\Http\Controllers\Brain\ClientProductFormController;
 use App\Http\Controllers\Brain\ClientProductsController;
 use App\Http\Controllers\Brain\ClientsController;
 use App\Http\Controllers\Brain\GraphController;
@@ -57,17 +59,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('brain/proposals/{proposal}', [ProposalsController::class, 'update'])->name('brain.proposals.update');
     Route::get('brain/keys', KeysController::class)->name('brain.keys');
     Route::get('brain/clients', [ClientsController::class, 'index'])->name('brain.clients.index');
-    Route::get('brain/clients/create', [ClientsController::class, 'create'])->name('brain.clients.create');
+    Route::get('brain/clients/create', [ClientCompanyFormController::class, 'create'])->name('brain.clients.create');
     Route::post('brain/clients', [ClientsController::class, 'store'])->name('brain.clients.store');
-    Route::get('brain/clients/{company}/edit', [ClientsController::class, 'edit'])->name('brain.clients.edit');
+    Route::get('brain/clients/{company}/edit', [ClientCompanyFormController::class, 'edit'])->name('brain.clients.edit');
     Route::put('brain/clients/{company}', [ClientsController::class, 'update'])->name('brain.clients.update');
     Route::get('brain/clients/{company}/products', [ClientProductsController::class, 'index'])
         ->name('brain.clients.products.index');
-    Route::get('brain/clients/{company}/products/create', [ClientProductsController::class, 'create'])
+    Route::get('brain/clients/{company}/products/create', [ClientProductFormController::class, 'create'])
         ->name('brain.clients.products.create');
     Route::post('brain/clients/{company}/products', [ClientProductsController::class, 'store'])
         ->name('brain.clients.products.store');
-    Route::get('brain/clients/{company}/products/{product}/edit', [ClientProductsController::class, 'edit'])
+    Route::get('brain/clients/{company}/products/{product}/edit', [ClientProductFormController::class, 'edit'])
         ->name('brain.clients.products.edit');
     Route::put('brain/clients/{company}/products/{product}', [ClientProductsController::class, 'update'])
         ->name('brain.clients.products.update');
