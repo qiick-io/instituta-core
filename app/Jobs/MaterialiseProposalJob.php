@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Actions\MaterialiseProposalAction;
 use App\Models\Proposal;
-use App\Services\MaterialiseProposalService;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -33,7 +33,7 @@ final class MaterialiseProposalJob implements ShouldBeUnique, ShouldQueue
         return $this->proposalId;
     }
 
-    public function handle(MaterialiseProposalService $materialise): void
+    public function handle(MaterialiseProposalAction $materialise): void
     {
         $proposal = Proposal::query()->find($this->proposalId);
 
@@ -41,6 +41,6 @@ final class MaterialiseProposalJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        $materialise->materialise($proposal);
+        $materialise->execute($proposal);
     }
 }

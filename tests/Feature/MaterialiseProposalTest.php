@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\MaterialiseProposalAction;
 use App\Enums\ProposalActionEnum;
 use App\Enums\ProposalMaterialisationStatusEnum;
 use App\Enums\ProposalStatusEnum;
@@ -10,7 +11,6 @@ use App\Jobs\MaterialiseProposalJob;
 use App\Models\Organisation;
 use App\Models\Proposal;
 use App\Models\Source;
-use App\Services\MaterialiseProposalService;
 use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
@@ -80,7 +80,7 @@ it('materialises a github proposal as a pushed branch and pull request', functio
         ], 201),
     ]);
 
-    $updated = app(MaterialiseProposalService::class)->materialise($proposal->fresh());
+    $updated = app(MaterialiseProposalAction::class)->execute($proposal->fresh());
 
     expect($updated->materialisation_status)->toBe(ProposalMaterialisationStatusEnum::Materialised)
         ->and($updated->remote_branch)->toBe('instituta/proposal-'.$proposal->id)
@@ -142,7 +142,7 @@ it('keeps local materialisation in a review workspace without mutating the sourc
 
     $original = File::get($fixture.'/rules/coding.md');
 
-    $updated = app(MaterialiseProposalService::class)->materialise($proposal->fresh());
+    $updated = app(MaterialiseProposalAction::class)->execute($proposal->fresh());
 
     expect($updated->materialisation_status)->toBe(ProposalMaterialisationStatusEnum::LocalReview)
         ->and($updated->remote_pr_url)->toBeNull()
@@ -171,7 +171,7 @@ it('refuses unsafe relative paths', function (): void {
 
     Process::fake();
 
-    expect(fn () => app(MaterialiseProposalService::class)->materialise($proposal->fresh()))
+    expect(fn () => app(MaterialiseProposalAction::class)->execute($proposal->fresh()))
         ->toThrow(InvalidArgumentException::class);
 
     expect($proposal->fresh()->materialisation_status)->toBe(ProposalMaterialisationStatusEnum::Failed);
@@ -202,7 +202,7 @@ it('refuses github materialisation without a token', function (): void {
 
     Process::fake();
 
-    expect(fn () => app(MaterialiseProposalService::class)->materialise($proposal->fresh()))
+    expect(fn () => app(MaterialiseProposalAction::class)->execute($proposal->fresh()))
         ->toThrow(RuntimeException::class);
 
     expect($proposal->fresh()->materialisation_status)->toBe(ProposalMaterialisationStatusEnum::Failed);
