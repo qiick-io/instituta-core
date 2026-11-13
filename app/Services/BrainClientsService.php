@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Brain\Enums\RoleEnum;
 use App\Enums\CompanyKindEnum;
 use App\Models\Company;
+use App\Models\OffboardingRequest;
 use App\Models\Principal;
 use App\Models\User;
 
@@ -73,6 +74,7 @@ final class BrainClientsService
      *         id: string,
      *         name: string,
      *         slug: string,
+     *         latest_export_id: string|null,
      *         products: list<array{id: string, name: string, slug: string}>
      *     }>
      * }
@@ -92,7 +94,15 @@ final class BrainClientsService
             ->orderBy('name')
             ->get();
 
-        /** @var list<array{id: string, name: string, slug: string, products: list<array{id: string, name: string, slug: string}>}> $rows */
+        $latestExportIds = OffboardingRequest::query()
+            ->whereIn('company_id', $clients->pluck('id'))
+            ->whereNotNull('export_path')
+            ->orderByDesc('requested_at')
+            ->get(['id', 'company_id'])
+            ->unique('company_id')
+            ->pluck('id', 'company_id');
+
+        /** @var list<array{id: string, name: string, slug: string, latest_export_id: string|null, products: list<array{id: string, name: string, slug: string}>}> $rows */
         $rows = [];
         foreach ($clients as $client) {
             /** @var list<array{id: string, name: string, slug: string}> $products */
@@ -109,6 +119,7 @@ final class BrainClientsService
                 'id' => $client->id,
                 'name' => $client->name,
                 'slug' => $client->slug,
+                'latest_export_id' => $latestExportIds[$client->id] ?? null,
                 'products' => $products,
             ];
         }

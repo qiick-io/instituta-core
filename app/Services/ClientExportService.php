@@ -15,6 +15,7 @@ use App\Models\Product;
 use App\Models\Source;
 use App\Models\StructuredRow;
 use App\Models\StructuredTable;
+use App\Models\User;
 use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
 use RuntimeException;
@@ -27,7 +28,7 @@ final class ClientExportService
     /**
      * @return array{path: string, request: OffboardingRequest, manifest: array<string, mixed>}
      */
-    public function export(Company $company, ?string $destination = null): array
+    public function export(Company $company, ?string $destination = null, ?User $causer = null): array
     {
         if ($company->kind !== CompanyKindEnum::Client) {
             throw new InvalidArgumentException('Only client companies can be exported.');
@@ -178,7 +179,7 @@ final class ClientExportService
             'requested_at' => now(),
         ]);
 
-        app(ActivityEventLoggerService::class)->exportCompleted($company, $request);
+        app(ActivityEventLoggerService::class)->exportCompleted($company, $request, $causer);
 
         return [
             'path' => $root,

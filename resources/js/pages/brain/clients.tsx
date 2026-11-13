@@ -22,6 +22,7 @@ type ClientRow = {
     id: string;
     name: string;
     slug: string;
+    latest_export_id: string | null;
     products: ClientProduct[];
 };
 
@@ -37,6 +38,14 @@ function switchScope(scopeType: string, scopeId: string): void {
             scope_type: scopeType,
             scope_id: scopeId,
         },
+        { preserveScroll: true },
+    );
+}
+
+function exportClient(clientId: string): void {
+    router.post(
+        `/brain/clients/${clientId}/export`,
+        {},
         { preserveScroll: true },
     );
 }
@@ -154,6 +163,32 @@ export default function BrainClients({ is_owner, clients }: Props) {
                                                     {t('brain.clients.edit')}
                                                 </Link>
                                             </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    exportClient(client.id)
+                                                }
+                                            >
+                                                {t('brain.clients.export')}
+                                            </Button>
+                                            {client.latest_export_id ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    asChild
+                                                >
+                                                    <a
+                                                        href={`/brain/clients/${client.id}/exports/${client.latest_export_id}/download`}
+                                                    >
+                                                        {t(
+                                                            'brain.clients.downloadExport',
+                                                        )}
+                                                    </a>
+                                                </Button>
+                                            ) : null}
                                             <Button
                                                 type="button"
                                                 variant="outline"
