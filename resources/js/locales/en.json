@@ -811,5 +811,35 @@
             "filteredTitle": "No matching activity",
             "filteredDescription": "Try a different search or clear filters."
         }
+    },
+    "errors": {
+        "forbidden": {
+            "head": "Forbidden",
+            "title": "You do not have permission",
+            "description": "This page needs a different role or permission. Ask an instance admin if you need access.",
+            "goHome": "Back to dashboard",
+            "signIn": "Sign in"
+        },
+        "notFound": {
+            "head": "Not found",
+            "title": "Page not found",
+            "description": "That address does not match anything here. Check the URL or go back.",
+            "goHome": "Back to dashboard",
+            "signIn": "Sign in"
+        },
+        "serverError": {
+            "head": "Something went wrong",
+            "title": "Something went wrong",
+            "description": "An unexpected error occurred. Try again in a moment.",
+            "goHome": "Back to dashboard",
+            "signIn": "Sign in"
+        },
+        "serviceUnavailable": {
+            "head": "Unavailable",
+            "title": "Temporarily unavailable",
+            "description": "Instituta is briefly unavailable. Please try again soon.",
+            "goHome": "Back to dashboard",
+            "signIn": "Sign in"
+        }
     }
 }
