@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Enums\ProposalActionEnum;
+use App\Enums\ProposalMaterialisationStatusEnum;
 use App\Enums\ProposalStatusEnum;
 use Database\Factories\ProposalFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -37,6 +38,12 @@ use Illuminate\Support\Carbon;
  * @property string $proposed_by_principal_id
  * @property string|null $api_key_id
  * @property string|null $body
+ * @property ProposalMaterialisationStatusEnum|null $materialisation_status
+ * @property string|null $remote_branch
+ * @property string|null $remote_pr_url
+ * @property string|null $materialised_commit
+ * @property Carbon|null $materialised_at
+ * @property string|null $materialisation_error
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -56,6 +63,12 @@ use Illuminate\Support\Carbon;
     'proposed_by_principal_id',
     'api_key_id',
     'body',
+    'materialisation_status',
+    'remote_branch',
+    'remote_pr_url',
+    'materialised_commit',
+    'materialised_at',
+    'materialisation_error',
 ])]
 #[Hidden(['body'])]
 class Proposal extends Model
@@ -72,6 +85,8 @@ class Proposal extends Model
             'scope_type' => ScopeTypeEnum::class,
             'status' => ProposalStatusEnum::class,
             'action' => ProposalActionEnum::class,
+            'materialisation_status' => ProposalMaterialisationStatusEnum::class,
+            'materialised_at' => 'datetime',
         ];
     }
 
@@ -81,6 +96,14 @@ class Proposal extends Model
     public function organisation(): BelongsTo
     {
         return $this->belongsTo(Organisation::class);
+    }
+
+    /**
+     * @return BelongsTo<Source, $this>
+     */
+    public function source(): BelongsTo
+    {
+        return $this->belongsTo(Source::class);
     }
 
     /**

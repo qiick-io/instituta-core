@@ -6,7 +6,9 @@ use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Enums\ApiKeyAbilityEnum;
+use App\Enums\ProposalMaterialisationStatusEnum;
 use App\Enums\ProposalStatusEnum;
+use App\Jobs\MaterialiseProposalJob;
 use App\Models\ApiKey;
 use App\Models\ContractCall;
 use App\Models\Grant;
@@ -14,6 +16,7 @@ use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\Proposal;
 use App\Services\ApiKeyIssuerService;
+use Illuminate\Support\Facades\Queue;
 
 /**
  * @return array{org: Organisation, principal: Principal, key: ApiKey, plain: string}
@@ -118,6 +121,7 @@ it('refuses issuing brain:write for guest keys even when writes are enabled', fu
 });
 
 it('creates lists and accepts proposals without exposing body in responses or audit', function (): void {
+    Queue::fake();
     $seed = writeSeedOwnerKey();
 
     $create = $this->postJson('/api/v1/proposals', [
@@ -148,7 +152,11 @@ it('creates lists and accepts proposals without exposing body in responses or au
         ->assertOk()
         ->assertJsonPath('status', 'accepted');
 
-    expect(Proposal::query()->whereKey($proposalId)->value('status'))->toBe(ProposalStatusEnum::Accepted);
+    expect(Proposal::query()->whereKey($proposalId)->value('status'))->toBe(ProposalStatusEnum::Accepted)
+        ->and(Proposal::query()->whereKey($proposalId)->value('materialisation_status'))
+        ->toBe(ProposalMaterialisationStatusEnum::Pending);
+
+    Queue::assertPushed(MaterialiseProposalJob::class, fn (MaterialiseProposalJob $job): bool => $job->proposalId === $proposalId);
 
     $auditBodies = ContractCall::query()
         ->where('tool_or_endpoint', 'like', '%proposal%')
