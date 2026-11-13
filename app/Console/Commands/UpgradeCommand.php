@@ -16,9 +16,10 @@ class UpgradeCommand extends Command
     protected $signature = 'instituta:upgrade
         {--force : Allow production APP_ENV}
         {--no-migrate : Skip php artisan migrate --force}
-        {--no-permissions : Skip the permissions sync step (reserved; no-op until PermissionEnum ships)}';
+        {--no-permissions : Skip instituta:sync-permissions}
+        {--prune-permissions : Pass --prune to instituta:sync-permissions}';
 
-    protected $description = 'Run post-fetch upgrade steps (migrate, cache clear). Never use create-project to update.';
+    protected $description = 'Run post-fetch upgrade steps (migrate, permissions sync, cache clear). Never use create-project to update.';
 
     public function handle(): int
     {
@@ -42,8 +43,18 @@ class UpgradeCommand extends Command
         }
 
         if (! $this->option('no-permissions')) {
-            // ponytail: no PermissionEnum / instituta:sync-permissions yet; brain grants cover ACL for beta.
-            $this->comment('Permissions sync: skipped (brain grants/roles; sync-permissions arrives with PermissionEnum).');
+            $this->info('Running instituta:sync-permissions…');
+            $args = [];
+
+            if ($this->option('prune-permissions')) {
+                $args['--prune'] = true;
+            }
+
+            $code = $this->call('instituta:sync-permissions', $args);
+
+            if ($code !== self::SUCCESS) {
+                return $code;
+            }
         }
 
         $this->info('Clearing caches…');

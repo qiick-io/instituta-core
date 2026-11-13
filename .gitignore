@@ -48,3 +48,4 @@ yarn-error.log
 /opencode.json
 /opencode.jsonc
 /tests/Browser/Screenshots
+graphify-out/

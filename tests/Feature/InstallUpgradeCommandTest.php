@@ -47,12 +47,12 @@ it('refuses an unknown install stack', function (): void {
     ])->assertFailed();
 });
 
-it('runs instituta:upgrade migrate and cache clear without create-project', function (): void {
+it('runs instituta:upgrade migrate permissions sync and cache clear without create-project', function (): void {
     $this->artisan('instituta:upgrade', [
         '--no-migrate' => true,
     ])
         ->expectsOutputToContain('does not run composer or npm')
-        ->expectsOutputToContain('Permissions sync: skipped')
+        ->expectsOutputToContain('Running instituta:sync-permissions')
         ->assertSuccessful();
 });
 

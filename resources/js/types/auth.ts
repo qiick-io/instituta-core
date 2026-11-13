@@ -15,8 +15,12 @@ export type User = {
     [key: string]: unknown;
 };
 
+/** Shared auth context: user, permissions, roles, and super-admin flag. */
 export type Auth = {
-    user: User;
+    user: User | null;
+    permissions: string[];
+    roleNames: string[];
+    isSuperAdmin: boolean;
 };
 
 export type Passkey = {

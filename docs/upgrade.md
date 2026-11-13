@@ -6,9 +6,9 @@ Never use `composer create-project` to update an existing install. Fetch the new
 php artisan instituta:upgrade --force
 ```
 
-That runs `migrate --force`, notes the reserved permissions sync (brain grants cover ACL until `PermissionEnum` / `instituta:sync-permissions` ship), and clears caches. It does **not** run Composer or npm.
+That runs `migrate --force`, `instituta:sync-permissions` (creates missing permissions, grants new ones to `admin`, emits `resources/js/enums/permission-enum.ts`), and clears caches. It does **not** run Composer or npm. Brain tenancy ACL (grants/keys) stays separate from app-level Spatie roles.
 
-Flags: `--no-migrate`, `--no-permissions`, `--force` (required when `APP_ENV=production`). See `php artisan instituta:upgrade --help`.
+Flags: `--no-migrate`, `--no-permissions`, `--prune-permissions`, `--force` (required when `APP_ENV=production`). See `php artisan instituta:upgrade --help`.
 
 ## After upgrade
 
