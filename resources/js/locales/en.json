@@ -292,6 +292,21 @@
                 "ok": "Ok",
                 "failed": "Failed"
             }
+        },
+        "keys": {
+            "title": "API keys",
+            "description": "Read-only list of keys for this owner. Create and revoke stay in Artisan.",
+            "artisanHint": "Use php artisan instituta:key to create or revoke keys.",
+            "ownerOnly": "Only owners can view API keys.",
+            "empty": "No API keys yet.",
+            "colName": "Name",
+            "colPrefix": "Prefix",
+            "colScope": "Scope",
+            "colRole": "Role",
+            "colLastUsed": "Last used",
+            "colStatus": "Status",
+            "active": "Active",
+            "revoked": "Revoked"
         }
     }
 }
