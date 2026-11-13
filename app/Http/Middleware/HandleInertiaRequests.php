@@ -68,6 +68,14 @@ class HandleInertiaRequests extends Middleware
             'instanceSettings' => [
                 'reportBugUrl' => $settings->reportBugUrl(),
             ],
+            'notifications' => [
+                'unread_count' => $user instanceof User
+                    ? $user->unreadNotifications()->count()
+                    : 0,
+                'sound_enabled' => $user instanceof User
+                    ? (bool) $user->notification_sound_enabled
+                    : false,
+            ],
             'projectAppearance' => [
                 'themePreset' => $theme['themePreset'],
                 'themeCss' => [

@@ -13,8 +13,10 @@ use App\Jobs\MaterialiseProposalJob;
 use App\Models\ApiKey;
 use App\Models\Proposal;
 use App\Models\User;
+use App\Notifications\ProposalResolvedNotification;
 use App\Services\ActivityEventLoggerService;
 use App\Services\ContractAuditService;
+use App\Services\NotifyOrganisationUsersService;
 use InvalidArgumentException;
 
 /**
@@ -93,6 +95,11 @@ final class UpdateProposalStatusAction
         } else {
             $this->activity->proposalRejected($proposal, $causer, $properties);
         }
+
+        app(NotifyOrganisationUsersService::class)->notify(
+            $proposal->organisation_id,
+            new ProposalResolvedNotification($proposal, $payload->status),
+        );
 
         return $proposal->refresh();
     }

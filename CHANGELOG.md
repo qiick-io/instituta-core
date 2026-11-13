@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Session replay over `contract_calls` for organisation owners (issue #85).
 - Auth-free `GET /health/live` and `GET /health/ready` probes with fail-closed readiness (issue #68).
 - `database/migrations/.frozen` blob baseline so `migrations-frozen` binds before the first tag (issue #74).
+- In-app notification centre (issue #129): database notifications, sidebar bell and drawer (`@qiick/notifications`), sound preference on the profile page; events for sync finished/failed, proposal opened/resolved, API key about to expire, and freeze activated (organisation-scoped).
 
 ### Changed
 

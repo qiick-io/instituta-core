@@ -310,6 +310,13 @@
             "loginLockoutThresholdDescription": "Falsche Passwörter für ein Konto, bevor es gesperrt wird.",
             "loginLockoutMinutes": "Sperrdauer (Minuten)",
             "loginLockoutMinutesDescription": "Wie lange ein gesperrtes Konto warten muss, bevor es erneut versuchen darf."
+        },
+        "notificationSounds": {
+            "title": "Benachrichtigungstöne",
+            "description": "Optionaler Ton, wenn eine Benachrichtigung eintrifft, während Sie angemeldet sind.",
+            "notifications": "Ton für Benachrichtigungen",
+            "notificationsHint": "Nur bei Live-Benachrichtigungen, wenn die Schublade geschlossen ist.",
+            "test": "Ton testen"
         }
     },
     "shortcuts": {
@@ -368,7 +375,33 @@
         "untitled": "Benachrichtigung",
         "markAllRead": "Alle als gelesen markieren",
         "markRead": "Als gelesen markieren",
-        "markUnread": "Als ungelesen markieren"
+        "markUnread": "Als ungelesen markieren",
+        "types": {
+            "syncFinished": {
+                "title": "Sync abgeschlossen: {{name}}",
+                "body": "{{count}} Einträge indexiert."
+            },
+            "syncFailed": {
+                "title": "Sync fehlgeschlagen: {{name}}",
+                "body": "Grund: {{reason}}"
+            },
+            "proposalOpened": {
+                "title": "Neuer Vorschlag",
+                "body": "{{title}}"
+            },
+            "proposalResolved": {
+                "title": "Vorschlag {{status}}",
+                "body": "{{title}}"
+            },
+            "apiKeyExpiring": {
+                "title": "API-Schlüssel läuft ab: {{name}}",
+                "body": "Läuft ab am {{expiresAt}}."
+            },
+            "freezeActivated": {
+                "title": "Kontext-Freeze aktiviert",
+                "body": "{{reason}}"
+            }
+        }
     },
     "app": {
         "name": "Instituta"

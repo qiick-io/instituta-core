@@ -12,8 +12,10 @@ use App\Models\ApiKey;
 use App\Models\Company;
 use App\Models\Product;
 use App\Models\Proposal;
+use App\Notifications\ProposalOpenedNotification;
 use App\Services\ActivityEventLoggerService;
 use App\Services\ContractAuditService;
+use App\Services\NotifyOrganisationUsersService;
 use InvalidArgumentException;
 
 /**
@@ -73,6 +75,11 @@ final class ProposeBrainChangeAction
             'stable_key' => $payload->stableKey,
             'status' => ProposalStatusEnum::Open->value,
         ]);
+
+        app(NotifyOrganisationUsersService::class)->notify(
+            $organisationId,
+            new ProposalOpenedNotification($proposal),
+        );
 
         return $proposal;
     }

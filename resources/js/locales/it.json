@@ -310,6 +310,13 @@
             "loginLockoutThresholdDescription": "Password errate per un account prima che venga bloccato.",
             "loginLockoutMinutes": "Durata del blocco (minuti)",
             "loginLockoutMinutesDescription": "Per quanto tempo un account bloccato deve attendere prima di riprovare."
+        },
+        "notificationSounds": {
+            "title": "Suoni delle notifiche",
+            "description": "Suono opzionale quando arriva una notifica mentre sei connesso.",
+            "notifications": "Suono per le notifiche",
+            "notificationsHint": "Riproduce solo le notifiche in tempo reale a cassetto chiuso.",
+            "test": "Prova suono"
         }
     },
     "shortcuts": {
@@ -368,7 +375,33 @@
         "untitled": "Notifica",
         "markAllRead": "Segna tutte come lette",
         "markRead": "Segna come letta",
-        "markUnread": "Segna come non letta"
+        "markUnread": "Segna come non letta",
+        "types": {
+            "syncFinished": {
+                "title": "Sincronizzazione completata: {{name}}",
+                "body": "{{count}} elementi indicizzati."
+            },
+            "syncFailed": {
+                "title": "Sincronizzazione non riuscita: {{name}}",
+                "body": "Motivo: {{reason}}"
+            },
+            "proposalOpened": {
+                "title": "Nuova proposta",
+                "body": "{{title}}"
+            },
+            "proposalResolved": {
+                "title": "Proposta {{status}}",
+                "body": "{{title}}"
+            },
+            "apiKeyExpiring": {
+                "title": "Chiave API in scadenza: {{name}}",
+                "body": "Scade il {{expiresAt}}."
+            },
+            "freezeActivated": {
+                "title": "Freeze del contesto attivato",
+                "body": "{{reason}}"
+            }
+        }
     },
     "app": {
         "name": "Instituta"

@@ -16,12 +16,22 @@ use App\Http\Controllers\Brain\SessionReplayController;
 use App\Http\Controllers\Brain\SourcesController;
 use App\Http\Controllers\Brain\TablesController;
 use App\Http\Controllers\Brain\TreeController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
+
+    Route::get('notifications', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+    Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount'])
+        ->name('notifications.unread-count');
+    Route::post('notifications/read', [NotificationController::class, 'markRead'])
+        ->name('notifications.read');
+    Route::post('notifications/unread', [NotificationController::class, 'markUnread'])
+        ->name('notifications.unread');
 
     Route::post('brain/scope', ScopeSwitcherController::class)->name('brain.scope');
     Route::get('brain/map', MapController::class)->name('brain.map');

@@ -26,6 +26,8 @@ use App\Models\SourceVersion;
 use App\Models\StructuredRow;
 use App\Models\StructuredTable;
 use App\Models\VaultVersion;
+use App\Notifications\SyncFailedNotification;
+use App\Notifications\SyncFinishedNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
 use RuntimeException;
@@ -144,6 +146,14 @@ final class SourceSyncService
                 app(ActivityEventLoggerService::class)->scannerSkips($source, $report['skipped']);
             }
 
+            app(NotifyOrganisationUsersService::class)->notify(
+                $source->organisation_id,
+                new SyncFinishedNotification(
+                    source: $source,
+                    itemsUpserted: (int) $report['items_upserted'],
+                ),
+            );
+
             return $report;
         } catch (DenylistHitException $exception) {
             return $this->fail($source, [
@@ -193,6 +203,14 @@ final class SourceSyncService
                 'message' => $report['message'] ?? null,
             ])
             ->log('source.sync_failed');
+
+        app(NotifyOrganisationUsersService::class)->notify(
+            $source->organisation_id,
+            new SyncFailedNotification(
+                source: $source,
+                reason: (string) ($report['reason'] ?? 'sync_failed'),
+            ),
+        );
 
         return $report;
     }

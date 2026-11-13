@@ -310,6 +310,13 @@
             "loginLockoutThresholdDescription": "Wrong passwords for one account before it is locked.",
             "loginLockoutMinutes": "Lockout duration (minutes)",
             "loginLockoutMinutesDescription": "How long a locked account must wait before trying again."
+        },
+        "notificationSounds": {
+            "title": "Notification sounds",
+            "description": "Optional chime when a notification arrives while you are signed in.",
+            "notifications": "Sound for notifications",
+            "notificationsHint": "Plays only for live notifications when the drawer is closed.",
+            "test": "Test sound"
         }
     },
     "shortcuts": {
@@ -368,7 +375,33 @@
         "untitled": "Notification",
         "markAllRead": "Mark all as read",
         "markRead": "Mark as read",
-        "markUnread": "Mark as unread"
+        "markUnread": "Mark as unread",
+        "types": {
+            "syncFinished": {
+                "title": "Sync finished: {{name}}",
+                "body": "{{count}} items indexed."
+            },
+            "syncFailed": {
+                "title": "Sync failed: {{name}}",
+                "body": "Reason: {{reason}}"
+            },
+            "proposalOpened": {
+                "title": "New proposal",
+                "body": "{{title}}"
+            },
+            "proposalResolved": {
+                "title": "Proposal {{status}}",
+                "body": "{{title}}"
+            },
+            "apiKeyExpiring": {
+                "title": "API key expiring: {{name}}",
+                "body": "Expires at {{expiresAt}}."
+            },
+            "freezeActivated": {
+                "title": "Context freeze activated",
+                "body": "{{reason}}"
+            }
+        }
     },
     "app": {
         "name": "Instituta"
