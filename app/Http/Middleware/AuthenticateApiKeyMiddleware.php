@@ -38,12 +38,30 @@ final class AuthenticateApiKeyMiddleware
             return $this->unauthorized($request, 'Invalid API key.');
         }
 
+        if ($key->revoked_at !== null) {
+            return $this->unauthorized($request, 'API key has been revoked.');
+        }
+
+        if ($key->expires_at !== null && $key->expires_at->isPast()) {
+            return $this->unauthorized($request, 'API key has expired.');
+        }
+
+        $key->loadMissing('principal');
+        $principal = $key->principal;
+        if ($principal === null || $principal->deactivated_at !== null) {
+            return $this->unauthorized($request, 'API key principal is inactive.');
+        }
+
+        if ($principal->expires_at !== null && $principal->expires_at->isPast()) {
+            return $this->unauthorized($request, 'API key principal has expired.');
+        }
+
         if (! in_array(ApiKeyAbilityEnum::BrainRead->value, $key->abilities, true)) {
             return $this->forbidden($request, 'Ability brain:read is required.');
         }
 
         try {
-            $perimeter = $this->perimeters->fromApiKey($key->loadMissing('principal'));
+            $perimeter = $this->perimeters->fromApiKey($key);
         } catch (InvalidArgumentException $exception) {
             return $this->unauthorized($request, $exception->getMessage());
         } catch (Throwable $exception) {

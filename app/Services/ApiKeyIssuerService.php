@@ -68,6 +68,17 @@ final class ApiKeyIssuerService
         $this->perimeters->fromApiKey($key->setRelation('principal', $principal));
         $key->save();
 
+        activity('keys')
+            ->performedOn($key)
+            ->causedBy($principal->user)
+            ->withProperties([
+                'principal_id' => $principal->id,
+                'scope_type' => $scopeType->value,
+                'scope_id' => $scopeId,
+                'role' => $role->value,
+            ])
+            ->log('api_key.created');
+
         return ['key' => $key, 'plain' => $secret['plain']];
     }
 
@@ -83,6 +94,13 @@ final class ApiKeyIssuerService
     {
         if ($key->revoked_at === null) {
             $key->forceFill(['revoked_at' => now()])->save();
+
+            $key->loadMissing('principal.user');
+            activity('keys')
+                ->performedOn($key)
+                ->causedBy($key->principal?->user)
+                ->withProperties(['principal_id' => $key->principal_id])
+                ->log('api_key.revoked');
         }
 
         return $key;
