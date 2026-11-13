@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\Brain\ClientProductsController;
 use App\Http\Controllers\Brain\ClientsController;
 use App\Http\Controllers\Brain\KeysController;
 use App\Http\Controllers\Brain\MapController;
@@ -34,6 +35,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('brain/clients', [ClientsController::class, 'store'])->name('brain.clients.store');
     Route::get('brain/clients/{company}/edit', [ClientsController::class, 'edit'])->name('brain.clients.edit');
     Route::put('brain/clients/{company}', [ClientsController::class, 'update'])->name('brain.clients.update');
+    Route::get('brain/clients/{company}/products', [ClientProductsController::class, 'index'])
+        ->name('brain.clients.products.index');
+    Route::get('brain/clients/{company}/products/create', [ClientProductsController::class, 'create'])
+        ->name('brain.clients.products.create');
+    Route::post('brain/clients/{company}/products', [ClientProductsController::class, 'store'])
+        ->name('brain.clients.products.store');
+    Route::get('brain/clients/{company}/products/{product}/edit', [ClientProductsController::class, 'edit'])
+        ->name('brain.clients.products.edit');
+    Route::put('brain/clients/{company}/products/{product}', [ClientProductsController::class, 'update'])
+        ->name('brain.clients.products.update');
     Route::get('activity', ActivityLogController::class)->name('activity.index');
 });
 

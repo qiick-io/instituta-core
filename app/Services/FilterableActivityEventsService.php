@@ -34,6 +34,8 @@ final class FilterableActivityEventsService
             'export.completed',
             'client.created',
             'client.updated',
+            'product.created',
+            'product.updated',
             'offboarding.exported',
             'proposal.opened',
             'proposal.accepted',
