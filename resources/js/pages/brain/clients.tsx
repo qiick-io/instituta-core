@@ -135,6 +135,20 @@ export default function BrainClients({ is_owner, clients }: Props) {
                                                 asChild
                                             >
                                                 <Link
+                                                    href={`/brain/clients/${client.id}/products`}
+                                                >
+                                                    {t(
+                                                        'brain.clients.manageProducts',
+                                                    )}
+                                                </Link>
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                asChild
+                                            >
+                                                <Link
                                                     href={`/brain/clients/${client.id}/edit`}
                                                 >
                                                     {t('brain.clients.edit')}

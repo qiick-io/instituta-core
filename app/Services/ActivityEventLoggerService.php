@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\ContextFreeze;
 use App\Models\OffboardingRequest;
 use App\Models\Principal;
+use App\Models\Product;
 use App\Models\Source;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -152,6 +153,45 @@ final class ActivityEventLoggerService
             $causer,
             [
                 'organisation_id' => $company->organisation_id,
+                'keys' => $changedKeys,
+            ],
+        );
+    }
+
+    public function productCreated(Product $product, Company $company, ?User $causer = null): void
+    {
+        $this->log(
+            'tenancy',
+            'product.created',
+            'product.created',
+            $product,
+            $causer,
+            [
+                'organisation_id' => $company->organisation_id,
+                'company_id' => $company->id,
+                'slug' => $product->slug,
+            ],
+        );
+    }
+
+    /**
+     * @param  list<string>  $changedKeys
+     */
+    public function productUpdated(
+        Product $product,
+        Company $company,
+        ?User $causer = null,
+        array $changedKeys = [],
+    ): void {
+        $this->log(
+            'tenancy',
+            'product.updated',
+            'product.updated',
+            $product,
+            $causer,
+            [
+                'organisation_id' => $company->organisation_id,
+                'company_id' => $company->id,
                 'keys' => $changedKeys,
             ],
         );
