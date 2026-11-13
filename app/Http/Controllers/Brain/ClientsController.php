@@ -15,7 +15,6 @@ use App\Models\User;
 use App\Services\BrainClientsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -39,19 +38,6 @@ final class ClientsController extends Controller
         return Inertia::render('brain/clients', $this->clients->listFor($user));
     }
 
-    public function create(Request $request): RedirectResponse
-    {
-        $user = $request->user();
-
-        if (! $user instanceof User) {
-            abort(401);
-        }
-
-        Gate::authorize('create', Company::class);
-
-        return to_route('brain.clients.index', ['new' => 1]);
-    }
-
     public function store(
         StoreClientCompanyRequest $request,
         CreateClientCompanyAction $action,
@@ -69,19 +55,6 @@ final class ClientsController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Client created.')]);
 
         return to_route('brain.clients.index');
-    }
-
-    public function edit(Request $request, Company $company): RedirectResponse
-    {
-        $user = $request->user();
-
-        if (! $user instanceof User) {
-            abort(401);
-        }
-
-        Gate::authorize('update', $company);
-
-        return to_route('brain.clients.index', ['edit' => $company->id]);
     }
 
     public function update(
