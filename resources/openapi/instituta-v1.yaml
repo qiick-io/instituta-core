@@ -2,9 +2,10 @@ openapi: 3.1.0
 info:
     title: Instituta Brain API
     description: |
-        Read-only company-brain contract under `/api/v1`.
+        Company-brain contract under `/api/v1`.
         Same operations as HTTP MCP tools (`instituta_*`).
         Auth: `Authorization: Bearer <api_key>` with ability `brain:read`.
+        Writes (proposals) also require `brain:write` and `api.write_enabled`.
         Runtime JSON: `GET /api/v1/openapi.json` (no API key).
     version: 0.1.0
 servers:
@@ -292,6 +293,94 @@ paths:
                                 additionalProperties: true
                 '401':
                     $ref: '#/components/responses/Unauthorized'
+    /proposals:
+        get:
+            tags: [Contract]
+            summary: List write proposals in the key perimeter
+            operationId: listProposals
+            security:
+                - ApiKeyBearer: []
+            parameters:
+                - name: status
+                  in: query
+                  schema:
+                      type: string
+                      enum: [open, accepted, rejected]
+            responses:
+                '200':
+                    description: Proposal summaries (no bodies)
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ProposalsResponse'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+        post:
+            tags: [Contract]
+            summary: Open a brain write proposal
+            operationId: createProposal
+            security:
+                - ApiKeyBearer: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ProposeRequest'
+            responses:
+                '201':
+                    description: Proposal summary (no body)
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ProposalSummary'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '422':
+                    $ref: '#/components/responses/ValidationError'
+    /proposals/{id}:
+        patch:
+            tags: [Contract]
+            summary: Accept or reject an open proposal
+            operationId: updateProposal
+            security:
+                - ApiKeyBearer: []
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [status]
+                            properties:
+                                status:
+                                    type: string
+                                    enum: [accepted, rejected]
+            responses:
+                '200':
+                    description: Updated proposal summary
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ProposalSummary'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '422':
+                    $ref: '#/components/responses/ValidationError'
 components:
     securitySchemes:
         ApiKeyBearer:
@@ -458,3 +547,61 @@ components:
                                 type: string
                             relation:
                                 type: string
+        ProposeRequest:
+            type: object
+            required: [action, stable_key, title, path]
+            properties:
+                action:
+                    type: string
+                    enum: [create, update, delete]
+                stable_key:
+                    type: string
+                title:
+                    type: string
+                path:
+                    type: string
+                area:
+                    type: ['string', 'null']
+                body:
+                    type: ['string', 'null']
+                source_id:
+                    type: ['string', 'null']
+        ProposalSummary:
+            type: object
+            properties:
+                id:
+                    type: string
+                status:
+                    type: string
+                    enum: [open, accepted, rejected]
+                action:
+                    type: string
+                    enum: [create, update, delete]
+                stable_key:
+                    type: string
+                title:
+                    type: string
+                path:
+                    type: string
+                area:
+                    type: ['string', 'null']
+                scope_type:
+                    type: string
+                scope_id:
+                    type: string
+                source_id:
+                    type: ['string', 'null']
+                proposed_by_principal_id:
+                    type: string
+                created_at:
+                    type: ['string', 'null']
+                updated_at:
+                    type: ['string', 'null']
+        ProposalsResponse:
+            type: object
+            required: [proposals]
+            properties:
+                proposals:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ProposalSummary'

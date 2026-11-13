@@ -10,9 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Browser axe smoke via `pestphp/pest-plugin-browser` and `tests/Browser/A11ySmokeBrowserTest.php`; `ui-quality` now passes `axe-test` so `ui-quality / accessibility` runs (issue #52).
+- `brain:write` proposal contract surface (issue #54): `proposals` table, REST `/api/v1/proposals`, MCP `instituta_propose` / `instituta_list_proposals` / `instituta_update_proposal`, kill switches `mcp.write_enabled` / `api.write_enabled` (off by default), audit + activity without bodies.
 
 ### Changed
 
 - `docs/FORMAT.md` and `docs/CONTRACTS.md` are the approved working contract (issue #50). Until `v1.0.0-beta.1` they may still change in PRs labelled `area:contract` with a CHANGELOG entry and updated tests; from `v1.0.0-beta.1` they freeze (additive only).
+- `docs/CONTRACTS.md` documents write proposal operations (§3.10–§3.12); keys may hold `brain:write` only when a write kill switch is on and the role is owner/member.
 
 [Unreleased]: https://github.com/qiick-io/instituta-core/compare/HEAD...HEAD

@@ -21,6 +21,7 @@ final class ApiKeyIssuerService
 {
     public function __construct(
         private readonly PerimeterResolverService $perimeters = new PerimeterResolverService,
+        private readonly BrainWriteGateService $writeGate = new BrainWriteGateService,
     ) {}
 
     /**
@@ -40,11 +41,28 @@ final class ApiKeyIssuerService
         ?\DateTimeInterface $expiresAt = null,
     ): array {
         if (in_array(ApiKeyAbilityEnum::BrainWrite->value, $abilities, true)) {
-            throw new InvalidArgumentException('Ability brain:write is refused in the MVP.');
+            if (! $this->writeGate->isApiWriteEnabled() && ! $this->writeGate->isMcpWriteEnabled()) {
+                throw new InvalidArgumentException('Ability brain:write is refused while writes are disabled.');
+            }
+
+            if (! in_array($role, [RoleEnum::Owner, RoleEnum::Member], true)) {
+                throw new InvalidArgumentException('Guest keys cannot hold brain:write.');
+            }
+
+            if (! $this->writeGate->principalMayHoldWriteAbility($principal)) {
+                throw new InvalidArgumentException('Principal has no owner/member grant for brain:write.');
+            }
         }
 
         if ($abilities === []) {
             $abilities = [ApiKeyAbilityEnum::BrainRead->value];
+        }
+
+        if (
+            in_array(ApiKeyAbilityEnum::BrainWrite->value, $abilities, true)
+            && ! in_array(ApiKeyAbilityEnum::BrainRead->value, $abilities, true)
+        ) {
+            $abilities[] = ApiKeyAbilityEnum::BrainRead->value;
         }
 
         $secret = $this->makeSecret();

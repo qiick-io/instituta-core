@@ -13,7 +13,7 @@ Everything is scoped by the caller's **perimeter**. Nothing accepts a scope wide
 | REST | `/api/v1/…` | Same Bearer API keys |
 | Artisan reader | `php artisan instituta:read --path=<repo> …` | Local folder; no key |
 
-Shared ability in the MVP: `brain:read`. The ability `brain:write` exists in the enum but is **refused** while writes are out of scope. MCP is off by default (`mcp.enabled`); writes stay off (`mcp.write_enabled`).
+Shared abilities: `brain:read` (required for every HTTP contract call) and `brain:write` (proposals only). MCP is off by default (`mcp.enabled`). Writes stay off by default (`mcp.write_enabled` for MCP, `api.write_enabled` for REST). A key may hold `brain:write` only when a write kill switch is on, the key role is `owner` or `member` (never `guest`), and the principal has an owner/member grant. Writes never mutate the durable git store directly: they open or update **proposals** (git PR materialisation is a later step).
 
 Rate limit (HTTP): `api` 60 requests / minute per key (as externa-core).
 
@@ -91,8 +91,11 @@ When a scope is frozen, every contract call for that scope answers from the pinn
 | Resolved view | `instituta_resolve` | `GET /products/{id}/resolved` | `resolve` |
 | Graph neighbours | `instituta_graph` | `GET /items/{id}/neighbours` | `graph` |
 | Validate tree | — | — | `validate` |
+| Propose write | `instituta_propose` | `POST /proposals` | — |
+| List proposals | `instituta_list_proposals` | `GET /proposals` | — |
+| Update proposal | `instituta_update_proposal` | `PATCH /proposals/{id}` | — |
 
-OpenAPI 3.1 (hand-written) will live at `resources/openapi/instituta-v1.yaml` and be served at `GET /api/v1/openapi.json` with a route-coverage test (implementation PR).
+OpenAPI 3.1 lives at `resources/openapi/instituta-v1.yaml` and is served at `GET /api/v1/openapi.json` with a route-coverage test.
 
 ### 3.1 `instituta_scopes` / `GET /scopes`
 
@@ -143,6 +146,42 @@ OpenAPI 3.1 (hand-written) will live at `resources/openapi/instituta-v1.yaml` an
 **Query:** `depth` (default 1, max 2 in the MVP).
 
 **Returns:** nodes `{id, title, area}` and edges `{from, to, relation}` inside the perimeter. No hairball: start from the selected node.
+
+### 3.10 `instituta_propose` / `POST /proposals`
+
+Requires `brain:write` and the surface write kill switch. Opens a proposal; never writes the durable store.
+
+**Body:**
+
+```json
+{
+  "action": "create|update|delete",
+  "stable_key": "string",
+  "title": "string",
+  "path": "string",
+  "area": "string|null",
+  "body": "string|null",
+  "source_id": "ulid|null"
+}
+```
+
+**Returns:** proposal summary (id, status, action, stable_key, title, path, area, scope, timestamps). **Never returns `body`.**
+
+### 3.11 `instituta_list_proposals` / `GET /proposals`
+
+Requires `brain:write` and the surface write kill switch.
+
+**Query:** optional `status` (`open|accepted|rejected`).
+
+**Returns:** `{ "proposals": [ …summaries ] }` inside the perimeter. **No bodies.**
+
+### 3.12 `instituta_update_proposal` / `PATCH /proposals/{id}`
+
+Requires `brain:write` and the surface write kill switch. Accepts or rejects an **open** proposal in the perimeter.
+
+**Body:** `{ "status": "accepted|rejected" }`
+
+**Returns:** updated proposal summary. Git materialisation of `accepted` is out of this contract surface (implementation step).
 
 ## 4. Errors
 
