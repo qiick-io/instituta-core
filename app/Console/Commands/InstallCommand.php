@@ -92,9 +92,17 @@ class InstallCommand extends Command
             $this->line('Created database/database.sqlite');
         }
 
-        if ($this->call('key:generate', ['--force' => true]) !== self::SUCCESS) {
-            return self::FAILURE;
+        // create-project / prior install may already have set APP_KEY in the process env.
+        $existingKey = (string) (config('app.key') ?: '');
+
+        if ($existingKey === '') {
+            if ($this->call('key:generate', ['--force' => true]) !== self::SUCCESS) {
+                return self::FAILURE;
+            }
+        } else {
+            $this->line('APP_KEY already set; skipping key:generate.');
         }
+
         if ($this->call('migrate', ['--force' => true]) !== self::SUCCESS) {
             return self::FAILURE;
         }
