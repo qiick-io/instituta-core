@@ -3,14 +3,21 @@
         "breadcrumb": "Percorso di navigazione",
         "close": "Chiudi",
         "loading": "Caricamento",
+        "mainNav": "Navigazione principale",
         "moreActions": "Altre azioni",
         "notifications": "Notifiche",
         "notificationsUnread": "Notifiche, {{count}} non lette",
         "saving": "Salvataggio",
         "scrollableTable": "Tabella scorrevole",
         "search": "Cerca",
+        "skipToContent": "Vai al contenuto",
         "toggleSidebar": "Attiva/disattiva barra laterale",
         "unreadCount": "{{count}} non lette"
+    },
+    "nav": {
+        "appVersion": "v{{version}}",
+        "platform": "Piattaforma",
+        "repository": "Repository"
     },
     "ai": {
         "fabDescription": "Drawer rapido dell'assistente. Apri la pagina completa per la cronologia.",

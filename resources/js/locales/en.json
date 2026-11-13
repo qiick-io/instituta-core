@@ -3,14 +3,21 @@
         "breadcrumb": "Breadcrumb",
         "close": "Close",
         "loading": "Loading",
+        "mainNav": "Main navigation",
         "moreActions": "More actions",
         "notifications": "Notifications",
         "notificationsUnread": "Notifications, {{count}} unread",
         "saving": "Saving",
         "scrollableTable": "Scrollable table",
         "search": "Search",
+        "skipToContent": "Skip to content",
         "toggleSidebar": "Toggle sidebar",
         "unreadCount": "{{count}} unread"
+    },
+    "nav": {
+        "appVersion": "v{{version}}",
+        "platform": "Platform",
+        "repository": "Repository"
     },
     "ai": {
         "fabDescription": "Quick assistant drawer. Open the full page for history.",

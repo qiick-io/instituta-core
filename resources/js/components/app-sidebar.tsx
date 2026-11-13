@@ -1,6 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BookOpen,
     Building2,
     FolderGit2,
     FilePenLine,
@@ -14,10 +13,10 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import AppLogo from '@/components/app-logo';
+import { AppUserMenuContent } from '@/components/app-user-menu-content';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
-import { AppUserMenuContent } from '@/components/app-user-menu-content';
 import {
     Sidebar,
     SidebarContent,
@@ -28,24 +27,19 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as activityIndex } from '@/routes/activity';
+import { graph, keys, map, sessionReplay, sources, tree } from '@/routes/brain';
+import { index as clientsIndex } from '@/routes/brain/clients';
+import { index as proposalsIndex } from '@/routes/brain/proposals';
 import type { NavItem } from '@/types';
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/qiick-io/instituta-core',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
-
+/**
+ * Primary application sidebar: logo, Platform nav, footer links, user menu, version.
+ * Notifications bell is deferred until the notifications centre lands.
+ */
 export function AppSidebar() {
     const { t } = useTranslation();
-    const { auth } = usePage().props;
+    const { auth, appVersion } = usePage().props;
 
     const mainNavItems: NavItem[] = [
         {
@@ -55,75 +49,100 @@ export function AppSidebar() {
         },
         {
             title: t('brain.nav.map'),
-            href: '/brain/map',
+            href: map.url(),
             icon: MapIcon,
         },
         {
             title: t('brain.nav.tree'),
-            href: '/brain/tree',
+            href: tree.url(),
             icon: ListTree,
         },
         {
             title: t('brain.nav.graph'),
-            href: '/brain/graph',
+            href: graph.url(),
             icon: GitFork,
         },
         {
             title: t('brain.nav.sources'),
-            href: '/brain/sources',
+            href: sources.url(),
             icon: FolderGit2,
         },
         {
             title: t('brain.nav.proposals'),
-            href: '/brain/proposals',
+            href: proposalsIndex.url(),
             icon: FilePenLine,
         },
         {
             title: t('brain.nav.keys'),
-            href: '/brain/keys',
+            href: keys.url(),
             icon: KeyRound,
         },
         {
             title: t('brain.nav.clients'),
-            href: '/brain/clients',
+            href: clientsIndex.url(),
             icon: Building2,
         },
         {
             title: t('brain.nav.sessionReplay'),
-            href: '/brain/session-replay',
+            href: sessionReplay.url(),
             icon: History,
         },
         {
             title: t('brain.nav.activity'),
-            href: '/activity',
+            href: activityIndex.url(),
             icon: ScrollText,
+        },
+    ];
+
+    // Docs site is not public yet; keep the repository link only.
+    const footerNavItems: NavItem[] = [
+        {
+            title: t('nav.repository'),
+            href: 'https://github.com/qiick-io/instituta-core',
+            icon: FolderGit2,
         },
     ];
 
     return (
         <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
-                                <AppLogo />
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-            </SidebarHeader>
+            {/*
+              Real <nav> (not role=navigation on a div) so desktop chrome and the
+              mobile Sheet both expose a labelled navigation landmark.
+            */}
+            <nav
+                aria-label={t('a11y.mainNav')}
+                className="flex h-full w-full flex-col"
+            >
+                <SidebarHeader>
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton size="lg" asChild>
+                                <Link href={dashboard()} prefetch>
+                                    <AppLogo />
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarHeader>
 
-            <SidebarContent>
-                <NavMain items={mainNavItems} />
-            </SidebarContent>
+                <SidebarContent>
+                    <NavMain items={mainNavItems} />
+                </SidebarContent>
 
-            <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavUser user={auth.user}>
-                    {auth.user ? <AppUserMenuContent user={auth.user} /> : null}
-                </NavUser>
-            </SidebarFooter>
+                <SidebarFooter>
+                    <NavFooter items={footerNavItems} className="mt-auto" />
+                    <NavUser user={auth.user} connectionState="disabled">
+                        {auth.user ? (
+                            <AppUserMenuContent user={auth.user} />
+                        ) : null}
+                    </NavUser>
+                    {appVersion ? (
+                        <p className="truncate px-2 text-center text-xs leading-none text-muted-foreground group-data-[collapsible=icon]:hidden">
+                            {t('nav.appVersion', { version: appVersion })}
+                        </p>
+                    ) : null}
+                </SidebarFooter>
+            </nav>
         </Sidebar>
     );
 }
