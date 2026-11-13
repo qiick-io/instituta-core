@@ -7,6 +7,9 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Unique;
 
+/**
+ * Shared profile field validation rules for Fortify registration and updates.
+ */
 trait ProfileValidationRules
 {
     /**
@@ -17,7 +20,8 @@ trait ProfileValidationRules
     protected function profileRules(?int $userId = null): array
     {
         return [
-            'name' => $this->nameRules(),
+            'first_name' => $this->nameRules(),
+            'last_name' => ['nullable', 'string', 'max:255'],
             'email' => $this->emailRules($userId),
         ];
     }

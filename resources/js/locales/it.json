@@ -86,7 +86,10 @@
         "saved": "Salvato",
         "selectedCount": "{{count}} selezionati",
         "sortAscending": "Ordine crescente",
-        "sortDescending": "Ordine decrescente"
+        "sortDescending": "Ordine decrescente",
+        "emailAddress": "Indirizzo e-mail",
+        "firstName": "Nome",
+        "lastName": "Cognome"
     },
     "confirmDestructive": {
         "typeToConfirm": "Digita \"{{name}}\" per confermare"
@@ -130,6 +133,15 @@
             "dark": "Scuro",
             "light": "Chiaro",
             "system": "Sistema"
+        },
+        "profile": {
+            "breadcrumb": "Impostazioni profilo",
+            "head": "Impostazioni profilo",
+            "title": "Profilo",
+            "description": "Aggiorna nome, cognome e indirizzo e-mail",
+            "unverified": "Il tuo indirizzo e-mail non è verificato.",
+            "resend": "Clicca qui per reinviare l’e-mail di verifica.",
+            "linkSent": "Un nuovo link di verifica è stato inviato al tuo indirizzo e-mail."
         }
     },
     "shortcuts": {

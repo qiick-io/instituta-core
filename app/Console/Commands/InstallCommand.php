@@ -206,8 +206,13 @@ class InstallCommand extends Command
                 'kind' => CompanyKindEnum::Own,
             ]);
 
+            $ownerNameParts = preg_split('/\s+/', trim($ownerName), 2) ?: [];
+            $ownerFirstName = ($ownerNameParts[0] ?? '') !== '' ? $ownerNameParts[0] : 'Owner';
+            $ownerLastName = $ownerNameParts[1] ?? null;
+
             $user = User::query()->create([
-                'name' => $ownerName,
+                'first_name' => $ownerFirstName,
+                'last_name' => $ownerLastName === '' ? null : $ownerLastName,
                 'email' => $ownerEmail,
                 'password' => Hash::make($plainPassword),
             ]);
@@ -217,7 +222,7 @@ class InstallCommand extends Command
                 'organisation_id' => $org->id,
                 'type' => PrincipalTypeEnum::Person,
                 'user_id' => $user->id,
-                'name' => $ownerName,
+                'name' => $user->name,
             ]);
 
             Grant::query()->create([

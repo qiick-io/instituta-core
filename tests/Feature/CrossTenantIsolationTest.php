@@ -36,7 +36,7 @@ use Inertia\Testing\AssertableInertia as Assert;
  */
 function isolationSeed(): array
 {
-    $userA = User::factory()->create(['name' => 'Owner A']);
+    $userA = User::factory()->create(['first_name' => 'Owner', 'last_name' => 'A']);
     $orgA = Organisation::factory()->create(['name' => 'Tenant A', 'slug' => 'tenant-a']);
     $companyA = Company::factory()->client()->create([
         'organisation_id' => $orgA->id,
@@ -104,7 +104,7 @@ function isolationSeed(): array
         'blocks' => [['type' => 'paragraph', 'text' => 'brand voice for tenant A']],
     ]);
 
-    $userB = User::factory()->create(['name' => 'Owner B']);
+    $userB = User::factory()->create(['first_name' => 'Owner', 'last_name' => 'B']);
     $orgB = Organisation::factory()->create(['name' => 'Tenant B', 'slug' => 'tenant-b']);
     $companyB = Company::factory()->client()->create([
         'organisation_id' => $orgB->id,
