@@ -26,6 +26,7 @@
         "resources/js/lib/notification-sound.ts",
         "resources/js/lib/notifications-api.ts",
         "resources/js/lib/scroll-cue.ts",
+        "resources/js/lib/clipboard.ts",
         "resources/js/lib/toast.ts",
         "resources/js/components/notifications/**",
         "resources/js/components/sidebar-unread-badge.tsx",
