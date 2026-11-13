@@ -6,7 +6,6 @@ namespace Database\Factories;
 
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Models\ContractCall;
-use App\Models\Organisation;
 use App\Models\Principal;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -22,19 +21,14 @@ class ContractCallFactory extends Factory
      */
     public function definition(): array
     {
-        $organisation = Organisation::factory()->create();
-        $principal = Principal::factory()->create([
-            'organisation_id' => $organisation->id,
-        ]);
-
         return [
-            'principal_id' => $principal->id,
+            'principal_id' => Principal::factory(),
             'api_key_id' => null,
             'agent_session_id' => null,
             'tool_or_endpoint' => 'brain.search',
             'scope_type' => ScopeTypeEnum::Organisation,
-            'scope_id' => $organisation->id,
-            'organisation_id' => $organisation->id,
+            'scope_id' => fn (array $attributes): mixed => Principal::query()->whereKey($attributes['principal_id'])->value('organisation_id'),
+            'organisation_id' => fn (array $attributes): mixed => Principal::query()->whereKey($attributes['principal_id'])->value('organisation_id'),
             'company_id' => null,
             'product_id' => null,
             'item_ids' => [],

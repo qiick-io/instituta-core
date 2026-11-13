@@ -22,15 +22,18 @@ class SourceReferenceFactory extends Factory
      */
     public function definition(): array
     {
-        $source = Source::factory()->shared()->create();
-        $version = SourceVersion::factory()->create([
-            'source_id' => $source->id,
-        ]);
-
         return [
             'product_id' => Product::factory(),
-            'source_id' => $source->id,
-            'source_version_id' => $version->id,
+            'source_version_id' => SourceVersion::factory()->state([
+                'source_id' => Source::factory()->shared(),
+            ]),
+            'source_id' => function (array $attributes): mixed {
+                if ($attributes['source_version_id'] === null) {
+                    return Source::factory()->shared();
+                }
+
+                return SourceVersion::query()->whereKey($attributes['source_version_id'])->value('source_id');
+            },
             'pinned_commit' => null,
         ];
     }

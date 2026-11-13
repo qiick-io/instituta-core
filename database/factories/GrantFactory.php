@@ -8,7 +8,6 @@ use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Models\Grant;
-use App\Models\Organisation;
 use App\Models\Principal;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -24,14 +23,10 @@ class GrantFactory extends Factory
      */
     public function definition(): array
     {
-        $organisation = Organisation::factory()->create();
-
         return [
-            'principal_id' => Principal::factory()->state([
-                'organisation_id' => $organisation->id,
-            ]),
+            'principal_id' => Principal::factory(),
             'scope_type' => ScopeTypeEnum::Organisation,
-            'scope_id' => $organisation->id,
+            'scope_id' => fn (array $attributes): mixed => Principal::query()->whereKey($attributes['principal_id'])->value('organisation_id'),
             'role' => RoleEnum::Member,
             'max_visibility' => VisibilityEnum::Internal,
             'path_prefix' => null,

@@ -20,14 +20,12 @@ class StructuredRowFactory extends Factory
      */
     public function definition(): array
     {
-        $table = StructuredTable::factory()->create();
-
         return [
-            'structured_table_id' => $table->id,
-            'item_id' => $table->item_id,
-            'organisation_id' => $table->organisation_id,
-            'company_id' => $table->company_id,
-            'product_id' => $table->product_id,
+            'structured_table_id' => StructuredTable::factory(),
+            'item_id' => fn (array $attributes): mixed => StructuredTable::query()->whereKey($attributes['structured_table_id'])->value('item_id'),
+            'organisation_id' => fn (array $attributes): mixed => StructuredTable::query()->whereKey($attributes['structured_table_id'])->value('organisation_id'),
+            'company_id' => fn (array $attributes): mixed => StructuredTable::query()->whereKey($attributes['structured_table_id'])->value('company_id'),
+            'product_id' => fn (array $attributes): mixed => StructuredTable::query()->whereKey($attributes['structured_table_id'])->value('product_id'),
             'values' => [
                 'name' => fake()->word(),
                 'value' => fake()->hexColor(),
