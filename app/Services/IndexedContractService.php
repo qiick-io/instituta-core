@@ -415,7 +415,7 @@ final class IndexedContractService
      */
     public function graph(
         PerimeterData $perimeter,
-        ApiKey $apiKey,
+        ?ApiKey $apiKey,
         string $id,
         int $depth = 1,
     ): array {

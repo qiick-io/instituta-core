@@ -203,7 +203,8 @@
             "activity": "Attività",
             "clients": "Clienti",
             "sessionReplay": "Replay sessioni",
-            "proposals": "Proposte"
+            "proposals": "Proposte",
+            "graph": "Grafo"
         },
         "scope": {
             "label": "Ambito",
@@ -439,6 +440,16 @@
                 "local_review": "Revisione locale",
                 "failed": "Fallita"
             }
+        },
+        "graph": {
+            "title": "Grafo nello scope",
+            "description": "Vicini di un elemento nel perimetro corrente, raggruppati per area.",
+            "rootLabel": "Partenza da {{title}}",
+            "empty": "Nessun elemento in questo perimetro da mostrare nel grafo.",
+            "depth1": "Profondità 1",
+            "depth2": "Profondità 2",
+            "openTree": "Apri albero",
+            "canvasLabel": "Grafo dei vicini degli elementi del brain"
         }
     },
     "activity": {

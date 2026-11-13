@@ -203,7 +203,8 @@
             "activity": "Activity",
             "clients": "Clients",
             "sessionReplay": "Session replay",
-            "proposals": "Proposals"
+            "proposals": "Proposals",
+            "graph": "Graph"
         },
         "scope": {
             "label": "Scope",
@@ -439,6 +440,16 @@
                 "local_review": "Local review",
                 "failed": "Failed"
             }
+        },
+        "graph": {
+            "title": "Scoped graph",
+            "description": "Neighbours of one item inside the current perimeter, grouped by area.",
+            "rootLabel": "Starting from {{title}}",
+            "empty": "No items in this perimeter to graph yet.",
+            "depth1": "Depth 1",
+            "depth2": "Depth 2",
+            "openTree": "Open tree",
+            "canvasLabel": "Brain item neighbour graph"
         }
     },
     "activity": {
