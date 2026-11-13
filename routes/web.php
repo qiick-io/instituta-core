@@ -5,6 +5,7 @@ use App\Http\Controllers\Brain\ClientEraseController;
 use App\Http\Controllers\Brain\ClientExportController;
 use App\Http\Controllers\Brain\ClientProductsController;
 use App\Http\Controllers\Brain\ClientsController;
+use App\Http\Controllers\Brain\GraphController;
 use App\Http\Controllers\Brain\KeysController;
 use App\Http\Controllers\Brain\MapController;
 use App\Http\Controllers\Brain\ProposalsController;
@@ -24,6 +25,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('brain/scope', ScopeSwitcherController::class)->name('brain.scope');
     Route::get('brain/map', MapController::class)->name('brain.map');
+    Route::get('brain/graph/{item?}', GraphController::class)
+        ->where('item', '.*')
+        ->name('brain.graph');
     Route::get('brain/tree', TreeController::class)->name('brain.tree');
     Route::get('brain/items/{item}', ReadingController::class)
         ->where('item', '.*')

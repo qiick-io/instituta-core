@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Scoped brain graph at `/brain/graph/{item?}` via `@xyflow/react` with an in-app radial layout (issue #49).
 - Browser axe smoke via `pestphp/pest-plugin-browser` and `tests/Browser/A11ySmokeBrowserTest.php`; `ui-quality` now passes `axe-test` so `ui-quality / accessibility` runs (issue #52).
 - `brain:write` proposal contract surface (issue #54): `proposals` table, REST `/api/v1/proposals`, MCP `instituta_propose` / `instituta_list_proposals` / `instituta_update_proposal`, kill switches `mcp.write_enabled` / `api.write_enabled` (off by default), audit + activity without bodies.
 - Human UI to list and accept/reject write proposals at `/brain/proposals` (issue #55).

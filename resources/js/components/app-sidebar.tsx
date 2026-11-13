@@ -4,6 +4,7 @@ import {
     Building2,
     FolderGit2,
     FilePenLine,
+    GitFork,
     History,
     KeyRound,
     LayoutGrid,
@@ -64,6 +65,11 @@ export function AppSidebar() {
             title: t('brain.nav.tree'),
             href: '/brain/tree',
             icon: ListTree,
+        },
+        {
+            title: t('brain.nav.graph'),
+            href: '/brain/graph',
+            icon: GitFork,
         },
         {
             title: t('brain.nav.sources'),

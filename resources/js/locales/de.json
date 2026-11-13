@@ -203,7 +203,8 @@
             "activity": "Aktivität",
             "clients": "Kunden",
             "sessionReplay": "Sitzungs-Replay",
-            "proposals": "Vorschläge"
+            "proposals": "Vorschläge",
+            "graph": "Graph"
         },
         "scope": {
             "label": "Bereich",
@@ -439,6 +440,16 @@
                 "local_review": "Lokale Prüfung",
                 "failed": "Fehlgeschlagen"
             }
+        },
+        "graph": {
+            "title": "Eingeschränkter Graph",
+            "description": "Nachbarn eines Eintrags im aktuellen Umfang, nach Bereich gruppiert.",
+            "rootLabel": "Ausgangspunkt {{title}}",
+            "empty": "Keine Einträge in diesem Umfang für den Graphen.",
+            "depth1": "Tiefe 1",
+            "depth2": "Tiefe 2",
+            "openTree": "Baum öffnen",
+            "canvasLabel": "Nachbargraph der Brain-Einträge"
         }
     },
     "activity": {
