@@ -1,19 +1,20 @@
-import { Head, Link } from '@inertiajs/react';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Head, Link, setLayoutProps } from '@inertiajs/react';
+import { Table2, SearchX } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DataTable } from '@/components/admin/data-table';
+import { DataTableToolbar } from '@/components/admin/data-table-toolbar';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { TruncatedText } from '@/components/admin/truncated-text';
+import { EmptyStatus } from '@/components/empty-status';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import {
     index as tablesIndex,
     show as tablesShow,
 } from '@/routes/brain/tables';
+import type { BreadcrumbItem } from '@/types';
 
 type TablesListRow = {
     id: string;
@@ -30,90 +31,141 @@ type Props = {
     hasPerimeter: boolean;
 };
 
+/**
+ * Structured tables list (tokens / registries) — list-page + DataTable (kickoff §5).
+ */
 export default function BrainTablesIndex({ tables, hasPerimeter }: Props) {
     const { t } = useTranslation();
+    const [search, setSearch] = useState('');
+
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            {
+                title: t('brain.tables.title'),
+                href: tablesIndex.url(),
+            },
+        ],
+        [t],
+    );
+
+    setLayoutProps({ breadcrumbs });
+
+    const filteredTables = useMemo(() => {
+        const needle = search.trim().toLowerCase();
+
+        if (needle === '') {
+            return tables;
+        }
+
+        return tables.filter(
+            (row) =>
+                row.table_key.toLowerCase().includes(needle) ||
+                row.item_title.toLowerCase().includes(needle) ||
+                row.item_path.toLowerCase().includes(needle),
+        );
+    }, [tables, search]);
+
+    const hasActiveFilters = search.trim() !== '';
+    const isListEmpty = filteredTables.length === 0;
+    const hideListChrome =
+        !hasPerimeter || (tables.length === 0 && !hasActiveFilters);
+
+    const columns: ColumnDef<TablesListRow>[] = [
+        {
+            id: 'key',
+            header: t('brain.tables.colKey'),
+            meta: { cellClassName: 'max-w-[14rem] font-medium' },
+            cell: ({ row }) => (
+                <Link
+                    href={tablesShow.url({
+                        item: row.original.item_id,
+                        table: row.original.table_key,
+                    })}
+                    className="underline-offset-4 hover:underline"
+                >
+                    <TruncatedText text={row.original.table_key} />
+                </Link>
+            ),
+        },
+        {
+            id: 'item',
+            header: t('brain.tables.colItem'),
+            meta: { cellClassName: 'max-w-[16rem]' },
+            cell: ({ row }) => (
+                <div className="flex flex-col gap-0.5">
+                    <TruncatedText text={row.original.item_title} />
+                    <span className="font-mono text-xs text-muted-foreground">
+                        {row.original.item_path}
+                    </span>
+                </div>
+            ),
+        },
+        {
+            id: 'rows',
+            header: t('brain.tables.colRows'),
+            cell: ({ row }) => (
+                <Badge variant="secondary">{row.original.row_count}</Badge>
+            ),
+        },
+        {
+            id: 'columns',
+            header: t('brain.tables.colColumns'),
+            meta: {
+                cellClassName: 'text-sm text-muted-foreground max-w-[16rem]',
+            },
+            cell: ({ row }) => (
+                <TruncatedText text={row.original.columns.join(', ')} />
+            ),
+        },
+    ];
 
     return (
         <>
             <Head title={t('brain.tables.title')} />
-            <PageLayout description={t('brain.tables.description')}>
-                <div className="space-y-1 pb-2">
-                    <h1 className="text-xl font-semibold tracking-tight">
-                        {t('brain.tables.title')}
-                    </h1>
-                </div>
-
+            <PageLayout
+                description={t('brain.tables.description')}
+                filters={
+                    hideListChrome ? null : (
+                        <DataTableToolbar
+                            search={search}
+                            onSearchChange={setSearch}
+                            searchPlaceholder={t('brain.tables.colKey')}
+                        />
+                    )
+                }
+            >
                 {!hasPerimeter ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.scope.none')}
-                    </p>
-                ) : tables.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.tables.empty')}
-                    </p>
+                    <PageEmptyState
+                        icon={SearchX}
+                        title={
+                            <EmptyStatus>{t('brain.scope.none')}</EmptyStatus>
+                        }
+                        description={t('brain.tables.description')}
+                        compact
+                    />
+                ) : isListEmpty ? (
+                    <PageEmptyState
+                        icon={hasActiveFilters ? SearchX : Table2}
+                        title={
+                            hasActiveFilters ? (
+                                <EmptyStatus>
+                                    {t('brain.tables.empty')}
+                                </EmptyStatus>
+                            ) : (
+                                t('brain.tables.title')
+                            )
+                        }
+                        description={t('brain.tables.empty')}
+                        compact
+                    />
                 ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>
-                                    {t('brain.tables.colKey')}
-                                </TableHead>
-                                <TableHead>
-                                    {t('brain.tables.colItem')}
-                                </TableHead>
-                                <TableHead>
-                                    {t('brain.tables.colRows')}
-                                </TableHead>
-                                <TableHead>
-                                    {t('brain.tables.colColumns')}
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {tables.map((row) => (
-                                <TableRow key={row.id}>
-                                    <TableCell>
-                                        <Link
-                                            href={tablesShow.url({
-                                                item: row.item_id,
-                                                table: row.table_key,
-                                            })}
-                                            className="font-medium underline-offset-4 hover:underline"
-                                        >
-                                            {row.table_key}
-                                        </Link>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col gap-0.5">
-                                            <span>{row.item_title}</span>
-                                            <span className="font-mono text-xs text-muted-foreground">
-                                                {row.item_path}
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="secondary">
-                                            {row.row_count}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-sm text-muted-foreground">
-                                        {row.columns.join(', ')}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <DataTable
+                        columns={columns}
+                        data={filteredTables}
+                        getRowId={(row) => row.id}
+                    />
                 )}
             </PageLayout>
         </>
     );
 }
-
-BrainTablesIndex.layout = {
-    breadcrumbs: [
-        {
-            title: 'Tables',
-            href: tablesIndex.url(),
-        },
-    ],
-};

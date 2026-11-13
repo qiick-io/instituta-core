@@ -1,11 +1,16 @@
-import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Head, router, setLayoutProps } from '@inertiajs/react';
+import { History, SearchX } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DataTable } from '@/components/admin/data-table';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { TruncatedText } from '@/components/admin/truncated-text';
+import { EmptyStatus } from '@/components/empty-status';
 import { FilterSearch } from '@/components/layout/page-header';
 import {
     PageLayout,
     TablePaginationFooter,
-    TablePanel,
     hasTablePaginationFooter,
     type TablePaginationState,
 } from '@/components/layout/page-layout';
@@ -26,15 +31,9 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { sessionReplay } from '@/routes/brain';
+import type { BreadcrumbItem } from '@/types';
+
 type PrincipalOption = {
     id: string;
     name: string;
@@ -128,7 +127,8 @@ function visitWith(
 }
 
 /**
- * Session replay: inspect contract_calls without content or secrets.
+ * Session replay: contract_calls list + sheet detail (kickoff / list-page chrome).
+ * Metadata only — no bodies or secrets.
  */
 export default function BrainSessionReplay({
     is_owner,
@@ -145,6 +145,18 @@ export default function BrainSessionReplay({
     );
     const [selected, setSelected] = useState<CallRow | null>(null);
     const pagination = paginationMeta(calls);
+
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            {
+                title: t('brain.sessionReplay.title'),
+                href: sessionReplay.url(),
+            },
+        ],
+        [t],
+    );
+
+    setLayoutProps({ breadcrumbs });
 
     const visit = (
         overrides: Partial<Filters> & { page?: number; per_page?: number } = {},
@@ -166,6 +178,65 @@ export default function BrainSessionReplay({
             page: overrides.page ?? 1,
         });
     };
+
+    const columns: ColumnDef<CallRow>[] = [
+        {
+            id: 'when',
+            header: t('brain.sessionReplay.colWhen'),
+            meta: {
+                cellClassName:
+                    'whitespace-nowrap text-sm text-muted-foreground',
+            },
+            cell: ({ row }) =>
+                row.original.called_at
+                    ? new Date(row.original.called_at).toLocaleString()
+                    : '—',
+        },
+        {
+            id: 'tool',
+            header: t('brain.sessionReplay.colTool'),
+            meta: { cellClassName: 'font-mono text-xs max-w-[16rem]' },
+            cell: ({ row }) => (
+                <TruncatedText text={row.original.tool_or_endpoint} />
+            ),
+        },
+        {
+            id: 'principal',
+            header: t('brain.sessionReplay.colPrincipal'),
+            cell: ({ row }) => row.original.principal?.name ?? '—',
+        },
+        {
+            id: 'scope',
+            header: t('brain.sessionReplay.colScope'),
+            meta: { cellClassName: 'font-mono text-xs text-muted-foreground' },
+            cell: ({ row }) =>
+                `${row.original.scope_type}:${row.original.scope_id}`,
+        },
+        {
+            id: 'actions',
+            header: t('brain.sessionReplay.colActions'),
+            meta: { cellClassName: 'w-[1%] text-right' },
+            cell: ({ row }) => (
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelected(row.original)}
+                >
+                    {t('brain.sessionReplay.view')}
+                </Button>
+            ),
+        },
+    ];
+
+    const hasActiveFilters =
+        Boolean(filters.search) ||
+        Boolean(filters.principal_id) ||
+        Boolean(filters.tool_or_endpoint) ||
+        Boolean(filters.api_key_id) ||
+        Boolean(filters.agent_session_id) ||
+        Boolean(filters.date_from) ||
+        Boolean(filters.date_to);
 
     return (
         <>
@@ -337,103 +408,38 @@ export default function BrainSessionReplay({
                     ) : undefined
                 }
             >
-                <div className="space-y-1 pb-2">
-                    <h1 className="text-xl font-semibold tracking-tight">
-                        {t('brain.sessionReplay.title')}
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.sessionReplay.hint')}
-                    </p>
-                </div>
-
                 {!is_owner ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.sessionReplay.ownerOnly')}
-                    </p>
+                    <PageEmptyState
+                        icon={SearchX}
+                        title={
+                            <EmptyStatus>
+                                {t('brain.sessionReplay.ownerOnly')}
+                            </EmptyStatus>
+                        }
+                        description={t('brain.sessionReplay.description')}
+                        compact
+                    />
+                ) : calls.data.length === 0 ? (
+                    <PageEmptyState
+                        icon={hasActiveFilters ? SearchX : History}
+                        title={
+                            <EmptyStatus>
+                                {t('brain.sessionReplay.empty')}
+                            </EmptyStatus>
+                        }
+                        description={t('brain.sessionReplay.hint')}
+                        compact
+                    />
                 ) : (
                     <div className="space-y-4">
-                        <TablePanel>
-                            {calls.data.length === 0 ? (
-                                <p className="p-4 text-sm text-muted-foreground">
-                                    {t('brain.sessionReplay.empty')}
-                                </p>
-                            ) : (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>
-                                                {t(
-                                                    'brain.sessionReplay.colWhen',
-                                                )}
-                                            </TableHead>
-                                            <TableHead>
-                                                {t(
-                                                    'brain.sessionReplay.colTool',
-                                                )}
-                                            </TableHead>
-                                            <TableHead>
-                                                {t(
-                                                    'brain.sessionReplay.colPrincipal',
-                                                )}
-                                            </TableHead>
-                                            <TableHead>
-                                                {t(
-                                                    'brain.sessionReplay.colScope',
-                                                )}
-                                            </TableHead>
-                                            <TableHead className="w-[1%] text-right">
-                                                {t(
-                                                    'brain.sessionReplay.colActions',
-                                                )}
-                                            </TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {calls.data.map((call) => (
-                                            <TableRow key={call.id}>
-                                                <TableCell className="text-sm whitespace-nowrap text-muted-foreground">
-                                                    {call.called_at
-                                                        ? new Date(
-                                                              call.called_at,
-                                                          ).toLocaleString()
-                                                        : '—'}
-                                                </TableCell>
-                                                <TableCell className="font-mono text-xs">
-                                                    {call.tool_or_endpoint}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {call.principal?.name ??
-                                                        '—'}
-                                                </TableCell>
-                                                <TableCell className="font-mono text-xs text-muted-foreground">
-                                                    {call.scope_type}:
-                                                    {call.scope_id}
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            setSelected(call)
-                                                        }
-                                                    >
-                                                        {t(
-                                                            'brain.sessionReplay.view',
-                                                        )}
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            )}
-                            {hasTablePaginationFooter(pagination) ? (
-                                <TablePaginationFooter
-                                    pagination={pagination}
-                                />
-                            ) : null}
-                        </TablePanel>
+                        <DataTable
+                            columns={columns}
+                            data={calls.data}
+                            getRowId={(row) => row.id}
+                        />
+                        {hasTablePaginationFooter(pagination) ? (
+                            <TablePaginationFooter pagination={pagination} />
+                        ) : null}
                     </div>
                 )}
             </PageLayout>
@@ -514,12 +520,3 @@ export default function BrainSessionReplay({
         </>
     );
 }
-
-BrainSessionReplay.layout = {
-    breadcrumbs: [
-        {
-            title: 'Session replay',
-            href: sessionReplay.url(),
-        },
-    ],
-};

@@ -14,7 +14,8 @@
         "resources/js/types/auth.ts",
         "resources/js/types/ui.ts",
         "resources/js/components/admin/data-table-faceted-filter.tsx",
-        "resources/js/components/admin/data-table.tsx"
+        "resources/js/components/admin/data-table.tsx",
+        "resources/js/components/stat-card.tsx"
     ],
     "ignoreDependencies": [
         "@radix-ui/react-avatar",

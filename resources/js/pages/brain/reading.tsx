@@ -1,19 +1,36 @@
 /**
  * Reading view composition (no app-ui long-form reading pattern yet).
  * Built from existing @qiick items: page-layout, page-header, scroll-area,
- * table, collapsible, badge. Proposed upstream for app-ui.
+ * table, collapsible, marker, sources, code-block, aspect-ratio, carousel.
+ * Proposed upstream for app-ui (kickoff §5 / Decisions already taken).
  * Drift check only allows overrides for installed registry files, so the
  * reason lives here instead of app-ui.overrides.json.
  */
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, setLayoutProps } from '@inertiajs/react';
+import { FileText } from 'lucide-react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+    CodeBlock,
+    CodeBlockCopyButton,
+} from '@/components/ai-elements/code-block';
+import { Sources } from '@/components/ai-elements/sources';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+} from '@/components/ui/carousel';
 import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/marker';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Table,
@@ -23,14 +40,20 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Trace } from '@/components/ui/trace';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { cn } from '@/lib/utils';
 import { tree } from '@/routes/brain';
 import { show as tablesShow } from '@/routes/brain/tables';
+import brainRoutes from '@/routes/brain';
+import type { BreadcrumbItem } from '@/types';
+import type { BundledLanguage } from 'shiki';
 
 function cellText(value: unknown): string {
     if (value === null || value === undefined) {
         return '';
     }
+
     if (
         typeof value === 'string' ||
         typeof value === 'number' ||
@@ -38,6 +61,7 @@ function cellText(value: unknown): string {
     ) {
         return String(value);
     }
+
     return JSON.stringify(value);
 }
 
@@ -87,6 +111,70 @@ type Props = {
     item: Item;
 };
 
+function codeLanguage(payload: Record<string, unknown>): BundledLanguage {
+    const language = cellText(payload.language || payload.lang || 'text');
+
+    return language as BundledLanguage;
+}
+
+function ImageBlocks({ blocks }: { blocks: Block[] }) {
+    const imageBlocks = blocks.filter((block) => block.type === 'image');
+
+    if (imageBlocks.length === 0) {
+        return null;
+    }
+
+    const [canonical, ...gallery] = imageBlocks;
+    const canonicalPath = cellText(canonical.payload.path);
+    const canonicalAlt = cellText(canonical.payload.alt);
+
+    return (
+        <div className="space-y-3">
+            <figure className="space-y-2">
+                <AspectRatio
+                    ratio={16 / 9}
+                    className="overflow-hidden rounded-lg border border-sidebar-border/70 dark:border-sidebar-border"
+                >
+                    <img
+                        src={canonicalPath}
+                        alt={canonicalAlt}
+                        className="size-full object-contain"
+                    />
+                </AspectRatio>
+                {canonical.payload.caption ? (
+                    <figcaption className="text-xs text-muted-foreground">
+                        {cellText(canonical.payload.caption)}
+                    </figcaption>
+                ) : null}
+            </figure>
+            {gallery.length > 0 ? (
+                <Carousel className="w-full">
+                    <CarouselContent>
+                        {gallery.map((block, index) => (
+                            <CarouselItem
+                                key={`${cellText(block.payload.path)}-${index}`}
+                            >
+                                <AspectRatio
+                                    ratio={16 / 9}
+                                    className="overflow-hidden rounded-lg border border-sidebar-border/70 dark:border-sidebar-border"
+                                >
+                                    <img
+                                        src={cellText(block.payload.path)}
+                                        alt={cellText(block.payload.alt)}
+                                        className="size-full object-contain"
+                                    />
+                                </AspectRatio>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                </Carousel>
+            ) : null}
+        </div>
+    );
+}
+
 function BlockView({ block }: { block: Block }) {
     const { t } = useTranslation();
     const payload = block.payload ?? {};
@@ -101,29 +189,17 @@ function BlockView({ block }: { block: Block }) {
 
     if (block.type === 'code') {
         return (
-            <pre className="overflow-x-auto rounded-lg border border-sidebar-border/70 bg-muted/40 p-3 font-mono text-xs dark:border-sidebar-border">
-                <code>{cellText(payload.source)}</code>
-            </pre>
+            <CodeBlock
+                code={cellText(payload.source)}
+                language={codeLanguage(payload)}
+            >
+                <CodeBlockCopyButton />
+            </CodeBlock>
         );
     }
 
     if (block.type === 'image') {
-        return (
-            <figure className="space-y-2">
-                <div className="overflow-hidden rounded-lg border border-sidebar-border/70 dark:border-sidebar-border">
-                    <img
-                        src={cellText(payload.path)}
-                        alt={cellText(payload.alt)}
-                        className="max-h-96 w-full object-contain"
-                    />
-                </div>
-                {payload.caption ? (
-                    <figcaption className="text-xs text-muted-foreground">
-                        {cellText(payload.caption)}
-                    </figcaption>
-                ) : null}
-            </figure>
-        );
+        return null;
     }
 
     if (block.type === 'table' || block.type === 'data-table') {
@@ -165,8 +241,38 @@ function BlockView({ block }: { block: Block }) {
     );
 }
 
+/**
+ * Long-form brain concept: sticky outline, citation markers, typed blocks.
+ */
 export default function BrainReading({ item }: Props) {
     const { t } = useTranslation();
+
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            {
+                title: t('brain.tree.title'),
+                href: tree.url(),
+            },
+            {
+                title: item.title,
+                href: '#',
+            },
+        ],
+        [item.title, t],
+    );
+
+    setLayoutProps({ breadcrumbs });
+
+    const citationSources = [
+        {
+            url: brainRoutes.sources.url(),
+            title: item.citation.source,
+        },
+        {
+            url: `${brainRoutes.sources.url()}#${item.citation.path}`,
+            title: item.citation.path,
+        },
+    ];
 
     return (
         <>
@@ -187,24 +293,32 @@ export default function BrainReading({ item }: Props) {
                     </div>
                 }
                 filters={
-                    <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline">
-                            {t('brain.reading.citationSource', {
-                                source: item.citation.source,
-                            })}
-                        </Badge>
-                        <Badge variant="outline">
-                            {t('brain.reading.citationPath', {
-                                path: item.citation.path,
-                            })}
-                        </Badge>
-                        {item.citation.commit ? (
-                            <Badge variant="outline">
-                                {t('brain.reading.citationCommit', {
-                                    commit: item.citation.commit.slice(0, 7),
+                    <div className="flex w-full flex-col gap-2">
+                        <Marker variant="border" role="status">
+                            <MarkerIcon>
+                                <FileText />
+                            </MarkerIcon>
+                            <MarkerContent>
+                                {t('brain.reading.citationSource', {
+                                    source: item.citation.source,
                                 })}
-                            </Badge>
-                        ) : null}
+                                {' · '}
+                                {t('brain.reading.citationPath', {
+                                    path: item.citation.path,
+                                })}
+                                {item.citation.commit
+                                    ? ` · ${t('brain.reading.citationCommit', {
+                                          commit: item.citation.commit.slice(
+                                              0,
+                                              7,
+                                          ),
+                                      })}`
+                                    : null}
+                            </MarkerContent>
+                        </Marker>
+                        <Trace>
+                            <Sources sources={citationSources} />
+                        </Trace>
                     </div>
                 }
                 scrollContent
@@ -239,55 +353,69 @@ export default function BrainReading({ item }: Props) {
 
                     <article className="space-y-8">
                         {item.sections.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">
-                                {t('brain.reading.empty')}
-                            </p>
+                            <PageEmptyState
+                                icon={FileText}
+                                title={item.title}
+                                description={t('brain.reading.empty')}
+                                compact
+                            />
                         ) : (
-                            item.sections.map((section) => (
-                                <section
-                                    key={section.anchor}
-                                    id={section.anchor}
-                                    className="scroll-mt-4 space-y-3"
-                                >
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <h2
-                                            className={cn(
-                                                'font-semibold tracking-tight',
-                                                section.level <= 2
-                                                    ? 'text-lg'
-                                                    : 'text-base',
-                                            )}
-                                        >
-                                            {section.heading}
-                                        </h2>
-                                        <Badge variant="outline">
-                                            {t(
-                                                'brain.reading.citationSection',
-                                                {
-                                                    section: section.anchor,
-                                                },
-                                            )}
-                                        </Badge>
-                                    </div>
+                            item.sections.map((section) => {
+                                const nonImageBlocks = section.blocks.filter(
+                                    (block) => block.type !== 'image',
+                                );
+                                const imageBlocks = section.blocks.filter(
+                                    (block) => block.type === 'image',
+                                );
 
-                                    {section.blocks.length > 0 ? (
-                                        <div className="space-y-3">
-                                            {section.blocks.map(
-                                                (block, index) => (
-                                                    <BlockView
-                                                        key={`${section.anchor}-${index}`}
-                                                        block={block}
-                                                    />
-                                                ),
-                                            )}
+                                return (
+                                    <section
+                                        key={section.anchor}
+                                        id={section.anchor}
+                                        className="scroll-mt-4 space-y-3"
+                                    >
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <h2
+                                                className={cn(
+                                                    'font-semibold tracking-tight',
+                                                    section.level <= 2
+                                                        ? 'text-lg'
+                                                        : 'text-base',
+                                                )}
+                                            >
+                                                {section.heading}
+                                            </h2>
+                                            <Badge variant="outline">
+                                                {t(
+                                                    'brain.reading.citationSection',
+                                                    {
+                                                        section: section.anchor,
+                                                    },
+                                                )}
+                                            </Badge>
                                         </div>
-                                    ) : (
-                                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                                            {section.body}
-                                        </p>
-                                    )}
-                                </section>
-                            ))
+
+                                        <ImageBlocks blocks={imageBlocks} />
+
+                                        {nonImageBlocks.length > 0 ? (
+                                            <div className="space-y-3">
+                                                {nonImageBlocks.map(
+                                                    (block, index) => (
+                                                        <BlockView
+                                                            key={`${section.anchor}-${index}`}
+                                                            block={block}
+                                                        />
+                                                    ),
+                                                )}
+                                            </div>
+                                        ) : section.body ? (
+                                            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                                                {section.body}
+                                            </p>
+                                        ) : null}
+                                    </section>
+                                );
+                            })
                         )}
 
                         {item.tables.length > 0 ? (
@@ -370,16 +498,3 @@ export default function BrainReading({ item }: Props) {
         </>
     );
 }
-
-BrainReading.layout = {
-    breadcrumbs: [
-        {
-            title: 'Tree',
-            href: tree.url(),
-        },
-        {
-            title: 'Reading',
-            href: '#',
-        },
-    ],
-};
