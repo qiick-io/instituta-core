@@ -14,7 +14,6 @@ use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\Proposal;
 use App\Services\ApiKeyIssuerService;
-use InvalidArgumentException;
 
 /**
  * @return array{org: Organisation, principal: Principal, key: ApiKey, plain: string}
