@@ -1,0 +1,307 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Brain\Enums\RoleEnum;
+use App\Brain\Enums\ScopeTypeEnum;
+use App\Brain\Enums\VisibilityEnum;
+use App\Mcp\Servers\HttpBrainServer;
+use App\Mcp\Tools\Http\InstitutaGetTool;
+use App\Mcp\Tools\Http\InstitutaListTool;
+use App\Models\Company;
+use App\Models\Grant;
+use App\Models\Item;
+use App\Models\ItemSection;
+use App\Models\Organisation;
+use App\Models\Principal;
+use App\Models\Product;
+use App\Models\Source;
+use App\Models\User;
+use App\Services\ApiKeyIssuerService;
+use App\Services\ClientExportService;
+use App\Services\IndexedContractService;
+use App\Services\PerimeterResolverService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Testing\Fluent\AssertableJson;
+use Inertia\Testing\AssertableInertia as Assert;
+
+/**
+ * Step 15 cross-tenant suite: one seed, assert no leakage across UI, MCP,
+ * REST, search, resolved view and export. Graph stays out of scope.
+ */
+function isolationSeed(): array
+{
+    $userA = User::factory()->create(['name' => 'Owner A']);
+    $orgA = Organisation::factory()->create(['name' => 'Tenant A', 'slug' => 'tenant-a']);
+    $companyA = Company::factory()->client()->create([
+        'organisation_id' => $orgA->id,
+        'slug' => 'client',
+        'name' => 'Client A',
+    ]);
+    $productA = Product::factory()->create([
+        'company_id' => $companyA->id,
+        'slug' => 'app',
+        'name' => 'App A',
+        'inherits_from_parent' => true,
+    ]);
+    $sourceA = Source::factory()->create([
+        'organisation_id' => $orgA->id,
+        'company_id' => $companyA->id,
+        'product_id' => $productA->id,
+        'name' => 'source-a',
+        'last_synced_commit' => 'aaa111',
+    ]);
+    $principalA = Principal::factory()->create([
+        'organisation_id' => $orgA->id,
+        'user_id' => $userA->id,
+        'type' => 'person',
+        'name' => $userA->name,
+    ]);
+    Grant::factory()->create([
+        'principal_id' => $principalA->id,
+        'scope_type' => ScopeTypeEnum::Organisation,
+        'scope_id' => $orgA->id,
+        'role' => RoleEnum::Owner,
+        'max_visibility' => VisibilityEnum::Restricted,
+    ]);
+    $keyA = app(ApiKeyIssuerService::class)->create(
+        principal: $principalA,
+        name: 'tenant-a',
+        scopeType: ScopeTypeEnum::Organisation,
+        scopeId: $orgA->id,
+        role: RoleEnum::Owner,
+        maxVisibility: VisibilityEnum::Restricted,
+    );
+
+    $itemA = Item::factory()->create([
+        'organisation_id' => $orgA->id,
+        'company_id' => $companyA->id,
+        'product_id' => $productA->id,
+        'source_id' => $sourceA->id,
+        'area' => 'rules',
+        'title' => 'Tenant A rules',
+        'path' => 'rules/a.md',
+        'stable_key' => 'rules/a',
+        'resolution_key' => 'brand.voice',
+        'summary' => 'brand voice for tenant A',
+        'visibility' => VisibilityEnum::Internal,
+    ]);
+    ItemSection::factory()->create([
+        'item_id' => $itemA->id,
+        'organisation_id' => $orgA->id,
+        'company_id' => $companyA->id,
+        'product_id' => $productA->id,
+        'anchor' => 'body',
+        'heading' => 'Body',
+        'level' => 2,
+        'position' => 0,
+        'body' => 'brand voice for tenant A',
+        'blocks' => [['type' => 'paragraph', 'text' => 'brand voice for tenant A']],
+    ]);
+
+    $userB = User::factory()->create(['name' => 'Owner B']);
+    $orgB = Organisation::factory()->create(['name' => 'Tenant B', 'slug' => 'tenant-b']);
+    $companyB = Company::factory()->client()->create([
+        'organisation_id' => $orgB->id,
+        'slug' => 'client',
+        'name' => 'Client B',
+    ]);
+    $productB = Product::factory()->create([
+        'company_id' => $companyB->id,
+        'slug' => 'app',
+        'name' => 'App B',
+        'inherits_from_parent' => true,
+    ]);
+    $sourceB = Source::factory()->create([
+        'organisation_id' => $orgB->id,
+        'company_id' => $companyB->id,
+        'product_id' => $productB->id,
+        'name' => 'source-b',
+        'last_synced_commit' => 'bbb222',
+    ]);
+    $principalB = Principal::factory()->create([
+        'organisation_id' => $orgB->id,
+        'user_id' => $userB->id,
+        'type' => 'person',
+        'name' => $userB->name,
+    ]);
+    Grant::factory()->create([
+        'principal_id' => $principalB->id,
+        'scope_type' => ScopeTypeEnum::Organisation,
+        'scope_id' => $orgB->id,
+        'role' => RoleEnum::Owner,
+        'max_visibility' => VisibilityEnum::Restricted,
+    ]);
+    $keyB = app(ApiKeyIssuerService::class)->create(
+        principal: $principalB,
+        name: 'tenant-b',
+        scopeType: ScopeTypeEnum::Organisation,
+        scopeId: $orgB->id,
+        role: RoleEnum::Owner,
+        maxVisibility: VisibilityEnum::Restricted,
+    );
+
+    $itemB = Item::factory()->create([
+        'organisation_id' => $orgB->id,
+        'company_id' => $companyB->id,
+        'product_id' => $productB->id,
+        'source_id' => $sourceB->id,
+        'area' => 'rules',
+        'title' => 'Tenant B secret',
+        'path' => 'rules/b.md',
+        'stable_key' => 'rules/b',
+        'resolution_key' => 'brand.voice',
+        'summary' => 'brand voice leaked across tenants',
+        'visibility' => VisibilityEnum::Internal,
+    ]);
+    ItemSection::factory()->create([
+        'item_id' => $itemB->id,
+        'organisation_id' => $orgB->id,
+        'company_id' => $companyB->id,
+        'product_id' => $productB->id,
+        'anchor' => 'body',
+        'heading' => 'Body',
+        'level' => 2,
+        'position' => 0,
+        'body' => 'brand voice leaked across tenants',
+        'blocks' => [['type' => 'paragraph', 'text' => 'brand voice leaked across tenants']],
+    ]);
+
+    return [
+        'userA' => $userA,
+        'orgA' => $orgA,
+        'companyA' => $companyA,
+        'productA' => $productA,
+        'sourceA' => $sourceA,
+        'itemA' => $itemA,
+        'keyA' => $keyA['key'],
+        'plainA' => $keyA['plain'],
+        'userB' => $userB,
+        'orgB' => $orgB,
+        'companyB' => $companyB,
+        'productB' => $productB,
+        'sourceB' => $sourceB,
+        'itemB' => $itemB,
+        'keyB' => $keyB['key'],
+        'plainB' => $keyB['plain'],
+    ];
+}
+
+it('keeps brain UI lists and reads inside the session perimeter', function (): void {
+    $seed = isolationSeed();
+
+    $this->actingAs($seed['userA'])
+        ->get(route('brain.tree'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('brain/tree')
+            ->where('total', 1)
+            ->where('groups.0.items.0.title', 'Tenant A rules'));
+
+    $this->actingAs($seed['userA'])
+        ->get(route('brain.map'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('areas.0.area', 'rules')
+            ->where('areas.0.count', 1));
+
+    $this->actingAs($seed['userA'])
+        ->get(route('brain.sources'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('sources', 1)
+            ->where('sources.0.name', 'source-a'));
+
+    $this->actingAs($seed['userA'])
+        ->get(route('brain.reading', ['item' => $seed['itemA']->id]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('item.title', 'Tenant A rules'));
+
+    $this->actingAs($seed['userA'])
+        ->get(route('brain.reading', ['item' => $seed['itemB']->id]))
+        ->assertNotFound();
+
+    $this->actingAs($seed['userA'])
+        ->get(route('brain.resolved', ['product' => $seed['productA']->id]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('entries', 1)
+            ->where('entries.0.title', 'Tenant A rules'));
+
+    $this->actingAs($seed['userA'])
+        ->from(route('dashboard'))
+        ->post(route('brain.scope'), [
+            'scope_type' => 'organisation',
+            'scope_id' => $seed['orgB']->id,
+        ])
+        ->assertRedirect(route('dashboard'))
+        ->assertSessionHasErrors('scope_id');
+});
+
+it('keeps MCP list and get inside the API key perimeter', function (): void {
+    config(['instituta.mcp.enabled' => true]);
+    $seed = isolationSeed();
+
+    $perimeter = app(PerimeterResolverService::class)->fromApiKey($seed['keyA']->fresh('principal'));
+    request()->attributes->set('instituta.api_key', $seed['keyA']);
+    request()->attributes->set('instituta.perimeter', $perimeter);
+
+    HttpBrainServer::tool(InstitutaListTool::class)
+        ->assertOk()
+        ->assertStructuredContent(function (AssertableJson $json) use ($seed): void {
+            $ids = collect($json->toArray()['items'] ?? [])->pluck('id')->all();
+            expect($ids)->toContain($seed['itemA']->id)
+                ->and($ids)->not->toContain($seed['itemB']->id);
+            $json->etc();
+        });
+
+    HttpBrainServer::tool(InstitutaGetTool::class, ['id' => $seed['itemB']->id])
+        ->assertOk()
+        ->assertStructuredContent(fn (AssertableJson $json) => $json->where('item', null)->etc());
+});
+
+it('keeps REST list and get inside the API key perimeter', function (): void {
+    $seed = isolationSeed();
+    $auth = ['Authorization' => 'Bearer '.$seed['plainA']];
+
+    $response = $this->getJson('/api/v1/items?scope='.$seed['orgA']->id, $auth)->assertOk();
+    $ids = collect($response->json('items'))->pluck('id')->all();
+    expect($ids)->toContain($seed['itemA']->id)
+        ->and($ids)->not->toContain($seed['itemB']->id);
+
+    $this->getJson('/api/v1/items/'.$seed['itemB']->id, $auth)->assertNotFound();
+});
+
+it('keeps search hits inside the API key perimeter', function (): void {
+    expect(in_array(DB::connection()->getDriverName(), ['sqlite', 'pgsql'], true))->toBeTrue();
+
+    $seed = isolationSeed();
+    $perimeter = app(PerimeterResolverService::class)->fromApiKey($seed['keyA']->fresh('principal'));
+    $payload = app(IndexedContractService::class)->search(
+        $perimeter,
+        $seed['keyA'],
+        'brand voice',
+    );
+
+    $ids = collect($payload['results'])->pluck('id')->all();
+    expect($ids)->toContain($seed['itemA']->id)
+        ->and($ids)->not->toContain($seed['itemB']->id);
+});
+
+it('exports only the calling client subtree and never the other tenant', function (): void {
+    $seed = isolationSeed();
+    $dest = storage_path('framework/testing/exports/isolation-a');
+    File::deleteDirectory($dest);
+
+    $result = app(ClientExportService::class)->export($seed['companyA'], $dest);
+    $titles = collect(json_decode(File::get($dest.'/index.json'), true, 512, JSON_THROW_ON_ERROR)['items'])
+        ->pluck('title')
+        ->all();
+
+    expect($result['manifest']['company']['id'])->toBe($seed['companyA']->id)
+        ->and($result['manifest']['counts']['items'])->toBe(1)
+        ->and($titles)->toBe(['Tenant A rules'])
+        ->and($titles)->not->toContain('Tenant B secret');
+});
