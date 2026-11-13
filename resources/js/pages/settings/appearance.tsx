@@ -1,14 +1,130 @@
-import { Head } from '@inertiajs/react';
+import { Form, Head, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import AppearanceSettingsController from '@/actions/App/Http/Controllers/Settings/AppearanceSettingsController';
 import AppearanceTabs from '@/components/appearance-tabs';
 import Heading from '@/components/heading';
+import { ThemePresetField } from '@/components/settings/theme-preset-field';
+import { SettingsFormActions } from '@/components/settings-form-actions';
+import { Button } from '@/components/ui/button';
+import {
+    Field,
+    FieldDescription,
+    FieldError,
+    FieldGroup,
+    FieldLabel,
+} from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { PermissionEnum } from '@/enums/permission-enum';
+import { useCan } from '@/hooks/use-can';
+import { brandPassesAa } from '@/lib/brand-contrast';
+import { applyThemeCss, buildPreviewThemeCss } from '@/lib/theme-css';
 import { edit as editAppearance } from '@/routes/appearance';
+import type {
+    AppearanceSettings,
+    ProjectAppearance,
+    ThemePresetSlug,
+} from '@/types';
 
 /**
- * Personal light / dark / system preference (client-side; no sticky Save).
+ * Re-apply the saved theme CSS (shared Inertia props) over the live preview.
  */
-export default function Appearance() {
+function restoreThemeFromAppearance(
+    appearance: ProjectAppearance | undefined,
+): void {
+    if (appearance?.themeCss) {
+        applyThemeCss(appearance.themeCss);
+    }
+}
+
+/**
+ * Settings → Appearance: personal light/dark/system for everyone; theme preset and
+ * instance default for managers (`can-manage-settings`). Copied from Signaculum
+ * without logo/favicon uploads.
+ */
+export default function Appearance({
+    appearance,
+}: {
+    appearance?: AppearanceSettings;
+}) {
     const { t } = useTranslation();
+    const { can } = useCan();
+    const { projectAppearance } = usePage().props;
+    const canManageSettings = can(PermissionEnum.CanManageSettings);
+
+    const initialThemePreset = appearance?.theme_preset ?? 'teal';
+    const initialColor = appearance?.project_color ?? null;
+    const initialColorDark = appearance?.project_color_dark ?? null;
+    const initialAppearance = appearance?.default_appearance ?? 'system';
+    const themePresets = appearance?.theme_presets ?? [];
+
+    const [themePreset, setThemePresetState] =
+        useState<ThemePresetSlug>(initialThemePreset);
+    const [projectColor, setProjectColor] = useState<string | null>(
+        initialColor,
+    );
+    const [projectColorDark, setProjectColorDark] = useState<string | null>(
+        initialColorDark,
+    );
+    const [defaultAppearance, setDefaultAppearance] =
+        useState(initialAppearance);
+
+    const selectedPreset =
+        themePresets.find((preset) => preset.slug === themePreset) ??
+        themePresets[0];
+    const displayColor =
+        projectColor ?? selectedPreset?.swatchLight ?? '#0E7C86';
+    const displayColorDark =
+        projectColorDark ??
+        projectColor ??
+        selectedPreset?.swatchDark ??
+        '#2CB1BC';
+    const hasCustomColor = Boolean(projectColor || projectColorDark);
+    const showsContrastWarning =
+        hasCustomColor && !brandPassesAa(projectColor, projectColorDark);
+
+    const setThemePreset = (value: ThemePresetSlug): void => {
+        setThemePresetState(value);
+        setProjectColor(null);
+        setProjectColorDark(null);
+    };
+
+    useEffect(() => {
+        if (!canManageSettings || !selectedPreset) {
+            return;
+        }
+
+        applyThemeCss(
+            buildPreviewThemeCss(
+                selectedPreset,
+                projectColor,
+                projectColorDark,
+            ),
+        );
+
+        return () => {
+            restoreThemeFromAppearance(projectAppearance);
+        };
+    }, [
+        canManageSettings,
+        selectedPreset,
+        projectColor,
+        projectColorDark,
+        projectAppearance,
+    ]);
 
     return (
         <>
@@ -19,11 +135,303 @@ export default function Appearance() {
             <div className="space-y-6">
                 <Heading
                     variant="small"
-                    title={t('settings.appearance.title')}
-                    description={t('settings.appearance.description')}
+                    title={t('settings.appearance.personalTitle')}
+                    description={t('settings.appearance.personalDescription')}
                 />
                 <AppearanceTabs />
             </div>
+
+            {canManageSettings && appearance && selectedPreset ? (
+                <>
+                    <Separator />
+
+                    <Form
+                        {...AppearanceSettingsController.update.form()}
+                        options={{ preserveScroll: true }}
+                        className="space-y-12"
+                        noValidate
+                    >
+                        {({ processing, recentlySuccessful, errors }) => (
+                            <>
+                                <div className="space-y-6">
+                                    <Heading
+                                        variant="small"
+                                        title={t(
+                                            'settings.appearance.themePresetTitle',
+                                        )}
+                                        description={t(
+                                            'settings.appearance.themePresetDescription',
+                                        )}
+                                    />
+
+                                    <ThemePresetField
+                                        catalog={appearance.theme_presets}
+                                        value={themePreset}
+                                        onChange={setThemePreset}
+                                        error={errors.theme_preset}
+                                    />
+                                </div>
+
+                                <Separator />
+
+                                <div className="space-y-6">
+                                    <Heading
+                                        variant="small"
+                                        title={t(
+                                            'settings.appearance.brandingTitle',
+                                        )}
+                                        description={t(
+                                            'settings.appearance.brandingDescription',
+                                        )}
+                                    />
+
+                                    <FieldGroup className="gap-6">
+                                        <div className="space-y-2">
+                                            <p className="text-sm font-medium">
+                                                {t(
+                                                    'settings.appearance.customColorTitle',
+                                                )}
+                                            </p>
+                                            <FieldDescription>
+                                                {t(
+                                                    'settings.appearance.customColorDescription',
+                                                )}
+                                            </FieldDescription>
+                                        </div>
+
+                                        <Field
+                                            data-invalid={
+                                                errors.project_color
+                                                    ? true
+                                                    : undefined
+                                            }
+                                        >
+                                            <FieldLabel htmlFor="project_color">
+                                                {t(
+                                                    'settings.appearance.projectColor',
+                                                )}
+                                            </FieldLabel>
+                                            <InputGroup className="max-w-[220px] bg-transparent has-[:focus-visible]:border-ring has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background dark:border-white/25 dark:bg-transparent">
+                                                <InputGroupAddon
+                                                    align="inline-start"
+                                                    className="pl-2"
+                                                >
+                                                    <Input
+                                                        id="project_color"
+                                                        type="color"
+                                                        className="h-7 w-7 shrink-0 cursor-pointer border-0 p-0 shadow-none focus-visible:ring-0 dark:bg-transparent [&::-webkit-color-swatch]:rounded-[3px] [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
+                                                        value={displayColor}
+                                                        onChange={(event) =>
+                                                            setProjectColor(
+                                                                event.target
+                                                                    .value,
+                                                            )
+                                                        }
+                                                    />
+                                                </InputGroupAddon>
+                                                <InputGroupInput
+                                                    name="project_color"
+                                                    value={projectColor ?? ''}
+                                                    onChange={(event) =>
+                                                        setProjectColor(
+                                                            event.target
+                                                                .value || null,
+                                                        )
+                                                    }
+                                                    className="font-mono"
+                                                    placeholder={
+                                                        selectedPreset.swatchLight
+                                                    }
+                                                    aria-invalid={
+                                                        errors.project_color
+                                                            ? true
+                                                            : undefined
+                                                    }
+                                                />
+                                            </InputGroup>
+                                            <FieldError id="project-color-error">
+                                                {errors.project_color}
+                                            </FieldError>
+                                        </Field>
+
+                                        <Field
+                                            data-invalid={
+                                                errors.project_color_dark
+                                                    ? true
+                                                    : undefined
+                                            }
+                                        >
+                                            <FieldLabel htmlFor="project_color_dark">
+                                                {t(
+                                                    'settings.appearance.projectColorDark',
+                                                )}
+                                            </FieldLabel>
+                                            <InputGroup className="max-w-[220px] bg-transparent has-[:focus-visible]:border-ring has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background dark:border-white/25 dark:bg-transparent">
+                                                <InputGroupAddon
+                                                    align="inline-start"
+                                                    className="pl-2"
+                                                >
+                                                    <Input
+                                                        id="project_color_dark"
+                                                        type="color"
+                                                        className="h-7 w-7 shrink-0 cursor-pointer border-0 p-0 shadow-none focus-visible:ring-0 dark:bg-transparent [&::-webkit-color-swatch]:rounded-[3px] [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
+                                                        value={displayColorDark}
+                                                        onChange={(event) =>
+                                                            setProjectColorDark(
+                                                                event.target
+                                                                    .value,
+                                                            )
+                                                        }
+                                                    />
+                                                </InputGroupAddon>
+                                                <InputGroupInput
+                                                    name="project_color_dark"
+                                                    value={
+                                                        projectColorDark ?? ''
+                                                    }
+                                                    onChange={(event) =>
+                                                        setProjectColorDark(
+                                                            event.target
+                                                                .value || null,
+                                                        )
+                                                    }
+                                                    className="font-mono"
+                                                    placeholder={
+                                                        selectedPreset.swatchDark
+                                                    }
+                                                    aria-invalid={
+                                                        errors.project_color_dark
+                                                            ? true
+                                                            : undefined
+                                                    }
+                                                />
+                                            </InputGroup>
+                                            <FieldError id="project-color-dark-error">
+                                                {errors.project_color_dark}
+                                            </FieldError>
+                                        </Field>
+
+                                        {hasCustomColor ? (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                className="w-fit"
+                                                onClick={() => {
+                                                    setProjectColor(null);
+                                                    setProjectColorDark(null);
+                                                }}
+                                            >
+                                                {t(
+                                                    'settings.appearance.clearCustomColor',
+                                                )}
+                                            </Button>
+                                        ) : null}
+
+                                        {showsContrastWarning ? (
+                                            <p
+                                                id="brand-contrast-warning"
+                                                role="status"
+                                                className="text-sm text-warning"
+                                            >
+                                                {t(
+                                                    'settings.appearance.brandContrastWarning',
+                                                )}
+                                            </p>
+                                        ) : null}
+                                    </FieldGroup>
+                                </div>
+
+                                <Separator />
+
+                                <div className="space-y-6">
+                                    <Heading
+                                        variant="small"
+                                        title={t(
+                                            'settings.appearance.defaultThemeTitle',
+                                        )}
+                                        description={t(
+                                            'settings.appearance.defaultThemeDescription',
+                                        )}
+                                    />
+
+                                    <FieldGroup>
+                                        <Field
+                                            data-invalid={
+                                                errors.default_appearance
+                                                    ? true
+                                                    : undefined
+                                            }
+                                        >
+                                            <FieldLabel htmlFor="default_appearance">
+                                                {t(
+                                                    'settings.appearance.defaultAppearance',
+                                                )}
+                                            </FieldLabel>
+                                            <input
+                                                type="hidden"
+                                                name="default_appearance"
+                                                value={defaultAppearance}
+                                            />
+                                            <Select
+                                                value={defaultAppearance}
+                                                onValueChange={(value) => {
+                                                    if (
+                                                        value === 'system' ||
+                                                        value === 'light' ||
+                                                        value === 'dark'
+                                                    ) {
+                                                        setDefaultAppearance(
+                                                            value,
+                                                        );
+                                                    }
+                                                }}
+                                            >
+                                                <SelectTrigger
+                                                    id="default_appearance"
+                                                    className="w-full"
+                                                    aria-invalid={
+                                                        errors.default_appearance
+                                                            ? true
+                                                            : undefined
+                                                    }
+                                                >
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="system">
+                                                        {t(
+                                                            'settings.appearance.system',
+                                                        )}
+                                                    </SelectItem>
+                                                    <SelectItem value="light">
+                                                        {t(
+                                                            'settings.appearance.light',
+                                                        )}
+                                                    </SelectItem>
+                                                    <SelectItem value="dark">
+                                                        {t(
+                                                            'settings.appearance.dark',
+                                                        )}
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FieldError id="default-appearance-error">
+                                                {errors.default_appearance}
+                                            </FieldError>
+                                        </Field>
+                                    </FieldGroup>
+                                </div>
+
+                                <SettingsFormActions
+                                    processing={processing}
+                                    recentlySuccessful={recentlySuccessful}
+                                    data-test="appearance-save"
+                                />
+                            </>
+                        )}
+                    </Form>
+                </>
+            ) : null}
         </>
     );
 }

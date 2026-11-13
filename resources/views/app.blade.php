@@ -16,17 +16,20 @@
                         document.documentElement.classList.add('dark');
                     }
                 }
+
+                document.documentElement.style.colorScheme =
+                    document.documentElement.classList.contains('dark') ? 'dark' : 'light';
             })();
         </script>
 
-        {{-- Inline style to set the HTML background color based on our theme in app.css --}}
+        {{-- FOUC: match the ink surfaces of qiick-theme.css before the CSS loads --}}
         <style>
             html {
-                background-color: oklch(1 0 0);
+                background-color: #ffffff;
             }
 
             html.dark {
-                background-color: oklch(0.145 0 0);
+                background-color: #0e171e;
             }
         </style>
 
@@ -39,8 +42,40 @@
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         <x-inertia::head>
-            <title>{{ config('app.name', 'Laravel') }}</title>
+            <title>{{ app(\App\Services\SettingsRepositoryService::class)->appName() }}</title>
         </x-inertia::head>
+        {{-- Theme preset CSS variables (+ optional custom brand hex via --brand-primary). --}}
+        @php
+            $themeCss = $projectThemeCss ?? null;
+            $themeLight = is_array($themeCss['light'] ?? null) ? $themeCss['light'] : [];
+            $themeDark = is_array($themeCss['dark'] ?? null) ? $themeCss['dark'] : [];
+            $brandPrimary = $themeCss['brandPrimary'] ?? null;
+            $brandPrimaryDark = $themeCss['brandPrimaryDark'] ?? $brandPrimary;
+            $brandPrimaryForeground = $themeCss['brandPrimaryForeground'] ?? null;
+            $brandPrimaryDarkForeground = $themeCss['brandPrimaryDarkForeground'] ?? $brandPrimaryForeground;
+        @endphp
+        @if ($themeLight !== [] || $themeDark !== [] || ! empty($brandPrimary))
+            <style id="instance-theme-css">
+                :root {
+                    @foreach ($themeLight as $cssVar => $cssValue)
+                        --{{ $cssVar }}: {{ $cssValue }};
+                    @endforeach
+                    @if (! empty($brandPrimary))
+                        --brand-primary: {{ $brandPrimary }};
+                        --brand-primary-foreground: {{ $brandPrimaryForeground ?? '#ffffff' }};
+                        --brand-primary-dark: {{ $brandPrimaryDark ?? $brandPrimary }};
+                        --brand-primary-dark-foreground: {{ $brandPrimaryDarkForeground ?? $brandPrimaryForeground ?? '#ffffff' }};
+                    @endif
+                }
+                @if ($themeDark !== [])
+                .dark {
+                    @foreach ($themeDark as $cssVar => $cssValue)
+                        --{{ $cssVar }}: {{ $cssValue }};
+                    @endforeach
+                }
+                @endif
+            </style>
+        @endif
     </head>
     <body class="font-sans antialiased">
         <x-inertia::app />

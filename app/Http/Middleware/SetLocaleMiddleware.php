@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Services\SettingsRepositoryService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Set the request locale (UI, validation and mail) from the signed-in user, then the
- * `locale` cookie, then the app default. Copied from Excubia/Signaculum without the
- * instance settings repository (not in Instituta yet).
+ * Set the request locale from the signed-in user, then the `locale` cookie, then
+ * the instance default language, then the app config.
  */
 final class SetLocaleMiddleware
 {
@@ -36,6 +36,12 @@ final class SetLocaleMiddleware
             if (is_string($candidateLocale) && in_array($candidateLocale, $availableLocales, true)) {
                 return $candidateLocale;
             }
+        }
+
+        $instanceLocale = app(SettingsRepositoryService::class)->defaultLanguage();
+
+        if (in_array($instanceLocale, $availableLocales, true)) {
+            return $instanceLocale;
         }
 
         $appLocale = (string) config('app.locale', 'en');

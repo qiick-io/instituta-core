@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Bug } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +17,9 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useScrollRegion } from '@/hooks/use-scroll-region';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
+import { edit as editInstance } from '@/routes/instance';
+import { edit as editLocalization } from '@/routes/instance/localization';
+import { edit as editInstanceSecurity } from '@/routes/instance/security';
 import permissions from '@/routes/permissions';
 import { edit } from '@/routes/profile';
 import roles from '@/routes/roles';
@@ -34,7 +37,7 @@ type SettingsLayoutProps = PropsWithChildren<{
 
 /**
  * Settings section layout with sidebar nav (client-only to avoid SSR mismatch).
- * Copied from externa-core / excubia-app: Account + Access (roles, permissions).
+ * Account + Instance (managers) + Access, as Signaculum / Excubia.
  */
 export default function SettingsLayout({
     children,
@@ -44,6 +47,7 @@ export default function SettingsLayout({
     const { can } = useCan();
     const { isCurrentUrl } = useCurrentUrl();
     const scrollRegionRef = useScrollRegion<HTMLDivElement>();
+    const { instanceSettings } = usePage().props;
 
     const accountNavItems: NavItem[] = [
         {
@@ -68,6 +72,26 @@ export default function SettingsLayout({
         },
     ];
 
+    const instanceNavItems: NavItem[] = can(PermissionEnum.CanManageSettings)
+        ? [
+              {
+                  title: t('settings.layout.general'),
+                  href: editInstance(),
+                  icon: null,
+              },
+              {
+                  title: t('settings.layout.localization'),
+                  href: editLocalization(),
+                  icon: null,
+              },
+              {
+                  title: t('settings.layout.authSecurity'),
+                  href: editInstanceSecurity(),
+                  icon: null,
+              },
+          ]
+        : [];
+
     const accessNavItems: NavItem[] = [
         ...(can(PermissionEnum.CanShowRoles)
             ? [
@@ -88,6 +112,9 @@ export default function SettingsLayout({
               ]
             : []),
     ];
+
+    const reportBugUrl =
+        instanceSettings?.reportBugUrl?.trim() || DEFAULT_REPORT_BUG_URL;
 
     if (typeof window === 'undefined') {
         return null;
@@ -134,6 +161,13 @@ export default function SettingsLayout({
                             accountNavItems,
                         )}
 
+                        {instanceNavItems.length > 0
+                            ? renderNavGroup(
+                                  t('settings.layout.sectionInstance'),
+                                  instanceNavItems,
+                              )
+                            : null}
+
                         {accessNavItems.length > 0
                             ? renderNavGroup(
                                   t('settings.layout.sectionAccess'),
@@ -146,7 +180,7 @@ export default function SettingsLayout({
                                 <SidebarMenuItem>
                                     <SidebarMenuButton asChild size="sm">
                                         <a
-                                            href={DEFAULT_REPORT_BUG_URL}
+                                            href={reportBugUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >

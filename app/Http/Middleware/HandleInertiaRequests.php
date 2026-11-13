@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\Setting;
 use App\Models\User;
 use App\Services\AppVersionService;
 use App\Services\Authorization\EffectivePermissionResolverService;
 use App\Services\SessionPerimeterService;
+use App\Services\SettingsRepositoryService;
+use App\Services\ThemePresetService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -43,10 +46,12 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
         $permissionResolver = app(EffectivePermissionResolverService::class);
+        $settings = app(SettingsRepositoryService::class);
+        $theme = app(ThemePresetService::class)->current();
 
         return [
             ...parent::share($request),
-            'name' => config('app.name'),
+            'name' => $settings->appName(),
             'appVersion' => app(AppVersionService::class)->current(),
             'auth' => [
                 'user' => $user,
@@ -54,11 +59,26 @@ class HandleInertiaRequests extends Middleware
                 'permissions' => $user instanceof User ? $permissionResolver->permissionsFor($user) : [],
                 'roleNames' => $user instanceof User ? $permissionResolver->roleNamesFor($user) : [],
                 'isSuperAdmin' => $user instanceof User && $permissionResolver->isSuperAdmin($user),
+                'canManageSettings' => (bool) $user?->can('update', Setting::class),
             ],
             'locale' => app()->getLocale(),
             'availableLocales' => config('i18n.available_locales', ['en' => 'English']),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'instituta' => app(SessionPerimeterService::class)->sharedPayload($request),
+            'instanceSettings' => [
+                'reportBugUrl' => $settings->reportBugUrl(),
+            ],
+            'projectAppearance' => [
+                'themePreset' => $theme['themePreset'],
+                'themeCss' => [
+                    'light' => $theme['light'],
+                    'dark' => $theme['dark'],
+                    'brandPrimary' => $theme['brandPrimary'],
+                    'brandPrimaryDark' => $theme['brandPrimaryDark'],
+                    'brandPrimaryForeground' => $theme['brandPrimaryForeground'],
+                    'brandPrimaryDarkForeground' => $theme['brandPrimaryDarkForeground'],
+                ],
+            ],
         ];
     }
 }

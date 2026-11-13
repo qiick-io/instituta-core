@@ -5,8 +5,10 @@ namespace App\Actions\Fortify;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
+use App\Services\SettingsRepositoryService;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
+use Laravel\Fortify\Features;
 
 /**
  * Fortify registration action: create a user from first_name / last_name / email / password.
@@ -22,6 +24,11 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        if (! Features::enabled(Features::registration())
+            || ! app(SettingsRepositoryService::class)->isRegistrationEnabled()) {
+            abort(403);
+        }
+
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
