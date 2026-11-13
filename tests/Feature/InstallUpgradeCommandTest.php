@@ -55,3 +55,30 @@ it('runs instituta:upgrade migrate and cache clear without create-project', func
         ->expectsOutputToContain('Permissions sync: skipped')
         ->assertSuccessful();
 });
+
+it('skips key:generate when APP_KEY is already present', function (): void {
+    $envBackup = null;
+    $envPath = base_path('.env');
+
+    if (File::exists($envPath)) {
+        $envBackup = File::get($envPath);
+    }
+
+    try {
+        config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
+
+        $this->artisan('instituta:install', [
+            '--force' => true,
+            '--no-npm' => true,
+            '--no-owner' => true,
+        ])
+            ->expectsOutputToContain('APP_KEY already set; skipping key:generate.')
+            ->assertSuccessful();
+    } finally {
+        if ($envBackup === null) {
+            File::delete($envPath);
+        } else {
+            File::put($envPath, $envBackup);
+        }
+    }
+});

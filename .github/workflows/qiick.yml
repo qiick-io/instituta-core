@@ -33,8 +33,12 @@ jobs:
   migrations-frozen:
     uses: qiick-io/app-ui/.github/workflows/migrations-frozen.yml@v0.6.1
 
+  # create-project → instituta:install --no-interaction --force --no-npm → health → upgrade.
+  # Verified locally when Actions minutes are exhausted; re-run on develop when CI returns.
   distribution-smoke:
     uses: qiick-io/app-ui/.github/workflows/app-distribution-smoke.yml@v0.6.1
     with:
       package: qiick/instituta-core
       command: instituta
+      install-options: --no-interaction --force --no-npm
+      upgrade-options: --no-interaction --force
