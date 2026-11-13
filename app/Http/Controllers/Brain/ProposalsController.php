@@ -11,7 +11,7 @@ use App\Enums\ProposalStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Brain\UpdateBrainProposalStatusRequest;
 use App\Models\User;
-use App\Services\BrainProposalsService;
+use App\Services\ProposalQueryService;
 use App\Services\SessionPerimeterService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,7 +26,7 @@ final class ProposalsController extends Controller
 {
     public function __construct(
         private readonly SessionPerimeterService $sessions,
-        private readonly BrainProposalsService $proposals,
+        private readonly ProposalQueryService $proposals,
         private readonly UpdateProposalStatusAction $updateStatus,
     ) {}
 
@@ -40,7 +40,7 @@ final class ProposalsController extends Controller
             : ProposalStatusEnum::Open;
 
         return Inertia::render('brain/proposals', [
-            'proposals' => $perimeter === null ? [] : $this->proposals->list($perimeter, $status),
+            'proposals' => $perimeter === null ? [] : $this->proposals->listForUi($perimeter, $status),
             'hasPerimeter' => $perimeter !== null,
             'statusFilter' => $status->value,
             'canDecide' => $perimeter !== null && $perimeter->role !== RoleEnum::Guest,
@@ -51,7 +51,7 @@ final class ProposalsController extends Controller
     {
         $perimeter = $this->sessions->requirePerimeter($request);
 
-        $row = $this->proposals->find($perimeter, $proposal);
+        $row = $this->proposals->findForUi($perimeter, $proposal);
         if ($row === null) {
             abort(404);
         }
@@ -69,7 +69,7 @@ final class ProposalsController extends Controller
 
         $perimeter = $this->sessions->requirePerimeter($request);
 
-        $model = $this->proposals->findModel($perimeter, $proposal);
+        $model = $this->proposals->findInPerimeter($perimeter, $proposal);
         if ($model === null) {
             abort(404);
         }
