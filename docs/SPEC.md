@@ -21,7 +21,7 @@ Working name: keep the string in few places (`app.name`, `instituta:` Artisan na
 
 | Layer | Where | Responsibility |
 |---|---|---|
-| Brain module | `app/Brain`, `tests/Brain` | Format, adapters, reader, resolver, perimeter filter as pure functions, contract DTOs, denylist, secret/PII scanner. No Eloquent, no app facades, no `config()` / `env()`. |
+| Brain module | `app/Brain`, `tests/Unit/Brain` | Format, adapters, reader, resolver, perimeter filter as pure functions, contract DTOs, denylist, secret/PII scanner. No Eloquent, no app facades, no `config()` / `env()`. |
 | App | rest of `app/` | Tenancy, principals, keys, grants, sources, index, ingest jobs, search drivers, MCP/REST/UI, Artisan. |
 
 Theme preset until an Instituta brand exists: **Teal** (`@qiick/theme`).

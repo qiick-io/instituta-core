@@ -8,7 +8,7 @@ use Laravel\Mcp\Server\Registrar;
 
 function fixturePath(string $name): string
 {
-    return dirname(__DIR__).'/Brain/Fixtures/'.$name;
+    return dirname(__DIR__).'/Unit/Brain/Fixtures/'.$name;
 }
 
 it('lists items from a native fixture via instituta:read', function (): void {

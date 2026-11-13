@@ -80,7 +80,7 @@ export default defineConfig({
             'resources/views/mail/*',
             // Synthetic brain corpora: oxfmt must not rewrite fixture bodies
             // (e.g. PEM fences that look like markdown frontmatter).
-            'tests/Brain/Fixtures/**',
+            'tests/Unit/Brain/Fixtures/**',
         ],
         sortTailwindcss: {
             functions: ['clsx', 'cn', 'cva'],

@@ -22,15 +22,15 @@ pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Unit');
 
+pest()->extend(TestCase::class)
+    ->in('Arch');
+
 // Browser axe smoke (#52) runs outside the default suite: `vendor/bin/pest tests/Browser`.
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Browser');
 
 pest()->browser()->timeout(10_000);
-
-pest()->extend(TestCase::class)
-    ->in('Brain');
 
 /*
 |--------------------------------------------------------------------------
@@ -57,8 +57,3 @@ expect()->extend('toBeOne', function () {
 | global functions to help you to reduce the number of lines of code in your test files.
 |
 */
-
-function something()
-{
-    // ..
-}

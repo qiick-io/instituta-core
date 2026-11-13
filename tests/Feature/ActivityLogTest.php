@@ -141,7 +141,7 @@ it('logs source add, freeze, unfreeze and export events', function (): void {
         organisation: $org,
         name: 'fixture',
         provider: SourceProviderEnum::Local,
-        localPath: base_path('tests/Brain/Fixtures'),
+        localPath: base_path('tests/Unit/Brain/Fixtures'),
     );
 
     expect(Activity::query()
