@@ -45,6 +45,10 @@ return [
             // Machine probes; name matches externa-core and the distribution smoke.
             'App\Http\Controllers\HealthController',
         ],
+        'Services' => [
+            // Search drivers live under Services\Search and use the Driver suffix.
+            'App\Services\Search',
+        ],
         'traits' => [
             // Starter-kit validation-rule traits, never renamed.
             'App\Concerns',
@@ -61,6 +65,8 @@ return [
         'Brain\\Tools' => 'Tool',
         'Brain\\Data' => 'Data',
         'Brain\\Exceptions' => 'Exception',
+        // Plan step 11 search drivers (SearchIndexContract implementations).
+        'Services\\Search' => 'Driver',
     ],
 
     'controllerPublicMethods' => [],

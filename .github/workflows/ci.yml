@@ -83,3 +83,61 @@ jobs:
 
       - name: qiick standards rules (ratchet)
         run: npm run lint:standards
+
+  postgres-search:
+    name: PostgreSQL 17 search
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: instituta
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB: instituta_core
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U instituta -d instituta_core"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, pgsql
+          coverage: none
+          tools: composer:v2
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --ansi
+
+      - name: Migrate PostgreSQL
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: instituta_core
+          DB_USERNAME: instituta
+          DB_PASSWORD: secret
+        run: php artisan migrate --force --no-interaction
+
+      - name: Pest search on PostgreSQL
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: instituta_core
+          DB_USERNAME: instituta
+          DB_PASSWORD: secret
+        run: php artisan test --compact tests/Feature/SearchTest.php

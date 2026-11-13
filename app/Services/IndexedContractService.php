@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Brain\Data\PerimeterData;
 use App\Brain\Enums\ScopeTypeEnum;
+use App\Contracts\SearchIndexContract;
 use App\Models\ApiKey;
 use App\Models\Company;
 use App\Models\ContextFreeze;
@@ -28,7 +29,13 @@ final class IndexedContractService
 {
     public function __construct(
         private readonly ContractAuditService $audit = new ContractAuditService,
+        private readonly ?SearchIndexContract $search = null,
     ) {}
+
+    private function searchDriver(): SearchIndexContract
+    {
+        return $this->search ?? app(SearchIndexContract::class);
+    }
 
     /**
      * @return array<string, mixed>
@@ -121,10 +128,31 @@ final class IndexedContractService
         ?string $area = null,
         int $limit = 20,
     ): array {
-        unset($perimeter, $apiKey, $q, $area, $limit);
+        $limit = max(1, min(50, $limit));
 
-        // ponytail: FTS drivers land in plan step 11; refuse clearly until then.
-        throw new RuntimeException('search driver not supported');
+        /** @var list<string> $allowedIds */
+        $allowedIds = $this->itemsQuery($perimeter)->pluck('id')->all();
+
+        try {
+            $results = $this->searchDriver()->search($perimeter, $q, $allowedIds, $area, $limit);
+        } catch (RuntimeException $exception) {
+            $this->audit->record('instituta_search', $perimeter, $apiKey, []);
+
+            throw $exception;
+        }
+
+        /** @var list<string> $itemIds */
+        $itemIds = array_map(
+            static fn (array $hit): string => $hit['id'],
+            $results,
+        );
+
+        $this->audit->record('instituta_search', $perimeter, $apiKey, $itemIds);
+
+        return [
+            'results' => $results,
+            ...$this->freezeMeta($perimeter),
+        ];
     }
 
     /**

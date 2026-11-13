@@ -12,7 +12,15 @@ Git is the durable store: a brain is a git repository (or a path in one), and th
 
 ## Status
 
-Nothing is built yet. The kickoff prompt for the agent that builds the MVP, with the product summary, the data model, the build plan and the qiick rules, is [`docs/agents/cursor-kickoff.md`](docs/agents/cursor-kickoff.md).
+MVP build in progress. The kickoff prompt is [`docs/agents/cursor-kickoff.md`](docs/agents/cursor-kickoff.md).
+
+## Search drivers
+
+| Driver   | Engine             | Notes                                                                                                                                                                         |
+| -------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sqlite` | FTS5 virtual table | Default install and Pest                                                                                                                                                      |
+| `pgsql`  | `tsvector` + GIN   | Reference driver (PostgreSQL 17 in CI)                                                                                                                                        |
+| MySQL    | —                  | **Not supported in v0.1.0.** Search answers with a clear `search driver not supported` error (HTTP 501 / MCP tool error). A FULLTEXT driver is tracked for a later milestone. |
 
 ## Licence
 

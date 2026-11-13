@@ -2,7 +2,15 @@
 
 namespace App\Providers;
 
+use App\Contracts\SearchIndexContract;
 use App\Models\ApiKey;
+use App\Models\Item;
+use App\Models\ItemSection;
+use App\Observers\ItemObserver;
+use App\Observers\ItemSectionObserver;
+use App\Services\Search\PgsqlFullTextSearchDriver;
+use App\Services\Search\SqliteFts5SearchDriver;
+use App\Services\Search\UnsupportedSearchDriver;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -20,7 +28,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(SearchIndexContract::class, function (): SearchIndexContract {
+            return match (DB::connection()->getDriverName()) {
+                'pgsql' => new PgsqlFullTextSearchDriver,
+                'sqlite' => new SqliteFts5SearchDriver,
+                default => new UnsupportedSearchDriver,
+            };
+        });
     }
 
     /**
@@ -30,6 +44,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureRateLimiting();
+
+        Item::observe(ItemObserver::class);
+        ItemSection::observe(ItemSectionObserver::class);
     }
 
     protected function configureRateLimiting(): void

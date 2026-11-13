@@ -66,7 +66,8 @@ return new class extends Migration
             $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
             $table->string('type');
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignUlid('owner_principal_id')->nullable()->constrained('principals')->nullOnDelete();
+            // Self-FK added after create: PostgreSQL rejects inline self-references on ULID PKs.
+            $table->ulid('owner_principal_id')->nullable();
             $table->string('name');
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('deactivated_at')->nullable();
@@ -75,6 +76,13 @@ return new class extends Migration
             $table->index(['organisation_id', 'type']);
             $table->index('user_id');
             $table->index('deactivated_at');
+        });
+
+        Schema::table('principals', function (Blueprint $table): void {
+            $table->foreign('owner_principal_id')
+                ->references('id')
+                ->on('principals')
+                ->nullOnDelete();
         });
 
         Schema::create('grants', function (Blueprint $table): void {
