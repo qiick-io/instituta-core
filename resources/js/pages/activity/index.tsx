@@ -1,41 +1,26 @@
-import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Head, router, setLayoutProps } from '@inertiajs/react';
+import { ClipboardList, SearchX } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FilterSearch } from '@/components/layout/page-header';
 import {
-    PageLayout,
-    TablePaginationFooter,
-    TablePanel,
-    hasTablePaginationFooter,
-    type TablePaginationState,
-} from '@/components/layout/page-layout';
+    DataTable,
+    dataTableExpandColumn,
+} from '@/components/admin/data-table';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { TruncatedText } from '@/components/admin/truncated-text';
+import { EmptyStatus } from '@/components/empty-status';
+import { FilterSearch } from '@/components/layout/page-header';
+import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-} from '@/components/ui/sheet';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { NativeSelect } from '@/components/ui/native-select';
+import { useDebouncedServerSearch } from '@/hooks/use-debounced-server-search';
 import { listPerPageQuery } from '@/lib/list-per-page';
+import { normalizePaginated } from '@/lib/pagination';
+import type { LaravelPaginated } from '@/lib/pagination';
+import type { BreadcrumbItem, Paginated } from '@/types';
 
 type CauserOption = {
     id: number;
@@ -70,24 +55,9 @@ type Filters = {
     subject_id: string;
 };
 
-type PaginatedActivities = {
-    data: ActivityRow[];
-    meta?: TablePaginationState & {
-        from?: number | null;
-        to?: number | null;
-    };
-    links?: TablePaginationState['links'];
-    current_page?: number;
-    last_page?: number;
-    per_page?: number;
-    total?: number;
-    from?: number | null;
-    to?: number | null;
-};
-
 type Props = {
     is_owner: boolean;
-    activityLogs: PaginatedActivities;
+    activityLogs: LaravelPaginated<ActivityRow> | Paginated<ActivityRow>;
     causers: CauserOption[];
     events: string[];
     logNames: string[];
@@ -95,34 +65,14 @@ type Props = {
     retention_days: number;
 };
 
-function paginationMeta(
-    activityLogs: PaginatedActivities,
-): TablePaginationState {
-    if (activityLogs.meta) {
-        return {
-            current_page: activityLogs.meta.current_page,
-            last_page: activityLogs.meta.last_page,
-            per_page: activityLogs.meta.per_page,
-            total: activityLogs.meta.total,
-            links: activityLogs.meta.links ?? activityLogs.links ?? [],
-        };
-    }
-
-    return {
-        current_page: activityLogs.current_page ?? 1,
-        last_page: activityLogs.last_page ?? 1,
-        per_page: activityLogs.per_page ?? 20,
-        total: activityLogs.total ?? 0,
-        links: activityLogs.links ?? [],
-    };
-}
-
 /**
- * Organisation-owner Activity (audit) log with filters and a detail drawer.
+ * Organisation-owner Activity (audit) log: list-page chrome with filters and
+ * expandable row details. Route stays `/activity` (product audit surface).
+ * Pattern copied from excubia-app / externa-core `admin/activity-logs`.
  */
 export default function ActivityIndex({
     is_owner,
-    activityLogs,
+    activityLogs: activityLogsProp,
     causers,
     events,
     logNames,
@@ -130,52 +80,203 @@ export default function ActivityIndex({
     retention_days,
 }: Props) {
     const { t } = useTranslation();
+    const activityLogs = normalizePaginated(activityLogsProp);
     const [search, setSearch] = useState(filters.search ?? '');
-    const [selected, setSelected] = useState<ActivityRow | null>(null);
-    const meta = paginationMeta(activityLogs);
-    const rows = activityLogs.data ?? [];
+    const [causerId, setCauserId] = useState<number | null>(
+        filters.causer_id ?? null,
+    );
+    const [event, setEvent] = useState(filters.event ?? '');
+    const [logName, setLogName] = useState(filters.log_name ?? '');
+    const [dateFrom, setDateFrom] = useState(filters.date_from ?? '');
+    const [dateTo, setDateTo] = useState(filters.date_to ?? '');
 
-    const visit = (overrides: Partial<Filters> = {}) => {
-        router.get(
-            '/activity',
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
             {
-                search:
-                    overrides.search !== undefined
-                        ? overrides.search || undefined
-                        : search || undefined,
-                causer_id:
-                    overrides.causer_id !== undefined
-                        ? overrides.causer_id || undefined
-                        : filters.causer_id || undefined,
-                event:
-                    overrides.event !== undefined
-                        ? overrides.event || undefined
-                        : filters.event || undefined,
-                log_name:
-                    overrides.log_name !== undefined
-                        ? overrides.log_name || undefined
-                        : filters.log_name || undefined,
-                date_from:
-                    overrides.date_from !== undefined
-                        ? overrides.date_from || undefined
-                        : filters.date_from || undefined,
-                date_to:
-                    overrides.date_to !== undefined
-                        ? overrides.date_to || undefined
-                        : filters.date_to || undefined,
-                subject_type:
-                    overrides.subject_type !== undefined
-                        ? overrides.subject_type || undefined
-                        : filters.subject_type || undefined,
-                subject_id:
-                    overrides.subject_id !== undefined
-                        ? overrides.subject_id || undefined
-                        : filters.subject_id || undefined,
-                per_page: listPerPageQuery(meta.per_page),
+                title: t('activity.title'),
+                href: '/activity',
             },
-            { preserveState: true, preserveScroll: true },
-        );
+        ],
+        [t],
+    );
+
+    setLayoutProps({ breadcrumbs });
+
+    const visit = useCallback(
+        (overrides: Partial<Filters> = {}) => {
+            const nextSearch =
+                overrides.search !== undefined ? overrides.search : search;
+            const nextCauserId =
+                overrides.causer_id !== undefined
+                    ? overrides.causer_id
+                    : causerId;
+            const nextEvent =
+                overrides.event !== undefined ? overrides.event : event;
+            const nextLogName =
+                overrides.log_name !== undefined ? overrides.log_name : logName;
+            const nextDateFrom =
+                overrides.date_from !== undefined
+                    ? overrides.date_from
+                    : dateFrom;
+            const nextDateTo =
+                overrides.date_to !== undefined ? overrides.date_to : dateTo;
+
+            router.get(
+                '/activity',
+                {
+                    search: nextSearch || undefined,
+                    causer_id: nextCauserId || undefined,
+                    event: nextEvent || undefined,
+                    log_name: nextLogName || undefined,
+                    date_from: nextDateFrom || undefined,
+                    date_to: nextDateTo || undefined,
+                    per_page: listPerPageQuery(activityLogs.per_page),
+                },
+                { preserveState: true, preserveScroll: true },
+            );
+        },
+        [
+            search,
+            causerId,
+            event,
+            logName,
+            dateFrom,
+            dateTo,
+            activityLogs.per_page,
+        ],
+    );
+
+    const onDebouncedSearch = useCallback(
+        (value: string): void => {
+            visit({ search: value });
+        },
+        [visit],
+    );
+
+    useDebouncedServerSearch(search, filters.search ?? '', onDebouncedSearch);
+
+    const clearFilters = (): void => {
+        setSearch('');
+        setCauserId(null);
+        setEvent('');
+        setLogName('');
+        setDateFrom('');
+        setDateTo('');
+        visit({
+            search: '',
+            causer_id: null,
+            event: '',
+            log_name: '',
+            date_from: '',
+            date_to: '',
+            subject_type: '',
+            subject_id: '',
+        });
     };
+
+    const formatDate = (value: string | null): string =>
+        value ? new Date(value).toLocaleString() : '—';
+
+    const eventLabel = (eventName: string | null | undefined): string => {
+        if (!eventName) {
+            return '—';
+        }
+
+        return t(`activity.events.${eventName}`, {
+            defaultValue: eventName,
+        });
+    };
+
+    const logNameLabel = (name: string): string =>
+        t(`activity.logs.${name}`, { defaultValue: name });
+
+    const renderChanges = (row: ActivityRow): string => {
+        const hasChanges = row.changes && Object.keys(row.changes).length > 0;
+        const meta = row.properties?.meta ?? {};
+        const hasMeta = Object.keys(meta).length > 0;
+
+        if (!hasChanges && !hasMeta) {
+            return t('activity.noChanges');
+        }
+
+        if (hasChanges && hasMeta) {
+            return JSON.stringify({ changes: row.changes, meta }, null, 2);
+        }
+
+        return JSON.stringify(hasChanges ? row.changes : meta, null, 2);
+    };
+
+    const hasActiveFilters =
+        search.trim() !== '' ||
+        causerId !== null ||
+        event !== '' ||
+        logName !== '' ||
+        dateFrom !== '' ||
+        dateTo !== '';
+
+    const rows = activityLogs.data ?? [];
+    const isListEmpty = rows.length === 0;
+    const hideListChrome = !is_owner;
+
+    const columns: ColumnDef<ActivityRow>[] = [
+        dataTableExpandColumn<ActivityRow>({
+            expandLabel: t('activity.expand'),
+            collapseLabel: t('activity.collapse'),
+        }),
+        {
+            id: 'created_at',
+            header: t('activity.colWhen'),
+            meta: { cellClassName: 'text-sm whitespace-nowrap tabular-nums' },
+            cell: ({ row }) => formatDate(row.original.created_at),
+        },
+        {
+            id: 'user',
+            header: t('activity.colCauser'),
+            cell: ({ row }) =>
+                row.original.causer ? (
+                    <div className="text-sm">
+                        <div>{row.original.causer.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                            {row.original.causer.email}
+                        </div>
+                    </div>
+                ) : (
+                    <span className="text-sm text-muted-foreground">
+                        {t('activity.system')}
+                    </span>
+                ),
+        },
+        {
+            id: 'action',
+            header: t('activity.colEvent'),
+            cell: ({ row }) => (
+                <Badge variant="secondary">
+                    {eventLabel(row.original.event)}
+                </Badge>
+            ),
+        },
+        {
+            id: 'description',
+            header: t('activity.colDescription'),
+            meta: { cellClassName: 'max-w-xs text-sm' },
+            cell: ({ row }) => (
+                <TruncatedText text={row.original.description || '—'} />
+            ),
+        },
+        {
+            id: 'subject',
+            header: t('activity.colSubject'),
+            meta: { cellClassName: 'text-sm' },
+            cell: ({ row }) =>
+                row.original.subject ? (
+                    <>
+                        {row.original.subject.type} {row.original.subject.label}
+                    </>
+                ) : (
+                    '—'
+                ),
+        },
+    ];
 
     return (
         <>
@@ -185,363 +286,180 @@ export default function ActivityIndex({
                     days: retention_days,
                 })}
                 filters={
-                    is_owner ? (
-                        <div className="flex flex-wrap items-end gap-2">
-                            <form
-                                className="contents"
-                                onSubmit={(submitEvent) => {
-                                    submitEvent.preventDefault();
-                                    visit({ search });
+                    hideListChrome ? undefined : (
+                        <>
+                            <FilterSearch
+                                value={search}
+                                onChange={setSearch}
+                                placeholder={t('activity.searchPlaceholder')}
+                                className="max-w-[12rem] min-w-[8rem] flex-none"
+                            />
+                            <NativeSelect
+                                value={causerId ? String(causerId) : ''}
+                                onChange={(changeEvent) => {
+                                    const next =
+                                        changeEvent.target.value === ''
+                                            ? null
+                                            : Number(changeEvent.target.value);
+                                    setCauserId(next);
+                                    visit({ causer_id: next });
                                 }}
+                                className="max-w-[12rem] min-w-[8rem] shrink-0"
+                                aria-label={t('activity.filters.causer')}
                             >
-                                <FilterSearch
-                                    value={search}
-                                    onChange={setSearch}
-                                    placeholder={t(
-                                        'activity.searchPlaceholder',
-                                    )}
-                                />
-                            </form>
-                            <div className="space-y-1">
-                                <Label htmlFor="activity-log-name">
-                                    {t('activity.filters.logName')}
-                                </Label>
-                                <Select
-                                    value={filters.log_name || '__all__'}
-                                    onValueChange={(value) =>
-                                        visit({
-                                            log_name:
-                                                value === '__all__'
-                                                    ? ''
-                                                    : value,
-                                        })
-                                    }
-                                >
-                                    <SelectTrigger
-                                        id="activity-log-name"
-                                        className="w-[10rem]"
+                                <option value="">
+                                    {t('activity.filters.allCausers')}
+                                </option>
+                                {causers.map((causer) => (
+                                    <option
+                                        key={causer.id}
+                                        value={String(causer.id)}
                                     >
-                                        <SelectValue
-                                            placeholder={t(
-                                                'activity.filters.all',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="__all__">
-                                            {t('activity.filters.all')}
-                                        </SelectItem>
-                                        {logNames.map((logName) => (
-                                            <SelectItem
-                                                key={logName}
-                                                value={logName}
-                                            >
-                                                {logName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="activity-event">
-                                    {t('activity.filters.event')}
-                                </Label>
-                                <Select
-                                    value={filters.event || '__all__'}
-                                    onValueChange={(value) =>
-                                        visit({
-                                            event:
-                                                value === '__all__'
-                                                    ? ''
-                                                    : value,
-                                        })
-                                    }
-                                >
-                                    <SelectTrigger
-                                        id="activity-event"
-                                        className="w-[12rem]"
-                                    >
-                                        <SelectValue
-                                            placeholder={t(
-                                                'activity.filters.all',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="__all__">
-                                            {t('activity.filters.all')}
-                                        </SelectItem>
-                                        {events.map((eventName) => (
-                                            <SelectItem
-                                                key={eventName}
-                                                value={eventName}
-                                            >
-                                                {eventName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="activity-causer">
-                                    {t('activity.filters.causer')}
-                                </Label>
-                                <Select
-                                    value={
-                                        filters.causer_id
-                                            ? String(filters.causer_id)
-                                            : '__all__'
-                                    }
-                                    onValueChange={(value) =>
-                                        visit({
-                                            causer_id:
-                                                value === '__all__'
-                                                    ? null
-                                                    : Number(value),
-                                        })
-                                    }
-                                >
-                                    <SelectTrigger
-                                        id="activity-causer"
-                                        className="w-[12rem]"
-                                    >
-                                        <SelectValue
-                                            placeholder={t(
-                                                'activity.filters.all',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="__all__">
-                                            {t('activity.filters.all')}
-                                        </SelectItem>
-                                        {causers.map((causer) => (
-                                            <SelectItem
-                                                key={causer.id}
-                                                value={String(causer.id)}
-                                            >
-                                                {causer.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="activity-date-from">
-                                    {t('activity.filters.dateFrom')}
-                                </Label>
-                                <Input
-                                    id="activity-date-from"
-                                    type="date"
-                                    className="w-[10rem]"
-                                    value={filters.date_from || ''}
-                                    onChange={(event) =>
-                                        visit({
-                                            date_from: event.target.value,
-                                        })
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="activity-date-to">
-                                    {t('activity.filters.dateTo')}
-                                </Label>
-                                <Input
-                                    id="activity-date-to"
-                                    type="date"
-                                    className="w-[10rem]"
-                                    value={filters.date_to || ''}
-                                    onChange={(event) =>
-                                        visit({ date_to: event.target.value })
-                                    }
-                                />
-                            </div>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() =>
+                                        {causer.name}
+                                    </option>
+                                ))}
+                            </NativeSelect>
+                            <NativeSelect
+                                value={event}
+                                onChange={(changeEvent) => {
+                                    setEvent(changeEvent.target.value);
                                     visit({
-                                        search: '',
-                                        causer_id: null,
-                                        event: '',
-                                        log_name: '',
-                                        date_from: '',
-                                        date_to: '',
-                                        subject_type: '',
-                                        subject_id: '',
-                                    })
-                                }
+                                        event: changeEvent.target.value,
+                                    });
+                                }}
+                                className="max-w-[10rem] min-w-[7rem] shrink-0"
+                                aria-label={t('activity.filters.event')}
                             >
-                                {t('common.clearFilters')}
-                            </Button>
-                        </div>
-                    ) : null
+                                <option value="">
+                                    {t('activity.filters.allEvents')}
+                                </option>
+                                {events.map((eventName) => (
+                                    <option key={eventName} value={eventName}>
+                                        {eventLabel(eventName)}
+                                    </option>
+                                ))}
+                            </NativeSelect>
+                            <NativeSelect
+                                value={logName}
+                                onChange={(changeEvent) => {
+                                    setLogName(changeEvent.target.value);
+                                    visit({
+                                        log_name: changeEvent.target.value,
+                                    });
+                                }}
+                                className="max-w-[10rem] min-w-[7rem] shrink-0"
+                                aria-label={t('activity.filters.logName')}
+                            >
+                                <option value="">
+                                    {t('activity.filters.allLogs')}
+                                </option>
+                                {logNames.map((name) => (
+                                    <option key={name} value={name}>
+                                        {logNameLabel(name)}
+                                    </option>
+                                ))}
+                            </NativeSelect>
+                            <Input
+                                type="date"
+                                value={dateFrom}
+                                onChange={(changeEvent) => {
+                                    setDateFrom(changeEvent.target.value);
+                                    visit({
+                                        date_from: changeEvent.target.value,
+                                    });
+                                }}
+                                className="h-control w-auto shrink-0"
+                                aria-label={t('activity.filters.dateFrom')}
+                            />
+                            <Input
+                                type="date"
+                                value={dateTo}
+                                onChange={(changeEvent) => {
+                                    setDateTo(changeEvent.target.value);
+                                    visit({
+                                        date_to: changeEvent.target.value,
+                                    });
+                                }}
+                                className="h-control w-auto shrink-0"
+                                aria-label={t('activity.filters.dateTo')}
+                            />
+                            {hasActiveFilters ? (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={clearFilters}
+                                >
+                                    {t('common.clearFilters')}
+                                </Button>
+                            ) : null}
+                        </>
+                    )
                 }
             >
                 {!is_owner ? (
                     <p className="text-sm text-muted-foreground">
                         {t('activity.ownerOnly')}
                     </p>
-                ) : rows.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('activity.empty')}
-                    </p>
-                ) : (
-                    <TablePanel
-                        footer={
-                            hasTablePaginationFooter(meta) ? (
-                                <TablePaginationFooter pagination={meta} />
-                            ) : null
+                ) : isListEmpty ? (
+                    <PageEmptyState
+                        icon={hasActiveFilters ? SearchX : ClipboardList}
+                        title={
+                            <EmptyStatus>
+                                {hasActiveFilters
+                                    ? t('emptyState.activity.filteredTitle')
+                                    : t('emptyState.activity.title')}
+                            </EmptyStatus>
                         }
-                    >
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>
-                                        {t('activity.colWhen')}
-                                    </TableHead>
-                                    <TableHead>
-                                        {t('activity.colLog')}
-                                    </TableHead>
-                                    <TableHead>
-                                        {t('activity.colEvent')}
-                                    </TableHead>
-                                    <TableHead>
-                                        {t('activity.colCauser')}
-                                    </TableHead>
-                                    <TableHead>
-                                        {t('activity.colSubject')}
-                                    </TableHead>
-                                    <TableHead className="w-[1%]" />
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {rows.map((row) => (
-                                    <TableRow key={row.id}>
-                                        <TableCell className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">
-                                            {row.created_at
-                                                ? new Date(
-                                                      row.created_at,
-                                                  ).toLocaleString()
-                                                : '—'}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant="secondary">
-                                                {row.log_name ?? 'default'}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="font-medium">
-                                            {row.event ?? row.description}
-                                        </TableCell>
-                                        <TableCell>
-                                            {row.causer?.name ?? '—'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {row.subject
-                                                ? `${row.subject.type}: ${row.subject.label}`
-                                                : '—'}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setSelected(row)}
-                                            >
-                                                {t('activity.view')}
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TablePanel>
-                )}
-            </PageLayout>
-
-            <Sheet
-                open={selected !== null}
-                onOpenChange={(isOpen) => {
-                    if (!isOpen) {
-                        setSelected(null);
-                    }
-                }}
-            >
-                <SheetContent className="overflow-y-auto sm:max-w-lg">
-                    <SheetHeader>
-                        <SheetTitle>{t('activity.detailTitle')}</SheetTitle>
-                        <SheetDescription>
-                            {selected?.event ?? selected?.description}
-                        </SheetDescription>
-                    </SheetHeader>
-                    {selected ? (
-                        <div className="mt-4 space-y-3 text-sm">
-                            <p>
-                                <span className="text-muted-foreground">
-                                    {t('activity.colWhen')}:{' '}
-                                </span>
-                                {selected.created_at
-                                    ? new Date(
-                                          selected.created_at,
-                                      ).toLocaleString()
-                                    : '—'}
-                            </p>
-                            <p>
-                                <span className="text-muted-foreground">
-                                    {t('activity.colLog')}:{' '}
-                                </span>
-                                {selected.log_name ?? 'default'}
-                            </p>
-                            <p>
-                                <span className="text-muted-foreground">
-                                    {t('activity.colCauser')}:{' '}
-                                </span>
-                                {selected.causer
-                                    ? `${selected.causer.name} <${selected.causer.email}>`
-                                    : '—'}
-                            </p>
-                            <p>
-                                <span className="text-muted-foreground">
-                                    {t('activity.colSubject')}:{' '}
-                                </span>
-                                {selected.subject
-                                    ? `${selected.subject.type} #${selected.subject.id} (${selected.subject.label})`
-                                    : '—'}
-                            </p>
-                            <p>
-                                <span className="text-muted-foreground">
-                                    {t('activity.ip')}:{' '}
-                                </span>
-                                {selected.properties.ip ?? '—'}
-                            </p>
-                            <div>
-                                <p className="mb-1 text-muted-foreground">
-                                    {t('activity.meta')}
-                                </p>
-                                <pre className="overflow-x-auto rounded-md border bg-muted/40 p-3 text-xs">
-                                    {JSON.stringify(
-                                        {
-                                            changes: selected.changes,
-                                            meta: selected.properties.meta,
-                                        },
-                                        null,
-                                        2,
-                                    )}
+                        description={
+                            hasActiveFilters
+                                ? t('emptyState.activity.filteredDescription')
+                                : t('emptyState.activity.description')
+                        }
+                        action={
+                            hasActiveFilters ? (
+                                <Button type="button" onClick={clearFilters}>
+                                    {t('common.clearFilters')}
+                                </Button>
+                            ) : undefined
+                        }
+                    />
+                ) : (
+                    <DataTable
+                        columns={columns}
+                        data={rows}
+                        getRowId={(row) => String(row.id)}
+                        pagination={activityLogs}
+                        renderExpandedRow={(row) => (
+                            <div className="space-y-3 py-2">
+                                <div className="grid gap-2 text-sm sm:grid-cols-2">
+                                    <div>
+                                        <span className="text-muted-foreground">
+                                            {t('activity.colLog')}:
+                                        </span>{' '}
+                                        {logNameLabel(
+                                            row.log_name ?? 'default',
+                                        )}
+                                    </div>
+                                    <div>
+                                        <span className="text-muted-foreground">
+                                            {t('activity.ip')}:
+                                        </span>{' '}
+                                        {row.properties.ip ?? '—'}
+                                    </div>
+                                </div>
+                                <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs">
+                                    {renderChanges(row)}
                                 </pre>
                             </div>
-                        </div>
-                    ) : null}
-                </SheetContent>
-            </Sheet>
+                        )}
+                        emptyState={
+                            <span className="text-muted-foreground">
+                                {t('activity.empty')}
+                            </span>
+                        }
+                    />
+                )}
+            </PageLayout>
         </>
     );
 }
-
-ActivityIndex.layout = {
-    breadcrumbs: [
-        {
-            title: 'Activity',
-            href: '/activity',
-        },
-    ],
-};

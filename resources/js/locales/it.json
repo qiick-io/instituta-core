@@ -664,9 +664,32 @@
             "event": "Evento",
             "causer": "Autore",
             "dateFrom": "Da",
-            "dateTo": "A"
+            "dateTo": "A",
+            "allCausers": "Tutti gli utenti",
+            "allEvents": "Tutte le azioni",
+            "allLogs": "Tutti i log"
         },
-        "ip": "IP"
+        "ip": "IP",
+        "colDescription": "Descrizione",
+        "expand": "Espandi modifiche",
+        "collapse": "Comprimi modifiche",
+        "system": "Sistema",
+        "noChanges": "Nessuna modifica ai campi registrata.",
+        "events": {
+            "created": "Creato",
+            "updated": "Aggiornato",
+            "deleted": "Eliminato",
+            "restored": "Ripristinato",
+            "login": "Accesso",
+            "logout": "Uscita",
+            "failed": "Accesso non riuscito"
+        },
+        "logs": {
+            "default": "Applicazione",
+            "auth": "Autenticazione",
+            "settings": "Impostazioni",
+            "ai": "AI"
+        }
     },
     "users": {
         "confirm": {
@@ -781,6 +804,12 @@
             "description": "Le proposte di scrittura per lo scope corrente compaiono qui.",
             "filteredTitle": "Nessuna proposta corrispondente",
             "filteredDescription": "Prova un’altra ricerca o azzera i filtri."
+        },
+        "activity": {
+            "title": "Nessuna attività",
+            "description": "Le voci di audit dell’organizzazione compaiono qui mentre si usa il prodotto.",
+            "filteredTitle": "Nessuna attività corrispondente",
+            "filteredDescription": "Prova un’altra ricerca o cancella i filtri."
         }
     }
 }
