@@ -33,6 +33,8 @@ use Throwable;
 
 /**
  * Read-only ingest: mirror/read a source via the brain reader and upsert the index.
+ * Re-sync prunes items (and cascaded sections / links / tables / search rows) that
+ * the reader no longer returns for this source — deleted files or newly skipped paths.
  */
 final class SourceSyncService
 {
@@ -40,6 +42,7 @@ final class SourceSyncService
         private readonly DenylistGuardService $denylist = new DenylistGuardService,
         private readonly BrainReader $reader = new BrainReader,
         private readonly QuotaEnforcementService $quotas = new QuotaEnforcementService,
+        private readonly SearchIndexWriterService $searchIndex = new SearchIndexWriterService,
     ) {}
 
     /**
@@ -453,12 +456,44 @@ final class SourceSyncService
         }
 
         $links = $this->upsertLinks($source, $repo->edges, $pathToItemId);
+        $this->pruneStaleItems($source, array_keys($pathToItemId));
 
         return [
             'items' => $items,
             'sections' => $sections,
             'links' => $links,
         ];
+    }
+
+    /**
+     * Remove index rows for this source whose paths are absent from the current read.
+     *
+     * Scoped to `source_id` only so other organisations and sources stay untouched.
+     * Cascades clear sections, links and structured tables; SQLite FTS rows are
+     * dropped explicitly because mass deletes skip model observers.
+     *
+     * @param  list<string>  $keptPaths
+     */
+    private function pruneStaleItems(Source $source, array $keptPaths): void
+    {
+        $staleQuery = Item::query()->where('source_id', $source->id);
+
+        if ($keptPaths !== []) {
+            $staleQuery->whereNotIn('path', $keptPaths);
+        }
+
+        $staleItemIds = array_values(array_map(
+            static fn (mixed $itemId): string => (string) $itemId,
+            $staleQuery->pluck('id')->all(),
+        ));
+
+        if ($staleItemIds === []) {
+            return;
+        }
+
+        $this->searchIndex->deleteByItemIds($staleItemIds);
+
+        Item::query()->whereIn('id', $staleItemIds)->delete();
     }
 
     private function upsertItem(Source $source, ItemData $itemData, string $commit): Item

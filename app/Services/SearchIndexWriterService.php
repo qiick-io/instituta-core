@@ -52,6 +52,20 @@ final class SearchIndexWriterService
         DB::table('item_sections_fts')->where('section_id', $sectionId)->delete();
     }
 
+    /**
+     * Drop FTS rows for items removed by a source re-sync (query deletes skip observers).
+     *
+     * @param  list<string>  $itemIds
+     */
+    public function deleteByItemIds(array $itemIds): void
+    {
+        if ($itemIds === [] || ! $this->sqliteFtsReady()) {
+            return;
+        }
+
+        DB::table('item_sections_fts')->whereIn('item_id', $itemIds)->delete();
+    }
+
     public function refreshItem(Item $item): void
     {
         if (! $this->sqliteFtsReady()) {
