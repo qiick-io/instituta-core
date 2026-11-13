@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ItemNeighboursRequest;
 use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 final class ItemNeighboursController extends Controller
 {
@@ -16,11 +16,9 @@ final class ItemNeighboursController extends Controller
 
     public function __construct(private readonly IndexedContractService $contract) {}
 
-    public function __invoke(Request $request, string $id): JsonResponse
+    public function __invoke(ItemNeighboursRequest $request, string $id): JsonResponse
     {
-        $validated = $request->validate([
-            'depth' => ['nullable', 'integer', 'min:1', 'max:2'],
-        ]);
+        $validated = $request->validated();
 
         return response()->json(
             $this->contract->graph(

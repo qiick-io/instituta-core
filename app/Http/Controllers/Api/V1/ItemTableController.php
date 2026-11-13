@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ItemTableRequest;
 use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 final class ItemTableController extends Controller
 {
@@ -16,11 +16,9 @@ final class ItemTableController extends Controller
 
     public function __construct(private readonly IndexedContractService $contract) {}
 
-    public function __invoke(Request $request, string $id, string $key): JsonResponse
+    public function __invoke(ItemTableRequest $request, string $id, string $key): JsonResponse
     {
-        $validated = $request->validate([
-            'filter' => ['nullable'],
-        ]);
+        $validated = $request->validated();
 
         $filter = $this->parseFilter($validated['filter'] ?? null);
 

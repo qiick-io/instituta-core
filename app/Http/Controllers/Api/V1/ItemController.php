@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ListItemsRequest;
 use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,15 +17,9 @@ final class ItemController extends Controller
 
     public function __construct(private readonly IndexedContractService $contract) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(ListItemsRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'scope' => ['required', 'string'],
-            'area' => ['nullable', 'string'],
-            'type' => ['nullable', 'string'],
-            'cursor' => ['nullable', 'string'],
-            'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
-        ]);
+        $validated = $request->validated();
 
         $perimeter = $this->perimeter($request);
         if ($validated['scope'] !== $perimeter->scopeId) {
