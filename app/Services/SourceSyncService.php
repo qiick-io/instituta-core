@@ -105,8 +105,8 @@ final class SourceSyncService
                 ->withProperties([
                     'status' => SyncStatusEnum::Ok->value,
                     'commit' => $commit,
-                    'items_upserted' => $report['items_upserted'] ?? 0,
-                    'sections_upserted' => $report['sections_upserted'] ?? 0,
+                    'items_upserted' => $report['items_upserted'],
+                    'sections_upserted' => $report['sections_upserted'],
                 ])
                 ->log('source.synced');
 
