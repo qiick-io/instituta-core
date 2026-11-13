@@ -10,6 +10,7 @@ use App\Brain\Data\LinkEdgeData;
 use App\Brain\Data\ReadRequestData;
 use App\Brain\Data\SectionData;
 use App\Brain\Data\SkippedFileData;
+use App\Brain\Data\StructuredTableData;
 use App\Brain\Data\ValidationIssueData;
 use App\Brain\Exceptions\DenylistHitException;
 use App\Brain\Readers\BrainReader;
@@ -22,6 +23,8 @@ use App\Models\ItemLink;
 use App\Models\ItemSection;
 use App\Models\Source;
 use App\Models\SourceVersion;
+use App\Models\StructuredRow;
+use App\Models\StructuredTable;
 use App\Models\VaultVersion;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
@@ -446,6 +449,7 @@ final class SourceSyncService
             $pathToItemId[$itemData->path] = $item->id;
             $items++;
             $sections += $this->upsertSections($source, $item, $itemData->sections);
+            $this->upsertTables($source, $item, $itemData->tables);
         }
 
         $links = $this->upsertLinks($source, $repo->edges, $pathToItemId);
@@ -530,6 +534,44 @@ final class SourceSyncService
         }
 
         return $count;
+    }
+
+    /**
+     * Replace structured tables for an item with the reader's current tables.
+     *
+     * @param  list<StructuredTableData>  $tables
+     */
+    private function upsertTables(Source $source, Item $item, array $tables): void
+    {
+        StructuredRow::query()->where('item_id', $item->id)->delete();
+        StructuredTable::query()->where('item_id', $item->id)->delete();
+
+        foreach ($tables as $tableData) {
+            $table = StructuredTable::query()->create([
+                'item_id' => $item->id,
+                'organisation_id' => $source->organisation_id,
+                'company_id' => $source->company_id,
+                'product_id' => $source->product_id,
+                'table_key' => $tableData->tableKey,
+                'columns' => $tableData->columns,
+                'position' => $tableData->position,
+            ]);
+
+            $rowPosition = 0;
+
+            foreach ($tableData->values as $rowValues) {
+                StructuredRow::query()->create([
+                    'structured_table_id' => $table->id,
+                    'item_id' => $item->id,
+                    'organisation_id' => $source->organisation_id,
+                    'company_id' => $source->company_id,
+                    'product_id' => $source->product_id,
+                    'values' => $rowValues,
+                    'position' => $rowPosition,
+                ]);
+                $rowPosition++;
+            }
+        }
     }
 
     /**
