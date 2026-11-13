@@ -134,6 +134,8 @@ it('reports path hygiene skips for vendor and env files', function (): void {
 
     expect($scanner->skipReasonForPath('vendor/autoload.php'))->toStartWith('path_hygiene:')
         ->and($scanner->skipReasonForPath('apps/.env.local'))->toStartWith('path_hygiene:')
+        ->and($scanner->skipReasonForPath('.claude/worktrees/x/registry/registry.json'))->toBe('path_hygiene:.claude/')
+        ->and($scanner->skipReasonForPath('.git/config'))->toBe('path_hygiene:.git/')
         ->and($scanner->skipReasonForContent('hello world'))->toBeNull()
         ->and($scanner->skipReasonForContent('TOKEN=ghp_abcdefghijklmnopqrstuvwxyz0123456789'))->toBe('secret_pii:api_token')
         ->and($scanner->skipReasonForContent('export DB_PASSWORD=s3cret'))->toBe('secret_pii:env_assignment')
