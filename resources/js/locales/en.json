@@ -201,7 +201,8 @@
             "sources": "Sources",
             "keys": "Keys",
             "activity": "Activity",
-            "clients": "Clients"
+            "clients": "Clients",
+            "sessionReplay": "Session replay"
         },
         "scope": {
             "label": "Scope",
@@ -371,6 +372,33 @@
             "saveCreate": "Create product",
             "saveEdit": "Save changes",
             "cancel": "Cancel"
+        },
+        "sessionReplay": {
+            "title": "Session replay",
+            "description": "Inspect contract calls for this organisation. Metadata only — no bodies or secrets.",
+            "hint": "Filter by principal, tool, or date. Open a call to see item ids and token estimate.",
+            "ownerOnly": "Only organisation owners can view session replay.",
+            "searchPlaceholder": "Search tool or scope id…",
+            "empty": "No contract calls yet.",
+            "view": "View",
+            "detailTitle": "Call detail",
+            "detailHint": "Returned item ids and estimates only. Content is never stored here.",
+            "colWhen": "When",
+            "colTool": "Tool / endpoint",
+            "colPrincipal": "Principal",
+            "colScope": "Scope",
+            "colActions": "Actions",
+            "fieldKey": "API key",
+            "fieldSession": "Agent session",
+            "fieldTokens": "Token estimate",
+            "fieldItemIds": "Item ids",
+            "filters": {
+                "all": "All",
+                "principal": "Principal",
+                "tool": "Tool",
+                "dateFrom": "From",
+                "dateTo": "To"
+            }
         }
     },
     "activity": {

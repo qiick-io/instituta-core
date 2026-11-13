@@ -3,6 +3,7 @@ import {
     BookOpen,
     Building2,
     FolderGit2,
+    History,
     KeyRound,
     LayoutGrid,
     ListTree,
@@ -77,6 +78,11 @@ export function AppSidebar() {
             title: t('brain.nav.clients'),
             href: '/brain/clients',
             icon: Building2,
+        },
+        {
+            title: t('brain.nav.sessionReplay'),
+            href: '/brain/session-replay',
+            icon: History,
         },
         {
             title: t('brain.nav.activity'),

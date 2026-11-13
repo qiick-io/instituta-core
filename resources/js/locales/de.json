@@ -201,7 +201,8 @@
             "sources": "Quellen",
             "keys": "Schlüssel",
             "activity": "Aktivität",
-            "clients": "Kunden"
+            "clients": "Kunden",
+            "sessionReplay": "Sitzungs-Replay"
         },
         "scope": {
             "label": "Bereich",
@@ -371,6 +372,33 @@
             "saveCreate": "Produkt anlegen",
             "saveEdit": "Änderungen speichern",
             "cancel": "Abbrechen"
+        },
+        "sessionReplay": {
+            "title": "Sitzungs-Replay",
+            "description": "Vertragsaufrufe dieser Organisation prüfen. Nur Metadaten — keine Bodies oder Geheimnisse.",
+            "hint": "Nach Principal, Tool oder Datum filtern. Aufruf öffnen für Item-IDs und Token-Schätzung.",
+            "ownerOnly": "Nur Organisationsbesitzer können das Sitzungs-Replay sehen.",
+            "searchPlaceholder": "Tool oder Scope-ID suchen…",
+            "empty": "Noch keine Vertragsaufrufe.",
+            "view": "Ansehen",
+            "detailTitle": "Aufrufdetails",
+            "detailHint": "Nur zurückgegebene Item-IDs und Schätzungen. Inhalt wird hier nie gespeichert.",
+            "colWhen": "Wann",
+            "colTool": "Tool / Endpunkt",
+            "colPrincipal": "Principal",
+            "colScope": "Scope",
+            "colActions": "Aktionen",
+            "fieldKey": "API-Schlüssel",
+            "fieldSession": "Agent-Sitzung",
+            "fieldTokens": "Token-Schätzung",
+            "fieldItemIds": "Item-IDs",
+            "filters": {
+                "all": "Alle",
+                "principal": "Principal",
+                "tool": "Tool",
+                "dateFrom": "Von",
+                "dateTo": "Bis"
+            }
         }
     },
     "activity": {

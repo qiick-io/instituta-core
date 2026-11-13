@@ -10,6 +10,7 @@ use App\Http\Controllers\Brain\MapController;
 use App\Http\Controllers\Brain\ReadingController;
 use App\Http\Controllers\Brain\ResolvedController;
 use App\Http\Controllers\Brain\ScopeSwitcherController;
+use App\Http\Controllers\Brain\SessionReplayController;
 use App\Http\Controllers\Brain\SourcesController;
 use App\Http\Controllers\Brain\TablesController;
 use App\Http\Controllers\Brain\TreeController;
@@ -53,6 +54,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('brain.clients.export.download');
     Route::post('brain/clients/{company}/exports/{offboarding}/erase', ClientEraseController::class)
         ->name('brain.clients.export.erase');
+    Route::get('brain/session-replay', SessionReplayController::class)
+        ->name('brain.session-replay');
     Route::get('activity', ActivityLogController::class)->name('activity.index');
 });
 

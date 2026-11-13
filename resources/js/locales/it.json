@@ -201,7 +201,8 @@
             "sources": "Sorgenti",
             "keys": "Chiavi",
             "activity": "Attività",
-            "clients": "Clienti"
+            "clients": "Clienti",
+            "sessionReplay": "Replay sessioni"
         },
         "scope": {
             "label": "Ambito",
@@ -371,6 +372,33 @@
             "saveCreate": "Crea prodotto",
             "saveEdit": "Salva modifiche",
             "cancel": "Annulla"
+        },
+        "sessionReplay": {
+            "title": "Replay sessioni",
+            "description": "Ispeziona le chiamate al contratto di questa organizzazione. Solo metadati — nessun body o segreto.",
+            "hint": "Filtra per principal, tool o data. Apri una chiamata per vedere gli id degli item e la stima token.",
+            "ownerOnly": "Solo i proprietari dell'organizzazione possono vedere il replay delle sessioni.",
+            "searchPlaceholder": "Cerca tool o id di scope…",
+            "empty": "Nessuna chiamata al contratto ancora.",
+            "view": "Vedi",
+            "detailTitle": "Dettaglio chiamata",
+            "detailHint": "Solo id degli item restituiti e stime. Il contenuto non è mai memorizzato qui.",
+            "colWhen": "Quando",
+            "colTool": "Tool / endpoint",
+            "colPrincipal": "Principal",
+            "colScope": "Scope",
+            "colActions": "Azioni",
+            "fieldKey": "Chiave API",
+            "fieldSession": "Sessione agent",
+            "fieldTokens": "Stima token",
+            "fieldItemIds": "Id item",
+            "filters": {
+                "all": "Tutti",
+                "principal": "Principal",
+                "tool": "Tool",
+                "dateFrom": "Da",
+                "dateTo": "A"
+            }
         }
     },
     "activity": {
