@@ -55,6 +55,8 @@ class HandleInertiaRequests extends Middleware
                 'roleNames' => $user instanceof User ? $permissionResolver->roleNamesFor($user) : [],
                 'isSuperAdmin' => $user instanceof User && $permissionResolver->isSuperAdmin($user),
             ],
+            'locale' => app()->getLocale(),
+            'availableLocales' => config('i18n.available_locales', ['en' => 'English']),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'instituta' => app(SessionPerimeterService::class)->sharedPayload($request),
         ];

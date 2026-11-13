@@ -97,7 +97,8 @@
         "emailAddress": "Email address",
         "firstName": "First name",
         "lastName": "Last name",
-        "confirmPassword": "Confirm password"
+        "confirmPassword": "Confirm password",
+        "actions": "Actions"
     },
     "confirmDestructive": {
         "typeToConfirm": "Type \"{{name}}\" to confirm"
@@ -144,6 +145,7 @@
             "sectionAccount": "Account",
             "profile": "Profile",
             "security": "Security",
+            "sessions": "Sessions",
             "appearance": "Appearance",
             "reportBug": "Report a Bug"
         },
@@ -160,7 +162,9 @@
             "breadcrumb": "Profile settings",
             "head": "Profile settings",
             "title": "Profile information",
-            "description": "Update your first name, last name and email address",
+            "description": "Update your first name, last name, email, language and timezone",
+            "locale": "Language",
+            "timezone": "Timezone",
             "unverified": "Your email address is unverified.",
             "resend": "Click here to resend the verification email.",
             "linkSent": "A new verification link has been sent to your email address."
@@ -182,6 +186,29 @@
             "passkeysTitle": "Passkeys",
             "passkeysDescription": "Manage your passkeys for passwordless sign-in",
             "passkeysEmpty": "No passkeys yet"
+        },
+        "sessions": {
+            "breadcrumb": "Sessions",
+            "browserOnPlatform": "{{browser}} on {{platform}}",
+            "columns": {
+                "browser": "Browser",
+                "ipAddress": "IP address",
+                "lastActive": "Last active"
+            },
+            "confirm": {
+                "description": "The browser has to sign in again to use your account.",
+                "othersDescription": "Every browser except this one has to sign in again. Remembered logins stop working too.",
+                "othersTitle": "Sign out of all other browsers?",
+                "title": "Sign out of this browser?"
+            },
+            "description": "Browsers where your account is signed in. Sign out of any you do not recognise.",
+            "emptyDescription": "Only this browser is signed in.",
+            "emptyTitle": "No other sessions",
+            "head": "Sessions",
+            "signOut": "Sign out",
+            "signOutOthers": "Sign out of all other browsers",
+            "thisDevice": "This device",
+            "title": "Signed-in browsers"
         }
     },
     "shortcuts": {

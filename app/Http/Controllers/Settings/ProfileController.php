@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
@@ -14,6 +16,9 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Profile settings: name, email, locale and timezone.
+ */
 class ProfileController extends Controller
 {
     /**
@@ -24,6 +29,7 @@ class ProfileController extends Controller
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'timezones' => timezone_identifiers_list(),
         ]);
     }
 
@@ -42,6 +48,8 @@ class ProfileController extends Controller
         }
 
         $changedKeys = array_keys($user->getDirty());
+        $localeChanged = $user->isDirty('locale');
+        $locale = $user->locale;
         $user->save();
 
         if ($changedKeys !== []) {
@@ -50,7 +58,13 @@ class ProfileController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
 
-        return to_route('profile.edit');
+        $redirect = to_route('profile.edit');
+
+        if ($localeChanged) {
+            return $redirect->cookie('locale', $locale, 60 * 24 * 365);
+        }
+
+        return $redirect;
     }
 
     /**

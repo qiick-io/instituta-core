@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Settings\BrowserSessionController;
+use App\Http\Controllers\Settings\LocaleController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 use Illuminate\Auth\Middleware\RequirePassword;
@@ -10,6 +12,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    Route::patch('settings/locale', [LocaleController::class, 'update'])->name('locale.update');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -22,6 +26,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('settings/password', [SecurityController::class, 'update'])
         ->middleware('throttle:6,1')
         ->name('user-password.update');
+
+    Route::get('settings/sessions', [BrowserSessionController::class, 'index'])
+        ->middleware(RequirePassword::class)
+        ->name('sessions.index');
+    Route::delete('settings/sessions/others', [BrowserSessionController::class, 'destroyOthers'])
+        ->middleware(RequirePassword::class)
+        ->name('sessions.destroy-others');
+    Route::delete('settings/sessions/{publicId}', [BrowserSessionController::class, 'destroy'])
+        ->middleware(RequirePassword::class)
+        ->name('sessions.destroy');
 
     Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
 });

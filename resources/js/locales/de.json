@@ -97,7 +97,8 @@
         "emailAddress": "E-Mail-Adresse",
         "firstName": "Vorname",
         "lastName": "Nachname",
-        "confirmPassword": "Passwort bestätigen"
+        "confirmPassword": "Passwort bestätigen",
+        "actions": "Aktionen"
     },
     "confirmDestructive": {
         "typeToConfirm": "Tippe „{{name}}“ zur Bestätigung"
@@ -144,6 +145,7 @@
             "sectionAccount": "Konto",
             "profile": "Profil",
             "security": "Sicherheit",
+            "sessions": "Sitzungen",
             "appearance": "Darstellung",
             "reportBug": "Bug melden"
         },
@@ -160,7 +162,9 @@
             "breadcrumb": "Profileinstellungen",
             "head": "Profileinstellungen",
             "title": "Profilinformationen",
-            "description": "Aktualisieren Sie Vorname, Nachname und E-Mail-Adresse",
+            "description": "Aktualisieren Sie Vorname, Nachname, E-Mail, Sprache und Zeitzone",
+            "locale": "Sprache",
+            "timezone": "Zeitzone",
             "unverified": "Ihre E-Mail-Adresse ist nicht bestätigt.",
             "resend": "Hier klicken, um die Bestätigungs-E-Mail erneut zu senden.",
             "linkSent": "Ein neuer Bestätigungslink wurde an Ihre E-Mail-Adresse gesendet."
@@ -182,6 +186,29 @@
             "passkeysTitle": "Passkeys",
             "passkeysDescription": "Passkeys für die Anmeldung ohne Passwort verwalten",
             "passkeysEmpty": "Noch keine Passkeys"
+        },
+        "sessions": {
+            "breadcrumb": "Sitzungen",
+            "browserOnPlatform": "{{browser}} auf {{platform}}",
+            "columns": {
+                "browser": "Browser",
+                "ipAddress": "IP-Adresse",
+                "lastActive": "Zuletzt aktiv"
+            },
+            "confirm": {
+                "description": "Der Browser muss sich erneut anmelden, um Ihr Konto zu nutzen.",
+                "othersDescription": "Alle Browser außer diesem müssen sich erneut anmelden. Gespeicherte Anmeldungen funktionieren ebenfalls nicht mehr.",
+                "othersTitle": "Von allen anderen Browsern abmelden?",
+                "title": "Von diesem Browser abmelden?"
+            },
+            "description": "Browser, in denen Ihr Konto angemeldet ist. Melden Sie sich bei unbekannten ab.",
+            "emptyDescription": "Nur dieser Browser ist angemeldet.",
+            "emptyTitle": "Keine weiteren Sitzungen",
+            "head": "Sitzungen",
+            "signOut": "Abmelden",
+            "signOutOthers": "Von allen anderen Browsern abmelden",
+            "thisDevice": "Dieses Gerät",
+            "title": "Angemeldete Browser"
         }
     },
     "shortcuts": {

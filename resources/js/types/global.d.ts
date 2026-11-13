@@ -13,6 +13,8 @@ declare module '@inertiajs/core' {
             name: string;
             appVersion: string;
             auth: Auth;
+            locale: string;
+            availableLocales: Record<string, string>;
             sidebarOpen: boolean;
             instituta: InstitutaShared;
             [key: string]: unknown;

@@ -31,11 +31,14 @@ class ProfileUpdateTest extends TestCase
                 'first_name' => 'Test',
                 'last_name' => 'User',
                 'email' => 'test@example.com',
+                'locale' => 'it',
+                'timezone' => 'Europe/Rome',
             ]);
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('profile.edit'));
+            ->assertRedirect(route('profile.edit'))
+            ->assertCookie('locale', 'it', encrypted: false);
 
         $user->refresh();
 
@@ -43,6 +46,8 @@ class ProfileUpdateTest extends TestCase
         $this->assertSame('User', $user->last_name);
         $this->assertSame('Test User', $user->name);
         $this->assertSame('test@example.com', $user->email);
+        $this->assertSame('it', $user->locale);
+        $this->assertSame('Europe/Rome', $user->timezone);
         $this->assertNull($user->email_verified_at);
     }
 
@@ -56,6 +61,8 @@ class ProfileUpdateTest extends TestCase
                 'first_name' => 'Test',
                 'last_name' => 'User',
                 'email' => 'Test@Example.com',
+                'locale' => 'en',
+                'timezone' => 'UTC',
             ])
             ->assertSessionHasNoErrors();
 
@@ -84,6 +91,8 @@ class ProfileUpdateTest extends TestCase
                 'first_name' => 'Test',
                 'last_name' => 'User',
                 'email' => 'Taken@Example.com',
+                'locale' => 'en',
+                'timezone' => 'UTC',
             ]);
 
         $response
@@ -101,6 +110,8 @@ class ProfileUpdateTest extends TestCase
                 'first_name' => 'Test',
                 'last_name' => 'User',
                 'email' => $user->email,
+                'locale' => 'en',
+                'timezone' => 'UTC',
             ]);
 
         $response

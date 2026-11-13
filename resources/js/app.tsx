@@ -24,7 +24,11 @@ void createInertiaApp({
         }
     },
     strictMode: true,
-    withApp(app) {
+    withApp(app, { page }) {
+        initI18n(
+            typeof page.props.locale === 'string' ? page.props.locale : 'en',
+        );
+
         return (
             <TooltipProvider delayDuration={0}>
                 {app}
@@ -39,4 +43,3 @@ void createInertiaApp({
 
 // This will set light / dark mode on load...
 initializeTheme();
-initI18n();
