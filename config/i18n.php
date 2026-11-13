@@ -2,11 +2,17 @@
 
 declare(strict_types=1);
 
-/*
- * UI languages offered in the user menu and accepted by SetLocaleMiddleware /
- * LocaleController. Each key needs resources/js/locales/<code>.json.
- */
 return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Available UI Locales
+    |--------------------------------------------------------------------------
+    |
+    | Locales exposed to the language switcher and accepted by SetLocaleMiddleware
+    | and the locale settings endpoint. Each one needs resources/js/locales/<code>.json.
+    |
+    */
 
     'available_locales' => [
         'en' => 'English',
