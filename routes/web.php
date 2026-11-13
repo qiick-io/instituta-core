@@ -29,7 +29,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('brain.tables.show');
     Route::get('brain/sources', SourcesController::class)->name('brain.sources');
     Route::get('brain/keys', KeysController::class)->name('brain.keys');
-    Route::get('brain/clients', ClientsController::class)->name('brain.clients');
+    Route::get('brain/clients', [ClientsController::class, 'index'])->name('brain.clients.index');
+    Route::get('brain/clients/create', [ClientsController::class, 'create'])->name('brain.clients.create');
+    Route::post('brain/clients', [ClientsController::class, 'store'])->name('brain.clients.store');
+    Route::get('brain/clients/{company}/edit', [ClientsController::class, 'edit'])->name('brain.clients.edit');
+    Route::put('brain/clients/{company}', [ClientsController::class, 'update'])->name('brain.clients.update');
     Route::get('activity', ActivityLogController::class)->name('activity.index');
 });
 

@@ -124,6 +124,39 @@ final class ActivityEventLoggerService
         );
     }
 
+    public function clientCreated(Company $company, ?User $causer = null): void
+    {
+        $this->log(
+            'tenancy',
+            'client.created',
+            'client.created',
+            $company,
+            $causer,
+            [
+                'organisation_id' => $company->organisation_id,
+                'slug' => $company->slug,
+            ],
+        );
+    }
+
+    /**
+     * @param  list<string>  $changedKeys
+     */
+    public function clientUpdated(Company $company, ?User $causer = null, array $changedKeys = []): void
+    {
+        $this->log(
+            'tenancy',
+            'client.updated',
+            'client.updated',
+            $company,
+            $causer,
+            [
+                'organisation_id' => $company->organisation_id,
+                'keys' => $changedKeys,
+            ],
+        );
+    }
+
     public function principalExpired(Principal $principal): void
     {
         $this->log(

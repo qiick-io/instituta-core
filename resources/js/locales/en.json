@@ -321,9 +321,23 @@
             "colClient": "Client",
             "colSlug": "Slug",
             "colProducts": "Products",
-            "colActions": "Scope",
+            "colActions": "Actions",
             "switchClient": "Switch to client",
-            "switchProduct": "Switch to {{name}}"
+            "switchProduct": "Switch to {{name}}",
+            "create": "New client",
+            "edit": "Edit",
+            "createTitle": "New client company",
+            "createDescription": "Add a client company under this organisation.",
+            "editTitle": "Edit client company",
+            "editDescription": "Update the client name or slug. The slug must stay unique in this organisation.",
+            "fieldName": "Name",
+            "fieldSlug": "Slug",
+            "namePlaceholder": "Acme Ltd",
+            "slugPlaceholder": "acme-ltd",
+            "slugHint": "Lowercase letters, numbers and hyphens only.",
+            "saveCreate": "Create client",
+            "saveEdit": "Save changes",
+            "cancel": "Cancel"
         }
     },
     "activity": {

@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Requests\Brain;
+
+use App\Models\User;
+use App\Services\BrainClientsService;
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+/**
+ * Validates create payload for a client company under the caller's organisation.
+ */
+final class StoreClientCompanyRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        $user = $this->user();
+
+        if (! $user instanceof User) {
+            return false;
+        }
+
+        return app(BrainClientsService::class)->ownerOrganisationIdFor($user) !== null;
+    }
+
+    /**
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        $user = $this->user();
+        $organisationId = $user instanceof User
+            ? app(BrainClientsService::class)->ownerOrganisationIdFor($user)
+            : null;
+
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'slug' => [
+                'required',
+                'string',
+                'max:64',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                Rule::unique('companies', 'slug')->where(
+                    fn ($query) => $query->where('organisation_id', $organisationId),
+                ),
+            ],
+        ];
+    }
+}
