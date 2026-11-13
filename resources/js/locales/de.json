@@ -204,6 +204,25 @@
         "scope": {
             "label": "Bereich",
             "none": "Noch kein Bereich"
+        },
+        "map": {
+            "title": "Brain-Karte",
+            "description": "Abdeckung nach Bereich für den aktuellen Scope. Leere Bereiche erscheinen als Lücken.",
+            "gap": "Lücke",
+            "count_one": "{{count}} Eintrag",
+            "count_other": "{{count}} Einträge",
+            "emptyHint": "Hier ist noch nichts indexiert.",
+            "openTree": "Baum für diesen Bereich öffnen."
+        },
+        "areas": {
+            "rules": "Regeln",
+            "decisions": "Entscheidungen",
+            "style": "Stil / Marke",
+            "glossary": "Glossar",
+            "design-system": "Designsystem",
+            "plans": "Pläne",
+            "connected-systems": "Verbundene Systeme",
+            "notes": "Notizen"
         }
     }
 }

@@ -204,6 +204,25 @@
         "scope": {
             "label": "Ambito",
             "none": "Nessun ambito ancora"
+        },
+        "map": {
+            "title": "Mappa del cervello",
+            "description": "Copertura per area nell'ambito corrente. Le aree vuote compaiono come lacune.",
+            "gap": "Lacuna",
+            "count_one": "{{count}} voce",
+            "count_other": "{{count}} voci",
+            "emptyHint": "Niente di indicizzato qui.",
+            "openTree": "Apri l'albero di quest'area."
+        },
+        "areas": {
+            "rules": "Regole",
+            "decisions": "Decisioni",
+            "style": "Stile / brand",
+            "glossary": "Glossario",
+            "design-system": "Design system",
+            "plans": "Piani",
+            "connected-systems": "Sistemi collegati",
+            "notes": "Note"
         }
     }
 }
