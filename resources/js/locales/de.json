@@ -235,6 +235,26 @@
             "citationPath": "Datei: {{path}}",
             "citationCommit": "Commit: {{commit}}",
             "citationSection": "Abschnitt: {{section}}"
+        },
+        "resolved": {
+            "title": "Aufgelöste Ansicht",
+            "description": "Schlüssel wie das Produkt sie auflöst, mit Herkunft und Agent-Vorschau.",
+            "product": "Produkt",
+            "agentToggle": "Was der Agent sehen würde",
+            "tokens": "~{{count}} Tokens",
+            "noProducts": "Keine Produkte in diesem Scope.",
+            "empty": "Noch keine Resolution-Keys.",
+            "colKey": "Schlüssel",
+            "colTitle": "Titel",
+            "colOrigin": "Herkunft",
+            "colPath": "Pfad",
+            "overridden": "Überschrieben",
+            "inherited": "Geerbt",
+            "scopes": {
+                "product": "Produkt",
+                "company": "Unternehmen",
+                "organisation": "Organisation"
+            }
         }
     }
 }

@@ -235,6 +235,26 @@
             "citationPath": "File: {{path}}",
             "citationCommit": "Commit: {{commit}}",
             "citationSection": "Sezione: {{section}}"
+        },
+        "resolved": {
+            "title": "Vista risolta",
+            "description": "Chiavi come le risolve il prodotto, con origine e anteprima agente.",
+            "product": "Prodotto",
+            "agentToggle": "Cosa vedrebbe l'agente",
+            "tokens": "~{{count}} token",
+            "noProducts": "Nessun prodotto in questo ambito.",
+            "empty": "Nessuna chiave di risoluzione ancora.",
+            "colKey": "Chiave",
+            "colTitle": "Titolo",
+            "colOrigin": "Origine",
+            "colPath": "Percorso",
+            "overridden": "Sovrascritto",
+            "inherited": "Ereditato",
+            "scopes": {
+                "product": "Prodotto",
+                "company": "Azienda",
+                "organisation": "Organizzazione"
+            }
         }
     }
 }
