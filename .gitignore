@@ -49,3 +49,5 @@ yarn-error.log
 /opencode.jsonc
 /tests/Browser/Screenshots
 graphify-out/
+
+/build
