@@ -19,7 +19,6 @@ use App\Services\IndexedContractService;
 use App\Services\PerimeterResolverService;
 use App\Services\Search\UnsupportedSearchDriver;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 
 function searchSeed(): array
 {
