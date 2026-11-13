@@ -7,10 +7,12 @@ use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Mcp\Servers\HttpBrainServer;
 use App\Mcp\Tools\Http\InstitutaGetTool;
+use App\Mcp\Tools\Http\InstitutaGraphTool;
 use App\Mcp\Tools\Http\InstitutaListTool;
 use App\Models\Company;
 use App\Models\Grant;
 use App\Models\Item;
+use App\Models\ItemLink;
 use App\Models\ItemSection;
 use App\Models\Organisation;
 use App\Models\Principal;
@@ -28,7 +30,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 /**
  * Step 15 cross-tenant suite: one seed, assert no leakage across UI, MCP,
- * REST, search, resolved view and export. Graph stays out of scope.
+ * REST, search, resolved view, export, and the existing graph API (no graph UI).
  */
 function isolationSeed(): array
 {
@@ -304,4 +306,76 @@ it('exports only the calling client subtree and never the other tenant', functio
         ->and($result['manifest']['counts']['items'])->toBe(1)
         ->and($titles)->toBe(['Tenant A rules'])
         ->and($titles)->not->toContain('Tenant B secret');
+});
+
+it('keeps graph neighbours inside the API key perimeter', function (): void {
+    config(['instituta.mcp.enabled' => true]);
+    $seed = isolationSeed();
+
+    $neighbourA = Item::factory()->create([
+        'organisation_id' => $seed['orgA']->id,
+        'company_id' => $seed['companyA']->id,
+        'product_id' => $seed['productA']->id,
+        'source_id' => $seed['sourceA']->id,
+        'area' => 'notes',
+        'title' => 'Tenant A neighbour',
+        'path' => 'notes/a-neighbour.md',
+        'stable_key' => 'notes/a-neighbour',
+        'visibility' => VisibilityEnum::Internal,
+    ]);
+
+    ItemLink::factory()->create([
+        'from_item_id' => $seed['itemA']->id,
+        'to_item_id' => $neighbourA->id,
+        'organisation_id' => $seed['orgA']->id,
+        'company_id' => $seed['companyA']->id,
+        'product_id' => $seed['productA']->id,
+        'target' => $neighbourA->stable_key,
+        'relation' => 'links_to',
+    ]);
+    // Cross-tenant edge must not leak through graph.
+    ItemLink::factory()->create([
+        'from_item_id' => $seed['itemA']->id,
+        'to_item_id' => $seed['itemB']->id,
+        'organisation_id' => $seed['orgA']->id,
+        'company_id' => $seed['companyA']->id,
+        'product_id' => $seed['productA']->id,
+        'target' => $seed['itemB']->stable_key,
+        'relation' => 'links_to',
+    ]);
+
+    $perimeter = app(PerimeterResolverService::class)->fromApiKey($seed['keyA']->fresh('principal'));
+    $graph = app(IndexedContractService::class)->graph(
+        $perimeter,
+        $seed['keyA'],
+        $seed['itemA']->id,
+        1,
+    );
+    $ids = collect($graph['nodes'])->pluck('id')->all();
+    expect($ids)->toContain($seed['itemA']->id)
+        ->and($ids)->toContain($neighbourA->id)
+        ->and($ids)->not->toContain($seed['itemB']->id);
+
+    $auth = ['Authorization' => 'Bearer '.$seed['plainA']];
+    $rest = $this->getJson('/api/v1/items/'.$seed['itemA']->id.'/neighbours?depth=1', $auth)->assertOk();
+    $restIds = collect($rest->json('nodes'))->pluck('id')->all();
+    expect($restIds)->toContain($neighbourA->id)
+        ->and($restIds)->not->toContain($seed['itemB']->id);
+
+    $this->getJson('/api/v1/items/'.$seed['itemB']->id.'/neighbours?depth=1', $auth)
+        ->assertOk()
+        ->assertJsonPath('nodes', []);
+
+    request()->attributes->set('instituta.api_key', $seed['keyA']);
+    request()->attributes->set('instituta.perimeter', $perimeter);
+
+    HttpBrainServer::tool(InstitutaGraphTool::class, ['id' => $seed['itemA']->id, 'depth' => 1])
+        ->assertOk()
+        ->assertStructuredContent(function (AssertableJson $json) use ($seed, $neighbourA): void {
+            $ids = collect($json->toArray()['nodes'] ?? [])->pluck('id')->all();
+            expect($ids)->toContain($seed['itemA']->id)
+                ->and($ids)->toContain($neighbourA->id)
+                ->and($ids)->not->toContain($seed['itemB']->id);
+            $json->etc();
+        });
 });

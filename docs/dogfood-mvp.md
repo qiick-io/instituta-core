@@ -33,20 +33,20 @@ Skipped rows appear in `last_sync_report.skipped` without echoing the secret pay
 
 With a scoped API key (`brain:read`) over MCP HTTP or REST `/api/v1`:
 
-- List / get / outline / section / table / resolve / scopes / search inside the key perimeter.
-- Freeze pins served commits; cross-tenant get returns null (MCP) or 404 (REST).
+- List / get / outline / section / table / resolve / scopes / search / graph neighbours inside the key perimeter.
+- Freeze pins served commits; cross-tenant get returns null (MCP) or 404 (REST); graph of a foreign id returns empty nodes.
 - Search ranks only perimeter hits (SQLite in app CI, PostgreSQL 17 job).
 
-Human UI (session perimeter): map, tree, reading, tables, resolved (+ “what the agent would see”), sources, keys. Scope switcher rejects grants outside the principal.
+Human UI (session perimeter): map, tree, reading, tables, resolved (+ “what the agent would see”), sources, keys. Scope switcher rejects grants outside the principal. No graph screen in MVP.
 
 ## Isolation and a11y
 
-- Cross-tenant suite: `tests/Feature/CrossTenantIsolationTest.php` (UI, MCP, REST, search, resolved, export).
+- Cross-tenant suite: `tests/Feature/CrossTenantIsolationTest.php` (UI, MCP, REST, search, resolved, export, graph API).
 - Supporting coverage remains in `TenancyIsolationTest`, `HttpMcpTest`, `RestApiTest`, `SearchTest`, `ExportFreezeTest`.
 - Axe browser smoke: not installed in this repo (`pest-plugin-browser` absent; `ui-quality / accessibility` skips). WCAG gates that do run: `check-ui-tokens`, theme contrast via `ui-quality`, i18n ratchet (`en` / `it` / `de`).
 
 ## Gaps left for later
 
-- Graph UI and graph contract coverage (explicitly out of MVP step 15).
+- Graph UI (explicitly skipped in MVP).
 - Real-browser Pest + axe light/dark/high-contrast once the browser plugin is adopted.
 - Live GitHub source dogfood beyond Process::fake mirrors.
