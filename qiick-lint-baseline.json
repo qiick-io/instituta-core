@@ -1,7 +1,5 @@
 {
-    "eslint/no-restricted-imports": {
-        "resources/js/hooks/use-flash-toast.ts": 1
-    },
+    "eslint/no-restricted-imports": {},
     "eslint/no-restricted-properties": {
         "resources/js/hooks/use-clipboard.ts": 2
     },

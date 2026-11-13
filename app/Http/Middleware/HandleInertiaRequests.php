@@ -87,6 +87,11 @@ class HandleInertiaRequests extends Middleware
                     'brandPrimaryDarkForeground' => $theme['brandPrimaryDarkForeground'],
                 ],
             ],
+            'flash' => [
+                'success' => fn (): mixed => $request->session()->get('success'),
+                'error' => fn (): mixed => $request->session()->get('error'),
+                'warning' => fn (): mixed => $request->session()->get('warning'),
+            ],
         ];
     }
 }
