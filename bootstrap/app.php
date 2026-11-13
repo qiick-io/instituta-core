@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureUserHasPermissionMiddleware;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetLocaleMiddleware;
+use App\Http\Middleware\SetSecurityHeadersMiddleware;
 use App\Http\Responses\RenderHttpErrorResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -37,6 +38,8 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             EnsureTwoFactorIsEnabledMiddleware::class,
+            // Last so defense headers apply to the final HTML (app-ui security-headers.md).
+            SetSecurityHeadersMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
