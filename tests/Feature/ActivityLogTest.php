@@ -316,3 +316,27 @@ it('filters activity logs by log name and event', function (): void {
             ->has('activityLogs.data', 1)
             ->where('activityLogs.data.0.description', 'login-row'));
 });
+
+it('honours allowed per_page sizes and falls back for unsupported values', function (): void {
+    ['org' => $org, 'user' => $owner] = activityOwnerContext();
+    $this->actingAs($owner);
+
+    for ($index = 0; $index < 25; $index++) {
+        activity('default')
+            ->causedBy($owner)
+            ->event('updated')
+            ->withProperties(['organisation_id' => $org->id])
+            ->log('page-row-'.$index);
+    }
+
+    $this->get(route('activity.index', ['per_page' => 10]))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('activityLogs.meta.per_page', 10)
+            ->has('activityLogs.data', 10));
+
+    $this->get(route('activity.index', ['per_page' => 15]))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('activityLogs.meta.per_page', 20));
+});

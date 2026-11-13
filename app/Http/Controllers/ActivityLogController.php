@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IndexActivityLogRequest;
 use App\Http\Resources\ActivityLogResource;
 use App\Models\User;
 use App\Services\ActivityLogQueryService;
 use App\Services\FilterableActivityEventsService;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,7 +21,7 @@ final class ActivityLogController extends Controller
         private readonly ActivityLogQueryService $activityLogs,
     ) {}
 
-    public function __invoke(Request $request): Response
+    public function __invoke(IndexActivityLogRequest $request): Response
     {
         $user = $request->user();
 
@@ -40,7 +40,7 @@ final class ActivityLogController extends Controller
                     'meta' => [
                         'current_page' => 1,
                         'last_page' => 1,
-                        'per_page' => 20,
+                        'per_page' => IndexActivityLogRequest::LIST_DEFAULT_PER_PAGE,
                         'total' => 0,
                         'from' => null,
                         'to' => null,
@@ -55,10 +55,9 @@ final class ActivityLogController extends Controller
         }
 
         $filters = $this->activityLogs->resolvedFilters($request);
-        $perPage = max(10, min(100, $request->integer('per_page', 20) ?: 20));
 
         $paginator = $this->activityLogs
-            ->paginate($organisationId, $filters, $perPage)
+            ->paginate($organisationId, $filters, $request->perPage())
             ->withQueryString();
 
         return Inertia::render('activity/index', [
