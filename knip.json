@@ -13,7 +13,6 @@
         "resources/js/components/user-menu-content.tsx",
         "resources/js/enums/**",
         "resources/js/hooks/use-can.ts",
-        "resources/js/hooks/use-flash-toast.ts",
         "resources/js/hooks/use-initials.tsx",
         "resources/js/hooks/use-mobile-navigation.ts",
         "resources/js/hooks/use-scroll-region.ts",

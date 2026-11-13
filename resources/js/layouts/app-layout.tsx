@@ -1,3 +1,4 @@
+import { FlashToasts } from '@/components/flash-toasts';
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import type { AppLayoutProps } from '@/types';
 
@@ -14,6 +15,7 @@ export default function AppLayout({
             breadcrumbs={breadcrumbs}
             headerActions={headerActions}
         >
+            <FlashToasts />
             {children}
         </AppLayoutTemplate>
     );
