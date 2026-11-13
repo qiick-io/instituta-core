@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Actions\RevokeApiKeyAction;
 use App\Brain\Enums\PrincipalTypeEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Enums\CompanyKindEnum;
@@ -30,7 +31,7 @@ final class ClientErasureService
 {
     public function __construct(
         private readonly ActivityEventLoggerService $activity,
-        private readonly ApiKeyIssuerService $keys,
+        private readonly RevokeApiKeyAction $revokeApiKey,
         private readonly PrincipalLifecycleService $principals,
     ) {}
 
@@ -192,7 +193,7 @@ final class ClientErasureService
             ->get();
 
         foreach ($keys as $key) {
-            $this->keys->revoke($key);
+            $this->revokeApiKey->execute($key);
         }
 
         return $keys->count();

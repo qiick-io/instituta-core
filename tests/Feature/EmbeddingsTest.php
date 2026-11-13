@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\CreateApiKeyAction;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
@@ -14,7 +15,6 @@ use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\Product;
 use App\Models\Source;
-use App\Services\ApiKeyIssuerService;
 use App\Services\BrainEmbeddingService;
 use App\Services\PerimeterResolverService;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -41,7 +41,7 @@ function embeddingsSeed(): array
         'max_visibility' => VisibilityEnum::Restricted,
     ]);
 
-    $created = app(ApiKeyIssuerService::class)->create(
+    $created = app(CreateApiKeyAction::class)->execute(
         principal: $principal,
         name: 'embeddings',
         scopeType: ScopeTypeEnum::Organisation,

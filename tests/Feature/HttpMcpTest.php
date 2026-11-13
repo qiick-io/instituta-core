@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\CreateApiKeyAction;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
@@ -29,7 +30,6 @@ use App\Models\Source;
 use App\Models\StructuredRow;
 use App\Models\StructuredTable;
 use App\Models\VaultVersion;
-use App\Services\ApiKeyIssuerService;
 use App\Services\PerimeterResolverService;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Laravel\Mcp\Enums\ProtocolVersion;
@@ -63,7 +63,7 @@ function seedOwnerKey(): array
         'max_visibility' => VisibilityEnum::Restricted,
     ]);
 
-    $created = app(ApiKeyIssuerService::class)->create(
+    $created = app(CreateApiKeyAction::class)->execute(
         principal: $principal,
         name: 'mcp',
         scopeType: ScopeTypeEnum::Organisation,

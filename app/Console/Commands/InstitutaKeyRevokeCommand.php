@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Actions\RevokeApiKeyAction;
 use App\Models\ApiKey;
-use App\Services\ApiKeyIssuerService;
 use Illuminate\Console\Command;
 
 class InstitutaKeyRevokeCommand extends Command
@@ -14,7 +14,7 @@ class InstitutaKeyRevokeCommand extends Command
 
     protected $description = 'Revoke an API key';
 
-    public function handle(ApiKeyIssuerService $issuer): int
+    public function handle(RevokeApiKeyAction $revokeApiKey): int
     {
         $key = ApiKey::query()->find($this->argument('key'));
         if ($key === null) {
@@ -23,7 +23,7 @@ class InstitutaKeyRevokeCommand extends Command
             return self::FAILURE;
         }
 
-        $issuer->revoke($key);
+        $revokeApiKey->execute($key);
         $this->info('API key revoked: '.$key->id);
 
         return self::SUCCESS;

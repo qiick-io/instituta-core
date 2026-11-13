@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\CreateApiKeyAction;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
@@ -19,7 +20,6 @@ use App\Models\Source;
 use App\Models\StructuredRow;
 use App\Models\StructuredTable;
 use App\Models\VaultVersion;
-use App\Services\ApiKeyIssuerService;
 
 function restSeedOwnerKey(): array
 {
@@ -40,7 +40,7 @@ function restSeedOwnerKey(): array
         'max_visibility' => VisibilityEnum::Restricted,
     ]);
 
-    $created = app(ApiKeyIssuerService::class)->create(
+    $created = app(CreateApiKeyAction::class)->execute(
         principal: $principal,
         name: 'rest',
         scopeType: ScopeTypeEnum::Organisation,

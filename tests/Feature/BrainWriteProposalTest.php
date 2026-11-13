@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\CreateApiKeyAction;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
@@ -15,7 +16,6 @@ use App\Models\Grant;
 use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\Proposal;
-use App\Services\ApiKeyIssuerService;
 use Illuminate\Support\Facades\Queue;
 
 /**
@@ -43,7 +43,7 @@ function writeSeedOwnerKey(bool $withWriteAbility = true): array
         $abilities[] = ApiKeyAbilityEnum::BrainWrite->value;
     }
 
-    $created = app(ApiKeyIssuerService::class)->create(
+    $created = app(CreateApiKeyAction::class)->execute(
         principal: $principal,
         name: 'write',
         scopeType: ScopeTypeEnum::Organisation,
@@ -106,7 +106,7 @@ it('refuses issuing brain:write for guest keys even when writes are enabled', fu
         'max_visibility' => VisibilityEnum::Public,
     ]);
 
-    expect(fn () => app(ApiKeyIssuerService::class)->create(
+    expect(fn () => app(CreateApiKeyAction::class)->execute(
         principal: $principal,
         name: 'guest-write',
         scopeType: ScopeTypeEnum::Organisation,
@@ -203,7 +203,7 @@ it('refuses brain:write on issue when all write kill switches are off', function
         'max_visibility' => VisibilityEnum::Restricted,
     ]);
 
-    expect(fn () => app(ApiKeyIssuerService::class)->create(
+    expect(fn () => app(CreateApiKeyAction::class)->execute(
         principal: $principal,
         name: 'bad',
         scopeType: ScopeTypeEnum::Organisation,

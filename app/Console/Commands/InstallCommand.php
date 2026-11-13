@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Actions\CreateApiKeyAction;
 use App\Brain\Enums\PrincipalTypeEnum;
 use App\Brain\Enums\RoleEnum as BrainRoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
@@ -16,7 +17,6 @@ use App\Models\Grant;
 use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\User;
-use App\Services\ApiKeyIssuerService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -50,7 +50,7 @@ class InstallCommand extends Command
 
     protected $description = 'First-run setup: write .env, migrate, bootstrap owner, optional npm build (CI: --no-interaction --force)';
 
-    public function handle(ApiKeyIssuerService $keys): int
+    public function handle(CreateApiKeyAction $createApiKey): int
     {
         $force = (bool) $this->option('force');
         $stack = (string) $this->option('stack');
@@ -123,7 +123,7 @@ class InstallCommand extends Command
         $this->call('db:seed', ['--class' => RoleSeeder::class, '--force' => true]);
 
         if (! $this->option('no-owner')) {
-            $boot = $this->bootstrapOwner($keys);
+            $boot = $this->bootstrapOwner($createApiKey);
             if ($boot !== self::SUCCESS) {
                 return $boot;
             }
@@ -173,7 +173,7 @@ class InstallCommand extends Command
         return $env;
     }
 
-    private function bootstrapOwner(ApiKeyIssuerService $keys): int
+    private function bootstrapOwner(CreateApiKeyAction $createApiKey): int
     {
         if (Organisation::query()->exists()) {
             $this->warn('Organisation already exists; skipping owner bootstrap.');
@@ -193,7 +193,7 @@ class InstallCommand extends Command
 
         /** @var array{org: Organisation, company: Company, user: User, principal: Principal, plain: string} $created */
         $created = DB::transaction(function () use (
-            $keys,
+            $createApiKey,
             $orgName,
             $orgSlug,
             $companyName,
@@ -242,7 +242,7 @@ class InstallCommand extends Command
 
             $user->assignRole(RoleEnum::SuperAdmin->value);
 
-            $issued = $keys->create(
+            $issued = $createApiKey->execute(
                 principal: $principal,
                 name: 'owner',
                 scopeType: ScopeTypeEnum::Organisation,
