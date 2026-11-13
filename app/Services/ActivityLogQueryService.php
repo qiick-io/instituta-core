@@ -159,4 +159,31 @@ final class ActivityLogQueryService
     {
         return $this->filteredQuery($organisationId, $filters)->paginate($perPage);
     }
+
+    /**
+     * Filter options: users who hold a principal in the organisation.
+     *
+     * @return list<array{id: int|string, name: string, email: string}>
+     */
+    public function causersForOrganisation(string $organisationId): array
+    {
+        /** @var list<array{id: int|string, name: string, email: string}> $rows */
+        $rows = User::query()
+            ->whereHas('principals', function ($query) use ($organisationId): void {
+                $query->where('organisation_id', $organisationId);
+            })
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->limit(100)
+            ->get(['id', 'first_name', 'last_name', 'email'])
+            ->map(fn (User $causer): array => [
+                'id' => $causer->id,
+                'name' => $causer->name,
+                'email' => $causer->email,
+            ])
+            ->values()
+            ->all();
+
+        return $rows;
+    }
 }

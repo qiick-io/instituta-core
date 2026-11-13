@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\ContractCall;
+use App\Models\Principal;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -70,6 +71,49 @@ final class ContractCallReplayQueryService
         $this->applyFilters($query, $filters);
 
         return $query->paginate($perPage);
+    }
+
+    /**
+     * Filter options: principals in the organisation (id + name).
+     *
+     * @return list<array{id: string, name: string}>
+     */
+    public function principalsForOrganisation(string $organisationId): array
+    {
+        /** @var list<array{id: string, name: string}> $rows */
+        $rows = Principal::query()
+            ->where('organisation_id', $organisationId)
+            ->orderBy('name')
+            ->limit(100)
+            ->get(['id', 'name'])
+            ->map(fn (Principal $principal): array => [
+                'id' => $principal->id,
+                'name' => $principal->name,
+            ])
+            ->values()
+            ->all();
+
+        return $rows;
+    }
+
+    /**
+     * Filter options: distinct tool_or_endpoint values recorded for the organisation.
+     *
+     * @return list<string>
+     */
+    public function toolsForOrganisation(string $organisationId): array
+    {
+        /** @var list<string> $tools */
+        $tools = ContractCall::query()
+            ->where('organisation_id', $organisationId)
+            ->distinct()
+            ->orderBy('tool_or_endpoint')
+            ->limit(100)
+            ->pluck('tool_or_endpoint')
+            ->values()
+            ->all();
+
+        return $tools;
     }
 
     /**

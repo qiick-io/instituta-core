@@ -38,15 +38,23 @@ final class BrainProposalsService
     }
 
     /**
-     * @return array<string, mixed>|null
+     * Perimeter-scoped Eloquent model for status updates from the human UI.
      */
-    public function find(PerimeterData $perimeter, string $proposalId): ?array
+    public function findModel(PerimeterData $perimeter, string $proposalId): ?Proposal
     {
-        $proposal = Proposal::query()
+        return Proposal::query()
             ->whereKey($proposalId)
             ->where('scope_type', $perimeter->scopeType)
             ->where('scope_id', $perimeter->scopeId)
             ->first();
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function find(PerimeterData $perimeter, string $proposalId): ?array
+    {
+        $proposal = $this->findModel($perimeter, $proposalId);
 
         if ($proposal === null) {
             return null;
