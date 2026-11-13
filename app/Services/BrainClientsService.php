@@ -11,10 +11,61 @@ use App\Models\Principal;
 use App\Models\User;
 
 /**
- * Lists client companies for the agency portal (case 4).
+ * Lists and authorises client companies for the agency portal (case 4).
  */
 final class BrainClientsService
 {
+    /**
+     * Organisation id when the user is an active person with an org-level owner grant.
+     */
+    public function ownerOrganisationIdFor(User $user): ?string
+    {
+        $principal = $user->principals()
+            ->active()
+            ->where('type', 'person')
+            ->orderBy('id')
+            ->first();
+
+        if (! $principal instanceof Principal) {
+            return null;
+        }
+
+        $ownerGrant = $principal->grants()
+            ->active()
+            ->where('role', RoleEnum::Owner->value)
+            ->where('scope_type', 'organisation')
+            ->orderBy('id')
+            ->first();
+
+        if ($ownerGrant === null) {
+            return null;
+        }
+
+        return $principal->organisation_id;
+    }
+
+    /**
+     * Whether the user may manage this company as a client of their organisation.
+     */
+    public function canOwnerManage(User $user, Company $company): bool
+    {
+        $organisationId = $this->ownerOrganisationIdFor($user);
+
+        return $organisationId !== null
+            && $company->organisation_id === $organisationId
+            && $company->kind === CompanyKindEnum::Client;
+    }
+
+    /**
+     * Soft-guard: abort when the company is outside the owner's client perimeter.
+     */
+    public function assertOwnerCanManage(User $user, Company $company): void
+    {
+        if (! $this->canOwnerManage($user, $company)) {
+            abort(403);
+        }
+    }
+
     /**
      * @return array{
      *     is_owner: bool,
@@ -28,29 +79,14 @@ final class BrainClientsService
      */
     public function listFor(User $user): array
     {
-        $principal = $user->principals()
-            ->active()
-            ->where('type', 'person')
-            ->orderBy('id')
-            ->first();
+        $organisationId = $this->ownerOrganisationIdFor($user);
 
-        if (! $principal instanceof Principal) {
-            return ['is_owner' => false, 'clients' => []];
-        }
-
-        $ownerGrant = $principal->grants()
-            ->active()
-            ->where('role', RoleEnum::Owner->value)
-            ->where('scope_type', 'organisation')
-            ->orderBy('id')
-            ->first();
-
-        if ($ownerGrant === null) {
+        if ($organisationId === null) {
             return ['is_owner' => false, 'clients' => []];
         }
 
         $clients = Company::query()
-            ->where('organisation_id', $principal->organisation_id)
+            ->where('organisation_id', $organisationId)
             ->where('kind', CompanyKindEnum::Client)
             ->with(['products' => fn ($query) => $query->orderBy('name')])
             ->orderBy('name')

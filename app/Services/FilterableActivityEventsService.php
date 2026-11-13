@@ -32,6 +32,8 @@ final class FilterableActivityEventsService
             'freeze.created',
             'freeze.lifted',
             'export.completed',
+            'client.created',
+            'client.updated',
             'offboarding.exported',
             'proposal.opened',
             'proposal.accepted',

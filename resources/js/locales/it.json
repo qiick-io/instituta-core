@@ -321,9 +321,23 @@
             "colClient": "Cliente",
             "colSlug": "Slug",
             "colProducts": "Prodotti",
-            "colActions": "Scope",
+            "colActions": "Azioni",
             "switchClient": "Passa al cliente",
-            "switchProduct": "Passa a {{name}}"
+            "switchProduct": "Passa a {{name}}",
+            "create": "Nuovo cliente",
+            "edit": "Modifica",
+            "createTitle": "Nuova azienda cliente",
+            "createDescription": "Aggiungi un'azienda cliente a questa organizzazione.",
+            "editTitle": "Modifica azienda cliente",
+            "editDescription": "Aggiorna nome o slug del cliente. Lo slug deve restare unico nell'organizzazione.",
+            "fieldName": "Nome",
+            "fieldSlug": "Slug",
+            "namePlaceholder": "Acme Srl",
+            "slugPlaceholder": "acme-srl",
+            "slugHint": "Solo lettere minuscole, numeri e trattini.",
+            "saveCreate": "Crea cliente",
+            "saveEdit": "Salva modifiche",
+            "cancel": "Annulla"
         }
     },
     "activity": {

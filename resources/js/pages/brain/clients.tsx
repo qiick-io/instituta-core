@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
@@ -51,13 +51,22 @@ export default function BrainClients({ is_owner, clients }: Props) {
         <>
             <Head title={t('brain.clients.title')} />
             <PageLayout description={t('brain.clients.description')}>
-                <div className="space-y-1 pb-2">
-                    <h1 className="text-xl font-semibold tracking-tight">
-                        {t('brain.clients.title')}
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.clients.hint')}
-                    </p>
+                <div className="flex flex-wrap items-start justify-between gap-4 pb-2">
+                    <div className="space-y-1">
+                        <h1 className="text-xl font-semibold tracking-tight">
+                            {t('brain.clients.title')}
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            {t('brain.clients.hint')}
+                        </p>
+                    </div>
+                    {is_owner ? (
+                        <Button asChild>
+                            <Link href="/brain/clients/create">
+                                {t('brain.clients.create')}
+                            </Link>
+                        </Button>
+                    ) : null}
                 </div>
 
                 {!is_owner ? (
@@ -119,6 +128,18 @@ export default function BrainClients({ is_owner, clients }: Props) {
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex flex-wrap justify-end gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                asChild
+                                            >
+                                                <Link
+                                                    href={`/brain/clients/${client.id}/edit`}
+                                                >
+                                                    {t('brain.clients.edit')}
+                                                </Link>
+                                            </Button>
                                             <Button
                                                 type="button"
                                                 variant="outline"
