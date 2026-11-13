@@ -192,5 +192,18 @@
     },
     "app": {
         "name": "Instituta"
+    },
+    "brain": {
+        "nav": {
+            "dashboard": "Übersicht",
+            "map": "Karte",
+            "tree": "Baum",
+            "sources": "Quellen",
+            "keys": "Schlüssel"
+        },
+        "scope": {
+            "label": "Bereich",
+            "none": "Noch kein Bereich"
+        }
     }
 }
