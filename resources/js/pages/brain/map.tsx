@@ -1,8 +1,14 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, setLayoutProps } from '@inertiajs/react';
+import { Map as MapIcon, SearchX } from 'lucide-react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { EmptyStatus } from '@/components/empty-status';
+import { PageLayout } from '@/components/layout/page-layout';
+import { StatCard } from '@/components/stat-card';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import { map, tree } from '@/routes/brain';
+import type { BreadcrumbItem } from '@/types';
 
 type AreaCard = {
     area: string;
@@ -15,75 +21,87 @@ type Props = {
     hasPerimeter: boolean;
 };
 
+/**
+ * Brain map: area coverage for the current scope (kickoff §5).
+ * StatCard grid from `@qiick/stat-card` / dashboard pattern — counts and gaps, not bodies.
+ */
 export default function BrainMap({ areas, hasPerimeter }: Props) {
     const { t } = useTranslation();
+
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            {
+                title: t('brain.map.title'),
+                href: map.url(),
+            },
+        ],
+        [t],
+    );
+
+    setLayoutProps({ breadcrumbs });
 
     return (
         <>
             <Head title={t('brain.map.title')} />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                <div className="space-y-1">
-                    <h1 className="text-xl font-semibold tracking-tight">
-                        {t('brain.map.title')}
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.map.description')}
-                    </p>
-                </div>
-
+            <PageLayout description={t('brain.map.description')}>
                 {!hasPerimeter ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.scope.none')}
-                    </p>
+                    <PageEmptyState
+                        icon={SearchX}
+                        title={
+                            <EmptyStatus>{t('brain.scope.none')}</EmptyStatus>
+                        }
+                        description={t('brain.map.description')}
+                        compact
+                    />
+                ) : areas.every((area) => area.empty) ? (
+                    <PageEmptyState
+                        icon={MapIcon}
+                        title={t('brain.map.title')}
+                        description={t('brain.map.emptyHint')}
+                        compact
+                    />
                 ) : (
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                         {areas.map((area) => (
                             <Link
                                 key={area.area}
-                                href={tree.url({ query: { area: area.area } })}
-                                className={cn(
-                                    'rounded-xl border border-sidebar-border/70 p-4 transition-colors hover:bg-muted/40 dark:border-sidebar-border',
-                                    area.empty && 'border-dashed bg-muted/30',
-                                )}
+                                href={tree.url({
+                                    query: { area: area.area },
+                                })}
+                                className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
-                                <div className="flex items-start justify-between gap-2">
-                                    <h2 className="font-medium">
-                                        {t(`brain.areas.${area.area}`, {
-                                            defaultValue: area.area,
-                                        })}
-                                    </h2>
-                                    {area.empty ? (
-                                        <Badge variant="outline">
-                                            {t('brain.map.gap')}
-                                        </Badge>
-                                    ) : (
-                                        <Badge variant="secondary">
-                                            {t('brain.map.count', {
-                                                count: area.count,
-                                                defaultValue: `${area.count}`,
-                                            })}
-                                        </Badge>
-                                    )}
-                                </div>
-                                <p className="mt-2 text-sm text-muted-foreground">
-                                    {area.empty
-                                        ? t('brain.map.emptyHint')
-                                        : t('brain.map.openTree')}
-                                </p>
+                                <StatCard
+                                    label={t(`brain.areas.${area.area}`, {
+                                        defaultValue: area.area,
+                                    })}
+                                    value={String(area.count)}
+                                    headline={
+                                        area.empty ? (
+                                            <Badge variant="outline">
+                                                {t('brain.map.gap')}
+                                            </Badge>
+                                        ) : (
+                                            t('brain.map.openTree')
+                                        )
+                                    }
+                                    context={
+                                        area.empty
+                                            ? t('brain.map.emptyHint')
+                                            : t('brain.map.count', {
+                                                  count: area.count,
+                                              })
+                                    }
+                                    className={
+                                        area.empty
+                                            ? 'border-dashed opacity-90'
+                                            : undefined
+                                    }
+                                />
                             </Link>
                         ))}
                     </div>
                 )}
-            </div>
+            </PageLayout>
         </>
     );
 }
-
-BrainMap.layout = {
-    breadcrumbs: [
-        {
-            title: 'Map',
-            href: map.url(),
-        },
-    ],
-};

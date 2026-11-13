@@ -1,8 +1,27 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, setLayoutProps } from '@inertiajs/react';
+import { FolderTree, SearchX } from 'lucide-react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { EmptyStatus } from '@/components/empty-status';
+import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
+    Item,
+    ItemContent,
+    ItemDescription,
+    ItemGroup,
+    ItemTitle,
+} from '@/components/ui/item';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { reading, tree } from '@/routes/brain';
+import type { BreadcrumbItem } from '@/types';
 
 type TreeItem = {
     id: string;
@@ -25,6 +44,10 @@ type Props = {
     hasPerimeter: boolean;
 };
 
+/**
+ * Brain tree by meaning (area → items), not raw git paths (kickoff §5).
+ * Item rows from `@qiick/item`; collapsible area sections from `@qiick/collapsible`.
+ */
 export default function BrainTree({
     groups,
     area,
@@ -33,31 +56,28 @@ export default function BrainTree({
 }: Props) {
     const { t } = useTranslation();
 
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            {
+                title: t('brain.tree.title'),
+                href: tree.url(),
+            },
+        ],
+        [t],
+    );
+
+    setLayoutProps({ breadcrumbs });
+
     return (
         <>
             <Head title={t('brain.tree.title')} />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                <div className="space-y-1">
-                    <h1 className="text-xl font-semibold tracking-tight">
-                        {t('brain.tree.title')}
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.tree.description')}
-                    </p>
-                </div>
-
-                {!hasPerimeter ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.scope.none')}
-                    </p>
-                ) : (
-                    <>
+            <PageLayout
+                description={t('brain.tree.description')}
+                filters={
+                    hasPerimeter ? (
                         <div className="flex flex-wrap items-center gap-2">
                             <Badge variant="secondary">
-                                {t('brain.tree.count', {
-                                    count: total,
-                                    defaultValue: `${total}`,
-                                })}
+                                {t('brain.tree.count', { count: total })}
                             </Badge>
                             {area ? (
                                 <>
@@ -66,79 +86,89 @@ export default function BrainTree({
                                             defaultValue: area,
                                         })}
                                     </Badge>
-                                    <Link
-                                        href={tree.url()}
-                                        className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-                                    >
-                                        {t('brain.tree.clearArea')}
-                                    </Link>
+                                    <Button variant="ghost" size="sm" asChild>
+                                        <Link href={tree.url()}>
+                                            {t('brain.tree.clearArea')}
+                                        </Link>
+                                    </Button>
                                 </>
                             ) : null}
                         </div>
-
-                        {groups.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">
-                                {t('brain.tree.empty')}
-                            </p>
-                        ) : (
-                            <div className="space-y-6">
-                                {groups.map((group) => (
-                                    <section
-                                        key={group.area}
-                                        className="space-y-2"
-                                    >
-                                        <h2 className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
+                    ) : null
+                }
+            >
+                {!hasPerimeter ? (
+                    <PageEmptyState
+                        icon={SearchX}
+                        title={
+                            <EmptyStatus>{t('brain.scope.none')}</EmptyStatus>
+                        }
+                        description={t('brain.tree.description')}
+                        compact
+                    />
+                ) : groups.length === 0 ? (
+                    <PageEmptyState
+                        icon={FolderTree}
+                        title={t('brain.tree.title')}
+                        description={t('brain.tree.empty')}
+                        compact
+                    />
+                ) : (
+                    <ScrollArea className="h-[min(70vh,40rem)] pr-2">
+                        <div className="space-y-4">
+                            {groups.map((group) => (
+                                <Collapsible
+                                    key={group.area}
+                                    defaultOpen
+                                    className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+                                >
+                                    <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left text-sm font-medium tracking-wide text-muted-foreground uppercase hover:bg-muted/40">
+                                        <span>
                                             {t(`brain.areas.${group.area}`, {
                                                 defaultValue: group.area,
                                             })}
-                                        </h2>
-                                        <ul className="divide-y rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                                        </span>
+                                        <Badge variant="secondary">
+                                            {group.items.length}
+                                        </Badge>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent>
+                                        <ItemGroup className="gap-1 border-t border-sidebar-border/70 p-2 dark:border-sidebar-border">
                                             {group.items.map((item) => (
-                                                <li key={item.id}>
+                                                <Item
+                                                    key={item.id}
+                                                    variant="outline"
+                                                    size="sm"
+                                                    asChild
+                                                >
                                                     <Link
                                                         href={reading.url(
                                                             item.id,
                                                         )}
-                                                        className={cn(
-                                                            'flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-muted/40',
-                                                        )}
                                                     >
-                                                        <div className="flex flex-wrap items-center gap-2">
-                                                            <span className="font-medium">
+                                                        <ItemContent>
+                                                            <ItemTitle>
                                                                 {item.title}
-                                                            </span>
-                                                            <Badge variant="outline">
-                                                                {item.type}
-                                                            </Badge>
-                                                        </div>
-                                                        <span className="font-mono text-xs text-muted-foreground">
-                                                            {item.path}
-                                                        </span>
-                                                        {item.summary ? (
-                                                            <span className="text-sm text-muted-foreground">
-                                                                {item.summary}
-                                                            </span>
-                                                        ) : null}
+                                                                <Badge variant="outline">
+                                                                    {item.type}
+                                                                </Badge>
+                                                            </ItemTitle>
+                                                            <ItemDescription>
+                                                                {item.summary ??
+                                                                    item.path}
+                                                            </ItemDescription>
+                                                        </ItemContent>
                                                     </Link>
-                                                </li>
+                                                </Item>
                                             ))}
-                                        </ul>
-                                    </section>
-                                ))}
-                            </div>
-                        )}
-                    </>
+                                        </ItemGroup>
+                                    </CollapsibleContent>
+                                </Collapsible>
+                            ))}
+                        </div>
+                    </ScrollArea>
                 )}
-            </div>
+            </PageLayout>
         </>
     );
 }
-
-BrainTree.layout = {
-    breadcrumbs: [
-        {
-            title: 'Tree',
-            href: tree.url(),
-        },
-    ],
-};

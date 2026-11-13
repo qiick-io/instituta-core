@@ -1,6 +1,9 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, setLayoutProps } from '@inertiajs/react';
+import { Table2 } from 'lucide-react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PageLayout } from '@/components/layout/page-layout';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { PageLayout, TablePanel } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
 import {
     Table,
@@ -12,11 +15,13 @@ import {
 } from '@/components/ui/table';
 import { reading } from '@/routes/brain';
 import { index as tablesIndex } from '@/routes/brain/tables';
+import type { BreadcrumbItem } from '@/types';
 
 function cellText(value: unknown): string {
     if (value === null || value === undefined) {
         return '';
     }
+
     if (
         typeof value === 'string' ||
         typeof value === 'number' ||
@@ -24,6 +29,7 @@ function cellText(value: unknown): string {
     ) {
         return String(value);
     }
+
     return JSON.stringify(value);
 }
 
@@ -41,8 +47,27 @@ type Props = {
     table: TablePayload;
 };
 
+/**
+ * One structured table (tokens / registry rows) in TablePanel chrome (kickoff §5).
+ */
 export default function BrainTableShow({ table }: Props) {
     const { t } = useTranslation();
+
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            {
+                title: t('brain.tables.title'),
+                href: tablesIndex.url(),
+            },
+            {
+                title: table.table_key,
+                href: '#',
+            },
+        ],
+        [t, table.table_key],
+    );
+
+    setLayoutProps({ breadcrumbs });
 
     return (
         <>
@@ -66,52 +91,40 @@ export default function BrainTableShow({ table }: Props) {
                     </div>
                 }
             >
-                <div className="space-y-1 pb-2">
-                    <h1 className="text-xl font-semibold tracking-tight">
-                        {table.table_key}
-                    </h1>
-                </div>
-
                 {table.rows.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.tables.emptyRows')}
-                    </p>
+                    <PageEmptyState
+                        icon={Table2}
+                        title={table.table_key}
+                        description={t('brain.tables.emptyRows')}
+                        compact
+                    />
                 ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                {table.columns.map((column) => (
-                                    <TableHead key={column}>{column}</TableHead>
-                                ))}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {table.rows.map((row, index) => (
-                                <TableRow key={index}>
+                    <TablePanel>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
                                     {table.columns.map((column) => (
-                                        <TableCell key={column}>
-                                            {cellText(row[column])}
-                                        </TableCell>
+                                        <TableHead key={column}>
+                                            {column}
+                                        </TableHead>
                                     ))}
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {table.rows.map((row, index) => (
+                                    <TableRow key={index}>
+                                        {table.columns.map((column) => (
+                                            <TableCell key={column}>
+                                                {cellText(row[column])}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TablePanel>
                 )}
             </PageLayout>
         </>
     );
 }
-
-BrainTableShow.layout = {
-    breadcrumbs: [
-        {
-            title: 'Tables',
-            href: tablesIndex.url(),
-        },
-        {
-            title: 'Table',
-            href: '#',
-        },
-    ],
-};

@@ -1,9 +1,22 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, setLayoutProps } from '@inertiajs/react';
+import { GitFork, SearchX } from 'lucide-react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BrainGraphCanvas } from '@/components/brain/brain-graph-canvas';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { EmptyStatus } from '@/components/empty-status';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { graph, tree } from '@/routes/brain';
+import type { BreadcrumbItem } from '@/types';
 
 type GraphNode = {
     id: string;
@@ -26,6 +39,10 @@ type Props = {
     itemId: string | null;
 };
 
+/**
+ * Scoped neighbour graph — not the home screen (kickoff §5).
+ * Card + ToggleGroup chrome from app-ui page patterns; canvas unchanged.
+ */
 export default function BrainGraph({
     hasPerimeter,
     root,
@@ -36,10 +53,28 @@ export default function BrainGraph({
 }: Props) {
     const { t } = useTranslation();
 
-    const setDepth = (nextDepth: number) => {
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            {
+                title: t('brain.graph.title'),
+                href: graph.url(),
+            },
+        ],
+        [t],
+    );
+
+    setLayoutProps({ breadcrumbs });
+
+    const setDepth = (nextDepth: string) => {
+        const parsed = Number(nextDepth);
+
+        if (parsed !== 1 && parsed !== 2) {
+            return;
+        }
+
         router.get(
             graph.url(itemId ?? undefined),
-            { depth: nextDepth },
+            { depth: parsed },
             { preserveState: true, replace: true },
         );
     };
@@ -47,75 +82,80 @@ export default function BrainGraph({
     return (
         <>
             <Head title={t('brain.graph.title')} />
-            <PageLayout description={t('brain.graph.description')}>
-                <div className="flex flex-wrap items-end justify-between gap-3 pb-2">
-                    <div className="space-y-1">
-                        <h1 className="text-xl font-semibold tracking-tight">
-                            {t('brain.graph.title')}
-                        </h1>
-                        {root ? (
-                            <p className="text-sm text-muted-foreground">
+            <PageLayout
+                description={t('brain.graph.description')}
+                filters={
+                    hasPerimeter ? (
+                        <div className="flex flex-wrap items-center gap-2">
+                            <ToggleGroup
+                                type="single"
+                                variant="outline"
+                                value={String(depth)}
+                                onValueChange={(value) => {
+                                    if (value) {
+                                        setDepth(value);
+                                    }
+                                }}
+                            >
+                                <ToggleGroupItem value="1">
+                                    {t('brain.graph.depth1')}
+                                </ToggleGroupItem>
+                                <ToggleGroupItem value="2">
+                                    {t('brain.graph.depth2')}
+                                </ToggleGroupItem>
+                            </ToggleGroup>
+                            <Button variant="outline" size="sm" asChild>
+                                <Link href={tree.url()}>
+                                    {t('brain.graph.openTree')}
+                                </Link>
+                            </Button>
+                        </div>
+                    ) : null
+                }
+            >
+                {!hasPerimeter ? (
+                    <PageEmptyState
+                        icon={SearchX}
+                        title={
+                            <EmptyStatus>{t('brain.scope.none')}</EmptyStatus>
+                        }
+                        description={t('brain.graph.description')}
+                        compact
+                    />
+                ) : root === null ? (
+                    <PageEmptyState
+                        icon={GitFork}
+                        title={t('brain.graph.title')}
+                        description={t('brain.graph.empty')}
+                        action={
+                            <Button variant="outline" asChild>
+                                <Link href={tree.url()}>
+                                    {t('brain.graph.openTree')}
+                                </Link>
+                            </Button>
+                        }
+                        compact
+                    />
+                ) : (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{root.title}</CardTitle>
+                            <CardDescription>
                                 {t('brain.graph.rootLabel', {
                                     title: root.title,
                                 })}
-                            </p>
-                        ) : null}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant={depth === 1 ? 'default' : 'outline'}
-                            onClick={() => setDepth(1)}
-                        >
-                            {t('brain.graph.depth1')}
-                        </Button>
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant={depth === 2 ? 'default' : 'outline'}
-                            onClick={() => setDepth(2)}
-                        >
-                            {t('brain.graph.depth2')}
-                        </Button>
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            asChild
-                        >
-                            <Link href={tree.url()}>
-                                {t('brain.graph.openTree')}
-                            </Link>
-                        </Button>
-                    </div>
-                </div>
-
-                {!hasPerimeter ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.scope.none')}
-                    </p>
-                ) : root === null ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.graph.empty')}
-                    </p>
-                ) : (
-                    <BrainGraphCanvas
-                        rootId={root.id}
-                        nodes={nodes}
-                        edges={edges}
-                    />
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <BrainGraphCanvas
+                                rootId={root.id}
+                                nodes={nodes}
+                                edges={edges}
+                            />
+                        </CardContent>
+                    </Card>
                 )}
             </PageLayout>
         </>
     );
 }
-
-BrainGraph.layout = {
-    breadcrumbs: [
-        {
-            title: 'Graph',
-            href: graph.url(),
-        },
-    ],
-};
