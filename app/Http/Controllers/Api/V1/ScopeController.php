@@ -11,6 +11,9 @@ use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * REST scopes the API key may read (organisation / company / product).
+ */
 final class ScopeController extends Controller
 {
     use ResolvesInstitutaApiContextTrait;

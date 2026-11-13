@@ -12,6 +12,9 @@ use App\Http\Resources\Api\BrainContractResource;
 use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * REST structured table rows for an indexed item, optionally filtered.
+ */
 final class ItemTableController extends Controller
 {
     use ResolvesInstitutaApiContextTrait;

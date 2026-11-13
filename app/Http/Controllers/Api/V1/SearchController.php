@@ -13,6 +13,9 @@ use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 use RuntimeException;
 
+/**
+ * REST full-text search over indexed items inside the API key perimeter.
+ */
 final class SearchController extends Controller
 {
     use ResolvesInstitutaApiContextTrait;
