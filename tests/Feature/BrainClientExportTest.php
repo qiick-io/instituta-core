@@ -16,7 +16,6 @@ use App\Models\Source;
 use App\Models\User;
 use Illuminate\Support\Facades\File;
 use Inertia\Testing\AssertableInertia;
-use ZipArchive;
 
 beforeEach(function (): void {
     $this->withoutVite();
