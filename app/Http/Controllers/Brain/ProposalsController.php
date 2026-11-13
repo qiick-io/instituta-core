@@ -9,6 +9,7 @@ use App\Brain\Enums\RoleEnum;
 use App\Data\UpdateProposalStatusData;
 use App\Enums\ProposalStatusEnum;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Brain\IndexBrainProposalsRequest;
 use App\Http\Requests\Brain\UpdateBrainProposalStatusRequest;
 use App\Models\User;
 use App\Services\ProposalQueryService;
@@ -30,14 +31,10 @@ final class ProposalsController extends Controller
         private readonly UpdateProposalStatusAction $updateStatus,
     ) {}
 
-    public function index(Request $request): Response
+    public function index(IndexBrainProposalsRequest $request): Response
     {
         $perimeter = $this->sessions->optionalPerimeter($request);
-
-        $statusFilter = $request->string('status')->toString();
-        $status = in_array($statusFilter, ['open', 'accepted', 'rejected'], true)
-            ? ProposalStatusEnum::from($statusFilter)
-            : ProposalStatusEnum::Open;
+        $status = $request->statusFilter();
 
         return Inertia::render('brain/proposals', [
             'proposals' => $perimeter === null ? [] : $this->proposals->listForUi($perimeter, $status),

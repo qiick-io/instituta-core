@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Brain;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Brain\IndexSessionReplayRequest;
 use App\Http\Resources\ContractCallReplayResource;
 use App\Models\User;
 use App\Services\ContractCallReplayQueryService;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,7 +21,7 @@ final class SessionReplayController extends Controller
         private readonly ContractCallReplayQueryService $replay,
     ) {}
 
-    public function __invoke(Request $request): Response
+    public function __invoke(IndexSessionReplayRequest $request): Response
     {
         $user = $request->user();
 
@@ -39,7 +39,7 @@ final class SessionReplayController extends Controller
                 'meta' => [
                     'current_page' => 1,
                     'last_page' => 1,
-                    'per_page' => 20,
+                    'per_page' => IndexSessionReplayRequest::LIST_DEFAULT_PER_PAGE,
                     'total' => 0,
                     'from' => null,
                     'to' => null,
@@ -54,9 +54,8 @@ final class SessionReplayController extends Controller
             return Inertia::render('brain/session-replay', $emptyPayload);
         }
 
-        $perPage = max(10, min(100, $request->integer('per_page', 20) ?: 20));
         $paginator = $this->replay
-            ->paginate($organisationId, $filters, $perPage)
+            ->paginate($organisationId, $filters, $request->perPage())
             ->withQueryString();
 
         return Inertia::render('brain/session-replay', [

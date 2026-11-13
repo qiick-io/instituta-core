@@ -1,0 +1,44 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Requests\Concerns;
+
+use Illuminate\Http\Request;
+
+/**
+ * Shared "Rows per page" for list controllers (`per_page` query param).
+ *
+ * Only the antd page sizes are accepted; anything else (missing, non-numeric,
+ * out of the set) silently falls back to the default so hand-edited or stale
+ * URLs keep working instead of failing with 422.
+ *
+ * Copied from externa-core ValidatesListPerPageTrait.
+ */
+trait ValidatesListPerPageTrait
+{
+    /** @var list<int> Page sizes offered by the admin "Rows per page" select. */
+    public const LIST_PER_PAGE_OPTIONS = [10, 20, 50, 100];
+
+    public const LIST_DEFAULT_PER_PAGE = 20;
+
+    /**
+     * Resolve `per_page` to one of {@see self::LIST_PER_PAGE_OPTIONS}.
+     *
+     * @param  int  $default  Page size for a missing or unsupported value; compact panels use 10.
+     * @return int One of 10, 20, 50, 100
+     */
+    protected function validatedListPerPage(
+        Request $request,
+        string $key = 'per_page',
+        int $default = self::LIST_DEFAULT_PER_PAGE,
+    ): int {
+        $requested = $request->query($key);
+
+        if (is_string($requested) && ctype_digit($requested) && in_array((int) $requested, self::LIST_PER_PAGE_OPTIONS, true)) {
+            return (int) $requested;
+        }
+
+        return $default;
+    }
+}

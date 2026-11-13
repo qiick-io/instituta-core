@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Concerns\ValidatesListPerPageTrait;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -13,10 +14,12 @@ use Illuminate\Foundation\Http\FormRequest;
  * Validates the search, sort and pagination query of the admin lists (users, roles, permissions).
  * Controllers authorize through their policies.
  *
- * Copied from excubia-app.
+ * Copied from excubia-app; `per_page` shares {@see ValidatesListPerPageTrait}.
  */
 class ListQueryRequest extends FormRequest
 {
+    use ValidatesListPerPageTrait;
+
     /** @var list<int> Page sizes offered by the "Rows per page" select (qiick app UI). */
     public const PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
@@ -70,9 +73,7 @@ class ListQueryRequest extends FormRequest
      */
     public function perPage(): int
     {
-        $perPage = $this->integer('per_page');
-
-        return in_array($perPage, self::PER_PAGE_OPTIONS, true) ? $perPage : self::DEFAULT_PER_PAGE;
+        return $this->validatedListPerPage($this, default: self::DEFAULT_PER_PAGE);
     }
 
     /**
