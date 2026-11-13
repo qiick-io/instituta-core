@@ -1,51 +1,38 @@
 <?php
 
-namespace Tests\Feature\Auth;
+declare(strict_types=1);
 
 use App\Services\SettingsRepositoryService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Fortify\Features;
-use Tests\TestCase;
 
-class RegistrationTest extends TestCase
-{
-    use RefreshDatabase;
+beforeEach(function (): void {
+    $this->withoutVite();
+    $this->skipUnlessFortifyHas(Features::registration());
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+it('registration is disabled by default', function (): void {
+    expect(app(SettingsRepositoryService::class)->isRegistrationEnabled())->toBeFalse();
 
-        $this->withoutVite();
-        $this->skipUnlessFortifyHas(Features::registration());
-    }
+    $this->get(route('register'))->assertForbidden();
+});
 
-    public function test_registration_is_disabled_by_default(): void
-    {
-        expect(app(SettingsRepositoryService::class)->isRegistrationEnabled())->toBeFalse();
+it('registration screen can be rendered when enabled', function (): void {
+    app(SettingsRepositoryService::class)->save(['registration_enabled' => true]);
 
-        $this->get(route('register'))->assertForbidden();
-    }
+    $this->get(route('register'))->assertOk();
+});
 
-    public function test_registration_screen_can_be_rendered_when_enabled(): void
-    {
-        app(SettingsRepositoryService::class)->save(['registration_enabled' => true]);
+it('new users can register when enabled', function (): void {
+    app(SettingsRepositoryService::class)->save(['registration_enabled' => true]);
 
-        $this->get(route('register'))->assertOk();
-    }
+    $response = $this->post(route('register.store'), [
+        'first_name' => 'Test',
+        'last_name' => 'User',
+        'email' => 'test@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ]);
 
-    public function test_new_users_can_register_when_enabled(): void
-    {
-        app(SettingsRepositoryService::class)->save(['registration_enabled' => true]);
-
-        $response = $this->post(route('register.store'), [
-            'first_name' => 'Test',
-            'last_name' => 'User',
-            'email' => 'test@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
-        ]);
-
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
-    }
-}
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('dashboard', absolute: false));
+});
