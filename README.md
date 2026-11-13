@@ -26,7 +26,7 @@ cd instituta-core
 php artisan instituta:install
 ```
 
-`create-project` only copies `.env` and generates the app key. `instituta:install` configures the database, app name/URL, stack profile, optional seed, frontend build, and the first organisation / own company / owner user / principal / owner API key, then runs `instituta:sync-permissions`. Non-interactive CI mode: `--no-interaction --force`.
+`create-project` only copies `.env` and generates the app key. `instituta:install` writes `.env` (APP_NAME, APP_URL, `--stack=minimal|redis`), migrates SQLite by default, optionally builds the frontend, and bootstraps the first organisation / own company / owner user / principal / owner API key. Tenancy ACL uses brain grants/roles for beta (`instituta:sync-permissions` arrives with the app PermissionEnum). Non-interactive CI mode: `--no-interaction --force --no-npm`.
 
 Updates use the upgrade channel, never a second `create-project`:
 

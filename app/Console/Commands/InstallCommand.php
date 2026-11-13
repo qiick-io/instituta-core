@@ -36,6 +36,9 @@ class InstallCommand extends Command
         {--force : Allow overwriting an existing .env / running when APP_ENV looks like production}
         {--no-npm : Skip npm install / build}
         {--no-owner : Skip owner bootstrap (org, company, user, principal, key)}
+        {--app-name=Instituta : Application name written to APP_NAME}
+        {--app-url=http://localhost : Application URL written to APP_URL}
+        {--stack=minimal : Queue/cache profile: minimal (database) or redis}
         {--org-name=Instituta : Organisation display name}
         {--org-slug= : Organisation slug (default: slug of --org-name)}
         {--company-name=Own : Own company display name}
@@ -43,11 +46,18 @@ class InstallCommand extends Command
         {--owner-email=owner@instituta.local : Owner user e-mail}
         {--owner-password= : Owner password (random if omitted; printed once)}';
 
-    protected $description = 'First-run setup: write .env, migrate, bootstrap owner, optional npm build';
+    protected $description = 'First-run setup: write .env, migrate, bootstrap owner, optional npm build (CI: --no-interaction --force)';
 
     public function handle(ApiKeyIssuerService $keys): int
     {
         $force = (bool) $this->option('force');
+        $stack = (string) $this->option('stack');
+
+        if (! in_array($stack, ['minimal', 'redis'], true)) {
+            $this->error('Invalid --stack. Use minimal or redis.');
+
+            return self::FAILURE;
+        }
 
         if ($this->looksLikeProduction() && ! $force) {
             $this->error('Refusing: APP_ENV looks like production. Pass --force if you really mean it.');
@@ -68,6 +78,13 @@ class InstallCommand extends Command
             $this->info('Wrote .env from .env.example');
         }
 
+        $env = File::get($envPath);
+        $env = $this->setEnv($env, 'APP_NAME', (string) $this->option('app-name'));
+        $env = $this->setEnv($env, 'APP_URL', (string) $this->option('app-url'));
+        $env = $this->applyStack($env, $stack);
+        File::put($envPath, $env);
+        $this->line('Applied APP_NAME, APP_URL and --stack='.$stack);
+
         $sqlite = database_path('database.sqlite');
 
         if (! File::exists($sqlite)) {
@@ -78,7 +95,6 @@ class InstallCommand extends Command
         if ($this->call('key:generate', ['--force' => true]) !== self::SUCCESS) {
             return self::FAILURE;
         }
-
         if ($this->call('migrate', ['--force' => true]) !== self::SUCCESS) {
             return self::FAILURE;
         }
@@ -113,8 +129,28 @@ class InstallCommand extends Command
         }
 
         $this->info('Instituta install complete.');
+        $this->comment('Permissions: tenancy uses brain grants/roles; instituta:sync-permissions arrives with the app PermissionEnum.');
 
         return self::SUCCESS;
+    }
+
+    private function applyStack(string $env, string $stack): string
+    {
+        if ($stack === 'minimal') {
+            $env = $this->setEnv($env, 'QUEUE_CONNECTION', 'database');
+            $env = $this->setEnv($env, 'CACHE_STORE', 'database');
+            $env = $this->setEnv($env, 'SESSION_DRIVER', 'database');
+            $env = $this->setEnv($env, 'BROADCAST_CONNECTION', 'log');
+
+            return $env;
+        }
+
+        $env = $this->setEnv($env, 'QUEUE_CONNECTION', 'redis');
+        $env = $this->setEnv($env, 'CACHE_STORE', 'redis');
+        $env = $this->setEnv($env, 'SESSION_DRIVER', 'database');
+        $env = $this->setEnv($env, 'BROADCAST_CONNECTION', 'reverb');
+
+        return $env;
     }
 
     private function bootstrapOwner(ApiKeyIssuerService $keys): int
