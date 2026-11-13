@@ -9,7 +9,7 @@ use App\Models\Company;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\ActivityEventLoggerService;
-use App\Services\BrainClientsService;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Creates a product under an owned client company.
@@ -17,13 +17,12 @@ use App\Services\BrainClientsService;
 final class CreateClientProductAction
 {
     public function __construct(
-        private readonly BrainClientsService $clients,
         private readonly ActivityEventLoggerService $activity,
     ) {}
 
     public function execute(User $user, Company $company, ClientProductData $data): Product
     {
-        $this->clients->assertOwnerCanManage($user, $company);
+        Gate::forUser($user)->authorize('create', [Product::class, $company]);
 
         $product = Product::query()->create([
             'company_id' => $company->id,

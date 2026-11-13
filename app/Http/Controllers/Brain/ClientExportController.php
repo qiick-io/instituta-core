@@ -9,10 +9,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\OffboardingRequest;
 use App\Models\User;
-use App\Services\BrainClientsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -23,10 +23,6 @@ use ZipArchive;
  */
 final class ClientExportController extends Controller
 {
-    public function __construct(
-        private readonly BrainClientsService $clients,
-    ) {}
-
     public function store(
         Request $request,
         Company $company,
@@ -56,7 +52,7 @@ final class ClientExportController extends Controller
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
-        $this->clients->assertOwnerCanManage($user, $company);
+        Gate::authorize('view', $company);
 
         if ($offboarding->company_id !== $company->id) {
             abort(404);

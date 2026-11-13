@@ -8,7 +8,7 @@ use App\Data\ClientCompanyData;
 use App\Models\Company;
 use App\Models\User;
 use App\Services\ActivityEventLoggerService;
-use App\Services\BrainClientsService;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Updates a client company the caller owns (same organisation perimeter).
@@ -16,13 +16,12 @@ use App\Services\BrainClientsService;
 final class UpdateClientCompanyAction
 {
     public function __construct(
-        private readonly BrainClientsService $clients,
         private readonly ActivityEventLoggerService $activity,
     ) {}
 
     public function execute(User $user, Company $company, ClientCompanyData $data): Company
     {
-        $this->clients->assertOwnerCanManage($user, $company);
+        Gate::forUser($user)->authorize('update', $company);
 
         $company->fill([
             'name' => $data->name,

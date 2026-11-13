@@ -7,8 +7,8 @@ namespace App\Actions;
 use App\Models\Company;
 use App\Models\OffboardingRequest;
 use App\Models\User;
-use App\Services\BrainClientsService;
 use App\Services\ClientExportService;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Runs a client-subtree export for an organisation owner (case 8 portal).
@@ -16,7 +16,6 @@ use App\Services\ClientExportService;
 final class ExportClientCompanyAction
 {
     public function __construct(
-        private readonly BrainClientsService $clients,
         private readonly ClientExportService $exporter,
     ) {}
 
@@ -25,7 +24,7 @@ final class ExportClientCompanyAction
      */
     public function execute(User $user, Company $company, ?string $destination = null): array
     {
-        $this->clients->assertOwnerCanManage($user, $company);
+        Gate::forUser($user)->authorize('update', $company);
 
         return $this->exporter->export($company, $destination, $user);
     }

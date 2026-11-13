@@ -14,9 +14,9 @@ use App\Models\Company;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\BrainClientProductsService;
-use App\Services\BrainClientsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,7 +26,6 @@ use Inertia\Response;
 final class ClientProductsController extends Controller
 {
     public function __construct(
-        private readonly BrainClientsService $clients,
         private readonly BrainClientProductsService $products,
     ) {}
 
@@ -52,7 +51,7 @@ final class ClientProductsController extends Controller
             abort(401);
         }
 
-        $this->clients->assertOwnerCanManage($user, $company);
+        Gate::authorize('create', [Product::class, $company]);
 
         return to_route('brain.clients.products.index', [
             'company' => $company,
@@ -89,11 +88,11 @@ final class ClientProductsController extends Controller
             abort(401);
         }
 
-        $this->clients->assertOwnerCanManage($user, $company);
-
         if ($product->company_id !== $company->id) {
             abort(404);
         }
+
+        Gate::authorize('update', $product);
 
         return to_route('brain.clients.products.index', [
             'company' => $company,
