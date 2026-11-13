@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Heading-anchored section of an item; holds embedding metadata for later vectors.
+ * Heading-anchored section of an item; holds embedding metadata and JSON vectors.
  *
  * @property string $id
  * @property string $item_id
@@ -28,6 +28,8 @@ use Illuminate\Support\Carbon;
  * @property list<array<string, mixed>>|null $blocks
  * @property string|null $embedding_model_id
  * @property Carbon|null $embedded_at
+ * @property list<float>|null $embedding_vector
+ * @property string|null $embedding_content_hash
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -44,6 +46,8 @@ use Illuminate\Support\Carbon;
     'blocks',
     'embedding_model_id',
     'embedded_at',
+    'embedding_vector',
+    'embedding_content_hash',
 ])]
 class ItemSection extends Model
 {
@@ -60,6 +64,7 @@ class ItemSection extends Model
             'position' => 'integer',
             'blocks' => 'array',
             'embedded_at' => 'datetime',
+            'embedding_vector' => 'array',
         ];
     }
 

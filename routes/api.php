@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\ProductResolveController;
 use App\Http\Controllers\Api\V1\ProposalController;
 use App\Http\Controllers\Api\V1\ScopeController;
 use App\Http\Controllers\Api\V1\SearchController;
+use App\Http\Controllers\Api\V1\SimilarSearchController;
 use App\Http\Middleware\AuthenticateApiKeyMiddleware;
 use App\Http\Middleware\RequireBrainWriteMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,7 @@ Route::prefix('v1')
         Route::get('items/{id}/neighbours', ItemNeighboursController::class);
         Route::get('items/{id}', [ItemController::class, 'show']);
         Route::get('search', SearchController::class);
+        Route::get('similar', SimilarSearchController::class);
         Route::get('products/{id}/resolved', ProductResolveController::class);
 
         Route::middleware([RequireBrainWriteMiddleware::class])->group(function (): void {
