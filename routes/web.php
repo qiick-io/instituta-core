@@ -4,6 +4,7 @@ use App\Http\Controllers\Brain\MapController;
 use App\Http\Controllers\Brain\ReadingController;
 use App\Http\Controllers\Brain\ResolvedController;
 use App\Http\Controllers\Brain\ScopeSwitcherController;
+use App\Http\Controllers\Brain\TablesController;
 use App\Http\Controllers\Brain\TreeController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->where('item', '.*')
         ->name('brain.reading');
     Route::get('brain/resolved', ResolvedController::class)->name('brain.resolved');
+    Route::get('brain/tables', [TablesController::class, 'index'])->name('brain.tables.index');
+    Route::get('brain/tables/{item}/{table}', [TablesController::class, 'show'])
+        ->name('brain.tables.show');
 });
 
 require __DIR__.'/settings.php';

@@ -263,6 +263,17 @@
                 "company": "Company",
                 "organisation": "Organisation"
             }
+        },
+        "tables": {
+            "title": "Structured tables",
+            "description": "Tokens and registries in the current scope.",
+            "empty": "No structured tables in this scope yet.",
+            "emptyRows": "This table has no rows yet.",
+            "showDescription": "Table from {{item}}.",
+            "colKey": "Key",
+            "colItem": "Item",
+            "colRows": "Rows",
+            "colColumns": "Columns"
         }
     }
 }

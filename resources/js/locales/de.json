@@ -263,6 +263,17 @@
                 "company": "Unternehmen",
                 "organisation": "Organisation"
             }
+        },
+        "tables": {
+            "title": "Strukturierte Tabellen",
+            "description": "Tokens und Register im aktuellen Scope.",
+            "empty": "Noch keine strukturierten Tabellen in diesem Scope.",
+            "emptyRows": "Diese Tabelle hat noch keine Zeilen.",
+            "showDescription": "Tabelle aus {{item}}.",
+            "colKey": "Schlüssel",
+            "colItem": "Eintrag",
+            "colRows": "Zeilen",
+            "colColumns": "Spalten"
         }
     }
 }

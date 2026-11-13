@@ -263,6 +263,17 @@
                 "company": "Azienda",
                 "organisation": "Organizzazione"
             }
+        },
+        "tables": {
+            "title": "Tabelle strutturate",
+            "description": "Token e registri nell'ambito corrente.",
+            "empty": "Nessuna tabella strutturata in questo ambito ancora.",
+            "emptyRows": "Questa tabella non ha ancora righe.",
+            "showDescription": "Tabella da {{item}}.",
+            "colKey": "Chiave",
+            "colItem": "Elemento",
+            "colRows": "Righe",
+            "colColumns": "Colonne"
         }
     }
 }
