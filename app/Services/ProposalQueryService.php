@@ -11,13 +11,32 @@ use App\Models\Proposal;
 use Illuminate\Support\Collection;
 
 /**
- * Lists proposals inside a perimeter (metadata only; body is never returned).
+ * Single proposal query path for API, MCP and the human review UI.
+ *
+ * API/MCP summaries never include body; UI detail may include body for owners/members.
  */
 final class ProposalQueryService
 {
     public function __construct(
         private readonly ContractAuditService $audit = new ContractAuditService,
     ) {}
+
+    /**
+     * @return Collection<int, Proposal>
+     */
+    public function modelsInPerimeter(PerimeterData $perimeter, ?ProposalStatusEnum $status = null): Collection
+    {
+        return Proposal::query()
+            ->where('scope_type', $perimeter->scopeType)
+            ->where('scope_id', $perimeter->scopeId)
+            ->when(
+                $status instanceof ProposalStatusEnum,
+                fn ($query) => $query->where('status', $status),
+            )
+            ->orderByDesc('created_at')
+            ->limit(100)
+            ->get();
+    }
 
     /**
      * @return array{proposals: list<array<string, mixed>>}
@@ -28,17 +47,7 @@ final class ProposalQueryService
         ?ProposalStatusEnum $status,
         string $surface,
     ): array {
-        /** @var Collection<int, Proposal> $proposals */
-        $proposals = Proposal::query()
-            ->where('scope_type', $perimeter->scopeType)
-            ->where('scope_id', $perimeter->scopeId)
-            ->when(
-                $status instanceof ProposalStatusEnum,
-                fn ($query) => $query->where('status', $status),
-            )
-            ->orderByDesc('created_at')
-            ->limit(100)
-            ->get();
+        $proposals = $this->modelsInPerimeter($perimeter, $status);
 
         /** @var list<string> $itemIds */
         $itemIds = array_values($proposals->pluck('id')->all());
@@ -58,7 +67,21 @@ final class ProposalQueryService
     }
 
     /**
-     * Perimeter-scoped lookup for status updates (API / MCP).
+     * Human UI list (no contract_calls audit; no body).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function listForUi(PerimeterData $perimeter, ?ProposalStatusEnum $status = null): array
+    {
+        return array_values(
+            $this->modelsInPerimeter($perimeter, $status)
+                ->map(fn (Proposal $proposal): array => $this->toUiRow($proposal, includeBody: false))
+                ->all(),
+        );
+    }
+
+    /**
+     * Perimeter-scoped Eloquent model for status updates.
      */
     public function findInPerimeter(PerimeterData $perimeter, string $proposalId): ?Proposal
     {
@@ -67,6 +90,22 @@ final class ProposalQueryService
             ->where('scope_type', $perimeter->scopeType)
             ->where('scope_id', $perimeter->scopeId)
             ->first();
+    }
+
+    /**
+     * Human UI detail (may include body).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findForUi(PerimeterData $perimeter, string $proposalId): ?array
+    {
+        $proposal = $this->findInPerimeter($perimeter, $proposalId);
+
+        if ($proposal === null) {
+            return null;
+        }
+
+        return $this->toUiRow($proposal, includeBody: true);
     }
 
     /**
@@ -91,5 +130,37 @@ final class ProposalQueryService
             'created_at' => $proposal->created_at?->toIso8601String(),
             'updated_at' => $proposal->updated_at?->toIso8601String(),
         ];
+    }
+
+    /**
+     * Inertia UI row: materialisation fields; optional body on detail only.
+     *
+     * @return array<string, mixed>
+     */
+    public function toUiRow(Proposal $proposal, bool $includeBody): array
+    {
+        $row = [
+            'id' => $proposal->id,
+            'status' => $proposal->status->value,
+            'action' => $proposal->action->value,
+            'stable_key' => $proposal->stable_key,
+            'title' => $proposal->title,
+            'path' => $proposal->path,
+            'area' => $proposal->area,
+            'source_id' => $proposal->source_id,
+            'materialisation_status' => $proposal->materialisation_status?->value,
+            'remote_branch' => $proposal->remote_branch,
+            'remote_pr_url' => $proposal->remote_pr_url,
+            'materialised_commit' => $proposal->materialised_commit,
+            'materialisation_error' => $proposal->materialisation_error,
+            'created_at' => $proposal->created_at?->toIso8601String(),
+            'updated_at' => $proposal->updated_at?->toIso8601String(),
+        ];
+
+        if ($includeBody) {
+            $row['body'] = $proposal->body;
+        }
+
+        return $row;
     }
 }
