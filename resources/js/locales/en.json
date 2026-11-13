@@ -223,6 +223,19 @@
             "plans": "Plans",
             "connected-systems": "Connected systems",
             "notes": "Notes"
+        },
+        "reading": {
+            "description": "Long-form view of one concept in the current scope.",
+            "outline": "Outline",
+            "empty": "This concept has no sections yet.",
+            "unknownBlock": "Unsupported block type: {{type}}",
+            "structuredTables": "Structured tables",
+            "openTable": "Open table",
+            "citationSource": "Source: {{source}}",
+            "citationPath": "File: {{path}}",
+            "citationCommit": "Commit: {{commit}}",
+            "citationSection": "Section: {{section}}"
         }
     }
 }
+
