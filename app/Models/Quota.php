@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * Per-tenant cost quota definition (schema only in the MVP).
+ * Per-tenant cost quota definition (monthly contract_calls / source_syncs).
  *
  * @property string $id
  * @property ScopeTypeEnum $scope_type
