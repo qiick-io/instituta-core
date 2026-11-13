@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
+use App\Enums\ProposalStatusEnum;
 use App\Mcp\Servers\HttpBrainServer;
 use App\Mcp\Tools\Http\InstitutaGetTool;
 use App\Mcp\Tools\Http\InstitutaGraphTool;
@@ -17,6 +18,7 @@ use App\Models\ItemSection;
 use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\Product;
+use App\Models\Proposal;
 use App\Models\Source;
 use App\Models\User;
 use App\Services\ApiKeyIssuerService;
@@ -29,8 +31,8 @@ use Illuminate\Testing\Fluent\AssertableJson;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /**
- * Step 15 cross-tenant suite: one seed, assert no leakage across UI, MCP,
- * REST, search, resolved view, export, and the existing graph API (no graph UI).
+ * Cross-tenant suite: one seed, assert no leakage across UI, MCP, REST,
+ * search, graph (API + UI), resolved view, export, and proposals.
  */
 function isolationSeed(): array
 {
@@ -176,6 +178,7 @@ function isolationSeed(): array
         'companyA' => $companyA,
         'productA' => $productA,
         'sourceA' => $sourceA,
+        'principalA' => $principalA,
         'itemA' => $itemA,
         'keyA' => $keyA['key'],
         'plainA' => $keyA['plain'],
@@ -184,6 +187,7 @@ function isolationSeed(): array
         'companyB' => $companyB,
         'productB' => $productB,
         'sourceB' => $sourceB,
+        'principalB' => $principalB,
         'itemB' => $itemB,
         'keyB' => $keyB['key'],
         'plainB' => $keyB['plain'],
@@ -378,4 +382,66 @@ it('keeps graph neighbours inside the API key perimeter', function (): void {
                 ->and($ids)->not->toContain($seed['itemB']->id);
             $json->etc();
         });
+});
+
+it('keeps the graph UI inside the session perimeter', function (): void {
+    $seed = isolationSeed();
+
+    $this->actingAs($seed['userA'])
+        ->get(route('brain.graph', ['item' => $seed['itemA']->id, 'depth' => 1]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('brain/graph')
+            ->where('root.id', $seed['itemA']->id));
+
+    $this->actingAs($seed['userA'])
+        ->get(route('brain.graph', ['item' => $seed['itemB']->id, 'depth' => 1]))
+        ->assertNotFound();
+});
+
+it('keeps proposals UI inside the organisation perimeter', function (): void {
+    $seed = isolationSeed();
+
+    $proposalA = Proposal::factory()->create([
+        'organisation_id' => $seed['orgA']->id,
+        'scope_type' => ScopeTypeEnum::Organisation,
+        'scope_id' => $seed['orgA']->id,
+        'proposed_by_principal_id' => $seed['principalA']->id,
+        'title' => 'Tenant A proposal',
+        'status' => ProposalStatusEnum::Open,
+    ]);
+    $proposalB = Proposal::factory()->create([
+        'organisation_id' => $seed['orgB']->id,
+        'scope_type' => ScopeTypeEnum::Organisation,
+        'scope_id' => $seed['orgB']->id,
+        'proposed_by_principal_id' => $seed['principalB']->id,
+        'title' => 'Tenant B proposal',
+        'status' => ProposalStatusEnum::Open,
+    ]);
+
+    $this->actingAs($seed['userA'])
+        ->get(route('brain.proposals.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('brain/proposals')
+            ->has('proposals', 1)
+            ->where('proposals.0.title', 'Tenant A proposal'));
+
+    $this->actingAs($seed['userA'])
+        ->get(route('brain.proposals.show', $proposalA->id))
+        ->assertOk();
+
+    $this->actingAs($seed['userA'])
+        ->get(route('brain.proposals.show', $proposalB->id))
+        ->assertNotFound();
+});
+
+it('keeps the never-ingest denylist covering Klover Cybergrant and Zerotredici', function (): void {
+    $tokens = collect(config('instituta.ingest.denylist', []))
+        ->map(fn (string $token): string => mb_strtolower($token))
+        ->all();
+
+    expect($tokens)->toContain('klover')
+        ->and($tokens)->toContain('cybergrant')
+        ->and($tokens)->toContain('zerotredici');
 });
