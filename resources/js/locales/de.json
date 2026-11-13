@@ -292,6 +292,21 @@
                 "ok": "Ok",
                 "failed": "Fehlgeschlagen"
             }
+        },
+        "keys": {
+            "title": "API-Schlüssel",
+            "description": "Schreibgeschützte Liste der Schlüssel dieses Owners. Erstellen und Widerrufen bleiben in Artisan.",
+            "artisanHint": "Mit php artisan instituta:key Schlüssel erstellen oder widerrufen.",
+            "ownerOnly": "Nur Owner können API-Schlüssel sehen.",
+            "empty": "Noch keine API-Schlüssel.",
+            "colName": "Name",
+            "colPrefix": "Präfix",
+            "colScope": "Scope",
+            "colRole": "Rolle",
+            "colLastUsed": "Zuletzt genutzt",
+            "colStatus": "Status",
+            "active": "Aktiv",
+            "revoked": "Widerrufen"
         }
     }
 }

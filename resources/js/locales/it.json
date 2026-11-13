@@ -292,6 +292,21 @@
                 "ok": "Ok",
                 "failed": "Fallito"
             }
+        },
+        "keys": {
+            "title": "Chiavi API",
+            "description": "Elenco in sola lettura delle chiavi di questo owner. Creazione e revoca restano in Artisan.",
+            "artisanHint": "Usa php artisan instituta:key per creare o revocare chiavi.",
+            "ownerOnly": "Solo gli owner possono vedere le chiavi API.",
+            "empty": "Nessuna chiave API ancora.",
+            "colName": "Nome",
+            "colPrefix": "Prefisso",
+            "colScope": "Ambito",
+            "colRole": "Ruolo",
+            "colLastUsed": "Ultimo uso",
+            "colStatus": "Stato",
+            "active": "Attiva",
+            "revoked": "Revocata"
         }
     }
 }

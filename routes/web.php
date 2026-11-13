@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Brain\KeysController;
 use App\Http\Controllers\Brain\MapController;
 use App\Http\Controllers\Brain\ReadingController;
 use App\Http\Controllers\Brain\ResolvedController;
@@ -25,6 +26,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('brain/tables/{item}/{table}', [TablesController::class, 'show'])
         ->name('brain.tables.show');
     Route::get('brain/sources', SourcesController::class)->name('brain.sources');
+    Route::get('brain/keys', KeysController::class)->name('brain.keys');
 });
 
 require __DIR__.'/settings.php';
