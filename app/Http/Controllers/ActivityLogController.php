@@ -65,9 +65,10 @@ final class ActivityLogController extends Controller
             ->whereHas('principals', function ($query) use ($organisationId): void {
                 $query->where('organisation_id', $organisationId);
             })
-            ->orderBy('name')
+            ->orderBy('first_name')
+            ->orderBy('last_name')
             ->limit(100)
-            ->get(['id', 'name', 'email'])
+            ->get(['id', 'first_name', 'last_name', 'email'])
             ->map(fn (User $causer): array => [
                 'id' => $causer->id,
                 'name' => $causer->name,

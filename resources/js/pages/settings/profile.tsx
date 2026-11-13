@@ -1,5 +1,5 @@
-import { Form, Head, usePage } from '@inertiajs/react';
-import { Link } from '@inertiajs/react';
+import { Form, Head, Link, usePage } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
@@ -15,6 +15,9 @@ type PageProps = {
     auth: Auth;
 };
 
+/**
+ * User profile settings: first name, last name and email (qiick shape).
+ */
 export default function Profile({
     mustVerifyEmail,
     status,
@@ -22,19 +25,20 @@ export default function Profile({
     mustVerifyEmail: boolean;
     status?: string;
 }) {
+    const { t } = useTranslation();
     const { auth } = usePage<PageProps>().props;
 
     return (
         <>
-            <Head title="Profile settings" />
+            <Head title={t('settings.profile.head')} />
 
-            <h1 className="sr-only">Profile settings</h1>
+            <h1 className="sr-only">{t('settings.profile.head')}</h1>
 
             <div className="space-y-6">
                 <Heading
                     variant="small"
-                    title="Profile"
-                    description="Update your name and email address"
+                    title={t('settings.profile.title')}
+                    description={t('settings.profile.description')}
                 />
 
                 <Form
@@ -47,26 +51,50 @@ export default function Profile({
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+                                <Label htmlFor="first_name">
+                                    {t('common.firstName')}
+                                </Label>
 
                                 <Input
-                                    id="name"
+                                    id="first_name"
                                     className="mt-1 block w-full"
-                                    defaultValue={auth.user.name}
-                                    name="name"
+                                    defaultValue={auth.user.first_name}
+                                    name="first_name"
                                     required
-                                    autoComplete="name"
-                                    placeholder="Full name"
+                                    autoComplete="given-name"
+                                    placeholder={t('common.firstName')}
                                 />
 
                                 <InputError
                                     className="mt-2"
-                                    message={errors.name}
+                                    message={errors.first_name}
                                 />
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="last_name">
+                                    {t('common.lastName')}
+                                </Label>
+
+                                <Input
+                                    id="last_name"
+                                    className="mt-1 block w-full"
+                                    defaultValue={auth.user.last_name ?? ''}
+                                    name="last_name"
+                                    autoComplete="family-name"
+                                    placeholder={t('common.lastName')}
+                                />
+
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.last_name}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="email">
+                                    {t('common.emailAddress')}
+                                </Label>
 
                                 <Input
                                     id="email"
@@ -76,7 +104,7 @@ export default function Profile({
                                     name="email"
                                     required
                                     autoComplete="username"
-                                    placeholder="Email address"
+                                    placeholder={t('common.emailAddress')}
                                 />
 
                                 <InputError
@@ -89,22 +117,20 @@ export default function Profile({
                                 auth.user.email_verified_at === null && (
                                     <div>
                                         <p className="-mt-4 text-sm text-muted-foreground">
-                                            Your email address is unverified.{' '}
+                                            {t('settings.profile.unverified')}{' '}
                                             <Link
                                                 href={send()}
                                                 as="button"
                                                 className="text-foreground underline decoration-muted-foreground underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current!"
                                             >
-                                                Click here to re-send the
-                                                verification email.
+                                                {t('settings.profile.resend')}
                                             </Link>
                                         </p>
 
                                         {status ===
                                             'verification-link-sent' && (
                                             <div className="mt-2 text-sm font-medium text-success">
-                                                A new verification link has been
-                                                sent to your email address.
+                                                {t('settings.profile.linkSent')}
                                             </div>
                                         )}
                                     </div>
@@ -115,7 +141,7 @@ export default function Profile({
                                     disabled={processing}
                                     data-test="update-profile-button"
                                 >
-                                    Save
+                                    {t('common.save')}
                                 </Button>
                             </div>
                         </>

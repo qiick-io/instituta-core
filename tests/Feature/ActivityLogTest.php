@@ -194,7 +194,8 @@ it('logs settings key changes without secret values and proposal helper events',
     $this->actingAs($user);
 
     $this->patch(route('profile.update'), [
-        'name' => 'Renamed Owner',
+        'first_name' => 'Renamed',
+        'last_name' => 'Owner',
         'email' => $user->email,
     ])->assertRedirect();
 
@@ -206,8 +207,8 @@ it('logs settings key changes without secret values and proposal helper events',
 
     expect($settings)->not->toBeNull();
     $meta = $settings->properties?->toArray() ?? [];
-    expect($meta['keys'] ?? null)->toContain('name')
-        ->and($meta)->not->toHaveKey('name');
+    expect($meta['keys'] ?? null)->toContain('first_name')
+        ->and($meta)->not->toHaveKey('first_name');
 
     $logger = app(ActivityEventLoggerService::class);
     $subject = Source::factory()->create(['organisation_id' => $org->id]);

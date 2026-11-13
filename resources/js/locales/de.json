@@ -86,7 +86,10 @@
         "saved": "Gespeichert",
         "selectedCount": "{{count}} ausgewählt",
         "sortAscending": "Aufsteigend sortieren",
-        "sortDescending": "Absteigend sortieren"
+        "sortDescending": "Absteigend sortieren",
+        "emailAddress": "E-Mail-Adresse",
+        "firstName": "Vorname",
+        "lastName": "Nachname"
     },
     "confirmDestructive": {
         "typeToConfirm": "Tippe „{{name}}“ zur Bestätigung"
@@ -130,6 +133,15 @@
             "dark": "Dunkel",
             "light": "Hell",
             "system": "System"
+        },
+        "profile": {
+            "breadcrumb": "Profileinstellungen",
+            "head": "Profileinstellungen",
+            "title": "Profil",
+            "description": "Aktualisieren Sie Vorname, Nachname und E-Mail-Adresse",
+            "unverified": "Ihre E-Mail-Adresse ist nicht verifiziert.",
+            "resend": "Klicken Sie hier, um die Bestätigungs-E-Mail erneut zu senden.",
+            "linkSent": "Ein neuer Bestätigungslink wurde an Ihre E-Mail-Adresse gesendet."
         }
     },
     "shortcuts": {
