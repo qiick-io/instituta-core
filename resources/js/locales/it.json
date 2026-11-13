@@ -96,7 +96,8 @@
         "sortDescending": "Ordine decrescente",
         "emailAddress": "Indirizzo e-mail",
         "firstName": "Nome",
-        "lastName": "Cognome"
+        "lastName": "Cognome",
+        "confirmPassword": "Conferma password"
     },
     "confirmDestructive": {
         "typeToConfirm": "Digita \"{{name}}\" per confermare"
@@ -136,7 +137,21 @@
         "offline": "Realtime offline"
     },
     "settings": {
+        "layout": {
+            "title": "Impostazioni",
+            "description": "Gestisci il profilo e le impostazioni dell'account",
+            "navAria": "Impostazioni",
+            "sectionAccount": "Account",
+            "profile": "Profilo",
+            "security": "Sicurezza",
+            "appearance": "Aspetto",
+            "reportBug": "Segnala un Bug"
+        },
         "appearance": {
+            "breadcrumb": "Impostazioni aspetto",
+            "head": "Impostazioni aspetto",
+            "title": "Impostazioni aspetto",
+            "description": "Aggiorna le impostazioni di aspetto del tuo account",
             "dark": "Scuro",
             "light": "Chiaro",
             "system": "Sistema"
@@ -144,11 +159,29 @@
         "profile": {
             "breadcrumb": "Impostazioni profilo",
             "head": "Impostazioni profilo",
-            "title": "Profilo",
+            "title": "Informazioni profilo",
             "description": "Aggiorna nome, cognome e indirizzo e-mail",
             "unverified": "Il tuo indirizzo e-mail non è verificato.",
-            "resend": "Clicca qui per reinviare l’e-mail di verifica.",
+            "resend": "Clicca qui per reinviare l'email di verifica.",
             "linkSent": "Un nuovo link di verifica è stato inviato al tuo indirizzo e-mail."
+        },
+        "security": {
+            "breadcrumb": "Impostazioni sicurezza",
+            "head": "Impostazioni sicurezza",
+            "passwordTitle": "Aggiorna password",
+            "passwordDescription": "Usa una password lunga e casuale per mantenere l'account al sicuro",
+            "currentPassword": "Password attuale",
+            "newPassword": "Nuova password",
+            "twoFactorTitle": "Autenticazione a due fattori",
+            "twoFactorDescription": "Gestisci le impostazioni dell'autenticazione a due fattori",
+            "enabledHint": "Al login ti verrà chiesto un PIN sicuro e casuale, recuperabile dall'app TOTP sul telefono.",
+            "disabledHint": "Quando attivi l'autenticazione a due fattori, al login ti verrà chiesto un PIN sicuro recuperabile da un'app TOTP sul telefono.",
+            "disable2fa": "Disattiva 2FA",
+            "enable2fa": "Attiva 2FA",
+            "continueSetup": "Continua configurazione",
+            "passkeysTitle": "Passkey",
+            "passkeysDescription": "Gestisci le passkey per l'accesso senza password",
+            "passkeysEmpty": "Nessuna passkey ancora"
         }
     },
     "shortcuts": {

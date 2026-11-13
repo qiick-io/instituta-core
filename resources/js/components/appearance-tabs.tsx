@@ -1,20 +1,37 @@
 import type { LucideIcon } from 'lucide-react';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import type { HTMLAttributes } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Appearance } from '@/hooks/use-appearance';
 import { useAppearance } from '@/hooks/use-appearance';
 import { cn } from '@/lib/utils';
 
+/**
+ * Light / dark / system appearance toggle used on settings → Appearance.
+ */
 export default function AppearanceToggleTab({
     className = '',
     ...props
 }: HTMLAttributes<HTMLDivElement>) {
+    const { t } = useTranslation();
     const { appearance, updateAppearance } = useAppearance();
 
     const tabs: { value: Appearance; icon: LucideIcon; label: string }[] = [
-        { value: 'light', icon: Sun, label: 'Light' },
-        { value: 'dark', icon: Moon, label: 'Dark' },
-        { value: 'system', icon: Monitor, label: 'System' },
+        {
+            value: 'light',
+            icon: Sun,
+            label: t('settings.appearance.light'),
+        },
+        {
+            value: 'dark',
+            icon: Moon,
+            label: t('settings.appearance.dark'),
+        },
+        {
+            value: 'system',
+            icon: Monitor,
+            label: t('settings.appearance.system'),
+        },
     ];
 
     return (
@@ -28,6 +45,7 @@ export default function AppearanceToggleTab({
             {tabs.map(({ value, icon: Icon, label }) => (
                 <button
                     key={value}
+                    type="button"
                     onClick={() => updateAppearance(value)}
                     className={cn(
                         'flex items-center rounded-md px-3.5 py-1.5 transition-colors',
