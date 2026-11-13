@@ -214,6 +214,14 @@
             "emptyHint": "Nothing indexed here yet.",
             "openTree": "Open the tree for this area."
         },
+        "tree": {
+            "title": "Brain tree",
+            "description": "Concepts in the current scope, grouped by area and path.",
+            "count_one": "{{count}} item",
+            "count_other": "{{count}} items",
+            "empty": "No concepts in this scope yet.",
+            "clearArea": "Show all areas"
+        },
         "areas": {
             "rules": "Rules",
             "decisions": "Decisions",
