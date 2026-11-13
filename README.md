@@ -38,6 +38,16 @@ That migrates, syncs permissions, clears caches, and runs version-specific steps
 
 Health probes (auth-free): `GET /health/live` (process up) and `GET /health/ready` (database, and redis when cache/queue/session/broadcasting use it; `503` when a check fails).
 
+### Docker (image build)
+
+```bash
+cp .env.docker.example .env
+# set APP_KEY
+docker compose up --build -d
+```
+
+Multi-arch bake (no push): `docker buildx bake -f docker-bake.hcl production`. Publishing to GHCR is **maintainer-only** on a `v*` tag; agents never push images.
+
 ## Contract surfaces
 
 | Surface | Entry           | Notes                                                         |
