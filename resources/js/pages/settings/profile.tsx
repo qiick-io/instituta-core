@@ -20,20 +20,23 @@ import type { Auth } from '@/types';
 
 type PageProps = {
     auth: Auth;
+    availableLocales: Record<string, string>;
 };
 
 /**
- * User profile settings: first name, last name and email (qiick shape).
+ * User profile settings: name, email, locale and timezone (qiick shape).
  */
 export default function Profile({
     mustVerifyEmail,
     status,
+    timezones,
 }: {
     mustVerifyEmail: boolean;
     status?: string;
+    timezones: string[];
 }) {
     const { t } = useTranslation();
-    const { auth } = usePage<PageProps>().props;
+    const { auth, availableLocales } = usePage<PageProps>().props;
     const user = auth.user;
 
     if (user === null) {
@@ -164,6 +167,87 @@ export default function Profile({
 
                                         <FieldError id="email-error">
                                             {errors.email}
+                                        </FieldError>
+                                    </Field>
+
+                                    <Field
+                                        data-invalid={
+                                            errors.locale ? true : undefined
+                                        }
+                                    >
+                                        <FieldLabel htmlFor="locale">
+                                            {t('settings.profile.locale')}
+                                        </FieldLabel>
+
+                                        <select
+                                            id="locale"
+                                            name="locale"
+                                            required
+                                            defaultValue={user.locale ?? 'en'}
+                                            className="mt-1 flex h-control w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 aria-invalid:border-destructive"
+                                            aria-invalid={
+                                                errors.locale ? true : undefined
+                                            }
+                                            aria-describedby={
+                                                errors.locale
+                                                    ? 'locale-error'
+                                                    : undefined
+                                            }
+                                        >
+                                            {Object.entries(
+                                                availableLocales,
+                                            ).map(([code, label]) => (
+                                                <option key={code} value={code}>
+                                                    {label}
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                        <FieldError id="locale-error">
+                                            {errors.locale}
+                                        </FieldError>
+                                    </Field>
+
+                                    <Field
+                                        data-invalid={
+                                            errors.timezone ? true : undefined
+                                        }
+                                    >
+                                        <FieldLabel htmlFor="timezone">
+                                            {t('settings.profile.timezone')}
+                                        </FieldLabel>
+
+                                        <select
+                                            id="timezone"
+                                            name="timezone"
+                                            required
+                                            defaultValue={
+                                                user.timezone ?? 'UTC'
+                                            }
+                                            className="mt-1 flex h-control w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 aria-invalid:border-destructive"
+                                            aria-invalid={
+                                                errors.timezone
+                                                    ? true
+                                                    : undefined
+                                            }
+                                            aria-describedby={
+                                                errors.timezone
+                                                    ? 'timezone-error'
+                                                    : undefined
+                                            }
+                                        >
+                                            {timezones.map((timezone) => (
+                                                <option
+                                                    key={timezone}
+                                                    value={timezone}
+                                                >
+                                                    {timezone}
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                        <FieldError id="timezone-error">
+                                            {errors.timezone}
                                         </FieldError>
                                     </Field>
                                 </FieldGroup>

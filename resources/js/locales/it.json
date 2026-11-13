@@ -97,7 +97,8 @@
         "emailAddress": "Indirizzo e-mail",
         "firstName": "Nome",
         "lastName": "Cognome",
-        "confirmPassword": "Conferma password"
+        "confirmPassword": "Conferma password",
+        "actions": "Azioni"
     },
     "confirmDestructive": {
         "typeToConfirm": "Digita \"{{name}}\" per confermare"
@@ -144,6 +145,7 @@
             "sectionAccount": "Account",
             "profile": "Profilo",
             "security": "Sicurezza",
+            "sessions": "Sessioni",
             "appearance": "Aspetto",
             "reportBug": "Segnala un Bug"
         },
@@ -160,7 +162,9 @@
             "breadcrumb": "Impostazioni profilo",
             "head": "Impostazioni profilo",
             "title": "Informazioni profilo",
-            "description": "Aggiorna nome, cognome e indirizzo e-mail",
+            "description": "Aggiorna nome, cognome, e-mail, lingua e fuso orario",
+            "locale": "Lingua",
+            "timezone": "Fuso orario",
             "unverified": "Il tuo indirizzo e-mail non è verificato.",
             "resend": "Clicca qui per reinviare l'email di verifica.",
             "linkSent": "Un nuovo link di verifica è stato inviato al tuo indirizzo e-mail."
@@ -182,6 +186,29 @@
             "passkeysTitle": "Passkey",
             "passkeysDescription": "Gestisci le passkey per l'accesso senza password",
             "passkeysEmpty": "Nessuna passkey ancora"
+        },
+        "sessions": {
+            "breadcrumb": "Sessioni",
+            "browserOnPlatform": "{{browser}} su {{platform}}",
+            "columns": {
+                "browser": "Browser",
+                "ipAddress": "Indirizzo IP",
+                "lastActive": "Ultima attività"
+            },
+            "confirm": {
+                "description": "Il browser dovrà accedere di nuovo per usare il tuo account.",
+                "othersDescription": "Tutti i browser tranne questo dovranno accedere di nuovo. Anche gli accessi ricordati smettono di funzionare.",
+                "othersTitle": "Uscire da tutti gli altri browser?",
+                "title": "Uscire da questo browser?"
+            },
+            "description": "I browser in cui il tuo account è connesso. Esci da quelli che non riconosci.",
+            "emptyDescription": "È connesso solo questo browser.",
+            "emptyTitle": "Nessuna altra sessione",
+            "head": "Sessioni",
+            "signOut": "Esci",
+            "signOutOthers": "Esci da tutti gli altri browser",
+            "thisDevice": "Questo dispositivo",
+            "title": "Browser connessi"
         }
     },
     "shortcuts": {

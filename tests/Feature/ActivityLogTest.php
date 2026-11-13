@@ -197,6 +197,8 @@ it('logs settings key changes without secret values and proposal helper events',
         'first_name' => 'Renamed',
         'last_name' => 'Owner',
         'email' => $user->email,
+        'locale' => 'en',
+        'timezone' => 'UTC',
     ])->assertRedirect();
 
     $settings = Activity::query()

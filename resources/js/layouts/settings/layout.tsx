@@ -17,6 +17,7 @@ import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
+import { index as sessions } from '@/routes/sessions';
 import type { NavItem } from '@/types';
 
 const DEFAULT_REPORT_BUG_URL =
@@ -48,6 +49,11 @@ export default function SettingsLayout({
         {
             title: t('settings.layout.security'),
             href: editSecurity(),
+            icon: null,
+        },
+        {
+            title: t('settings.layout.sessions'),
+            href: sessions(),
             icon: null,
         },
         {

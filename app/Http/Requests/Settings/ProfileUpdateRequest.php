@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Settings;
 
 use App\Concerns\ProfileValidationRules;
@@ -7,6 +9,7 @@ use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class ProfileUpdateRequest extends FormRequest
 {
@@ -32,6 +35,10 @@ class ProfileUpdateRequest extends FormRequest
         $user = $this->user();
         abort_unless($user instanceof User, 403);
 
-        return $this->profileRules($user->id);
+        return [
+            ...$this->profileRules($user->id),
+            'locale' => ['required', 'string', Rule::in(array_keys((array) config('i18n.available_locales', ['en' => 'English'])))],
+            'timezone' => ['required', 'string', 'timezone:all'],
+        ];
     }
 }
