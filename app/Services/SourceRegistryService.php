@@ -54,7 +54,7 @@ final class SourceRegistryService
 
         $this->denylist->assertAllowed($name, $remoteUrl, $localPath);
 
-        return Source::query()->create([
+        $source = Source::query()->create([
             'organisation_id' => $organisation->id,
             'company_id' => $companyId,
             'product_id' => $productId,
@@ -70,6 +70,10 @@ final class SourceRegistryService
             'is_shared' => $isShared,
             'sync_status' => SyncStatusEnum::Idle,
         ]);
+
+        app(ActivityEventLoggerService::class)->sourceAdded($source);
+
+        return $source;
     }
 
     private function assertLocal(?string $localPath): void

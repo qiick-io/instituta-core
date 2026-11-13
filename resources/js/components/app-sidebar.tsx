@@ -6,6 +6,7 @@ import {
     LayoutGrid,
     ListTree,
     Map as MapIcon,
+    ScrollText,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import AppLogo from '@/components/app-logo';
@@ -70,6 +71,11 @@ export function AppSidebar() {
             title: t('brain.nav.keys'),
             href: '/brain/keys',
             icon: KeyRound,
+        },
+        {
+            title: t('brain.nav.activity'),
+            href: '/activity',
+            icon: ScrollText,
         },
     ];
 

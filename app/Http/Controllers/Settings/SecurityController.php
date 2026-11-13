@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\PasswordUpdateRequest;
 use App\Http\Requests\Settings\TwoFactorAuthenticationRequest;
 use App\Models\User;
+use App\Services\ActivityEventLoggerService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -65,6 +66,8 @@ class SecurityController extends Controller
         $user->update([
             'password' => $request->password,
         ]);
+
+        app(ActivityEventLoggerService::class)->settingsUpdated($user, ['password']);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Password updated.')]);
 

@@ -199,7 +199,8 @@
             "map": "Mappa",
             "tree": "Albero",
             "sources": "Sorgenti",
-            "keys": "Chiavi"
+            "keys": "Chiavi",
+            "activity": "Attività"
         },
         "scope": {
             "label": "Ambito",
@@ -308,5 +309,29 @@
             "active": "Attiva",
             "revoked": "Revocata"
         }
+    },
+    "activity": {
+        "title": "Attività",
+        "description": "Registro di audit di questa organizzazione. Le voci più vecchie di {{days}} giorni vengono eliminate.",
+        "searchPlaceholder": "Cerca descrizione o evento…",
+        "ownerOnly": "Solo i proprietari dell'organizzazione possono vedere il registro attività.",
+        "empty": "Nessuna attività ancora.",
+        "view": "Apri",
+        "detailTitle": "Dettaglio attività",
+        "meta": "Modifiche e meta",
+        "colWhen": "Quando",
+        "colLog": "Log",
+        "colEvent": "Evento",
+        "colCauser": "Autore",
+        "colSubject": "Soggetto",
+        "filters": {
+            "all": "Tutti",
+            "logName": "Nome log",
+            "event": "Evento",
+            "causer": "Autore",
+            "dateFrom": "Da",
+            "dateTo": "A"
+        },
+        "ip": "IP"
     }
 }

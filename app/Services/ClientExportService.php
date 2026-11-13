@@ -178,6 +178,8 @@ final class ClientExportService
             'requested_at' => now(),
         ]);
 
+        app(ActivityEventLoggerService::class)->exportCompleted($company, $request);
+
         return [
             'path' => $root,
             'request' => $request,

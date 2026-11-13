@@ -71,7 +71,9 @@ final class ApiKeyIssuerService
         activity('keys')
             ->performedOn($key)
             ->causedBy($principal->user)
+            ->event('api_key.created')
             ->withProperties([
+                'organisation_id' => $principal->organisation_id,
                 'principal_id' => $principal->id,
                 'scope_type' => $scopeType->value,
                 'scope_id' => $scopeId,
@@ -99,7 +101,11 @@ final class ApiKeyIssuerService
             activity('keys')
                 ->performedOn($key)
                 ->causedBy($key->principal?->user)
-                ->withProperties(['principal_id' => $key->principal_id])
+                ->event('api_key.revoked')
+                ->withProperties([
+                    'organisation_id' => $key->principal?->organisation_id,
+                    'principal_id' => $key->principal_id,
+                ])
                 ->log('api_key.revoked');
         }
 

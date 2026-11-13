@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
 use App\Models\User;
+use App\Services\ActivityEventLoggerService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,7 +41,12 @@ class ProfileController extends Controller
             $user->email_verified_at = null;
         }
 
+        $changedKeys = array_keys($user->getDirty());
         $user->save();
+
+        if ($changedKeys !== []) {
+            app(ActivityEventLoggerService::class)->settingsUpdated($user, $changedKeys);
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
 

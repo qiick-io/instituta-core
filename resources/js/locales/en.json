@@ -199,7 +199,8 @@
             "map": "Map",
             "tree": "Tree",
             "sources": "Sources",
-            "keys": "Keys"
+            "keys": "Keys",
+            "activity": "Activity"
         },
         "scope": {
             "label": "Scope",
@@ -308,5 +309,29 @@
             "active": "Active",
             "revoked": "Revoked"
         }
+    },
+    "activity": {
+        "title": "Activity",
+        "description": "Audit log for this organisation. Entries older than {{days}} days are pruned.",
+        "searchPlaceholder": "Search description or event…",
+        "ownerOnly": "Only organisation owners can view the activity log.",
+        "empty": "No activity yet.",
+        "view": "View",
+        "detailTitle": "Activity detail",
+        "meta": "Changes and meta",
+        "colWhen": "When",
+        "colLog": "Log",
+        "colEvent": "Event",
+        "colCauser": "Causer",
+        "colSubject": "Subject",
+        "filters": {
+            "all": "All",
+            "logName": "Log name",
+            "event": "Event",
+            "causer": "Causer",
+            "dateFrom": "From",
+            "dateTo": "To"
+        },
+        "ip": "IP"
     }
 }

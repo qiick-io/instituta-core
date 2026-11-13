@@ -36,7 +36,9 @@ final class PrincipalLifecycleService
 
             activity('keys')
                 ->performedOn($principal)
+                ->event('principal.deactivated')
                 ->withProperties([
+                    'organisation_id' => $principal->organisation_id,
                     'owned_principal_ids' => $ownedIds,
                     'revoked_key_principal_ids' => [$principal->id, ...$ownedIds],
                 ])

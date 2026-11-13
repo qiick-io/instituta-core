@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\Brain\KeysController;
 use App\Http\Controllers\Brain\MapController;
 use App\Http\Controllers\Brain\ReadingController;
@@ -27,6 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('brain.tables.show');
     Route::get('brain/sources', SourcesController::class)->name('brain.sources');
     Route::get('brain/keys', KeysController::class)->name('brain.keys');
+    Route::get('activity', ActivityLogController::class)->name('activity.index');
 });
 
 require __DIR__.'/settings.php';
