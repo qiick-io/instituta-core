@@ -3,7 +3,6 @@
     "resources/js/components/delete-user.tsx": 8,
     "resources/js/components/manage-passkeys.tsx": 2,
     "resources/js/components/manage-two-factor.tsx": 5,
-    "resources/js/components/nav-main.tsx": 1,
     "resources/js/components/passkey-item.tsx": 7,
     "resources/js/components/passkey-register.tsx": 5,
     "resources/js/components/two-factor-recovery-codes.tsx": 7,

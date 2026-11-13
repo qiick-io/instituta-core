@@ -3,14 +3,19 @@ import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { ScopeSwitcher } from '@/components/brain/scope-switcher';
+import { SkipToContent } from '@/components/skip-to-content';
 import type { AppLayoutProps } from '@/types';
 
+/**
+ * Authenticated app layout with collapsible sidebar and header bar.
+ */
 export default function AppSidebarLayout({
     children,
     breadcrumbs = [],
 }: AppLayoutProps) {
     return (
         <AppShell variant="sidebar">
+            <SkipToContent />
             <AppSidebar />
             <AppContent
                 variant="sidebar"

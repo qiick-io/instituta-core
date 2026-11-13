@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
 use App\Models\User;
+use App\Services\AppVersionService;
 use App\Services\Authorization\EffectivePermissionResolverService;
 use App\Services\SessionPerimeterService;
 use Illuminate\Http\Request;
@@ -44,6 +47,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'appVersion' => app(AppVersionService::class)->current(),
             'auth' => [
                 'user' => $user,
                 // Only hides UI: the server still checks every request.

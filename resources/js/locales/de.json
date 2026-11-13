@@ -3,14 +3,21 @@
         "breadcrumb": "Brotkrümelnavigation",
         "close": "Schließen",
         "loading": "Wird geladen",
+        "mainNav": "Hauptnavigation",
         "moreActions": "Weitere Aktionen",
         "notifications": "Benachrichtigungen",
         "notificationsUnread": "Benachrichtigungen, {{count}} ungelesen",
         "saving": "Wird gespeichert",
         "scrollableTable": "Scrollbare Tabelle",
         "search": "Suchen",
+        "skipToContent": "Zum Inhalt springen",
         "toggleSidebar": "Seitenleiste umschalten",
         "unreadCount": "{{count}} ungelesen"
+    },
+    "nav": {
+        "appVersion": "v{{version}}",
+        "platform": "Plattform",
+        "repository": "Repository"
     },
     "ai": {
         "fabDescription": "Schnelle Assistenten-Schublade. Öffnen Sie die Vollseite für den Verlauf.",
