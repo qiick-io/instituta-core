@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { BrainGraphCanvas } from '@/components/brain/brain-graph-canvas';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Button } from '@/components/ui/button';
+import { graph, tree } from '@/routes/brain';
 
 type GraphNode = {
     id: string;
@@ -36,11 +37,8 @@ export default function BrainGraph({
     const { t } = useTranslation();
 
     const setDepth = (nextDepth: number) => {
-        const path = itemId
-            ? `/brain/graph/${encodeURIComponent(itemId)}`
-            : '/brain/graph';
         router.get(
-            path,
+            graph.url(itemId ?? undefined),
             { depth: nextDepth },
             { preserveState: true, replace: true },
         );
@@ -86,7 +84,7 @@ export default function BrainGraph({
                             variant="outline"
                             asChild
                         >
-                            <Link href="/brain/tree">
+                            <Link href={tree.url()}>
                                 {t('brain.graph.openTree')}
                             </Link>
                         </Button>
@@ -117,7 +115,7 @@ BrainGraph.layout = {
     breadcrumbs: [
         {
             title: 'Graph',
-            href: '/brain/graph',
+            href: graph.url(),
         },
     ],
 };

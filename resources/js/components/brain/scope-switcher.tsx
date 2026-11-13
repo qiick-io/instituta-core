@@ -8,6 +8,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import type { InstitutaScopeOption } from '@/types';
+import { scope } from '@/routes/brain';
 
 function scopeValue(
     scope: Pick<InstitutaScopeOption, 'scope_type' | 'scope_id'>,
@@ -47,7 +48,7 @@ export function ScopeSwitcher() {
                 }
 
                 router.post(
-                    '/brain/scope',
+                    scope.url(),
                     {
                         scope_type: scopeType,
                         scope_id: scopeId,

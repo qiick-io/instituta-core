@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { map, tree } from '@/routes/brain';
 
 type AreaCard = {
     area: string;
@@ -39,7 +40,7 @@ export default function BrainMap({ areas, hasPerimeter }: Props) {
                         {areas.map((area) => (
                             <Link
                                 key={area.area}
-                                href={`/brain/tree?area=${encodeURIComponent(area.area)}`}
+                                href={tree.url({ query: { area: area.area } })}
                                 className={cn(
                                     'rounded-xl border border-sidebar-border/70 p-4 transition-colors hover:bg-muted/40 dark:border-sidebar-border',
                                     area.empty && 'border-dashed bg-muted/30',
@@ -82,7 +83,7 @@ BrainMap.layout = {
     breadcrumbs: [
         {
             title: 'Map',
-            href: '/brain/map',
+            href: map.url(),
         },
     ],
 };

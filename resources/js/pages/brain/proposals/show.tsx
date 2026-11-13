@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    index as proposalsIndex,
+    update as proposalsUpdate,
+} from '@/routes/brain/proposals';
 
 type ProposalDetail = {
     id: string;
@@ -30,7 +34,7 @@ export default function BrainProposalShow({ proposal, canDecide }: Props) {
     const { t } = useTranslation();
 
     const decide = (status: 'accepted' | 'rejected') => {
-        router.patch(`/brain/proposals/${proposal.id}`, { status });
+        router.patch(proposalsUpdate.url(proposal.id), { status });
     };
 
     return (
@@ -62,7 +66,7 @@ export default function BrainProposalShow({ proposal, canDecide }: Props) {
                         </div>
                     </div>
                     <Button type="button" variant="outline" asChild>
-                        <Link href="/brain/proposals">
+                        <Link href={proposalsIndex.url()}>
                             {t('brain.proposals.backToList')}
                         </Link>
                     </Button>
@@ -187,7 +191,7 @@ BrainProposalShow.layout = {
     breadcrumbs: [
         {
             title: 'Proposals',
-            href: '/brain/proposals',
+            href: proposalsIndex.url(),
         },
         {
             title: 'Proposal',

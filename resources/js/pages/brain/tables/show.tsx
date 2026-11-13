@@ -10,6 +10,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { reading } from '@/routes/brain';
+import { index as tablesIndex } from '@/routes/brain/tables';
 
 function cellText(value: unknown): string {
     if (value === null || value === undefined) {
@@ -53,7 +55,7 @@ export default function BrainTableShow({ table }: Props) {
                     <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="secondary">{table.table_key}</Badge>
                         <Link
-                            href={`/brain/items/${encodeURIComponent(table.item_id)}`}
+                            href={reading.url(table.item_id)}
                             className="text-sm text-muted-foreground underline-offset-4 hover:underline"
                         >
                             {table.item_title}
@@ -105,7 +107,7 @@ BrainTableShow.layout = {
     breadcrumbs: [
         {
             title: 'Tables',
-            href: '/brain/tables',
+            href: tablesIndex.url(),
         },
         {
             title: 'Table',

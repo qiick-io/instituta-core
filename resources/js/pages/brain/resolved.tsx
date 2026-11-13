@@ -19,6 +19,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { resolved } from '@/routes/brain';
 
 type ProductOption = {
     id: string;
@@ -85,7 +86,7 @@ export default function BrainResolved({
                                     value={product_id ?? undefined}
                                     onValueChange={(value) =>
                                         router.get(
-                                            '/brain/resolved',
+                                            resolved.url(),
                                             { product: value },
                                             { preserveState: true },
                                         )
@@ -225,7 +226,7 @@ BrainResolved.layout = {
     breadcrumbs: [
         {
             title: 'Resolved',
-            href: '/brain/resolved',
+            href: resolved.url(),
         },
     ],
 };

@@ -10,6 +10,10 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import {
+    index as tablesIndex,
+    show as tablesShow,
+} from '@/routes/brain/tables';
 
 type TablesListRow = {
     id: string;
@@ -70,7 +74,10 @@ export default function BrainTablesIndex({ tables, hasPerimeter }: Props) {
                                 <TableRow key={row.id}>
                                     <TableCell>
                                         <Link
-                                            href={`/brain/tables/${encodeURIComponent(row.item_id)}/${encodeURIComponent(row.table_key)}`}
+                                            href={tablesShow.url({
+                                                item: row.item_id,
+                                                table: row.table_key,
+                                            })}
                                             className="font-medium underline-offset-4 hover:underline"
                                         >
                                             {row.table_key}
@@ -106,7 +113,7 @@ BrainTablesIndex.layout = {
     breadcrumbs: [
         {
             title: 'Tables',
-            href: '/brain/tables',
+            href: tablesIndex.url(),
         },
     ],
 };
