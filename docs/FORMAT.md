@@ -1,8 +1,8 @@
 # Instituta brain repository format
 
-> **Draft, pending maintainer review.** This document is the proposed public format for a brain repository. Implementations after plan step 3 build on it; incompatible changes need an explicit issue and maintainer OK.
+> **Working contract (approved 2026-11-13).** Until `v1.0.0-beta.1` this document may change; each change lands in a PR labelled `area:contract` with a CHANGELOG entry and updated tests. From `v1.0.0-beta.1` it is frozen (additive only, as excubia-core).
 
-Source of truth for product intent: the Instituta design note in the private knowledge repo and `docs/agents/cursor-kickoff.md`. Where this file and the kickoff disagree after review, this file wins once approved.
+Source of truth for product intent: the Instituta design note in the private knowledge repo and `docs/agents/cursor-kickoff.md`. Where this file and the kickoff disagree, this file wins.
 
 ## 1. Purpose
 

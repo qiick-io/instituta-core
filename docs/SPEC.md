@@ -1,6 +1,6 @@
 # Instituta — Specification (MVP v0.1.0)
 
-> Status: working draft aligned with the kickoff decisions of 2026-11-12. Product docs `FORMAT.md` and `CONTRACTS.md` are separately marked draft pending maintainer review. Anything marked `[plan]` in the design note is direction only and is **out of this MVP** unless listed below.
+> Status: working draft aligned with the kickoff decisions of 2026-11-12. Product docs `FORMAT.md` and `CONTRACTS.md` are the approved working contract (see those files for the freeze rule at `v1.0.0-beta.1`). Anything marked `[plan]` in the design note is direction only and is **out of this MVP** unless listed below.
 
 ## 1. Product
 

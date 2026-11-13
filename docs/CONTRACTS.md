@@ -1,6 +1,6 @@
 # Instituta public contracts
 
-> **Draft, pending maintainer review.** This document is the proposed public contract for Instituta v0.1.0 (MCP + REST + Artisan). Implementations after plan step 3 build on it; incompatible changes need an explicit issue and maintainer OK. A later Composer SDK (`instituta-sdk-php` or similar) MUST follow the same DTOs.
+> **Working contract (approved 2026-11-13).** Public contract for Instituta (MCP + REST + Artisan). Until `v1.0.0-beta.1` this document may change; each change lands in a PR labelled `area:contract` with a CHANGELOG entry and updated tests. From `v1.0.0-beta.1` it is frozen (additive only, as excubia-core). A later Composer SDK (`instituta-sdk-php` or similar) MUST follow the same DTOs.
 
 Everything is scoped by the caller's **perimeter**. Nothing accepts a scope wider than the authenticated principal / API key.
 
