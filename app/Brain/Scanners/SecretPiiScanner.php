@@ -30,6 +30,8 @@ final class SecretPiiScanner
     private array $pathRules = [
         'vendor/',
         'node_modules/',
+        '.claude/',
+        '.git/',
         '.env',
         '.env.local',
         '.env.production',
