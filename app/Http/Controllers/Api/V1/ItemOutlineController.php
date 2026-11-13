@@ -12,6 +12,9 @@ use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * REST progressive outline for one indexed item (anchors without full bodies).
+ */
 final class ItemOutlineController extends Controller
 {
     use ResolvesInstitutaApiContextTrait;

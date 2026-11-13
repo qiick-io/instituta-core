@@ -11,6 +11,9 @@ use App\Http\Resources\Api\BrainContractResource;
 use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * REST product resolve: inherited values with origins for one product scope.
+ */
 final class ProductResolveController extends Controller
 {
     use ResolvesInstitutaApiContextTrait;

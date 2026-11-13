@@ -11,6 +11,9 @@ use App\Http\Resources\Api\BrainContractResource;
 use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * REST graph neighbours for one indexed item (contract depth walk).
+ */
 final class ItemNeighboursController extends Controller
 {
     use ResolvesInstitutaApiContextTrait;

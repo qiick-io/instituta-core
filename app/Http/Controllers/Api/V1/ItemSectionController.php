@@ -12,6 +12,9 @@ use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * REST single section body for an indexed item, keyed by heading anchor.
+ */
 final class ItemSectionController extends Controller
 {
     use ResolvesInstitutaApiContextTrait;

@@ -13,6 +13,9 @@ use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * REST list and get for indexed brain items inside the API key perimeter.
+ */
 final class ItemController extends Controller
 {
     use ResolvesInstitutaApiContextTrait;
