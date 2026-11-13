@@ -477,7 +477,9 @@
                 "syncing": "In sync",
                 "ok": "Ok",
                 "failed": "Fallito"
-            }
+            },
+            "searchPlaceholder": "Cerca sorgenti…",
+            "hideReport": "Nascondi report"
         },
         "keys": {
             "title": "Chiavi API",
@@ -492,7 +494,8 @@
             "colLastUsed": "Ultimo uso",
             "colStatus": "Stato",
             "active": "Attiva",
-            "revoked": "Revocata"
+            "revoked": "Revocata",
+            "searchPlaceholder": "Cerca chiavi…"
         },
         "clients": {
             "title": "Clienti",
@@ -525,7 +528,13 @@
             "export": "Esporta",
             "downloadExport": "Scarica export",
             "erase": "Cancella",
-            "eraseConfirm": "Cancellare tutto il contenuto indicizzato, le righe di replay e le chiavi nello scope di {{name}}? Operazione irreversibile."
+            "eraseConfirm": "Cancellare tutto il contenuto indicizzato, le righe di replay e le chiavi nello scope di {{name}}? Operazione irreversibile.",
+            "searchPlaceholder": "Cerca clienti…",
+            "requiredHint": "I campi contrassegnati con * sono obbligatori.",
+            "confirm": {
+                "eraseTitle": "Cancellare {{name}}?",
+                "eraseDescription": "Rimuove in modo permanente contenuti indicizzati, session replay e chiavi dello scope per questo cliente. Digita il nome del cliente per confermare."
+            }
         },
         "products": {
             "title": "Prodotti — {{client}}",
@@ -553,7 +562,9 @@
             "slugHint": "Solo lettere minuscole, numeri e trattini. Unico nel cliente.",
             "saveCreate": "Crea prodotto",
             "saveEdit": "Salva modifiche",
-            "cancel": "Annulla"
+            "cancel": "Annulla",
+            "searchPlaceholder": "Cerca prodotti…",
+            "requiredHint": "I campi contrassegnati con * sono obbligatori."
         },
         "sessionReplay": {
             "title": "Replay sessioni",
@@ -619,7 +630,8 @@
                 "materialised": "Materializzata",
                 "local_review": "Revisione locale",
                 "failed": "Fallita"
-            }
+            },
+            "searchPlaceholder": "Cerca proposte…"
         },
         "graph": {
             "title": "Grafo nello scope",
@@ -735,6 +747,40 @@
             "name": "Nome",
             "roles": "Ruoli",
             "guard": "Guard"
+        }
+    },
+    "emptyState": {
+        "clients": {
+            "title": "Nessun cliente",
+            "description": "Aggiungi un’azienda cliente per gestire prodotti e scope.",
+            "cta": "Nuovo cliente",
+            "filteredTitle": "Nessun cliente corrispondente",
+            "filteredDescription": "Prova un’altra ricerca o azzera i filtri."
+        },
+        "products": {
+            "title": "Nessun prodotto",
+            "description": "Crea un prodotto sotto questo cliente.",
+            "cta": "Nuovo prodotto",
+            "filteredTitle": "Nessun prodotto corrispondente",
+            "filteredDescription": "Prova un’altra ricerca o azzera i filtri."
+        },
+        "keys": {
+            "title": "Nessuna chiave API",
+            "description": "Crea le chiavi con php artisan instituta:key.",
+            "filteredTitle": "Nessuna chiave corrispondente",
+            "filteredDescription": "Prova un’altra ricerca o azzera i filtri."
+        },
+        "sources": {
+            "title": "Nessuna sorgente",
+            "description": "Le sorgenti appaiono qui dopo la configurazione per questo scope.",
+            "filteredTitle": "Nessuna sorgente corrispondente",
+            "filteredDescription": "Prova un’altra ricerca o azzera i filtri."
+        },
+        "proposals": {
+            "title": "Nessuna proposta in questo filtro",
+            "description": "Le proposte di scrittura per lo scope corrente compaiono qui.",
+            "filteredTitle": "Nessuna proposta corrispondente",
+            "filteredDescription": "Prova un’altra ricerca o azzera i filtri."
         }
     }
 }

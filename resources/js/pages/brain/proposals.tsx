@@ -1,16 +1,19 @@
-import { Head, Link, router } from '@inertiajs/react';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Head, router, setLayoutProps } from '@inertiajs/react';
+import { FilePenLine, SearchX } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { TruncatedText } from '@/components/admin/truncated-text';
+import { DataTable } from '@/components/admin/data-table';
+import { DataTableToolbar } from '@/components/admin/data-table-toolbar';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { EmptyStatus } from '@/components/empty-status';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import brainRoutes from '@/routes/brain';
+import type { BreadcrumbItem } from '@/types';
 
 type ProposalRow = {
     id: string;
@@ -31,135 +34,186 @@ type Props = {
     canDecide: boolean;
 };
 
+/**
+ * Write proposals index: status filter, DataTable, row opens the detail page.
+ */
 export default function BrainProposals({
     proposals,
     hasPerimeter,
     statusFilter,
 }: Props) {
     const { t } = useTranslation();
+    const [search, setSearch] = useState('');
 
-    const setStatusFilter = (nextStatus: string) => {
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            {
+                title: t('brain.proposals.title'),
+                href: brainRoutes.proposals.index.url(),
+            },
+        ],
+        [t],
+    );
+
+    setLayoutProps({ breadcrumbs });
+
+    const setStatusFilter = (nextStatus: string): void => {
+        if (nextStatus === '' || nextStatus === statusFilter) {
+            return;
+        }
+
         router.get(
-            '/brain/proposals',
+            brainRoutes.proposals.index.url(),
             { status: nextStatus },
             { preserveState: true, replace: true },
         );
     };
 
+    const filteredProposals = useMemo(() => {
+        const needle = search.trim().toLowerCase();
+
+        if (needle === '') {
+            return proposals;
+        }
+
+        return proposals.filter(
+            (proposal) =>
+                proposal.title.toLowerCase().includes(needle) ||
+                proposal.path.toLowerCase().includes(needle) ||
+                proposal.stable_key.toLowerCase().includes(needle),
+        );
+    }, [proposals, search]);
+
+    const hasActiveFilters = search.trim() !== '';
+    const isListEmpty = filteredProposals.length === 0;
+    const hideListChrome =
+        !hasPerimeter || (proposals.length === 0 && !hasActiveFilters);
+
+    const columns: ColumnDef<ProposalRow>[] = [
+        {
+            id: 'title',
+            header: t('brain.proposals.colTitle'),
+            meta: { cellClassName: 'max-w-[16rem] font-medium' },
+            cell: ({ row }) => <TruncatedText text={row.original.title} />,
+        },
+        {
+            id: 'action',
+            header: t('brain.proposals.colAction'),
+            cell: ({ row }) => (
+                <Badge variant="outline">
+                    {t(`brain.proposals.action.${row.original.action}`, {
+                        defaultValue: row.original.action,
+                    })}
+                </Badge>
+            ),
+        },
+        {
+            id: 'status',
+            header: t('brain.proposals.colStatus'),
+            cell: ({ row }) => (
+                <Badge variant="secondary">
+                    {t(`brain.proposals.status.${row.original.status}`, {
+                        defaultValue: row.original.status,
+                    })}
+                </Badge>
+            ),
+        },
+        {
+            id: 'path',
+            header: t('brain.proposals.colPath'),
+            meta: { cellClassName: 'max-w-[14rem] font-mono text-xs' },
+            cell: ({ row }) => <TruncatedText text={row.original.path} />,
+        },
+        {
+            id: 'created',
+            header: t('brain.proposals.colCreated'),
+            meta: { cellClassName: 'text-sm text-muted-foreground' },
+            cell: ({ row }) => row.original.created_at ?? '—',
+        },
+    ];
+
     return (
         <>
             <Head title={t('brain.proposals.title')} />
-            <PageLayout description={t('brain.proposals.description')}>
-                <div className="flex flex-wrap items-end justify-between gap-3 pb-2">
-                    <div className="space-y-1">
-                        <h1 className="text-xl font-semibold tracking-tight">
-                            {t('brain.proposals.title')}
-                        </h1>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        {(['open', 'accepted', 'rejected'] as const).map(
-                            (status) => (
-                                <Button
-                                    key={status}
-                                    type="button"
-                                    size="sm"
-                                    variant={
-                                        statusFilter === status
-                                            ? 'default'
-                                            : 'outline'
-                                    }
-                                    onClick={() => setStatusFilter(status)}
-                                >
-                                    {t(`brain.proposals.status.${status}`)}
-                                </Button>
-                            ),
-                        )}
-                    </div>
-                </div>
-
+            <PageLayout
+                filters={
+                    hideListChrome ? undefined : (
+                        <DataTableToolbar
+                            search={search}
+                            onSearchChange={setSearch}
+                            searchPlaceholder={t(
+                                'brain.proposals.searchPlaceholder',
+                            )}
+                        />
+                    )
+                }
+                filtersRight={
+                    hideListChrome ? null : (
+                        <ToggleGroup
+                            type="single"
+                            value={statusFilter}
+                            onValueChange={setStatusFilter}
+                            variant="outline"
+                            aria-label={t('brain.proposals.colStatus')}
+                        >
+                            {(['open', 'accepted', 'rejected'] as const).map(
+                                (status) => (
+                                    <ToggleGroupItem
+                                        key={status}
+                                        value={status}
+                                    >
+                                        {t(`brain.proposals.status.${status}`)}
+                                    </ToggleGroupItem>
+                                ),
+                            )}
+                        </ToggleGroup>
+                    )
+                }
+            >
                 {!hasPerimeter ? (
                     <p className="text-sm text-muted-foreground">
                         {t('brain.scope.none')}
                     </p>
-                ) : proposals.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.proposals.empty')}
-                    </p>
+                ) : isListEmpty ? (
+                    <PageEmptyState
+                        icon={hasActiveFilters ? SearchX : FilePenLine}
+                        title={
+                            <EmptyStatus>
+                                {hasActiveFilters
+                                    ? t('emptyState.proposals.filteredTitle')
+                                    : t('emptyState.proposals.title')}
+                            </EmptyStatus>
+                        }
+                        description={
+                            hasActiveFilters
+                                ? t('emptyState.proposals.filteredDescription')
+                                : t('emptyState.proposals.description')
+                        }
+                        action={
+                            hasActiveFilters ? (
+                                <Button
+                                    type="button"
+                                    onClick={() => setSearch('')}
+                                >
+                                    {t('common.clearFilters')}
+                                </Button>
+                            ) : undefined
+                        }
+                    />
                 ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>
-                                    {t('brain.proposals.colTitle')}
-                                </TableHead>
-                                <TableHead>
-                                    {t('brain.proposals.colAction')}
-                                </TableHead>
-                                <TableHead>
-                                    {t('brain.proposals.colStatus')}
-                                </TableHead>
-                                <TableHead>
-                                    {t('brain.proposals.colPath')}
-                                </TableHead>
-                                <TableHead>
-                                    {t('brain.proposals.colCreated')}
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {proposals.map((proposal) => (
-                                <TableRow key={proposal.id}>
-                                    <TableCell className="font-medium">
-                                        <Link
-                                            href={`/brain/proposals/${proposal.id}`}
-                                            className="underline-offset-4 hover:underline"
-                                        >
-                                            {proposal.title}
-                                        </Link>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline">
-                                            {t(
-                                                `brain.proposals.action.${proposal.action}`,
-                                                {
-                                                    defaultValue:
-                                                        proposal.action,
-                                                },
-                                            )}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="secondary">
-                                            {t(
-                                                `brain.proposals.status.${proposal.status}`,
-                                                {
-                                                    defaultValue:
-                                                        proposal.status,
-                                                },
-                                            )}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="font-mono text-xs">
-                                        {proposal.path}
-                                    </TableCell>
-                                    <TableCell className="text-sm text-muted-foreground">
-                                        {proposal.created_at ?? '—'}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <DataTable
+                        columns={columns}
+                        data={filteredProposals}
+                        getRowId={(proposal) => proposal.id}
+                        onRowClick={(proposal) =>
+                            router.visit(
+                                brainRoutes.proposals.show.url(proposal.id),
+                            )
+                        }
+                        getRowProps={() => ({ className: 'cursor-pointer' })}
+                    />
                 )}
             </PageLayout>
         </>
     );
 }
-
-BrainProposals.layout = {
-    breadcrumbs: [
-        {
-            title: 'Proposals',
-            href: '/brain/proposals',
-        },
-    ],
-};

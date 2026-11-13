@@ -21,7 +21,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Agency portal product list and create / edit under a client company.
+ * Agency portal product list; create / edit open as drawers on the index.
  */
 final class ClientProductsController extends Controller
 {
@@ -44,7 +44,7 @@ final class ClientProductsController extends Controller
         );
     }
 
-    public function create(Request $request, Company $company): Response
+    public function create(Request $request, Company $company): RedirectResponse
     {
         $user = $request->user();
 
@@ -54,12 +54,9 @@ final class ClientProductsController extends Controller
 
         $this->clients->assertOwnerCanManage($user, $company);
 
-        return Inertia::render('brain/clients/products/create', [
-            'client' => [
-                'id' => $company->id,
-                'name' => $company->name,
-                'slug' => $company->slug,
-            ],
+        return to_route('brain.clients.products.index', [
+            'company' => $company,
+            'new' => 1,
         ]);
     }
 
@@ -84,7 +81,7 @@ final class ClientProductsController extends Controller
         return to_route('brain.clients.products.index', $company);
     }
 
-    public function edit(Request $request, Company $company, Product $product): Response
+    public function edit(Request $request, Company $company, Product $product): RedirectResponse
     {
         $user = $request->user();
 
@@ -98,18 +95,9 @@ final class ClientProductsController extends Controller
             abort(404);
         }
 
-        return Inertia::render('brain/clients/products/edit', [
-            'client' => [
-                'id' => $company->id,
-                'name' => $company->name,
-                'slug' => $company->slug,
-            ],
-            'product' => [
-                'id' => $product->id,
-                'name' => $product->name,
-                'slug' => $product->slug,
-                'inherits_from_parent' => $product->inherits_from_parent,
-            ],
+        return to_route('brain.clients.products.index', [
+            'company' => $company,
+            'edit' => $product->id,
         ]);
     }
 
