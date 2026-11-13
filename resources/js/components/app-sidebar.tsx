@@ -1,5 +1,13 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import {
+    BookOpen,
+    FolderGit2,
+    KeyRound,
+    LayoutGrid,
+    ListTree,
+    Map as MapIcon,
+} from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -19,14 +27,6 @@ import { dashboard, logout } from '@/routes';
 import { edit as editProfile } from '@/routes/profile';
 import type { NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
-
 const footerNavItems: NavItem[] = [
     {
         title: 'Repository',
@@ -41,8 +41,37 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { t } = useTranslation();
     const { auth } = usePage().props;
     const cleanup = useMobileNavigation();
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: t('brain.nav.dashboard'),
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+        {
+            title: t('brain.nav.map'),
+            href: '/brain/map',
+            icon: MapIcon,
+        },
+        {
+            title: t('brain.nav.tree'),
+            href: '/brain/tree',
+            icon: ListTree,
+        },
+        {
+            title: t('brain.nav.sources'),
+            href: '/brain/sources',
+            icon: FolderGit2,
+        },
+        {
+            title: t('brain.nav.keys'),
+            href: '/brain/keys',
+            icon: KeyRound,
+        },
+    ];
 
     return (
         <Sidebar collapsible="icon" variant="inset">

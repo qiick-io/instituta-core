@@ -192,5 +192,18 @@
     },
     "app": {
         "name": "Instituta"
+    },
+    "brain": {
+        "nav": {
+            "dashboard": "Cruscotto",
+            "map": "Mappa",
+            "tree": "Albero",
+            "sources": "Sorgenti",
+            "keys": "Chiavi"
+        },
+        "scope": {
+            "label": "Ambito",
+            "none": "Nessun ambito ancora"
+        }
     }
 }
