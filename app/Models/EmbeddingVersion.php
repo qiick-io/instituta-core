@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * Schema-only registry row for an embedding model version (vectors come later).
+ * Registry row for an embedding model version used by BrainEmbeddingService.
  *
  * @property string $id
  * @property string $name

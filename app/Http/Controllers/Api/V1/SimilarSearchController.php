@@ -1,0 +1,67 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
+use App\Http\Controllers\Controller;
+use App\Services\BrainEmbeddingService;
+use App\Services\ContractAuditService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+/**
+ * Embedding neighbour search inside the API key perimeter (#65).
+ */
+final class SimilarSearchController extends Controller
+{
+    use ResolvesInstitutaApiContextTrait;
+
+    public function __construct(
+        private readonly BrainEmbeddingService $embeddings,
+        private readonly ContractAuditService $audit = new ContractAuditService,
+    ) {}
+
+    public function __invoke(Request $request): JsonResponse
+    {
+        if (! config('ai.embeddings.enabled')) {
+            return response()->json([
+                'message' => 'embeddings disabled',
+            ], 501);
+        }
+
+        $validated = $request->validate([
+            'scope' => ['required', 'string'],
+            'q' => ['required', 'string'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        $perimeter = $this->perimeter($request);
+
+        if ($validated['scope'] !== $perimeter->scopeId) {
+            return response()->json(['message' => 'Not found.'], 404);
+        }
+
+        $results = $this->embeddings->similar(
+            $perimeter,
+            $validated['q'],
+            isset($validated['limit']) ? (int) $validated['limit'] : 10,
+        );
+
+        $this->audit->record(
+            'instituta_similar',
+            $perimeter,
+            $this->apiKey($request),
+            array_map(
+                static fn (array $row): string => $row['section_id'],
+                $results,
+            ),
+        );
+
+        return response()->json([
+            'query' => $validated['q'],
+            'results' => $results,
+        ]);
+    }
+}
