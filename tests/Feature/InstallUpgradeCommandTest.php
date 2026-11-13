@@ -56,7 +56,7 @@ it('runs instituta:upgrade migrate and cache clear without create-project', func
         ->assertSuccessful();
 });
 
-it('skips key:generate when APP_KEY is already present', function (): void {
+it('skips key:generate when APP_KEY is already present on disk', function (): void {
     $envBackup = null;
     $envPath = base_path('.env');
 
@@ -65,15 +65,48 @@ it('skips key:generate when APP_KEY is already present', function (): void {
     }
 
     try {
+        $existingKey = 'base64:'.base64_encode(random_bytes(32));
+        File::put($envPath, "APP_KEY={$existingKey}\nAPP_NAME=Instituta\nAPP_URL=http://localhost\n");
+
+        $this->artisan('instituta:install', [
+            '--no-npm' => true,
+            '--no-owner' => true,
+        ])
+            ->expectsOutputToContain('APP_KEY already set; skipping key:generate.')
+            ->assertSuccessful();
+
+        expect(File::get($envPath))->toContain('APP_KEY='.$existingKey);
+    } finally {
+        if ($envBackup === null) {
+            File::delete($envPath);
+        } else {
+            File::put($envPath, $envBackup);
+        }
+    }
+});
+
+it('writes a non-empty APP_KEY when --force copies an empty key from .env.example', function (): void {
+    $envBackup = null;
+    $envPath = base_path('.env');
+
+    if (File::exists($envPath)) {
+        $envBackup = File::get($envPath);
+    }
+
+    try {
+        // Stale in-memory key must not skip generation after --force rewrites .env.
         config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
 
         $this->artisan('instituta:install', [
             '--force' => true,
             '--no-npm' => true,
             '--no-owner' => true,
-        ])
-            ->expectsOutputToContain('APP_KEY already set; skipping key:generate.')
-            ->assertSuccessful();
+        ])->assertSuccessful();
+
+        $env = File::get($envPath);
+
+        expect($env)->toMatch('/^APP_KEY=.+/m')
+            ->and($env)->not->toMatch('/^APP_KEY=\s*$/m');
     } finally {
         if ($envBackup === null) {
             File::delete($envPath);
