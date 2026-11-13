@@ -55,7 +55,7 @@ Out of MVP (schema must not block): teams inside a product, mergers, per-country
 - MCP (HTTP) and REST implementing `docs/CONTRACTS.md`.
 - Search: Postgres full-text (reference) + SQLite FTS5. No MySQL search driver in v0.1.0 (clear error).
 - Local Fortify auth; keys via Artisan; one owner key in dogfood.
-- UI: scope switcher, map, tree by meaning, reading view (compose from existing `@qiick` items; that PR waits for OK), structured tables, resolved view + "what the agent would see", simple scoped graph (**graph library not approved yet — leave last / skip if blocked**).
+- UI: scope switcher, map, tree by meaning, reading view (composed from existing `@qiick` items; reading-view override recorded), structured tables, resolved view + "what the agent would see", simple scoped graph (`@xyflow/react`, issue #49).
 - Export of a client subtree; freeze/unfreeze Artisan; install/upgrade; `/health/live` and `/health/ready`.
 
 **Out** (do not build; hooks only where the data model says so)
