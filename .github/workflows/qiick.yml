@@ -27,6 +27,8 @@ jobs:
 
   ui-quality:
     uses: qiick-io/app-ui/.github/workflows/ui-quality.yml@v0.6.1
+    with:
+      axe-test: tests/Browser/A11ySmokeBrowserTest.php
 
   migrations-frozen:
     uses: qiick-io/app-ui/.github/workflows/migrations-frozen.yml@v0.6.1
