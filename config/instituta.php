@@ -21,6 +21,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | REST write kill switch (#54)
+    |--------------------------------------------------------------------------
+    |
+    | Off by default. brain:write keys and proposal endpoints stay refused until
+    | this (or MCP write) is enabled. Never enables direct durable-store writes.
+    |
+    */
+
+    'api' => [
+        'write_enabled' => (bool) env('INSTITUTA_API_WRITE_ENABLED', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Ingest
     |--------------------------------------------------------------------------
     |

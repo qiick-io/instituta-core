@@ -280,7 +280,7 @@ final class ActivityEventLoggerService
     }
 
     /**
-     * Ready for write-proposal flows (#53); not wired until proposals exist.
+     * Logged when a brain write proposal is opened (#54). Never include body/secrets.
      *
      * @param  array<string, mixed>  $properties
      */

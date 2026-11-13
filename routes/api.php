@@ -9,9 +9,11 @@ use App\Http\Controllers\Api\V1\ItemSectionController;
 use App\Http\Controllers\Api\V1\ItemTableController;
 use App\Http\Controllers\Api\V1\OpenApiController;
 use App\Http\Controllers\Api\V1\ProductResolveController;
+use App\Http\Controllers\Api\V1\ProposalController;
 use App\Http\Controllers\Api\V1\ScopeController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Middleware\AuthenticateApiKeyMiddleware;
+use App\Http\Middleware\RequireBrainWriteMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')
@@ -35,4 +37,10 @@ Route::prefix('v1')
         Route::get('items/{id}', [ItemController::class, 'show']);
         Route::get('search', SearchController::class);
         Route::get('products/{id}/resolved', ProductResolveController::class);
+
+        Route::middleware([RequireBrainWriteMiddleware::class])->group(function (): void {
+            Route::get('proposals', [ProposalController::class, 'index']);
+            Route::post('proposals', [ProposalController::class, 'store']);
+            Route::patch('proposals/{id}', [ProposalController::class, 'update']);
+        });
     });
