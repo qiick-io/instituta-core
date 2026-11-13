@@ -242,6 +242,7 @@ vendor/bin/pint --test
 vendor/bin/phpstan analyse
 node scripts/qiick-ratchet.mjs phpstan --min-level 8
 php artisan test
+php -d zend_extension=/Applications/Herd.app/Contents/Resources/xdebug/xdebug-84-arm64.so -d xdebug.mode=coverage vendor/bin/pest --coverage-clover=build/qiick-coverage.xml && node scripts/qiick-ratchet.mjs coverage --clover build/qiick-coverage.xml
 npm run lint
 npm run types:check
 npm run knip
