@@ -202,7 +202,8 @@
             "keys": "Chiavi",
             "activity": "Attività",
             "clients": "Clienti",
-            "sessionReplay": "Replay sessioni"
+            "sessionReplay": "Replay sessioni",
+            "proposals": "Proposte"
         },
         "scope": {
             "label": "Ambito",
@@ -398,6 +399,45 @@
                 "tool": "Tool",
                 "dateFrom": "Da",
                 "dateTo": "A"
+            }
+        },
+        "proposals": {
+            "title": "Proposte di scrittura",
+            "description": "Rivedi le modifiche proposte al brain nello scope corrente prima che diventino pull request git.",
+            "showDescription": "Esamina la modifica proposta, poi accettarla o rifiutarla.",
+            "empty": "Nessuna proposta in questo filtro.",
+            "colTitle": "Titolo",
+            "colAction": "Azione",
+            "colStatus": "Stato",
+            "colPath": "Percorso",
+            "colCreated": "Creata",
+            "backToList": "Torna alle proposte",
+            "fieldStableKey": "Chiave stabile",
+            "fieldPath": "Percorso",
+            "fieldArea": "Area",
+            "fieldMaterialisation": "Materializzazione",
+            "fieldBranch": "Branch",
+            "fieldPullRequest": "Pull request",
+            "fieldMaterialisationError": "Errore di materializzazione",
+            "bodyHeading": "Corpo proposto",
+            "bodyEmpty": "Nessun corpo allegato a questa proposta.",
+            "accept": "Accetta",
+            "reject": "Rifiuta",
+            "status": {
+                "open": "Aperta",
+                "accepted": "Accettata",
+                "rejected": "Rifiutata"
+            },
+            "action": {
+                "create": "Crea",
+                "update": "Aggiorna",
+                "delete": "Elimina"
+            },
+            "materialisation": {
+                "pending": "In coda",
+                "materialised": "Materializzata",
+                "local_review": "Revisione locale",
+                "failed": "Fallita"
             }
         }
     },

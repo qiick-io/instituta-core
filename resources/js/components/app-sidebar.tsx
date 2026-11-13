@@ -3,6 +3,7 @@ import {
     BookOpen,
     Building2,
     FolderGit2,
+    FilePenLine,
     History,
     KeyRound,
     LayoutGrid,
@@ -68,6 +69,11 @@ export function AppSidebar() {
             title: t('brain.nav.sources'),
             href: '/brain/sources',
             icon: FolderGit2,
+        },
+        {
+            title: t('brain.nav.proposals'),
+            href: '/brain/proposals',
+            icon: FilePenLine,
         },
         {
             title: t('brain.nav.keys'),
