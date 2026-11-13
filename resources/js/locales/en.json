@@ -274,6 +274,24 @@
             "colItem": "Item",
             "colRows": "Rows",
             "colColumns": "Columns"
+        },
+        "sources": {
+            "title": "Sources",
+            "description": "Ingest sources in the current scope, with sync status and last report.",
+            "empty": "No sources in this scope yet.",
+            "colName": "Name",
+            "colProvider": "Provider",
+            "colStatus": "Status",
+            "colCommit": "Commit",
+            "colSynced": "Last sync",
+            "colReport": "Report",
+            "showReport": "Show report",
+            "status": {
+                "idle": "Idle",
+                "syncing": "Syncing",
+                "ok": "Ok",
+                "failed": "Failed"
+            }
         }
     }
 }

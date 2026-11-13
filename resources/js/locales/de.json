@@ -274,6 +274,24 @@
             "colItem": "Eintrag",
             "colRows": "Zeilen",
             "colColumns": "Spalten"
+        },
+        "sources": {
+            "title": "Quellen",
+            "description": "Ingest-Quellen im aktuellen Scope mit Sync-Status und letztem Report.",
+            "empty": "Noch keine Quellen in diesem Scope.",
+            "colName": "Name",
+            "colProvider": "Anbieter",
+            "colStatus": "Status",
+            "colCommit": "Commit",
+            "colSynced": "Letzter Sync",
+            "colReport": "Report",
+            "showReport": "Report zeigen",
+            "status": {
+                "idle": "Leerlauf",
+                "syncing": "Sync läuft",
+                "ok": "Ok",
+                "failed": "Fehlgeschlagen"
+            }
         }
     }
 }

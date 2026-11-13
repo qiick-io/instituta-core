@@ -274,6 +274,24 @@
             "colItem": "Elemento",
             "colRows": "Righe",
             "colColumns": "Colonne"
+        },
+        "sources": {
+            "title": "Sorgenti",
+            "description": "Sorgenti di ingest nell'ambito corrente, con stato di sync e ultimo report.",
+            "empty": "Nessuna sorgente in questo ambito ancora.",
+            "colName": "Nome",
+            "colProvider": "Provider",
+            "colStatus": "Stato",
+            "colCommit": "Commit",
+            "colSynced": "Ultimo sync",
+            "colReport": "Report",
+            "showReport": "Mostra report",
+            "status": {
+                "idle": "Inattivo",
+                "syncing": "In sync",
+                "ok": "Ok",
+                "failed": "Fallito"
+            }
         }
     }
 }
