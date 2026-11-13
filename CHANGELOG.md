@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Browser axe smoke via `pestphp/pest-plugin-browser` and `tests/Browser/A11ySmokeBrowserTest.php`; `ui-quality` now passes `axe-test` so `ui-quality / accessibility` runs (issue #52).
+
 ### Changed
 
 - `docs/FORMAT.md` and `docs/CONTRACTS.md` are the approved working contract (issue #50). Until `v1.0.0-beta.1` they may still change in PRs labelled `area:contract` with a CHANGELOG entry and updated tests; from `v1.0.0-beta.1` they freeze (additive only).

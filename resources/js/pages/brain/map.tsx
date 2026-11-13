@@ -42,7 +42,7 @@ export default function BrainMap({ areas, hasPerimeter }: Props) {
                                 href={`/brain/tree?area=${encodeURIComponent(area.area)}`}
                                 className={cn(
                                     'rounded-xl border border-sidebar-border/70 p-4 transition-colors hover:bg-muted/40 dark:border-sidebar-border',
-                                    area.empty && 'border-dashed opacity-70',
+                                    area.empty && 'border-dashed bg-muted/30',
                                 )}
                             >
                                 <div className="flex items-start justify-between gap-2">

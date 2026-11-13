@@ -12,7 +12,12 @@ export default function AppSidebarLayout({
     return (
         <AppShell variant="sidebar">
             <AppSidebar />
-            <AppContent variant="sidebar" className="min-w-0 overflow-x-clip">
+            <AppContent
+                variant="sidebar"
+                id="main-content"
+                tabIndex={-1}
+                className="min-w-0 overflow-x-clip"
+            >
                 <AppSidebarHeader
                     breadcrumbs={breadcrumbs}
                     actions={<ScopeSwitcher />}

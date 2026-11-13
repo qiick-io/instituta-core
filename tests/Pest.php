@@ -18,6 +18,13 @@ pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature');
 
+// Browser axe smoke (#52) runs outside the default suite: `vendor/bin/pest tests/Browser`.
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
+    ->in('Browser');
+
+pest()->browser()->timeout(10_000);
+
 pest()->extend(TestCase::class)
     ->in('Brain');
 

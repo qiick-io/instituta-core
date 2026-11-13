@@ -64,6 +64,7 @@
         "babel-plugin-react-compiler": "^1.0.0",
         "eslint-plugin-i18next": "^6.1.5",
         "knip": "^6.45.1",
+        "playwright": "^1.65.0",
         "vite-plus": "1.4.0"
     },
     "optionalDependencies": {
