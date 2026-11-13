@@ -4,6 +4,16 @@ declare(strict_types=1);
 
 use App\Models\User;
 
+test('config i18n available locales match the locale json files', function (): void {
+    $availableLocales = array_keys((array) config('i18n.available_locales'));
+
+    expect($availableLocales)->toBe(['en', 'it', 'de']);
+
+    foreach ($availableLocales as $localeCode) {
+        expect(resource_path('js/locales/'.$localeCode.'.json'))->toBeFile();
+    }
+});
+
 test('a user picks a ui language that is saved and mirrored in a cookie', function () {
     $user = User::factory()->create();
 
