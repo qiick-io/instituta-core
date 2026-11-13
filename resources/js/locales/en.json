@@ -96,7 +96,8 @@
         "sortDescending": "Sort descending",
         "emailAddress": "Email address",
         "firstName": "First name",
-        "lastName": "Last name"
+        "lastName": "Last name",
+        "confirmPassword": "Confirm password"
     },
     "confirmDestructive": {
         "typeToConfirm": "Type \"{{name}}\" to confirm"
@@ -136,7 +137,21 @@
         "offline": "Realtime offline"
     },
     "settings": {
+        "layout": {
+            "title": "Settings",
+            "description": "Manage your profile and account settings",
+            "navAria": "Settings",
+            "sectionAccount": "Account",
+            "profile": "Profile",
+            "security": "Security",
+            "appearance": "Appearance",
+            "reportBug": "Report a Bug"
+        },
         "appearance": {
+            "breadcrumb": "Appearance settings",
+            "head": "Appearance settings",
+            "title": "Appearance settings",
+            "description": "Update the appearance settings for your account",
             "dark": "Dark",
             "light": "Light",
             "system": "System"
@@ -144,11 +159,29 @@
         "profile": {
             "breadcrumb": "Profile settings",
             "head": "Profile settings",
-            "title": "Profile",
+            "title": "Profile information",
             "description": "Update your first name, last name and email address",
             "unverified": "Your email address is unverified.",
-            "resend": "Click here to re-send the verification email.",
+            "resend": "Click here to resend the verification email.",
             "linkSent": "A new verification link has been sent to your email address."
+        },
+        "security": {
+            "breadcrumb": "Security settings",
+            "head": "Security settings",
+            "passwordTitle": "Update password",
+            "passwordDescription": "Ensure your account is using a long, random password to stay secure",
+            "currentPassword": "Current password",
+            "newPassword": "New password",
+            "twoFactorTitle": "Two-factor authentication",
+            "twoFactorDescription": "Manage your two-factor authentication settings",
+            "enabledHint": "You will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.",
+            "disabledHint": "When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.",
+            "disable2fa": "Disable 2FA",
+            "enable2fa": "Enable 2FA",
+            "continueSetup": "Continue setup",
+            "passkeysTitle": "Passkeys",
+            "passkeysDescription": "Manage your passkeys for passwordless sign-in",
+            "passkeysEmpty": "No passkeys yet"
         }
     },
     "shortcuts": {

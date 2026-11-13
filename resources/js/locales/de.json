@@ -96,7 +96,8 @@
         "sortDescending": "Absteigend sortieren",
         "emailAddress": "E-Mail-Adresse",
         "firstName": "Vorname",
-        "lastName": "Nachname"
+        "lastName": "Nachname",
+        "confirmPassword": "Passwort bestätigen"
     },
     "confirmDestructive": {
         "typeToConfirm": "Tippe „{{name}}“ zur Bestätigung"
@@ -136,7 +137,21 @@
         "offline": "Realtime offline"
     },
     "settings": {
+        "layout": {
+            "title": "Einstellungen",
+            "description": "Profil und Kontoeinstellungen verwalten",
+            "navAria": "Einstellungen",
+            "sectionAccount": "Konto",
+            "profile": "Profil",
+            "security": "Sicherheit",
+            "appearance": "Darstellung",
+            "reportBug": "Bug melden"
+        },
         "appearance": {
+            "breadcrumb": "Darstellungseinstellungen",
+            "head": "Darstellungseinstellungen",
+            "title": "Darstellungseinstellungen",
+            "description": "Aktualisieren Sie die Darstellungseinstellungen für Ihr Konto",
             "dark": "Dunkel",
             "light": "Hell",
             "system": "System"
@@ -144,11 +159,29 @@
         "profile": {
             "breadcrumb": "Profileinstellungen",
             "head": "Profileinstellungen",
-            "title": "Profil",
+            "title": "Profilinformationen",
             "description": "Aktualisieren Sie Vorname, Nachname und E-Mail-Adresse",
-            "unverified": "Ihre E-Mail-Adresse ist nicht verifiziert.",
-            "resend": "Klicken Sie hier, um die Bestätigungs-E-Mail erneut zu senden.",
+            "unverified": "Ihre E-Mail-Adresse ist nicht bestätigt.",
+            "resend": "Hier klicken, um die Bestätigungs-E-Mail erneut zu senden.",
             "linkSent": "Ein neuer Bestätigungslink wurde an Ihre E-Mail-Adresse gesendet."
+        },
+        "security": {
+            "breadcrumb": "Sicherheitseinstellungen",
+            "head": "Sicherheitseinstellungen",
+            "passwordTitle": "Passwort aktualisieren",
+            "passwordDescription": "Verwenden Sie ein langes, zufälliges Passwort, um Ihr Konto zu schützen",
+            "currentPassword": "Aktuelles Passwort",
+            "newPassword": "Neues Passwort",
+            "twoFactorTitle": "Zwei-Faktor-Authentifizierung",
+            "twoFactorDescription": "Einstellungen der Zwei-Faktor-Authentifizierung verwalten",
+            "enabledHint": "Beim Login werden Sie nach einer sicheren PIN gefragt, die Sie aus der TOTP-App auf Ihrem Telefon abrufen können.",
+            "disabledHint": "Wenn Sie die Zwei-Faktor-Authentifizierung aktivieren, werden Sie beim Login nach einer sicheren PIN gefragt, die Sie aus einer TOTP-App abrufen können.",
+            "disable2fa": "2FA deaktivieren",
+            "enable2fa": "2FA aktivieren",
+            "continueSetup": "Einrichtung fortsetzen",
+            "passkeysTitle": "Passkeys",
+            "passkeysDescription": "Passkeys für die Anmeldung ohne Passwort verwalten",
+            "passkeysEmpty": "Noch keine Passkeys"
         }
     },
     "shortcuts": {
