@@ -12,7 +12,7 @@ Git is the durable store: a brain is a git repository (or a path in one), and th
 
 ## Status
 
-Private beta toward `v1.0.0-beta.1`. Contracts: [`docs/FORMAT.md`](docs/FORMAT.md), [`docs/CONTRACTS.md`](docs/CONTRACTS.md). Changelog: [`CHANGELOG.md`](CHANGELOG.md). Kickoff for agents: [`docs/agents/cursor-kickoff.md`](docs/agents/cursor-kickoff.md).
+Private beta toward `v1.0.0-beta.1`. Contracts: [`docs/FORMAT.md`](docs/FORMAT.md), [`docs/CONTRACTS.md`](docs/CONTRACTS.md). Ops docs: [installation](docs/installation.md), [configuration](docs/configuration.md), [upgrade](docs/upgrade.md), [backup](docs/backup.md), [MCP/REST](docs/api-usage.md). Changelog: [`CHANGELOG.md`](CHANGELOG.md). Kickoff for agents: [`docs/agents/cursor-kickoff.md`](docs/agents/cursor-kickoff.md).
 
 ## Install and upgrade (self-hosted)
 
