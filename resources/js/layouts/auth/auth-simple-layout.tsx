@@ -1,15 +1,21 @@
 import { Link } from '@inertiajs/react';
 import AppLogoIcon from '@/components/app-logo-icon';
+import { SkipToContent } from '@/components/skip-to-content';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
+/**
+ * Centered auth layout with logo, title, and description above the form.
+ * Copied from excubia-app `layouts/auth/auth-simple-layout.tsx` (no brand-logo hook yet).
+ */
 export default function AuthSimpleLayout({
     children,
     title,
     description,
 }: AuthLayoutProps) {
     return (
-        <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
+        <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-12">
+            <SkipToContent />
             <main id="main-content" tabIndex={-1} className="w-full max-w-sm">
                 <div className="flex flex-col gap-8">
                     <div className="flex flex-col items-center gap-4">

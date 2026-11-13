@@ -1,38 +1,155 @@
-import { Form, Head } from '@inertiajs/react';
-import InputError from '@/components/input-error';
+import { Form, Head, router, setLayoutProps } from '@inertiajs/react';
+import { UserCancelledError } from '@laravel/passkeys';
+import { usePasskeyVerify } from '@laravel/passkeys/react';
+import { KeyRound } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Field,
+    FieldError,
+    FieldGroup,
+    FieldLabel,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
-import PasskeyVerify from '@/components/passkey-verify';
 
 type Props = {
     status?: string;
     canResetPassword: boolean;
+    canManagePasskeys?: boolean;
 };
 
-export default function Login({ status, canResetPassword }: Props) {
+/**
+ * User login form with optional passkey sign-in (no SSO — omit until Signaculum).
+ * Pattern from externa-core / excubia-app `pages/auth/login.tsx`.
+ *
+ * Conditional WebAuthn autofill is intentionally off (package isLoading can hang).
+ */
+export default function Login({
+    status,
+    canResetPassword,
+    canManagePasskeys = false,
+}: Props) {
+    const { t } = useTranslation();
+
+    setLayoutProps({
+        title: t('auth.login.title'),
+        description: t('auth.login.description'),
+    });
+
+    const {
+        verify,
+        isLoading: verifyingPasskey,
+        error: passkeyError,
+        errorInstance: passkeyErrorInstance,
+        isSupported: passkeysSupported,
+    } = usePasskeyVerify({
+        // ponytail: no conditional autofill — package isLoading blocks the CTA until the
+        // hung ceremony resolves; upgrade path: call Passkeys.autofill() separately without
+        // wiring its pending state to the button.
+        autofill: false,
+        onSuccess: (response) => {
+            if (response.redirect) {
+                router.visit(response.redirect);
+            } else {
+                router.visit('/');
+            }
+        },
+    });
+
+    const passkeyErrorMessage =
+        passkeyErrorInstance instanceof UserCancelledError
+            ? t('auth.login.passkeyCancelled')
+            : passkeyError;
+
+    const passkeyUnavailableHint = !passkeysSupported
+        ? typeof window !== 'undefined' && !window.isSecureContext
+            ? t('auth.login.passkeysNeedHttps')
+            : t('auth.login.passkeysUnsupported')
+        : undefined;
+
+    const passkeyButton = (
+        <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={!passkeysSupported || verifyingPasskey}
+            data-test="passkey-login-button"
+            aria-busy={verifyingPasskey}
+            onClick={() => {
+                if (passkeysSupported) {
+                    void verify();
+                }
+            }}
+        >
+            {verifyingPasskey ? <Spinner /> : <KeyRound />}
+            {t('auth.login.passkey')}
+        </Button>
+    );
+
     return (
         <>
-            <Head title="Log in" />
+            <Head title={t('auth.login.head')} />
 
-            <PasskeyVerify />
+            {canManagePasskeys && (
+                <div className="mb-6 flex flex-col gap-3">
+                    {passkeyUnavailableHint ? (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <span className="inline-flex w-full">
+                                    {passkeyButton}
+                                </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                {passkeyUnavailableHint}
+                            </TooltipContent>
+                        </Tooltip>
+                    ) : (
+                        passkeyButton
+                    )}
+                    {passkeyErrorMessage ? (
+                        <FieldError id="passkey-error">
+                            {passkeyErrorMessage}
+                        </FieldError>
+                    ) : null}
+                    <div className="relative py-1">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-background px-2 text-muted-foreground">
+                                {t('auth.login.orContinueWithEmail')}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <Form
                 {...store.form()}
                 resetOnSuccess={['password']}
                 className="flex flex-col gap-6"
+                noValidate
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                        <FieldGroup className="gap-6">
+                            <Field
+                                data-invalid={errors.email ? true : undefined}
+                            >
+                                <FieldLabel htmlFor="email">
+                                    {t('common.emailAddress')}
+                                </FieldLabel>
                                 <Input
                                     id="email"
                                     type="email"
@@ -41,19 +158,33 @@ export default function Login({ status, canResetPassword }: Props) {
                                     autoFocus
                                     autoComplete="email"
                                     placeholder="email@example.com"
+                                    aria-invalid={
+                                        errors.email ? true : undefined
+                                    }
+                                    aria-describedby={
+                                        errors.email ? 'email-error' : undefined
+                                    }
                                 />
-                                <InputError message={errors.email} />
-                            </div>
+                                <FieldError id="email-error">
+                                    {errors.email}
+                                </FieldError>
+                            </Field>
 
-                            <div className="grid gap-2">
+                            <Field
+                                data-invalid={
+                                    errors.password ? true : undefined
+                                }
+                            >
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                    <FieldLabel htmlFor="password">
+                                        {t('common.password')}
+                                    </FieldLabel>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
                                             className="ml-auto text-sm"
                                         >
-                                            Forgot your password?
+                                            {t('auth.login.forgotPassword')}
                                         </TextLink>
                                     )}
                                 </div>
@@ -62,40 +193,57 @@ export default function Login({ status, canResetPassword }: Props) {
                                     name="password"
                                     required
                                     autoComplete="current-password"
-                                    placeholder="Password"
+                                    placeholder={t('common.password')}
+                                    aria-invalid={
+                                        errors.password ? true : undefined
+                                    }
+                                    aria-describedby={
+                                        errors.password
+                                            ? 'password-error'
+                                            : undefined
+                                    }
                                 />
-                                <InputError message={errors.password} />
-                            </div>
+                                <FieldError id="password-error">
+                                    {errors.password}
+                                </FieldError>
+                            </Field>
 
-                            <div className="flex items-center space-x-3">
+                            <Field orientation="horizontal">
                                 <Checkbox id="remember" name="remember" />
-                                <Label htmlFor="remember">Remember me</Label>
-                            </div>
+                                <FieldLabel htmlFor="remember">
+                                    {t('auth.login.rememberMe')}
+                                </FieldLabel>
+                            </Field>
 
                             <Button
                                 type="submit"
                                 className="mt-4 w-full"
                                 disabled={processing}
+                                aria-busy={processing || undefined}
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Log in
+                                {processing ? (
+                                    <span className="sr-only" role="status">
+                                        {t('a11y.loading')}
+                                    </span>
+                                ) : null}
+                                {t('auth.login.submit')}
                             </Button>
-                        </div>
+                        </FieldGroup>
                     </>
                 )}
             </Form>
 
             {status && (
-                <div className="mb-4 text-center text-sm font-medium text-success">
+                <div
+                    className="mb-4 text-center text-sm font-medium text-success"
+                    role="status"
+                    aria-live="polite"
+                >
                     {status}
                 </div>
             )}
         </>
     );
 }
-
-Login.layout = {
-    title: 'Log in to your account',
-    description: 'Enter your email and password below to log in',
-};
