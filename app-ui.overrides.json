@@ -1,3 +1,0 @@
-{
-    "resources/js/pages/brain/reading.tsx": "no app-ui reading pattern yet; composed from existing @qiick items (page-layout, page-header, scroll-area, table, collapsible, badge) with a sticky outline and citation chips; proposed upstream"
-}

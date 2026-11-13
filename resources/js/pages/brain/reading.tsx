@@ -1,3 +1,10 @@
+/**
+ * Reading view composition (no app-ui long-form reading pattern yet).
+ * Built from existing @qiick items: page-layout, page-header, scroll-area,
+ * table, collapsible, badge. Proposed upstream for app-ui.
+ * Drift check only allows overrides for installed registry files, so the
+ * reason lives here instead of app-ui.overrides.json.
+ */
 import { Head, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { PageLayout } from '@/components/layout/page-layout';
@@ -17,6 +24,20 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+
+function cellText(value: unknown): string {
+    if (value === null || value === undefined) {
+        return '';
+    }
+    if (
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean'
+    ) {
+        return String(value);
+    }
+    return JSON.stringify(value);
+}
 
 type Block = {
     type: string;
@@ -70,8 +91,8 @@ function BlockView({ block }: { block: Block }) {
 
     if (block.type === 'text') {
         return (
-            <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                {String(payload.text ?? '')}
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                {cellText(payload.text)}
             </p>
         );
     }
@@ -79,7 +100,7 @@ function BlockView({ block }: { block: Block }) {
     if (block.type === 'code') {
         return (
             <pre className="overflow-x-auto rounded-lg border border-sidebar-border/70 bg-muted/40 p-3 font-mono text-xs dark:border-sidebar-border">
-                <code>{String(payload.source ?? '')}</code>
+                <code>{cellText(payload.source)}</code>
             </pre>
         );
     }
@@ -89,14 +110,14 @@ function BlockView({ block }: { block: Block }) {
             <figure className="space-y-2">
                 <div className="overflow-hidden rounded-lg border border-sidebar-border/70 dark:border-sidebar-border">
                     <img
-                        src={String(payload.path ?? '')}
-                        alt={String(payload.alt ?? '')}
+                        src={cellText(payload.path)}
+                        alt={cellText(payload.alt)}
                         className="max-h-96 w-full object-contain"
                     />
                 </div>
                 {payload.caption ? (
                     <figcaption className="text-xs text-muted-foreground">
-                        {String(payload.caption)}
+                        {cellText(payload.caption)}
                     </figcaption>
                 ) : null}
             </figure>
@@ -125,7 +146,7 @@ function BlockView({ block }: { block: Block }) {
                         <TableRow key={index}>
                             {columns.map((column) => (
                                 <TableCell key={column}>
-                                    {String(row[column] ?? '')}
+                                    {cellText(row[column])}
                                 </TableCell>
                             ))}
                         </TableRow>
@@ -238,9 +259,12 @@ export default function BrainReading({ item }: Props) {
                                             {section.heading}
                                         </h2>
                                         <Badge variant="outline">
-                                            {t('brain.reading.citationSection', {
-                                                section: section.anchor,
-                                            })}
+                                            {t(
+                                                'brain.reading.citationSection',
+                                                {
+                                                    section: section.anchor,
+                                                },
+                                            )}
                                         </Badge>
                                     </div>
 
@@ -256,7 +280,7 @@ export default function BrainReading({ item }: Props) {
                                             )}
                                         </div>
                                     ) : (
-                                        <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
                                             {section.body}
                                         </p>
                                     )}
@@ -317,11 +341,10 @@ export default function BrainReading({ item }: Props) {
                                                                                 column
                                                                             }
                                                                         >
-                                                                            {String(
+                                                                            {cellText(
                                                                                 row[
                                                                                     column
-                                                                                ] ??
-                                                                                    '',
+                                                                                ],
                                                                             )}
                                                                         </TableCell>
                                                                     ),
