@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Brain\MapController;
 use App\Http\Controllers\Brain\ReadingController;
+use App\Http\Controllers\Brain\ResolvedController;
 use App\Http\Controllers\Brain\ScopeSwitcherController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('brain/items/{item}', ReadingController::class)
         ->where('item', '.*')
         ->name('brain.reading');
+    Route::get('brain/resolved', ResolvedController::class)->name('brain.resolved');
 });
 
 require __DIR__.'/settings.php';

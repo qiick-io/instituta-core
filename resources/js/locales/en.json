@@ -235,6 +235,26 @@
             "citationPath": "File: {{path}}",
             "citationCommit": "Commit: {{commit}}",
             "citationSection": "Section: {{section}}"
+        },
+        "resolved": {
+            "title": "Resolved view",
+            "description": "Keys as the product resolves them, with origin and an agent preview.",
+            "product": "Product",
+            "agentToggle": "What the agent would see",
+            "tokens": "~{{count}} tokens",
+            "noProducts": "No products in this scope.",
+            "empty": "No resolution keys yet.",
+            "colKey": "Key",
+            "colTitle": "Title",
+            "colOrigin": "Origin",
+            "colPath": "Path",
+            "overridden": "Overridden",
+            "inherited": "Inherited",
+            "scopes": {
+                "product": "Product",
+                "company": "Company",
+                "organisation": "Organisation"
+            }
         }
     }
 }
