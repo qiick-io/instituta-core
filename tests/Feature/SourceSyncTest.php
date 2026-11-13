@@ -8,6 +8,8 @@ use App\Enums\SourceProviderEnum;
 use App\Enums\SyncStatusEnum;
 use App\Jobs\SyncSourceJob;
 use App\Models\Item;
+use App\Models\ItemLink;
+use App\Models\ItemSection;
 use App\Models\Organisation;
 use App\Models\Source;
 use App\Models\SourceVersion;
@@ -17,9 +19,11 @@ use App\Models\VaultVersion;
 use App\Services\SourceRegistryService;
 use App\Services\SourceSyncService;
 use Illuminate\Process\PendingProcess;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Schema;
 
 beforeEach(function (): void {
     config([
@@ -211,4 +215,177 @@ it('queues SyncSourceJob when --queue is passed', function (): void {
     ])->assertSuccessful();
 
     Queue::assertPushed(SyncSourceJob::class, fn (SyncSourceJob $job): bool => $job->sourceId === $source->id);
+});
+
+it('prunes deleted paths on re-sync including sections links tables and search rows', function (): void {
+    $root = sys_get_temp_dir().'/instituta-prune-delete-'.uniqid('', true);
+    File::ensureDirectoryExists($root.'/notes');
+    File::put($root.'/instituta.json', json_encode([
+        'format' => 'instituta',
+        'format_version' => 1,
+        'name' => 'Prune delete fixture',
+        'default_visibility' => 'internal',
+        'areas' => ['notes'],
+    ], JSON_THROW_ON_ERROR));
+    File::put($root.'/notes/keep.md', <<<'MD'
+---
+title: Keep me
+type: note
+area: notes
+visibility: internal
+---
+
+# Keep me
+
+See [[drop]].
+MD);
+    File::put($root.'/notes/drop.md', <<<'MD'
+---
+title: Drop me
+type: note
+area: notes
+visibility: internal
+---
+
+# Drop me
+
+Body that should leave the index.
+MD);
+
+    $organisation = Organisation::factory()->create();
+    $source = app(SourceRegistryService::class)->add(
+        organisation: $organisation,
+        name: 'Prune delete source',
+        provider: SourceProviderEnum::Local,
+        localPath: $root,
+        isShared: true,
+    );
+
+    $otherOrganisation = Organisation::factory()->create();
+    $otherSource = app(SourceRegistryService::class)->add(
+        organisation: $otherOrganisation,
+        name: 'Other org source',
+        provider: SourceProviderEnum::Local,
+        localPath: base_path('tests/Brain/Fixtures/native'),
+        isShared: true,
+    );
+    app(SourceSyncService::class)->sync($otherSource->fresh());
+    $otherItemCount = Item::query()->where('source_id', $otherSource->id)->count();
+
+    app(SourceSyncService::class)->sync($source->fresh());
+
+    $keep = Item::query()->where('source_id', $source->id)->where('path', 'notes/keep.md')->firstOrFail();
+    $drop = Item::query()->where('source_id', $source->id)->where('path', 'notes/drop.md')->firstOrFail();
+    $dropSectionIds = ItemSection::query()->where('item_id', $drop->id)->pluck('id')->all();
+
+    expect($dropSectionIds)->not->toBeEmpty()
+        ->and(ItemLink::query()->where('from_item_id', $keep->id)->where('to_item_id', $drop->id)->exists())->toBeTrue();
+
+    $table = StructuredTable::query()->create([
+        'item_id' => $drop->id,
+        'organisation_id' => $organisation->id,
+        'company_id' => $source->company_id,
+        'product_id' => $source->product_id,
+        'table_key' => 'tokens',
+        'columns' => ['name'],
+        'position' => 0,
+    ]);
+    StructuredRow::query()->create([
+        'structured_table_id' => $table->id,
+        'item_id' => $drop->id,
+        'organisation_id' => $organisation->id,
+        'company_id' => $source->company_id,
+        'product_id' => $source->product_id,
+        'values' => ['name' => 'teal'],
+        'position' => 0,
+    ]);
+
+    File::delete($root.'/notes/drop.md');
+
+    app(SourceSyncService::class)->sync($source->fresh());
+
+    expect(Item::query()->where('source_id', $source->id)->where('path', 'notes/drop.md')->exists())->toBeFalse()
+        ->and(Item::query()->where('source_id', $source->id)->where('path', 'notes/keep.md')->exists())->toBeTrue()
+        ->and(ItemSection::query()->where('item_id', $drop->id)->count())->toBe(0)
+        ->and(ItemLink::query()->where(function ($query) use ($drop): void {
+            $query->where('from_item_id', $drop->id)->orWhere('to_item_id', $drop->id);
+        })->count())->toBe(0)
+        ->and(StructuredTable::query()->where('item_id', $drop->id)->count())->toBe(0)
+        ->and(StructuredRow::query()->where('item_id', $drop->id)->count())->toBe(0)
+        ->and(Item::query()->where('source_id', $otherSource->id)->count())->toBe($otherItemCount);
+
+    if (Schema::hasTable('item_sections_fts')) {
+        expect(DB::table('item_sections_fts')->whereIn('section_id', $dropSectionIds)->count())->toBe(0);
+    }
+
+    File::deleteDirectory($root);
+});
+
+it('prunes paths newly skipped by hygiene on re-sync', function (): void {
+    $root = sys_get_temp_dir().'/instituta-prune-skip-'.uniqid('', true);
+    File::ensureDirectoryExists($root.'/notes');
+    File::put($root.'/instituta.json', json_encode([
+        'format' => 'instituta',
+        'format_version' => 1,
+        'name' => 'Prune skip fixture',
+        'default_visibility' => 'internal',
+        'areas' => ['notes'],
+    ], JSON_THROW_ON_ERROR));
+    File::put($root.'/notes/keep.md', <<<'MD'
+---
+title: Keep me
+type: note
+area: notes
+visibility: internal
+---
+
+# Keep me
+
+Stays indexed.
+MD);
+    File::put($root.'/notes/soon-skipped.md', <<<'MD'
+---
+title: Soon skipped
+type: note
+area: notes
+visibility: internal
+---
+
+# Soon skipped
+
+Will move under .claude.
+MD);
+
+    $organisation = Organisation::factory()->create();
+    $source = app(SourceRegistryService::class)->add(
+        organisation: $organisation,
+        name: 'Prune skip source',
+        provider: SourceProviderEnum::Local,
+        localPath: $root,
+        isShared: true,
+    );
+
+    app(SourceSyncService::class)->sync($source->fresh());
+
+    $skippedItem = Item::query()
+        ->where('source_id', $source->id)
+        ->where('path', 'notes/soon-skipped.md')
+        ->firstOrFail();
+    $skippedSectionIds = ItemSection::query()->where('item_id', $skippedItem->id)->pluck('id')->all();
+
+    File::ensureDirectoryExists($root.'/.claude');
+    File::move($root.'/notes/soon-skipped.md', $root.'/.claude/soon-skipped.md');
+
+    $report = app(SourceSyncService::class)->sync($source->fresh());
+
+    expect(Item::query()->where('id', $skippedItem->id)->exists())->toBeFalse()
+        ->and(Item::query()->where('source_id', $source->id)->where('path', 'notes/keep.md')->exists())->toBeTrue()
+        ->and(ItemSection::query()->where('item_id', $skippedItem->id)->count())->toBe(0)
+        ->and(collect($report['skipped'])->pluck('path')->all())->toContain('.claude/soon-skipped.md');
+
+    if (Schema::hasTable('item_sections_fts')) {
+        expect(DB::table('item_sections_fts')->whereIn('section_id', $skippedSectionIds)->count())->toBe(0);
+    }
+
+    File::deleteDirectory($root);
 });
