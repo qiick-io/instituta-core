@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\ContextFreeze;
 use App\Models\Principal;
+use App\Models\User;
 use App\Models\VaultVersion;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -39,7 +40,7 @@ final class ContextFreezeService
                 ->when($productId === null, fn ($q) => $q->whereNull('product_id'), fn ($q) => $q->where('product_id', $productId))
                 ->update(['lifted_at' => now()]);
 
-            return ContextFreeze::query()->create([
+            $freeze = ContextFreeze::query()->create([
                 'organisation_id' => $vault->organisation_id,
                 'company_id' => $companyId,
                 'product_id' => $productId,
@@ -49,16 +50,30 @@ final class ContextFreezeService
                 'frozen_at' => now(),
                 'lifted_at' => null,
             ]);
+
+            $principal->loadMissing('user');
+            app(ActivityEventLoggerService::class)->freezeCreated(
+                $freeze,
+                $principal->user instanceof User ? $principal->user : null,
+            );
+
+            return $freeze;
         });
     }
 
-    public function unfreeze(ContextFreeze $freeze): ContextFreeze
+    public function unfreeze(ContextFreeze $freeze, ?Principal $actor = null): ContextFreeze
     {
         if ($freeze->lifted_at !== null) {
             return $freeze;
         }
 
         $freeze->forceFill(['lifted_at' => now()])->save();
+
+        $actor?->loadMissing('user');
+        app(ActivityEventLoggerService::class)->freezeLifted(
+            $freeze,
+            $actor?->user instanceof User ? $actor->user : null,
+        );
 
         return $freeze->refresh();
     }

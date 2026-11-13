@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Brain\Enums\PrincipalTypeEnum;
+use App\Traits\LogsApplicationActivityTrait;
 use Database\Factories\PrincipalFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * Actor bound to an organisation: person, agent or service.
@@ -41,7 +43,12 @@ use Illuminate\Support\Carbon;
 class Principal extends Model
 {
     /** @use HasFactory<PrincipalFactory> */
-    use HasFactory, HasUlids;
+    use HasFactory, HasUlids, LogsApplicationActivityTrait;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return $this->applicationActivityLogOptions()->useLogName('keys');
+    }
 
     /**
      * @return array<string, string>

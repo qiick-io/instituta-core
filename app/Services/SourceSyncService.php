@@ -102,13 +102,19 @@ final class SourceSyncService
 
             activity('sync')
                 ->performedOn($source)
+                ->event('source.synced')
                 ->withProperties([
+                    'organisation_id' => $source->organisation_id,
                     'status' => SyncStatusEnum::Ok->value,
                     'commit' => $commit,
                     'items_upserted' => $report['items_upserted'],
                     'sections_upserted' => $report['sections_upserted'],
                 ])
                 ->log('source.synced');
+
+            if ($report['skipped'] !== []) {
+                app(ActivityEventLoggerService::class)->scannerSkips($source, $report['skipped']);
+            }
 
             return $report;
         } catch (DenylistHitException $exception) {
@@ -151,7 +157,9 @@ final class SourceSyncService
 
         activity('sync')
             ->performedOn($source)
+            ->event('source.sync_failed')
             ->withProperties([
+                'organisation_id' => $source->organisation_id,
                 'status' => SyncStatusEnum::Failed->value,
                 'reason' => $report['reason'] ?? null,
                 'message' => $report['message'] ?? null,

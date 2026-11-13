@@ -199,7 +199,8 @@
             "map": "Karte",
             "tree": "Baum",
             "sources": "Quellen",
-            "keys": "Schlüssel"
+            "keys": "Schlüssel",
+            "activity": "Aktivität"
         },
         "scope": {
             "label": "Bereich",
@@ -308,5 +309,29 @@
             "active": "Aktiv",
             "revoked": "Widerrufen"
         }
+    },
+    "activity": {
+        "title": "Aktivität",
+        "description": "Audit-Protokoll dieser Organisation. Einträge älter als {{days}} Tage werden bereinigt.",
+        "searchPlaceholder": "Beschreibung oder Ereignis suchen…",
+        "ownerOnly": "Nur Organisationsinhaber können das Aktivitätsprotokoll sehen.",
+        "empty": "Noch keine Aktivität.",
+        "view": "Anzeigen",
+        "detailTitle": "Aktivitätsdetail",
+        "meta": "Änderungen und Meta",
+        "colWhen": "Wann",
+        "colLog": "Log",
+        "colEvent": "Ereignis",
+        "colCauser": "Verursacher",
+        "colSubject": "Gegenstand",
+        "filters": {
+            "all": "Alle",
+            "logName": "Logname",
+            "event": "Ereignis",
+            "causer": "Verursacher",
+            "dateFrom": "Von",
+            "dateTo": "Bis"
+        },
+        "ip": "IP"
     }
 }
