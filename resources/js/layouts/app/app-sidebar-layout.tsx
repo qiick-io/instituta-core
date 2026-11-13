@@ -1,41 +1,57 @@
+import { useState } from 'react';
+import { AppCommandPalette } from '@/components/app-command-palette';
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { ScopeSwitcher } from '@/components/brain/scope-switcher';
+import { CommandPaletteTrigger } from '@/components/command-palette';
+import { ShortcutsProvider } from '@/components/keyboard-shortcuts';
 import { SkipToContent } from '@/components/skip-to-content';
 import type { AppLayoutProps } from '@/types';
 
 /**
  * Authenticated app layout with collapsible sidebar and header bar.
- * Header actions sit after the scope switcher (list-page primary CTAs).
+ * Holds keyboard shortcuts and the command palette (#130): the palette trigger
+ * is the first header action (before the scope switcher).
  */
 export default function AppSidebarLayout({
     children,
     breadcrumbs = [],
     headerActions,
 }: AppLayoutProps) {
+    const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+
     return (
-        <AppShell variant="sidebar">
-            <SkipToContent />
-            <AppSidebar />
-            <AppContent
-                variant="sidebar"
-                id="main-content"
-                tabIndex={-1}
-                className="min-w-0 overflow-x-clip"
-            >
-                <AppSidebarHeader
-                    breadcrumbs={breadcrumbs}
-                    actions={
-                        <>
-                            <ScopeSwitcher />
-                            {headerActions}
-                        </>
-                    }
+        <ShortcutsProvider canUseSingleKeyShortcuts>
+            <AppShell variant="sidebar">
+                <SkipToContent />
+                <AppSidebar />
+                <AppContent
+                    variant="sidebar"
+                    id="main-content"
+                    tabIndex={-1}
+                    className="min-w-0 overflow-x-clip"
+                >
+                    <AppSidebarHeader
+                        breadcrumbs={breadcrumbs}
+                        actions={
+                            <>
+                                <CommandPaletteTrigger
+                                    onOpen={() => setIsPaletteOpen(true)}
+                                />
+                                <ScopeSwitcher />
+                                {headerActions}
+                            </>
+                        }
+                    />
+                    {children}
+                </AppContent>
+                <AppCommandPalette
+                    open={isPaletteOpen}
+                    onOpenChange={setIsPaletteOpen}
                 />
-                {children}
-            </AppContent>
-        </AppShell>
+            </AppShell>
+        </ShortcutsProvider>
     );
 }

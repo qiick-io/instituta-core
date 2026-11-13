@@ -70,15 +70,26 @@
         "removePendingFile": "Remove file"
     },
     "commandPalette": {
-        "description": "Search pages, records and actions.",
-        "empty": "No results.",
-        "open": "Open the command palette",
-        "placeholder": "Search or jump to…",
-        "recent": "Recent",
-        "searchFailed": "Search failed. Showing local results only.",
-        "searching": "Searching…",
         "title": "Command palette",
-        "trigger": "Search"
+        "description": "Jump to a page, brain item, or action.",
+        "placeholder": "Search…",
+        "empty": "No results.",
+        "searching": "Searching…",
+        "searchFailed": "Search failed. Showing local results only.",
+        "recent": "Recent",
+        "trigger": "Search",
+        "open": "Open command palette",
+        "groups": {
+            "navigation": "Navigation",
+            "actions": "Actions",
+            "items": "Brain items",
+            "users": "Users",
+            "recent": "Recent"
+        },
+        "actions": {
+            "lightMode": "Switch to light mode",
+            "darkMode": "Switch to dark mode"
+        }
     },
     "common": {
         "cancel": "Cancel",
@@ -320,13 +331,13 @@
         }
     },
     "shortcuts": {
-        "description": "Shortcuts active on this screen.",
-        "groupGeneral": "General",
-        "groupList": "List",
-        "groupNavigation": "Navigation",
+        "title": "Keyboard shortcuts",
+        "description": "Shortcuts available on this screen.",
+        "singleKeyOff": "Single-key shortcuts are off.",
         "showHelp": "Show keyboard shortcuts",
-        "singleKeyOff": "Single-key shortcuts are off in your settings; ⌘ / Ctrl shortcuts still work.",
-        "title": "Keyboard shortcuts"
+        "groupGeneral": "General",
+        "groupNavigation": "Navigation",
+        "groupList": "List"
     },
     "sidebarEntities": {
         "filter": "Filter navigation",

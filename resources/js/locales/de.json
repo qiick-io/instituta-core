@@ -70,15 +70,26 @@
         "removePendingFile": "Datei entfernen"
     },
     "commandPalette": {
-        "description": "Seiten, Datensätze und Aktionen suchen.",
-        "empty": "Keine Ergebnisse.",
-        "open": "Befehlspalette öffnen",
-        "placeholder": "Suchen oder springen zu…",
-        "recent": "Zuletzt geöffnet",
-        "searchFailed": "Suche fehlgeschlagen. Nur lokale Ergebnisse werden angezeigt.",
-        "searching": "Suche läuft…",
         "title": "Befehlspalette",
-        "trigger": "Suchen"
+        "description": "Zu einer Seite, einem Brain-Eintrag oder einer Aktion springen.",
+        "placeholder": "Suchen…",
+        "empty": "Keine Ergebnisse.",
+        "searching": "Suche…",
+        "searchFailed": "Suche fehlgeschlagen. Nur lokale Ergebnisse.",
+        "recent": "Zuletzt",
+        "trigger": "Suchen",
+        "open": "Befehlspalette öffnen",
+        "groups": {
+            "navigation": "Navigation",
+            "actions": "Aktionen",
+            "items": "Brain-Einträge",
+            "users": "Benutzer",
+            "recent": "Zuletzt"
+        },
+        "actions": {
+            "lightMode": "Zum hellen Modus wechseln",
+            "darkMode": "Zum dunklen Modus wechseln"
+        }
     },
     "common": {
         "cancel": "Abbrechen",
@@ -320,13 +331,13 @@
         }
     },
     "shortcuts": {
-        "description": "Auf dieser Seite aktive Tastenkürzel.",
-        "groupGeneral": "Allgemein",
-        "groupList": "Liste",
-        "groupNavigation": "Navigation",
+        "title": "Tastenkürzel",
+        "description": "Auf diesem Bildschirm verfügbare Kürzel.",
+        "singleKeyOff": "Einzeltasten-Kürzel sind aus.",
         "showHelp": "Tastenkürzel anzeigen",
-        "singleKeyOff": "Einzeltasten-Kürzel sind in deinen Einstellungen deaktiviert; Kürzel mit ⌘ / Strg funktionieren weiterhin.",
-        "title": "Tastenkürzel"
+        "groupGeneral": "Allgemein",
+        "groupNavigation": "Navigation",
+        "groupList": "Liste"
     },
     "sidebarEntities": {
         "filter": "Navigation filtern",
