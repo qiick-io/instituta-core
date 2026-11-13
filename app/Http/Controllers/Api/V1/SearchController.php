@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SearchRequest;
+use App\Http\Resources\Api\ApiMessageResource;
+use App\Http\Resources\Api\BrainContractResource;
 use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 use RuntimeException;
@@ -23,11 +25,13 @@ final class SearchController extends Controller
 
         $perimeter = $this->perimeter($request);
         if ($validated['scope'] !== $perimeter->scopeId) {
-            return response()->json(['message' => 'Not found.'], 404);
+            return (new ApiMessageResource(['message' => 'Not found.']))
+                ->response()
+                ->setStatusCode(404);
         }
 
         try {
-            return response()->json(
+            return (new BrainContractResource(
                 $this->contract->search(
                     $perimeter,
                     $this->apiKey($request),
@@ -35,12 +39,12 @@ final class SearchController extends Controller
                     $validated['area'] ?? null,
                     isset($validated['limit']) ? (int) $validated['limit'] : 20,
                 ),
-            );
+            ))->response();
         } catch (RuntimeException $exception) {
             if ($exception->getMessage() === 'search driver not supported') {
-                return response()->json([
+                return (new ApiMessageResource([
                     'message' => 'search driver not supported',
-                ], 501);
+                ]))->response()->setStatusCode(501);
             }
 
             throw $exception;

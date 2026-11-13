@@ -15,6 +15,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ListProposalsRequest;
 use App\Http\Requests\Api\ProposeBrainChangeRequest;
 use App\Http\Requests\Api\UpdateProposalStatusRequest;
+use App\Http\Resources\Api\ApiMessageResource;
+use App\Http\Resources\Api\ProposalSummaryResource;
 use App\Services\ProposalQueryService;
 use Illuminate\Http\JsonResponse;
 use InvalidArgumentException;
@@ -40,14 +42,14 @@ final class ProposalController extends Controller
             ? ProposalStatusEnum::from($validated['status'])
             : null;
 
-        return response()->json(
+        return (new ProposalSummaryResource(
             $this->queries->list(
                 $this->perimeter($request),
                 $this->apiKey($request),
                 $status,
                 'api',
             ),
-        );
+        ))->response();
     }
 
     public function store(ProposeBrainChangeRequest $request): JsonResponse
@@ -69,7 +71,9 @@ final class ProposalController extends Controller
             'api',
         );
 
-        return response()->json($this->queries->toSummary($proposal), 201);
+        return (new ProposalSummaryResource($this->queries->toSummary($proposal)))
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function update(UpdateProposalStatusRequest $request, string $id): JsonResponse
@@ -78,7 +82,9 @@ final class ProposalController extends Controller
         $proposal = $this->queries->findInPerimeter($perimeter, $id);
 
         if ($proposal === null) {
-            return response()->json(['message' => 'Not found.'], 404);
+            return (new ApiMessageResource(['message' => 'Not found.']))
+                ->response()
+                ->setStatusCode(404);
         }
 
         try {
@@ -92,9 +98,11 @@ final class ProposalController extends Controller
                 'api',
             );
         } catch (InvalidArgumentException $exception) {
-            return response()->json(['message' => $exception->getMessage()], 422);
+            return (new ApiMessageResource(['message' => $exception->getMessage()]))
+                ->response()
+                ->setStatusCode(422);
         }
 
-        return response()->json($this->queries->toSummary($updated));
+        return (new ProposalSummaryResource($this->queries->toSummary($updated)))->response();
     }
 }

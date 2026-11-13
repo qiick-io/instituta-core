@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ItemTableRequest;
+use App\Http\Resources\Api\ApiMessageResource;
+use App\Http\Resources\Api\BrainContractResource;
 use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 
@@ -31,10 +33,12 @@ final class ItemTableController extends Controller
         );
 
         if ($table === null) {
-            return response()->json(['message' => 'Not found.'], 404);
+            return (new ApiMessageResource(['message' => 'Not found.']))
+                ->response()
+                ->setStatusCode(404);
         }
 
-        return response()->json($table);
+        return (new BrainContractResource($table))->response();
     }
 
     /**

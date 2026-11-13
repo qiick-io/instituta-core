@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\ApiMessageResource;
+use App\Http\Resources\Api\BrainContractResource;
 use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,9 +27,11 @@ final class ItemOutlineController extends Controller
         );
 
         if ($outline === null) {
-            return response()->json(['message' => 'Not found.'], 404);
+            return (new ApiMessageResource(['message' => 'Not found.']))
+                ->response()
+                ->setStatusCode(404);
         }
 
-        return response()->json($outline);
+        return (new BrainContractResource($outline))->response();
     }
 }

@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SimilarSearchRequest;
+use App\Http\Resources\Api\ApiMessageResource;
+use App\Http\Resources\Api\BrainContractResource;
 use App\Services\BrainEmbeddingService;
 use App\Services\ContractAuditService;
 use Illuminate\Http\JsonResponse;
@@ -26,9 +28,9 @@ final class SimilarSearchController extends Controller
     public function __invoke(SimilarSearchRequest $request): JsonResponse
     {
         if (! config('ai.embeddings.enabled')) {
-            return response()->json([
+            return (new ApiMessageResource([
                 'message' => 'embeddings disabled',
-            ], 501);
+            ]))->response()->setStatusCode(501);
         }
 
         $validated = $request->validated();
@@ -36,7 +38,9 @@ final class SimilarSearchController extends Controller
         $perimeter = $this->perimeter($request);
 
         if ($validated['scope'] !== $perimeter->scopeId) {
-            return response()->json(['message' => 'Not found.'], 404);
+            return (new ApiMessageResource(['message' => 'Not found.']))
+                ->response()
+                ->setStatusCode(404);
         }
 
         $results = $this->embeddings->similar(
@@ -55,9 +59,9 @@ final class SimilarSearchController extends Controller
             ),
         );
 
-        return response()->json([
+        return (new BrainContractResource([
             'query' => $validated['q'],
             'results' => $results,
-        ]);
+        ]))->response();
     }
 }

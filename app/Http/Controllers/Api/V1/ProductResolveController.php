@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ProductResolveRequest;
+use App\Http\Resources\Api\BrainContractResource;
 use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
 
@@ -20,13 +21,13 @@ final class ProductResolveController extends Controller
     {
         $validated = $request->validated();
 
-        return response()->json(
+        return (new BrainContractResource(
             $this->contract->resolve(
                 $this->perimeter($request),
                 $this->apiKey($request),
                 $id,
                 $validated['area'] ?? null,
             ),
-        );
+        ))->response();
     }
 }
