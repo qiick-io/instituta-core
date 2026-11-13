@@ -36,6 +36,14 @@ php artisan instituta:upgrade
 
 That migrates, syncs permissions, clears caches, and runs version-specific steps. See `php artisan instituta:install --help` and `php artisan instituta:upgrade --help`.
 
+To add another dashboard user without the web UI (for example when mail is off):
+
+```bash
+php artisan instituta:create-user
+```
+
+The first user defaults to `super-admin`, later users to `reader`. Pass `--first-name`, `--last-name`, `--email`, and `--role` for non-interactive use; the password is always prompted.
+
 Health probes (auth-free): `GET /health/live` (process up) and `GET /health/ready` (database, and redis when cache/queue/session/broadcasting use it; `503` when a check fails).
 
 ### Docker (image build)
