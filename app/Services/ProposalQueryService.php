@@ -58,6 +58,18 @@ final class ProposalQueryService
     }
 
     /**
+     * Perimeter-scoped lookup for status updates (API / MCP).
+     */
+    public function findInPerimeter(PerimeterData $perimeter, string $proposalId): ?Proposal
+    {
+        return Proposal::query()
+            ->whereKey($proposalId)
+            ->where('scope_type', $perimeter->scopeType)
+            ->where('scope_id', $perimeter->scopeId)
+            ->first();
+    }
+
+    /**
      * Public contract shape: never includes body.
      *
      * @return array<string, mixed>

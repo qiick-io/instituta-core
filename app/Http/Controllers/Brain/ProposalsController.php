@@ -10,7 +10,6 @@ use App\Data\UpdateProposalStatusData;
 use App\Enums\ProposalStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Brain\UpdateBrainProposalStatusRequest;
-use App\Models\Proposal;
 use App\Models\User;
 use App\Services\BrainProposalsService;
 use App\Services\SessionPerimeterService;
@@ -93,12 +92,10 @@ final class ProposalsController extends Controller
             abort(404);
         }
 
-        $row = $this->proposals->find($perimeter, $proposal);
-        if ($row === null) {
+        $model = $this->proposals->findModel($perimeter, $proposal);
+        if ($model === null) {
             abort(404);
         }
-
-        $model = Proposal::query()->whereKey($proposal)->firstOrFail();
 
         try {
             $this->updateStatus->execute(

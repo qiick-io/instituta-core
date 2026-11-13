@@ -19,6 +19,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
 use RuntimeException;
+use ZipArchive;
 
 /**
  * Exports a client company subtree (case 8): sources, index JSON, manifest.
@@ -186,5 +187,32 @@ final class ClientExportService
             'request' => $request,
             'manifest' => $manifest,
         ];
+    }
+
+    /**
+     * Packs manifest.json and index.json into a temporary zip for download.
+     */
+    public function zipExportDirectory(string $exportPath, string $slug): string
+    {
+        $zipPath = storage_path('framework/cache/'.$slug.'-export-'.uniqid('', true).'.zip');
+        File::ensureDirectoryExists(dirname($zipPath));
+
+        $archive = new ZipArchive;
+
+        if ($archive->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            throw new RuntimeException('Failed to create export archive.');
+        }
+
+        foreach (['manifest.json', 'index.json'] as $fileName) {
+            $absolute = $exportPath.'/'.$fileName;
+
+            if (File::isFile($absolute)) {
+                $archive->addFile($absolute, $fileName);
+            }
+        }
+
+        $archive->close();
+
+        return $zipPath;
     }
 }

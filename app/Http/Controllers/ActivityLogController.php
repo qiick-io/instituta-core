@@ -61,26 +61,10 @@ final class ActivityLogController extends Controller
             ->paginate($organisationId, $filters, $perPage)
             ->withQueryString();
 
-        $causers = User::query()
-            ->whereHas('principals', function ($query) use ($organisationId): void {
-                $query->where('organisation_id', $organisationId);
-            })
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->limit(100)
-            ->get(['id', 'first_name', 'last_name', 'email'])
-            ->map(fn (User $causer): array => [
-                'id' => $causer->id,
-                'name' => $causer->name,
-                'email' => $causer->email,
-            ])
-            ->values()
-            ->all();
-
         return Inertia::render('activity/index', [
             'is_owner' => true,
             'activityLogs' => ActivityLogResource::collection($paginator),
-            'causers' => $causers,
+            'causers' => $this->activityLogs->causersForOrganisation($organisationId),
             'events' => FilterableActivityEventsService::all(),
             'logNames' => $this->activityLogs->logNames(),
             'filters' => $filters,

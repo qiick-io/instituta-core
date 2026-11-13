@@ -14,7 +14,6 @@ use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ProposeBrainChangeRequest;
 use App\Http\Requests\Api\UpdateProposalStatusRequest;
-use App\Models\Proposal;
 use App\Services\ProposalQueryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -78,11 +77,7 @@ final class ProposalController extends Controller
     public function update(UpdateProposalStatusRequest $request, string $id): JsonResponse
     {
         $perimeter = $this->perimeter($request);
-        $proposal = Proposal::query()
-            ->whereKey($id)
-            ->where('scope_type', $perimeter->scopeType)
-            ->where('scope_id', $perimeter->scopeId)
-            ->first();
+        $proposal = $this->queries->findInPerimeter($perimeter, $id);
 
         if ($proposal === null) {
             return response()->json(['message' => 'Not found.'], 404);

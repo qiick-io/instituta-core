@@ -6,8 +6,6 @@ namespace App\Http\Controllers\Brain;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ContractCallReplayResource;
-use App\Models\ContractCall;
-use App\Models\Principal;
 use App\Models\User;
 use App\Services\ContractCallReplayQueryService;
 use Illuminate\Http\Request;
@@ -61,31 +59,11 @@ final class SessionReplayController extends Controller
             ->paginate($organisationId, $filters, $perPage)
             ->withQueryString();
 
-        $principals = Principal::query()
-            ->where('organisation_id', $organisationId)
-            ->orderBy('name')
-            ->limit(100)
-            ->get(['id', 'name'])
-            ->map(fn (Principal $principal): array => [
-                'id' => $principal->id,
-                'name' => $principal->name,
-            ])
-            ->values()
-            ->all();
-
-        $tools = ContractCall::query()
-            ->where('organisation_id', $organisationId)
-            ->distinct()
-            ->orderBy('tool_or_endpoint')
-            ->limit(100)
-            ->pluck('tool_or_endpoint')
-            ->all();
-
         return Inertia::render('brain/session-replay', [
             'is_owner' => true,
             'calls' => ContractCallReplayResource::collection($paginator),
-            'principals' => $principals,
-            'tools' => $tools,
+            'principals' => $this->replay->principalsForOrganisation($organisationId),
+            'tools' => $this->replay->toolsForOrganisation($organisationId),
             'filters' => $filters,
         ]);
     }
