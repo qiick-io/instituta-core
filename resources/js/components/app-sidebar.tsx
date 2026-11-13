@@ -17,7 +17,7 @@ import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
-import { UserMenuContent } from '@/components/user-menu-content';
+import { AppUserMenuContent } from '@/components/app-user-menu-content';
 import {
     Sidebar,
     SidebarContent,
@@ -27,9 +27,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
-import { dashboard, logout } from '@/routes';
-import { edit as editProfile } from '@/routes/profile';
+import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
 const footerNavItems: NavItem[] = [
@@ -48,7 +46,6 @@ const footerNavItems: NavItem[] = [
 export function AppSidebar() {
     const { t } = useTranslation();
     const { auth } = usePage().props;
-    const cleanup = useMobileNavigation();
 
     const mainNavItems: NavItem[] = [
         {
@@ -124,14 +121,7 @@ export function AppSidebar() {
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser user={auth.user}>
-                    {auth.user ? (
-                        <UserMenuContent
-                            user={auth.user}
-                            settingsHref={editProfile()}
-                            logoutHref={logout()}
-                            onNavigate={cleanup}
-                        />
-                    ) : null}
+                    {auth.user ? <AppUserMenuContent user={auth.user} /> : null}
                 </NavUser>
             </SidebarFooter>
         </Sidebar>
