@@ -204,6 +204,25 @@
         "scope": {
             "label": "Scope",
             "none": "No scope yet"
+        },
+        "map": {
+            "title": "Brain map",
+            "description": "Coverage by area for the current scope. Empty areas show as gaps.",
+            "gap": "Gap",
+            "count_one": "{{count}} item",
+            "count_other": "{{count}} items",
+            "emptyHint": "Nothing indexed here yet.",
+            "openTree": "Open the tree for this area."
+        },
+        "areas": {
+            "rules": "Rules",
+            "decisions": "Decisions",
+            "style": "Style / brand",
+            "glossary": "Glossary",
+            "design-system": "Design system",
+            "plans": "Plans",
+            "connected-systems": "Connected systems",
+            "notes": "Notes"
         }
     }
 }
