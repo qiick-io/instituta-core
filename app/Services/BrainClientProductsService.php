@@ -7,16 +7,13 @@ namespace App\Services;
 use App\Models\Company;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Lists products under a client company for the agency portal.
  */
 final class BrainClientProductsService
 {
-    public function __construct(
-        private readonly BrainClientsService $clients,
-    ) {}
-
     /**
      * @return array{
      *     client: array{id: string, name: string, slug: string},
@@ -30,7 +27,7 @@ final class BrainClientProductsService
      */
     public function listFor(User $user, Company $company): array
     {
-        $this->clients->assertOwnerCanManage($user, $company);
+        Gate::forUser($user)->authorize('view', $company);
 
         $products = Product::query()
             ->where('company_id', $company->id)

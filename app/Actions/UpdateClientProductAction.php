@@ -9,7 +9,7 @@ use App\Models\Company;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\ActivityEventLoggerService;
-use App\Services\BrainClientsService;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Updates a product that belongs to an owned client company.
@@ -17,7 +17,6 @@ use App\Services\BrainClientsService;
 final class UpdateClientProductAction
 {
     public function __construct(
-        private readonly BrainClientsService $clients,
         private readonly ActivityEventLoggerService $activity,
     ) {}
 
@@ -27,11 +26,11 @@ final class UpdateClientProductAction
         Product $product,
         ClientProductData $data,
     ): Product {
-        $this->clients->assertOwnerCanManage($user, $company);
-
         if ($product->company_id !== $company->id) {
             abort(403);
         }
+
+        Gate::forUser($user)->authorize('update', $product);
 
         $product->fill([
             'name' => $data->name,

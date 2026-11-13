@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Services\BrainClientsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -46,9 +47,7 @@ final class ClientsController extends Controller
             abort(401);
         }
 
-        if ($this->clients->ownerOrganisationIdFor($user) === null) {
-            abort(403);
-        }
+        Gate::authorize('create', Company::class);
 
         return to_route('brain.clients.index', ['new' => 1]);
     }
@@ -80,7 +79,7 @@ final class ClientsController extends Controller
             abort(401);
         }
 
-        $this->clients->assertOwnerCanManage($user, $company);
+        Gate::authorize('update', $company);
 
         return to_route('brain.clients.index', ['edit' => $company->id]);
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Brain;
 
+use App\Models\Company;
 use App\Models\User;
 use App\Services\BrainClientsService;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -17,13 +18,7 @@ final class StoreClientCompanyRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $user = $this->user();
-
-        if (! $user instanceof User) {
-            return false;
-        }
-
-        return app(BrainClientsService::class)->ownerOrganisationIdFor($user) !== null;
+        return (bool) $this->user()?->can('create', Company::class);
     }
 
     /**

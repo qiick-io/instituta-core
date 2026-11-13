@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests\Brain;
 
 use App\Models\Company;
-use App\Models\User;
-use App\Services\BrainClientsService;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 /**
@@ -18,14 +17,15 @@ final class UpdateClientCompanyRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $user = $this->user();
         $company = $this->route('company');
 
-        if (! $user instanceof User || ! $company instanceof Company) {
+        if (! $company instanceof Company) {
             return false;
         }
 
-        return app(BrainClientsService::class)->canOwnerManage($user, $company);
+        abort_unless(Gate::allows('update', $company), 403);
+
+        return true;
     }
 
     /**

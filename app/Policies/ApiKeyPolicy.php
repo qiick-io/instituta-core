@@ -7,6 +7,10 @@ namespace App\Policies;
 use App\Models\ApiKey;
 use App\Models\User;
 
+/**
+ * Portal and future write surfaces for API keys: the actor must hold a principal,
+ * and record-level view/delete require that principal to own the key.
+ */
 class ApiKeyPolicy
 {
     public function viewAny(User $user): bool

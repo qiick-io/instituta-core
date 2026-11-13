@@ -11,6 +11,8 @@ use App\Models\Company;
 use App\Models\OffboardingRequest;
 use App\Models\Principal;
 use App\Models\User;
+use App\Policies\CompanyPolicy;
+use App\Policies\ProductPolicy;
 
 /**
  * Lists and authorises client companies for the agency portal (case 4).
@@ -48,6 +50,9 @@ final class BrainClientsService
 
     /**
      * Whether the user may manage this company as a client of their organisation.
+     *
+     * Used by {@see CompanyPolicy} / {@see ProductPolicy};
+     * HTTP and Actions call Gate, not this helper directly.
      */
     public function canOwnerManage(User $user, Company $company): bool
     {
@@ -56,16 +61,6 @@ final class BrainClientsService
         return $organisationId !== null
             && $company->organisation_id === $organisationId
             && $company->kind === CompanyKindEnum::Client;
-    }
-
-    /**
-     * Soft-guard: abort when the company is outside the owner's client perimeter.
-     */
-    public function assertOwnerCanManage(User $user, Company $company): void
-    {
-        if (! $this->canOwnerManage($user, $company)) {
-            abort(403);
-        }
     }
 
     /**

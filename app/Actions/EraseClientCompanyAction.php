@@ -7,8 +7,8 @@ namespace App\Actions;
 use App\Models\Company;
 use App\Models\OffboardingRequest;
 use App\Models\User;
-use App\Services\BrainClientsService;
 use App\Services\ClientErasureService;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Erases an exported client subtree for an organisation owner.
@@ -16,7 +16,6 @@ use App\Services\ClientErasureService;
 final class EraseClientCompanyAction
 {
     public function __construct(
-        private readonly BrainClientsService $clients,
         private readonly ClientErasureService $erasure,
     ) {}
 
@@ -25,7 +24,7 @@ final class EraseClientCompanyAction
      */
     public function execute(User $user, Company $company, OffboardingRequest $request): array
     {
-        $this->clients->assertOwnerCanManage($user, $company);
+        Gate::forUser($user)->authorize('delete', $company);
 
         if ($request->company_id !== $company->id) {
             abort(404);

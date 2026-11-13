@@ -5,13 +5,18 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Brain;
 
 use App\Http\Controllers\Controller;
+use App\Models\Item;
 use App\Models\User;
 use App\Services\BrainReadingService;
 use App\Services\SessionPerimeterService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Progressive reading view for a single brain item in the session perimeter.
+ */
 final class ReadingController extends Controller
 {
     public function __construct(
@@ -31,6 +36,8 @@ final class ReadingController extends Controller
             abort(404);
         }
 
+        Gate::authorize('viewAny', Item::class);
+
         $perimeter = $this->sessions->resolve($request, $principal);
         if ($perimeter === null) {
             abort(404);
@@ -39,6 +46,12 @@ final class ReadingController extends Controller
         $payload = $this->reading->item($perimeter, $item);
         if ($payload === null) {
             abort(404);
+        }
+
+        $itemModel = Item::query()->find($item);
+
+        if ($itemModel instanceof Item) {
+            Gate::authorize('view', $itemModel);
         }
 
         return Inertia::render('brain/reading', [
