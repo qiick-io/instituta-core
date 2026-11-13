@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auth-free `GET /health/live` and `GET /health/ready` probes with fail-closed readiness (issue #68).
 - `database/migrations/.frozen` blob baseline so `migrations-frozen` binds before the first tag (issue #74).
 - In-app notification centre (issue #129): database notifications, sidebar bell and drawer (`@qiick/notifications`), sound preference on the profile page; events for sync finished/failed, proposal opened/resolved, API key about to expire, and freeze activated (organisation-scoped).
+- Optional command palette (issue #130): `@qiick/command-palette` + `keyboard-shortcuts` in `qiick-standards.json` `patterns`; ⌘K search of navigation, perimeter-scoped brain item titles, and allowed actions.
 
 ### Changed
 

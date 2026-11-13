@@ -16,6 +16,7 @@ use App\Http\Controllers\Brain\SessionReplayController;
 use App\Http\Controllers\Brain\SourcesController;
 use App\Http\Controllers\Brain\TablesController;
 use App\Http\Controllers\Brain\TreeController;
+use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +33,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('notifications.read');
     Route::post('notifications/unread', [NotificationController::class, 'markUnread'])
         ->name('notifications.unread');
+
+    Route::get('search', GlobalSearchController::class)
+        ->middleware('throttle:60,1')
+        ->name('search');
 
     Route::post('brain/scope', ScopeSwitcherController::class)->name('brain.scope');
     Route::get('brain/map', MapController::class)->name('brain.map');

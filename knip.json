@@ -36,7 +36,11 @@
         "resources/js/wayfinder/**",
         "resources/js/components/admin/data-table-faceted-filter.tsx",
         "resources/js/components/admin/data-table.tsx",
-        "resources/js/lib/password-strength.ts"
+        "resources/js/lib/password-strength.ts",
+        "resources/js/components/command-palette.tsx",
+        "resources/js/components/keyboard-shortcuts.tsx",
+        "resources/js/lib/shortcut-keys.ts",
+        "resources/js/components/ui/kbd.tsx"
     ],
     "ignoreDependencies": [
         "@radix-ui/react-avatar",

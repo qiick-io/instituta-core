@@ -70,15 +70,26 @@
         "removePendingFile": "Rimuovi file"
     },
     "commandPalette": {
-        "description": "Cerca pagine, record e azioni.",
+        "title": "Palette comandi",
+        "description": "Vai a una pagina, un elemento del brain o un'azione.",
+        "placeholder": "Cerca…",
         "empty": "Nessun risultato.",
-        "open": "Apri la palette dei comandi",
-        "placeholder": "Cerca o vai a…",
+        "searching": "Ricerca…",
+        "searchFailed": "Ricerca non riuscita. Solo risultati locali.",
         "recent": "Recenti",
-        "searchFailed": "Ricerca non riuscita. Mostro solo i risultati locali.",
-        "searching": "Ricerca in corso…",
-        "title": "Palette dei comandi",
-        "trigger": "Cerca"
+        "trigger": "Cerca",
+        "open": "Apri la palette comandi",
+        "groups": {
+            "navigation": "Navigazione",
+            "actions": "Azioni",
+            "items": "Elementi brain",
+            "users": "Utenti",
+            "recent": "Recenti"
+        },
+        "actions": {
+            "lightMode": "Passa alla modalità chiara",
+            "darkMode": "Passa alla modalità scura"
+        }
     },
     "common": {
         "cancel": "Annulla",
@@ -320,13 +331,13 @@
         }
     },
     "shortcuts": {
-        "description": "Scorciatoie attive in questa schermata.",
+        "title": "Scorciatoie da tastiera",
+        "description": "Scorciatoie disponibili in questa schermata.",
+        "singleKeyOff": "Le scorciatoie a tasto singolo sono disattivate.",
+        "showHelp": "Mostra scorciatoie da tastiera",
         "groupGeneral": "Generale",
-        "groupList": "Lista",
         "groupNavigation": "Navigazione",
-        "showHelp": "Mostra le scorciatoie da tastiera",
-        "singleKeyOff": "Le scorciatoie a un tasto sono disattivate nelle tue impostazioni; quelle con ⌘ / Ctrl funzionano ancora.",
-        "title": "Scorciatoie da tastiera"
+        "groupList": "Elenco"
     },
     "sidebarEntities": {
         "filter": "Filtra la navigazione",
