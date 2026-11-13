@@ -214,6 +214,14 @@
             "emptyHint": "Niente di indicizzato qui.",
             "openTree": "Apri l'albero di quest'area."
         },
+        "tree": {
+            "title": "Albero del brain",
+            "description": "Concetti nell'ambito corrente, raggruppati per area e percorso.",
+            "count_one": "{{count}} elemento",
+            "count_other": "{{count}} elementi",
+            "empty": "Nessun concetto in questo ambito ancora.",
+            "clearArea": "Mostra tutte le aree"
+        },
         "areas": {
             "rules": "Regole",
             "decisions": "Decisioni",
@@ -238,3 +246,4 @@
         }
     }
 }
+

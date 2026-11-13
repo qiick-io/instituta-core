@@ -214,6 +214,14 @@
             "emptyHint": "Hier ist noch nichts indexiert.",
             "openTree": "Baum für diesen Bereich öffnen."
         },
+        "tree": {
+            "title": "Brain-Baum",
+            "description": "Konzepte im aktuellen Bereich, gruppiert nach Area und Pfad.",
+            "count_one": "{{count}} Eintrag",
+            "count_other": "{{count}} Einträge",
+            "empty": "Noch keine Konzepte in diesem Bereich.",
+            "clearArea": "Alle Areas zeigen"
+        },
         "areas": {
             "rules": "Regeln",
             "decisions": "Entscheidungen",
@@ -238,3 +246,4 @@
         }
     }
 }
+
