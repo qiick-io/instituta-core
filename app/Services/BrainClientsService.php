@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Brain\Enums\RoleEnum;
 use App\Enums\CompanyKindEnum;
+use App\Enums\OffboardingStatusEnum;
 use App\Models\Company;
 use App\Models\OffboardingRequest;
 use App\Models\Principal;
@@ -75,6 +76,7 @@ final class BrainClientsService
      *         name: string,
      *         slug: string,
      *         latest_export_id: string|null,
+     *         latest_export_status: string|null,
      *         products: list<array{id: string, name: string, slug: string}>
      *     }>
      * }
@@ -94,15 +96,15 @@ final class BrainClientsService
             ->orderBy('name')
             ->get();
 
-        $latestExportIds = OffboardingRequest::query()
+        $latestExports = OffboardingRequest::query()
             ->whereIn('company_id', $clients->pluck('id'))
             ->whereNotNull('export_path')
             ->orderByDesc('requested_at')
-            ->get(['id', 'company_id'])
+            ->get(['id', 'company_id', 'status'])
             ->unique('company_id')
-            ->pluck('id', 'company_id');
+            ->keyBy('company_id');
 
-        /** @var list<array{id: string, name: string, slug: string, latest_export_id: string|null, products: list<array{id: string, name: string, slug: string}>}> $rows */
+        /** @var list<array{id: string, name: string, slug: string, latest_export_id: string|null, latest_export_status: string|null, products: list<array{id: string, name: string, slug: string}>}> $rows */
         $rows = [];
         foreach ($clients as $client) {
             /** @var list<array{id: string, name: string, slug: string}> $products */
@@ -115,11 +117,17 @@ final class BrainClientsService
                 ];
             }
 
+            $latest = $latestExports->get($client->id);
+            $status = $latest?->status;
+
             $rows[] = [
                 'id' => $client->id,
                 'name' => $client->name,
                 'slug' => $client->slug,
-                'latest_export_id' => $latestExportIds[$client->id] ?? null,
+                'latest_export_id' => $latest?->id,
+                'latest_export_status' => $status instanceof OffboardingStatusEnum
+                    ? $status->value
+                    : null,
                 'products' => $products,
             ];
         }

@@ -125,6 +125,32 @@ final class ActivityEventLoggerService
         );
     }
 
+    /**
+     * Counts only — never item titles, bodies or secrets.
+     *
+     * @param  array{deleted_items?: int, revoked_keys?: int}  $counts
+     */
+    public function offboardingErased(
+        Company $company,
+        OffboardingRequest $request,
+        ?User $causer = null,
+        array $counts = [],
+    ): void {
+        $this->log(
+            'tenancy',
+            'offboarding.erased',
+            'offboarding.erased',
+            $request,
+            $causer,
+            [
+                'organisation_id' => $company->organisation_id,
+                'company_id' => $company->id,
+                'deleted_items' => $counts['deleted_items'] ?? 0,
+                'revoked_keys' => $counts['revoked_keys'] ?? 0,
+            ],
+        );
+    }
+
     public function clientCreated(Company $company, ?User $causer = null): void
     {
         $this->log(

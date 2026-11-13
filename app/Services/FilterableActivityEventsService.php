@@ -37,6 +37,7 @@ final class FilterableActivityEventsService
             'product.created',
             'product.updated',
             'offboarding.exported',
+            'offboarding.erased',
             'proposal.opened',
             'proposal.accepted',
             'proposal.rejected',
