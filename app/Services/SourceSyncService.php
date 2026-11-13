@@ -13,8 +13,10 @@ use App\Brain\Data\SkippedFileData;
 use App\Brain\Data\ValidationIssueData;
 use App\Brain\Exceptions\DenylistHitException;
 use App\Brain\Readers\BrainReader;
+use App\Enums\QuotaMetricEnum;
 use App\Enums\SourceProviderEnum;
 use App\Enums\SyncStatusEnum;
+use App\Exceptions\QuotaExceededException;
 use App\Models\Item;
 use App\Models\ItemLink;
 use App\Models\ItemSection;
@@ -34,6 +36,7 @@ final class SourceSyncService
     public function __construct(
         private readonly DenylistGuardService $denylist = new DenylistGuardService,
         private readonly BrainReader $reader = new BrainReader,
+        private readonly QuotaEnforcementService $quotas = new QuotaEnforcementService,
     ) {}
 
     /**
@@ -46,6 +49,25 @@ final class SourceSyncService
         ])->save();
 
         try {
+            try {
+                $this->quotas->consume(
+                    organisationId: $source->organisation_id,
+                    metric: QuotaMetricEnum::SourceSyncs,
+                    companyId: $source->company_id,
+                );
+            } catch (QuotaExceededException $exception) {
+                return $this->fail($source, [
+                    'reason' => 'quota_exceeded',
+                    'message' => $exception->getMessage(),
+                    'items_upserted' => 0,
+                    'sections_upserted' => 0,
+                    'links_upserted' => 0,
+                    'skipped' => [],
+                    'issues' => [],
+                    'versions_upserted' => 0,
+                ]);
+            }
+
             $this->denylist->assertAllowed($source->name, $source->remote_url, $source->local_path);
 
             if ($source->provider === SourceProviderEnum::Github && ! $this->githubToken()) {

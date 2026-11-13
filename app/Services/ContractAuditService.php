@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Brain\Data\PerimeterData;
 use App\Brain\Enums\ScopeTypeEnum;
+use App\Enums\QuotaMetricEnum;
 use App\Models\ApiKey;
 use App\Models\Company;
 use App\Models\ContractCall;
@@ -16,6 +17,10 @@ use App\Models\Product;
  */
 final class ContractAuditService
 {
+    public function __construct(
+        private readonly QuotaEnforcementService $quotas = new QuotaEnforcementService,
+    ) {}
+
     /**
      * @param  list<string>|null  $itemIds
      */
@@ -27,6 +32,14 @@ final class ContractAuditService
         ?int $tokenEstimate = null,
     ): ContractCall {
         [$organisationId, $companyId, $productId] = $this->scopeColumns($perimeter);
+
+        if (is_string($organisationId) && $organisationId !== '') {
+            $this->quotas->consume(
+                organisationId: $organisationId,
+                metric: QuotaMetricEnum::ContractCalls,
+                companyId: $companyId,
+            );
+        }
 
         return ContractCall::query()->create([
             'principal_id' => $perimeter->principalId,
