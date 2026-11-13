@@ -338,7 +338,9 @@
             "saveCreate": "Create client",
             "saveEdit": "Save changes",
             "cancel": "Cancel",
-            "manageProducts": "Products"
+            "manageProducts": "Products",
+            "export": "Export",
+            "downloadExport": "Download export"
         },
         "products": {
             "title": "Products — {{client}}",

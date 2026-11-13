@@ -338,7 +338,9 @@
             "saveCreate": "Kunde anlegen",
             "saveEdit": "Änderungen speichern",
             "cancel": "Abbrechen",
-            "manageProducts": "Produkte"
+            "manageProducts": "Produkte",
+            "export": "Exportieren",
+            "downloadExport": "Export herunterladen"
         },
         "products": {
             "title": "Produkte — {{client}}",

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\Brain\ClientExportController;
 use App\Http\Controllers\Brain\ClientProductsController;
 use App\Http\Controllers\Brain\ClientsController;
 use App\Http\Controllers\Brain\KeysController;
@@ -45,6 +46,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('brain.clients.products.edit');
     Route::put('brain/clients/{company}/products/{product}', [ClientProductsController::class, 'update'])
         ->name('brain.clients.products.update');
+    Route::post('brain/clients/{company}/export', [ClientExportController::class, 'store'])
+        ->name('brain.clients.export.store');
+    Route::get('brain/clients/{company}/exports/{offboarding}/download', [ClientExportController::class, 'download'])
+        ->name('brain.clients.export.download');
     Route::get('activity', ActivityLogController::class)->name('activity.index');
 });
 
