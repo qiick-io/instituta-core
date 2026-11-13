@@ -32,13 +32,7 @@ final class ProposalsController extends Controller
 
     public function index(Request $request): Response
     {
-        $user = $request->user();
-        if (! $user instanceof User) {
-            abort(401);
-        }
-
-        $principal = $this->sessions->personPrincipal($user);
-        $perimeter = $principal === null ? null : $this->sessions->resolve($request, $principal);
+        $perimeter = $this->sessions->optionalPerimeter($request);
 
         $statusFilter = $request->string('status')->toString();
         $status = in_array($statusFilter, ['open', 'accepted', 'rejected'], true)
@@ -55,17 +49,7 @@ final class ProposalsController extends Controller
 
     public function show(Request $request, string $proposal): Response
     {
-        $user = $request->user();
-        if (! $user instanceof User) {
-            abort(401);
-        }
-
-        $principal = $this->sessions->personPrincipal($user);
-        $perimeter = $principal === null ? null : $this->sessions->resolve($request, $principal);
-
-        if ($perimeter === null) {
-            abort(404);
-        }
+        $perimeter = $this->sessions->requirePerimeter($request);
 
         $row = $this->proposals->find($perimeter, $proposal);
         if ($row === null) {
@@ -81,16 +65,9 @@ final class ProposalsController extends Controller
     public function update(UpdateBrainProposalStatusRequest $request, string $proposal): RedirectResponse
     {
         $user = $request->user();
-        if (! $user instanceof User) {
-            abort(401);
-        }
+        abort_unless($user instanceof User, 401);
 
-        $principal = $this->sessions->personPrincipal($user);
-        $perimeter = $principal === null ? null : $this->sessions->resolve($request, $principal);
-
-        if ($perimeter === null) {
-            abort(404);
-        }
+        $perimeter = $this->sessions->requirePerimeter($request);
 
         $model = $this->proposals->findModel($perimeter, $proposal);
         if ($model === null) {

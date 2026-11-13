@@ -41,6 +41,35 @@ final class SessionPerimeterService
     }
 
     /**
+     * Authenticated person principal + session scope, or null when the UI has no perimeter yet.
+     * Aborts 401 when the request has no signed-in user.
+     */
+    public function optionalPerimeter(Request $request): ?PerimeterData
+    {
+        $user = $request->user();
+        abort_unless($user instanceof User, 401);
+
+        $principal = $this->personPrincipal($user);
+
+        if ($principal === null) {
+            return null;
+        }
+
+        return $this->resolve($request, $principal);
+    }
+
+    /**
+     * Same as {@see optionalPerimeter()} but aborts 404 when the session has no perimeter.
+     */
+    public function requirePerimeter(Request $request): PerimeterData
+    {
+        $perimeter = $this->optionalPerimeter($request);
+        abort_unless($perimeter instanceof PerimeterData, 404);
+
+        return $perimeter;
+    }
+
+    /**
      * @return array{perimeter: array<string, mixed>|null, scopes: list<array<string, mixed>>, label: string|null}
      */
     public function sharedPayload(Request $request): array

@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Brain;
 
 use App\Http\Controllers\Controller;
 use App\Models\Item;
-use App\Models\User;
 use App\Services\BrainReadingService;
 use App\Services\SessionPerimeterService;
 use Illuminate\Http\Request;
@@ -26,22 +25,9 @@ final class ReadingController extends Controller
 
     public function __invoke(Request $request, string $item): Response
     {
-        $user = $request->user();
-        if (! $user instanceof User) {
-            abort(401);
-        }
-
-        $principal = $this->sessions->personPrincipal($user);
-        if ($principal === null) {
-            abort(404);
-        }
+        $perimeter = $this->sessions->requirePerimeter($request);
 
         Gate::authorize('viewAny', Item::class);
-
-        $perimeter = $this->sessions->resolve($request, $principal);
-        if ($perimeter === null) {
-            abort(404);
-        }
 
         $payload = $this->reading->item($perimeter, $item);
         if ($payload === null) {

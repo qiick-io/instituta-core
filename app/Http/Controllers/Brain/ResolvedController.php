@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Brain;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Services\BrainResolvedService;
 use App\Services\SessionPerimeterService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Resolved product view: inherited values with origins for the session perimeter.
+ */
 final class ResolvedController extends Controller
 {
     public function __construct(
@@ -21,13 +23,7 @@ final class ResolvedController extends Controller
 
     public function __invoke(Request $request): Response
     {
-        $user = $request->user();
-        if (! $user instanceof User) {
-            abort(401);
-        }
-
-        $principal = $this->sessions->personPrincipal($user);
-        $perimeter = $principal === null ? null : $this->sessions->resolve($request, $principal);
+        $perimeter = $this->sessions->optionalPerimeter($request);
 
         if ($perimeter === null) {
             return Inertia::render('brain/resolved', [
