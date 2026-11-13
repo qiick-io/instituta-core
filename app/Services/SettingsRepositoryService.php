@@ -1,0 +1,257 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Enums\ThemePresetEnum;
+use App\Models\Setting;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rules\Password;
+
+/**
+ * Instance settings stored in the `settings` table, merged over defaults, with typed getters
+ * for the code that uses them (login throttle, password rule, self-registration, required 2FA,
+ * UI language, appearance and branding colours).
+ *
+ * Copied from qiick-io/signaculum-core and trimmed (no email templates / branding file uploads).
+ * Setting keys keep the externa-core / Excubia names (`project_color`, …) so the apps read the
+ * same way; in Instituta "project" means this instance.
+ *
+ * Registered as a singleton; values are read once per instance and reloaded after a write.
+ */
+final class SettingsRepositoryService
+{
+    public const array PASSWORD_POLICIES = ['weak', 'medium', 'strong'];
+
+    public const array APPEARANCES = ['system', 'light', 'dark'];
+
+    /** @var array<string, mixed>|null */
+    private ?array $values = null;
+
+    /**
+     * Defaults for every key.
+     *
+     * @return array<string, mixed>
+     */
+    public function defaults(): array
+    {
+        return [
+            'app_name' => null,
+            'description' => null,
+            'report_bug_url' => null,
+            'default_language' => $this->configLanguage(),
+            'default_appearance' => 'system',
+            'theme_preset' => ThemePresetEnum::default()->value,
+            'project_color' => null,
+            'project_color_dark' => null,
+            'password_policy' => app()->isProduction() ? 'strong' : 'weak',
+            'login_max_attempts' => 5,
+            'login_lockout_threshold' => 5,
+            'login_lockout_minutes' => 15,
+            // Closed by default; admins turn this on in Settings → Authentication & security.
+            'registration_enabled' => false,
+            'two_factor_required' => false,
+            'activity_retention_days' => (int) config('activitylog.clean_after_days', 365),
+        ];
+    }
+
+    /**
+     * Every setting, stored values over defaults.
+     *
+     * @return array<string, mixed>
+     */
+    public function all(): array
+    {
+        return $this->values ??= array_merge(
+            $this->defaults(),
+            Setting::query()->pluck('value', 'key')->all(),
+        );
+    }
+
+    /**
+     * Only the given keys, for one settings page.
+     *
+     * @param  list<string>  $keys
+     * @return array<string, mixed>
+     */
+    public function forEditOnly(array $keys): array
+    {
+        return array_intersect_key($this->all(), array_flip($keys));
+    }
+
+    /**
+     * Saves the given keys in one transaction.
+     *
+     * @param  array<string, mixed>  $values
+     */
+    public function save(array $values): void
+    {
+        DB::transaction(function () use ($values): void {
+            foreach ($values as $key => $value) {
+                Setting::query()->updateOrCreate(['key' => $key], ['value' => $value]);
+            }
+        });
+
+        $this->values = null;
+    }
+
+    /**
+     * The instance name shown in the UI and the browser title; `APP_NAME` until one is saved.
+     */
+    public function appName(): string
+    {
+        return $this->string('app_name') ?? (string) config('app.name');
+    }
+
+    public function reportBugUrl(): ?string
+    {
+        return $this->string('report_bug_url');
+    }
+
+    /**
+     * Default UI locale for people without a personal or cookie choice.
+     */
+    public function defaultLanguage(): string
+    {
+        $language = $this->all()['default_language'];
+
+        return is_string($language) && in_array($language, $this->availableLanguages(), true)
+            ? $language
+            : $this->configLanguage();
+    }
+
+    /**
+     * Light/dark/system default for visitors without an `appearance` cookie.
+     */
+    public function defaultAppearance(): string
+    {
+        $appearance = $this->all()['default_appearance'];
+
+        return is_string($appearance) && in_array($appearance, self::APPEARANCES, true) ? $appearance : 'system';
+    }
+
+    public function themePreset(): string
+    {
+        $preset = $this->all()['theme_preset'];
+
+        return ThemePresetEnum::tryFromNullable(is_string($preset) ? $preset : null)->value;
+    }
+
+    /**
+     * Custom brand colour (`#RRGGBB`) that overrides the preset primary, or null.
+     */
+    public function projectColor(): ?string
+    {
+        return $this->hexColor('project_color');
+    }
+
+    /**
+     * Custom dark-mode brand colour, or null (the light one is used then).
+     */
+    public function projectColorDark(): ?string
+    {
+        return $this->hexColor('project_color_dark');
+    }
+
+    public function passwordPolicy(): string
+    {
+        $policy = $this->all()['password_policy'];
+
+        return in_array($policy, self::PASSWORD_POLICIES, true) ? $policy : 'strong';
+    }
+
+    /**
+     * The password rule of the saved policy, used as `Password::defaults()`.
+     */
+    public function passwordRule(): Password
+    {
+        return match ($this->passwordPolicy()) {
+            'weak' => Password::min(6),
+            'medium' => Password::min(8)->mixedCase()->numbers(),
+            default => Password::min(12)->mixedCase()->letters()->numbers()->symbols()->uncompromised(),
+        };
+    }
+
+    /**
+     * Login attempts per minute for one email and IP (Fortify `login` rate limiter).
+     */
+    public function loginMaxAttempts(): int
+    {
+        return $this->integer('login_max_attempts', 1, 100);
+    }
+
+    /**
+     * Failed password logins before the account is locked (per user, not per IP).
+     * Stored for parity with Signaculum; lockout enforcement is a later wiring.
+     */
+    public function loginLockoutThreshold(): int
+    {
+        return $this->integer('login_lockout_threshold', 1, 100);
+    }
+
+    /**
+     * How long a lockout lasts after the failure threshold is reached.
+     */
+    public function loginLockoutMinutes(): int
+    {
+        return $this->integer('login_lockout_minutes', 1, 1440);
+    }
+
+    /**
+     * Whether guests may open `/register` and create an account.
+     */
+    public function isRegistrationEnabled(): bool
+    {
+        return (bool) $this->all()['registration_enabled'];
+    }
+
+    public function isTwoFactorRequired(): bool
+    {
+        return (bool) $this->all()['two_factor_required'];
+    }
+
+    /**
+     * Days to keep activity log rows before `activitylog:clean` deletes them.
+     */
+    public function activityRetentionDays(): int
+    {
+        return $this->integer('activity_retention_days', 1, 3650);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function availableLanguages(): array
+    {
+        return array_keys((array) config('i18n.available_locales', ['en' => 'English']));
+    }
+
+    private function configLanguage(): string
+    {
+        $locale = (string) config('app.locale', 'en');
+
+        return in_array($locale, $this->availableLanguages(), true) ? $locale : 'en';
+    }
+
+    private function hexColor(string $key): ?string
+    {
+        $value = $this->string($key);
+
+        return $value !== null && preg_match('/^#[0-9A-Fa-f]{6}$/', $value) === 1 ? $value : null;
+    }
+
+    private function string(string $key): ?string
+    {
+        $value = $this->all()[$key];
+
+        return is_string($value) && trim($value) !== '' ? trim($value) : null;
+    }
+
+    private function integer(string $key, int $min, int $max): int
+    {
+        $value = $this->all()[$key];
+
+        return max($min, min($max, is_numeric($value) ? (int) $value : (int) $this->defaults()[$key]));
+    }
+}

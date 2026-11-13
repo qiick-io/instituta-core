@@ -1,4 +1,6 @@
+import type { ProjectAppearance } from '@/types/appearance';
 import type { Auth } from '@/types/auth';
+import type { SharedInstanceSettings } from '@/types/instance-settings';
 import type { InstitutaShared } from '@/types/instituta';
 
 declare module 'react' {
@@ -17,6 +19,8 @@ declare module '@inertiajs/core' {
             availableLocales: Record<string, string>;
             sidebarOpen: boolean;
             instituta: InstitutaShared;
+            instanceSettings: SharedInstanceSettings;
+            projectAppearance: ProjectAppearance;
             [key: string]: unknown;
         };
     }

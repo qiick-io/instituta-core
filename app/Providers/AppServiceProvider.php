@@ -10,17 +10,20 @@ use App\Models\ApiKey;
 use App\Models\Item;
 use App\Models\ItemSection;
 use App\Models\Role;
+use App\Models\Setting;
 use App\Models\User;
 use App\Observers\ItemObserver;
 use App\Observers\ItemSectionObserver;
 use App\Policies\PermissionPolicy;
 use App\Policies\RolePolicy;
+use App\Policies\SettingPolicy;
 use App\Services\ActivityEventLoggerService;
 use App\Services\ActivityOrganisationResolverService;
 use App\Services\Authorization\EffectivePermissionResolverService;
 use App\Services\Search\PgsqlFullTextSearchDriver;
 use App\Services\Search\SqliteFts5SearchDriver;
 use App\Services\Search\UnsupportedSearchDriver;
+use App\Services\SettingsRepositoryService;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
@@ -50,6 +53,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton(SettingsRepositoryService::class);
+
         $this->app->bind(SearchIndexContract::class, function (): SearchIndexContract {
             return match (DB::connection()->getDriverName()) {
                 'pgsql' => new PgsqlFullTextSearchDriver,
@@ -84,6 +89,7 @@ class AppServiceProvider extends ServiceProvider
         // Spatie models live outside App\Models; bind policies explicitly (excubia-app).
         Gate::policy(Role::class, RolePolicy::class);
         Gate::policy(Permission::class, PermissionPolicy::class);
+        Gate::policy(Setting::class, SettingPolicy::class);
 
         Gate::before(function (?User $user, string $ability, array $arguments): ?bool {
             if ($user === null) {
@@ -200,14 +206,6 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
-        Password::defaults(fn (): ?Password => app()->isProduction()
-            ? Password::min(12)
-                ->mixedCase()
-                ->letters()
-                ->numbers()
-                ->symbols()
-                ->uncompromised()
-            : null,
-        );
+        Password::defaults(fn (): Password => app(SettingsRepositoryService::class)->passwordRule());
     }
 }

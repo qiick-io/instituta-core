@@ -17,14 +17,15 @@ use App\Services\PrincipalLifecycleService;
 use Illuminate\Support\Facades\File;
 use Spatie\Activitylog\Models\Activity;
 
-it('does not expose public registration routes', function (): void {
-    $this->get('/register')->assertNotFound();
+it('keeps public registration closed until instance settings enable it', function (): void {
+    // Routes exist (Fortify feature on) but SettingsRepositoryService gates them off by default.
+    $this->get('/register')->assertForbidden();
     $this->post('/register', [
-        'name' => 'Nope',
+        'first_name' => 'Nope',
         'email' => 'nope@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
-    ])->assertNotFound();
+    ])->assertForbidden();
 });
 
 it('bootstraps org company owner principal and key from instituta:install', function (): void {

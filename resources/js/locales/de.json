@@ -166,7 +166,11 @@
             "reportBug": "Bug melden",
             "sectionAccess": "Zugriff",
             "roles": "Rollen",
-            "permissions": "Berechtigungen"
+            "permissions": "Berechtigungen",
+            "general": "Allgemein",
+            "localization": "Lokalisierung",
+            "authSecurity": "Authentifizierung & Sicherheit",
+            "sectionInstance": "Instanz"
         },
         "appearance": {
             "breadcrumb": "Darstellungseinstellungen",
@@ -175,7 +179,30 @@
             "description": "Aktualisieren Sie die Darstellungseinstellungen für Ihr Konto",
             "dark": "Dunkel",
             "light": "Hell",
-            "system": "System"
+            "system": "System",
+            "personalTitle": "Ihr Erscheinungsbild",
+            "personalDescription": "Hell, dunkel oder System für diesen Browser wählen",
+            "themePresetTitle": "Theme-Voreinstellung",
+            "themePresetDescription": "Markenfarben für diese Instanz. Teal ist der Instituta-Standard, bis ein Instituta-Preset existiert.",
+            "themePresetTeal": "Teal",
+            "themePresetBlue": "Blau",
+            "themePresetIndigo": "Indigo",
+            "themePresetViolet": "Violett",
+            "themePresetRose": "Rosa",
+            "themePresetSlate": "Schiefer",
+            "presetPreviewLight": "Hell",
+            "presetPreviewDark": "Dunkel",
+            "brandingTitle": "Markenfarbe",
+            "brandingDescription": "Optionale eigene Primärfarben, die die Voreinstellung überschreiben",
+            "customColorTitle": "Eigene Farbe",
+            "customColorDescription": "Leer lassen, um die Primärfarbe der Voreinstellung zu nutzen",
+            "projectColor": "Primär (hell)",
+            "projectColorDark": "Primär (dunkel)",
+            "clearCustomColor": "Eigene Farbe entfernen",
+            "brandContrastWarning": "Diese Farbe erfüllt möglicherweise nicht den WCAG-AA-Kontrast. Bevorzugen Sie einen stärkeren Ton.",
+            "defaultThemeTitle": "Standard-Theme",
+            "defaultThemeDescription": "Für Besucher ohne persönliche Hell/Dunkel-Wahl (einschließlich der Anmeldeseite)",
+            "defaultAppearance": "Standard-Erscheinungsbild"
         },
         "profile": {
             "breadcrumb": "Profileinstellungen",
@@ -228,6 +255,61 @@
             "signOutOthers": "Von allen anderen Browsern abmelden",
             "thisDevice": "Dieses Gerät",
             "title": "Angemeldete Browser"
+        },
+        "instance": {
+            "breadcrumb": "Instanzeinstellungen",
+            "defaultLanguage": "Standardsprache",
+            "description": "Beschreibung",
+            "generalDescription": "Instanzidentität und Support-Links",
+            "generalTitle": "Allgemein",
+            "head": "Instanzeinstellungen",
+            "localization": {
+                "breadcrumb": "Lokalisierungseinstellungen",
+                "description": "Standardsprache der Admin-Oberfläche",
+                "head": "Lokalisierungseinstellungen",
+                "title": "Admin-Sprache"
+            },
+            "loginMaxAttempts": "Max. Login-Versuche pro Minute",
+            "name": "Name",
+            "passwordPolicies": {
+                "medium": {
+                    "description": "Mindestens 8 Zeichen, mit Groß- und Kleinbuchstaben sowie mindestens einer Zahl.",
+                    "label": "Mittel"
+                },
+                "strong": {
+                    "description": "Mindestens 12 Zeichen, Groß-/Kleinbuchstaben, Buchstaben, Zahlen, Sonderzeichen und nicht in bekannten Datenlecks.",
+                    "label": "Stark"
+                },
+                "weak": {
+                    "description": "Mindestens 6 Zeichen. Keine Groß-/Kleinschreibung, Zahlen oder Sonderzeichen erforderlich.",
+                    "label": "Schwach"
+                }
+            },
+            "passwordPolicy": "Passwortsicherheit",
+            "reportBugUrl": "URL für Bug melden",
+            "reportBugUrlHint": "Leer lassen, um den Issue-Tracker von Instituta zu verwenden.",
+            "reportingDescription": "Optionale Links für Problem-, Bug- und Fehlermeldungen",
+            "reportingTitle": "Melde-URLs",
+            "registrationDescription": "Öffentliche Registrierung ist auf einem geschlossenen IdP standardmäßig aus; schalten Sie sie ein, wenn diese Instanz neue Konten annehmen soll (z. B. qiick Cloud).",
+            "registrationEnabled": "Selbstregistrierung erlauben",
+            "registrationEnabledHint": "Wenn aktiv, können Gäste über die Anmeldeseite ein Konto erstellen. Wenn deaktiviert, können nur Instanz-Admins Benutzer anlegen.",
+            "registrationTitle": "Benutzerregistrierung",
+            "securityDescription": "Passwortstärke, Login-Limits und Zwei-Faktor-Richtlinie",
+            "securityNav": {
+                "breadcrumb": "Authentifizierung & Sicherheit",
+                "head": "Authentifizierung & Sicherheit"
+            },
+            "securityTitle": "Sicherheit",
+            "twoFactorRequired": "Zwei-Faktor-Authentifizierung für alle Benutzer verlangen",
+            "twoFactorRequiredHint": "Wenn aktiv, müssen Benutzer TOTP-2FA aktivieren oder einen Passkey auf der Sicherheitsseite registrieren, bevor sie die App nutzen.",
+            "retentionTitle": "Datenaufbewahrung",
+            "retentionDescription": "Wie lange Instituta das Aktivitätsprotokoll behält. Ältere Einträge werden täglich gelöscht.",
+            "activityRetentionDays": "Aktivitätsprotokoll (Tage)",
+            "activityRetentionDaysHint": "Aktivitätsprotokolleinträge älter als dieser Wert werden gelöscht.",
+            "loginLockoutThreshold": "Fehlversuche vor Sperre",
+            "loginLockoutThresholdDescription": "Falsche Passwörter für ein Konto, bevor es gesperrt wird.",
+            "loginLockoutMinutes": "Sperrdauer (Minuten)",
+            "loginLockoutMinutesDescription": "Wie lange ein gesperrtes Konto warten muss, bevor es erneut versuchen darf."
         }
     },
     "shortcuts": {

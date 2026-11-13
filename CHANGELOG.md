@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Instance settings storage and admin pages (issue #123): `Setting` model + `SettingsRepositoryService`, General / Localization / Authentication & security, Appearance with Teal theme presets (copied from Signaculum/externa, trimmed).
 - Section embeddings via `laravel/ai` (issue #65): `AI_EMBEDDINGS_ENABLED` off by default, local OpenAI-compatible provider, `instituta:embed`, `GET /api/v1/similar` (perimeter-scoped), JSON vectors on `item_sections`, re-index when the model version changes. Tests use `Embeddings::fake()`.
 - Scoped brain graph at `/brain/graph/{item?}` via `@xyflow/react` with an in-app radial layout (issue #49).
 - Reading-view light and dark screenshots under `docs/screenshots/` (issue #51); follow-up pattern proposal tracked as [app-ui#133](https://github.com/qiick-io/app-ui/issues/133).

@@ -161,7 +161,9 @@ return [
     */
 
     'features' => [
-        // No public registration: the first owner comes from instituta:install.
+        // Routes exist; Settings → Authentication gates self-registration (off by default).
+        // The first owner still comes from instituta:install.
+        Features::registration(),
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([

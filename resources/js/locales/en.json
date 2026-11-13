@@ -166,7 +166,11 @@
             "reportBug": "Report a Bug",
             "sectionAccess": "Access",
             "roles": "Roles",
-            "permissions": "Permissions"
+            "permissions": "Permissions",
+            "general": "General",
+            "localization": "Localization",
+            "authSecurity": "Authentication & security",
+            "sectionInstance": "Instance"
         },
         "appearance": {
             "breadcrumb": "Appearance settings",
@@ -175,7 +179,30 @@
             "description": "Update the appearance settings for your account",
             "dark": "Dark",
             "light": "Light",
-            "system": "System"
+            "system": "System",
+            "personalTitle": "Your appearance",
+            "personalDescription": "Choose light, dark or system for this browser",
+            "themePresetTitle": "Theme preset",
+            "themePresetDescription": "Brand colours for this instance. Teal is the Instituta default until an Instituta preset ships.",
+            "themePresetTeal": "Teal",
+            "themePresetBlue": "Blue",
+            "themePresetIndigo": "Indigo",
+            "themePresetViolet": "Violet",
+            "themePresetRose": "Rose",
+            "themePresetSlate": "Slate",
+            "presetPreviewLight": "Light",
+            "presetPreviewDark": "Dark",
+            "brandingTitle": "Brand colour",
+            "brandingDescription": "Optional custom primary colours that override the selected preset",
+            "customColorTitle": "Custom colour",
+            "customColorDescription": "Leave empty to use the preset primary",
+            "projectColor": "Primary (light)",
+            "projectColorDark": "Primary (dark)",
+            "clearCustomColor": "Clear custom colour",
+            "brandContrastWarning": "This colour may not meet WCAG AA contrast. Prefer a stronger shade.",
+            "defaultThemeTitle": "Default theme",
+            "defaultThemeDescription": "Used for visitors without a personal light/dark choice (including the login page)",
+            "defaultAppearance": "Default appearance"
         },
         "profile": {
             "breadcrumb": "Profile settings",
@@ -228,6 +255,61 @@
             "signOutOthers": "Sign out of all other browsers",
             "thisDevice": "This device",
             "title": "Signed-in browsers"
+        },
+        "instance": {
+            "breadcrumb": "Instance settings",
+            "defaultLanguage": "Default language",
+            "description": "Description",
+            "generalDescription": "Name, description and support link of this instance",
+            "generalTitle": "General",
+            "head": "Instance settings",
+            "localization": {
+                "breadcrumb": "Localization settings",
+                "description": "Default language for people without a personal choice, the login page included",
+                "head": "Localization settings",
+                "title": "Default language"
+            },
+            "loginMaxAttempts": "Max login attempts per minute",
+            "name": "Name",
+            "passwordPolicies": {
+                "medium": {
+                    "description": "Minimum 8 characters, with mixed case letters and at least one number.",
+                    "label": "Medium"
+                },
+                "strong": {
+                    "description": "Minimum 12 characters, mixed case, letters, numbers, symbols, and not found in known data breaches.",
+                    "label": "Strong"
+                },
+                "weak": {
+                    "description": "Minimum 6 characters. No mixed case, numbers, or symbols required.",
+                    "label": "Weak"
+                }
+            },
+            "passwordPolicy": "Password security",
+            "reportBugUrl": "Report bug URL",
+            "reportBugUrlHint": "Leave empty to use the Instituta issue tracker.",
+            "reportingDescription": "Where \"Report a bug\" in the settings nav points",
+            "reportingTitle": "Bug reports",
+            "registrationDescription": "Public sign-up is off by default on a closed IdP; turn it on when this instance should accept new accounts (for example qiick Cloud).",
+            "registrationEnabled": "Allow self-registration",
+            "registrationEnabledHint": "When enabled, guests can create an account from the login page. When disabled, only instance admins can create users.",
+            "registrationTitle": "User registration",
+            "securityDescription": "Password strength, login limits, and two-factor policy",
+            "securityNav": {
+                "breadcrumb": "Authentication & security",
+                "head": "Authentication & security"
+            },
+            "securityTitle": "Security",
+            "twoFactorRequired": "Require two-factor authentication for all users",
+            "twoFactorRequiredHint": "When enabled, users must enable TOTP 2FA or register a passkey on the Security page before using the app.",
+            "retentionTitle": "Data retention",
+            "retentionDescription": "How long Instituta keeps the activity log. Older entries are deleted daily.",
+            "activityRetentionDays": "Activity log (days)",
+            "activityRetentionDaysHint": "Activity log entries older than this are deleted.",
+            "loginLockoutThreshold": "Failed attempts before lockout",
+            "loginLockoutThresholdDescription": "Wrong passwords for one account before it is locked.",
+            "loginLockoutMinutes": "Lockout duration (minutes)",
+            "loginLockoutMinutesDescription": "How long a locked account must wait before trying again."
         }
     },
     "shortcuts": {
