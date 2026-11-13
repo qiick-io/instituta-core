@@ -5,17 +5,19 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Brain\Enums\PrincipalTypeEnum;
-use App\Brain\Enums\RoleEnum;
+use App\Brain\Enums\RoleEnum as BrainRoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Console\Concerns\ManagesDotEnvTrait;
 use App\Enums\CompanyKindEnum;
+use App\Enums\RoleEnum;
 use App\Models\Company;
 use App\Models\Grant;
 use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\User;
 use App\Services\ApiKeyIssuerService;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -114,6 +116,12 @@ class InstallCommand extends Command
 
         $this->call('storage:link');
 
+        if ($this->call('instituta:sync-permissions') !== self::SUCCESS) {
+            return self::FAILURE;
+        }
+
+        $this->call('db:seed', ['--class' => RoleSeeder::class, '--force' => true]);
+
         if (! $this->option('no-owner')) {
             $boot = $this->bootstrapOwner($keys);
             if ($boot !== self::SUCCESS) {
@@ -142,7 +150,6 @@ class InstallCommand extends Command
         }
 
         $this->info('Instituta install complete.');
-        $this->comment('Permissions: tenancy uses brain grants/roles; instituta:sync-permissions arrives with the app PermissionEnum.');
 
         return self::SUCCESS;
     }
@@ -229,16 +236,18 @@ class InstallCommand extends Command
                 'principal_id' => $principal->id,
                 'scope_type' => ScopeTypeEnum::Organisation,
                 'scope_id' => $org->id,
-                'role' => RoleEnum::Owner,
+                'role' => BrainRoleEnum::Owner,
                 'max_visibility' => VisibilityEnum::Restricted,
             ]);
+
+            $user->assignRole(RoleEnum::SuperAdmin->value);
 
             $issued = $keys->create(
                 principal: $principal,
                 name: 'owner',
                 scopeType: ScopeTypeEnum::Organisation,
                 scopeId: $org->id,
-                role: RoleEnum::Owner,
+                role: BrainRoleEnum::Owner,
                 maxVisibility: VisibilityEnum::Restricted,
             );
 

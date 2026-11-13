@@ -14,6 +14,7 @@ use App\Observers\ItemObserver;
 use App\Observers\ItemSectionObserver;
 use App\Services\ActivityEventLoggerService;
 use App\Services\ActivityOrganisationResolverService;
+use App\Services\Authorization\EffectivePermissionResolverService;
 use App\Services\Search\PgsqlFullTextSearchDriver;
 use App\Services\Search\SqliteFts5SearchDriver;
 use App\Services\Search\UnsupportedSearchDriver;
@@ -27,6 +28,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -59,6 +61,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureAuthorization();
         $this->configureRateLimiting();
         $this->configureActivityLogging();
         $this->registerAuthActivityListeners();
@@ -66,6 +69,29 @@ class AppServiceProvider extends ServiceProvider
 
         Item::observe(ItemObserver::class);
         ItemSection::observe(ItemSectionObserver::class);
+    }
+
+    /**
+     * Super-admin bypass for permission-name and string abilities only. Model policies
+     * decide for themselves (they keep invariants that bind super-admins too).
+     */
+    protected function configureAuthorization(): void
+    {
+        Gate::before(function (?User $user, string $ability, array $arguments): ?bool {
+            if ($user === null) {
+                return null;
+            }
+
+            if ($arguments !== [] && Gate::getPolicyFor($arguments[0]) !== null) {
+                return null;
+            }
+
+            if (app(EffectivePermissionResolverService::class)->isSuperAdmin($user)) {
+                return true;
+            }
+
+            return null;
+        });
     }
 
     protected function configureRateLimiting(): void

@@ -27,6 +27,11 @@ export default function Profile({
 }) {
     const { t } = useTranslation();
     const { auth } = usePage<PageProps>().props;
+    const user = auth.user;
+
+    if (user === null) {
+        return null;
+    }
 
     return (
         <>
@@ -58,7 +63,7 @@ export default function Profile({
                                 <Input
                                     id="first_name"
                                     className="mt-1 block w-full"
-                                    defaultValue={auth.user.first_name}
+                                    defaultValue={user.first_name}
                                     name="first_name"
                                     required
                                     autoComplete="given-name"
@@ -79,7 +84,7 @@ export default function Profile({
                                 <Input
                                     id="last_name"
                                     className="mt-1 block w-full"
-                                    defaultValue={auth.user.last_name ?? ''}
+                                    defaultValue={user.last_name ?? ''}
                                     name="last_name"
                                     autoComplete="family-name"
                                     placeholder={t('common.lastName')}
@@ -100,7 +105,7 @@ export default function Profile({
                                     id="email"
                                     type="email"
                                     className="mt-1 block w-full"
-                                    defaultValue={auth.user.email}
+                                    defaultValue={user.email}
                                     name="email"
                                     required
                                     autoComplete="username"
@@ -114,7 +119,7 @@ export default function Profile({
                             </div>
 
                             {mustVerifyEmail &&
-                                auth.user.email_verified_at === null && (
+                                user.email_verified_at === null && (
                                     <div>
                                         <p className="-mt-4 text-sm text-muted-foreground">
                                             {t('settings.profile.unverified')}{' '}
