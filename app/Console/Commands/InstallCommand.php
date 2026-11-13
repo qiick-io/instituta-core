@@ -92,10 +92,15 @@ class InstallCommand extends Command
             $this->line('Created database/database.sqlite');
         }
 
-        // create-project / prior install may already have set APP_KEY in the process env.
-        $existingKey = (string) (config('app.key') ?: '');
+        // Read the key from the .env on disk. config('app.key') can still hold a
+        // previous process value after --force rewrites an empty APP_KEY from .env.example.
+        $existingKey = $this->appKeyFromEnvFile(File::get($envPath));
 
         if ($existingKey === '') {
+            // key:generate replaces only the config's current APP_KEY value in .env.
+            // Clear a stale in-memory key so an empty APP_KEY= line (from .env.example) matches.
+            config(['app.key' => '']);
+
             if ($this->call('key:generate', ['--force' => true]) !== self::SUCCESS) {
                 return self::FAILURE;
             }
@@ -250,5 +255,17 @@ class InstallCommand extends Command
         $this->line('api_key: '.$created['plain']);
 
         return self::SUCCESS;
+    }
+
+    /**
+     * APP_KEY value from a .env file body (empty when missing or blank).
+     */
+    private function appKeyFromEnvFile(string $env): string
+    {
+        if (preg_match('/^APP_KEY=(.*)$/m', $env, $matches) !== 1) {
+            return '';
+        }
+
+        return trim($matches[1], " \t\"'");
     }
 }
