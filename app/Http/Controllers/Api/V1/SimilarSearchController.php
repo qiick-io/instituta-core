@@ -6,10 +6,10 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\SimilarSearchRequest;
 use App\Services\BrainEmbeddingService;
 use App\Services\ContractAuditService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 /**
  * Embedding neighbour search inside the API key perimeter (#65).
@@ -23,7 +23,7 @@ final class SimilarSearchController extends Controller
         private readonly ContractAuditService $audit = new ContractAuditService,
     ) {}
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(SimilarSearchRequest $request): JsonResponse
     {
         if (! config('ai.embeddings.enabled')) {
             return response()->json([
@@ -31,11 +31,7 @@ final class SimilarSearchController extends Controller
             ], 501);
         }
 
-        $validated = $request->validate([
-            'scope' => ['required', 'string'],
-            'q' => ['required', 'string'],
-            'limit' => ['nullable', 'integer', 'min:1', 'max:50'],
-        ]);
+        $validated = $request->validated();
 
         $perimeter = $this->perimeter($request);
 

@@ -6,27 +6,25 @@ namespace App\Http\Controllers\Brain;
 
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Brain\SwitchScopeRequest;
 use App\Models\User;
 use App\Services\SessionPerimeterService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use InvalidArgumentException;
 
+/**
+ * Switches the signed-in user's session perimeter (organisation / company / product).
+ */
 final class ScopeSwitcherController extends Controller
 {
     public function __construct(private readonly SessionPerimeterService $sessions) {}
 
-    public function __invoke(Request $request): RedirectResponse
+    public function __invoke(SwitchScopeRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'scope_type' => ['required', 'string', 'in:organisation,company,product'],
-            'scope_id' => ['required', 'string'],
-        ]);
+        $validated = $request->validated();
 
         $user = $request->user();
-        if (! $user instanceof User) {
-            abort(401);
-        }
+        abort_unless($user instanceof User, 401);
 
         try {
             $this->sessions->switchTo(

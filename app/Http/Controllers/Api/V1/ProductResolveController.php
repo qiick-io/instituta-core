@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ProductResolveRequest;
 use App\Services\IndexedContractService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 final class ProductResolveController extends Controller
 {
@@ -16,11 +16,9 @@ final class ProductResolveController extends Controller
 
     public function __construct(private readonly IndexedContractService $contract) {}
 
-    public function __invoke(Request $request, string $id): JsonResponse
+    public function __invoke(ProductResolveRequest $request, string $id): JsonResponse
     {
-        $validated = $request->validate([
-            'area' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validated();
 
         return response()->json(
             $this->contract->resolve(

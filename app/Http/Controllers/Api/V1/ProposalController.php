@@ -12,11 +12,11 @@ use App\Enums\ProposalActionEnum;
 use App\Enums\ProposalStatusEnum;
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ListProposalsRequest;
 use App\Http\Requests\Api\ProposeBrainChangeRequest;
 use App\Http\Requests\Api\UpdateProposalStatusRequest;
 use App\Services\ProposalQueryService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use InvalidArgumentException;
 
 /**
@@ -32,11 +32,9 @@ final class ProposalController extends Controller
         private readonly ProposalQueryService $queries,
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(ListProposalsRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'status' => ['nullable', 'string', 'in:open,accepted,rejected'],
-        ]);
+        $validated = $request->validated();
 
         $status = isset($validated['status'])
             ? ProposalStatusEnum::from($validated['status'])
