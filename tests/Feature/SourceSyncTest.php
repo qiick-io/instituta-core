@@ -39,7 +39,7 @@ it('refuses to add a source that hits the denylist', function (): void {
         organisation: $organisation,
         name: 'Acme Klover Docs',
         provider: SourceProviderEnum::Local,
-        localPath: base_path('tests/Brain/Fixtures/native'),
+        localPath: base_path('tests/Unit/Brain/Fixtures/native'),
     ))->toThrow(DenylistHitException::class);
 
     expect(Source::query()->count())->toBe(0);
@@ -47,7 +47,7 @@ it('refuses to add a source that hits the denylist', function (): void {
 
 it('syncs a local source and indexes fixture items', function (): void {
     $organisation = Organisation::factory()->create();
-    $fixture = base_path('tests/Brain/Fixtures/native');
+    $fixture = base_path('tests/Unit/Brain/Fixtures/native');
 
     $source = app(SourceRegistryService::class)->add(
         organisation: $organisation,
@@ -85,7 +85,7 @@ it('mirrors a git source with Process::fake and indexes from the mirror', functi
 
     $mirror = storage_path('app/instituta/sources/'.$source->id);
     File::ensureDirectoryExists($mirror);
-    File::copyDirectory(base_path('tests/Brain/Fixtures/native'), $mirror);
+    File::copyDirectory(base_path('tests/Unit/Brain/Fixtures/native'), $mirror);
     File::ensureDirectoryExists($mirror.'/.git');
 
     // Symfony quotes argv on macOS/Linux ("'git' 'fetch' …"), so avoid literal 'git fetch *' patterns.
@@ -149,7 +149,7 @@ it('refuses github sync when no token is configured', function (): void {
 
 it('persists structured tables and rows from a shadcn registry source', function (): void {
     $organisation = Organisation::factory()->create();
-    $fixture = base_path('tests/Brain/Fixtures/shadcn-registry');
+    $fixture = base_path('tests/Unit/Brain/Fixtures/shadcn-registry');
 
     $source = app(SourceRegistryService::class)->add(
         organisation: $organisation,
@@ -182,7 +182,7 @@ it('persists structured tables and rows from a shadcn registry source', function
 
 it('adds a source and syncs via artisan commands', function (): void {
     $organisation = Organisation::factory()->create();
-    $fixture = base_path('tests/Brain/Fixtures/native');
+    $fixture = base_path('tests/Unit/Brain/Fixtures/native');
 
     $this->artisan('instituta:source:add', [
         'name' => 'CLI local',
@@ -206,7 +206,7 @@ it('queues SyncSourceJob when --queue is passed', function (): void {
 
     $source = Source::factory()->create([
         'provider' => SourceProviderEnum::Local,
-        'local_path' => base_path('tests/Brain/Fixtures/native'),
+        'local_path' => base_path('tests/Unit/Brain/Fixtures/native'),
     ]);
 
     $this->artisan('instituta:sync', [
@@ -266,7 +266,7 @@ MD);
         organisation: $otherOrganisation,
         name: 'Other org source',
         provider: SourceProviderEnum::Local,
-        localPath: base_path('tests/Brain/Fixtures/native'),
+        localPath: base_path('tests/Unit/Brain/Fixtures/native'),
         isShared: true,
     );
     app(SourceSyncService::class)->sync($otherSource->fresh());

@@ -46,7 +46,7 @@ it('materialises a github proposal as a pushed branch and pull request', functio
 
     $mirror = storage_path('app/instituta/sources/'.$source->id);
     File::ensureDirectoryExists($mirror);
-    File::copyDirectory(base_path('tests/Brain/Fixtures/native'), $mirror);
+    File::copyDirectory(base_path('tests/Unit/Brain/Fixtures/native'), $mirror);
     File::ensureDirectoryExists($mirror.'/.git');
 
     $proposal = Proposal::factory()->create([
@@ -106,7 +106,7 @@ it('materialises a github proposal as a pushed branch and pull request', functio
 });
 
 it('keeps local materialisation in a review workspace without mutating the source path', function (): void {
-    $fixture = base_path('tests/Brain/Fixtures/native');
+    $fixture = base_path('tests/Unit/Brain/Fixtures/native');
     $organisation = Organisation::factory()->create();
     $source = Source::factory()->create([
         'organisation_id' => $organisation->id,
@@ -156,7 +156,7 @@ it('refuses unsafe relative paths', function (): void {
     $source = Source::factory()->create([
         'organisation_id' => $organisation->id,
         'provider' => SourceProviderEnum::Local,
-        'local_path' => base_path('tests/Brain/Fixtures/native'),
+        'local_path' => base_path('tests/Unit/Brain/Fixtures/native'),
         'path' => null,
     ]);
 
@@ -189,7 +189,7 @@ it('refuses github materialisation without a token', function (): void {
 
     $mirror = storage_path('app/instituta/sources/'.$source->id);
     File::ensureDirectoryExists($mirror);
-    File::copyDirectory(base_path('tests/Brain/Fixtures/native'), $mirror);
+    File::copyDirectory(base_path('tests/Unit/Brain/Fixtures/native'), $mirror);
     File::ensureDirectoryExists($mirror.'/.git');
 
     $proposal = Proposal::factory()->create([

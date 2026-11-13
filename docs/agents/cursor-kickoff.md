@@ -101,14 +101,14 @@ Everything is in this Laravel app. Inside it, keep two layers apart:
 
 | Layer | Where | What |
 |---|---|---|
-| **Brain module** | `app/Brain/` (namespace `App\Brain`), tests in `tests/Brain/` | The brain repository **format** (`docs/FORMAT.md`): frontmatter schema, item types and areas, typed blocks, sidecars. The **reader** and its source **adapters** (native format, Basic Memory markdown, shadcn `registry.json`, markdown docs): sections, deterministic summaries, links → graph edges, citations. The **resolver**: scopes, inheritance with origins, inherit flag, shared sources by id + version. The **perimeter / ACL filter** as a pure function. The **contract** DTOs (`docs/CONTRACTS.md`). The never-ingest denylist and the secret / PII scanner. |
+| **Brain module** | `app/Brain/` (namespace `App\Brain`), tests in `tests/Unit/Brain/` | The brain repository **format** (`docs/FORMAT.md`): frontmatter schema, item types and areas, typed blocks, sidecars. The **reader** and its source **adapters** (native format, Basic Memory markdown, shadcn `registry.json`, markdown docs): sections, deterministic summaries, links → graph edges, citations. The **resolver**: scopes, inheritance with origins, inherit flag, shared sources by id + version. The **perimeter / ACL filter** as a pure function. The **contract** DTOs (`docs/CONTRACTS.md`). The never-ingest denylist and the secret / PII scanner. |
 | **App** | the rest of `app/` | Tenancy, users, principals, keys, grants, sources, index tables and migrations, ingest jobs, search drivers, MCP (HTTP and stdio), REST, Artisan commands, Inertia UI. It implements the contract on the database and calls the brain module during ingest and resolution. |
 
 Rules for the brain module, enforced by an arch test (`tests/Arch/BrainModuleArchitectureTest.php`):
 
 - It depends on nothing else in the app: no `App\Models`, `App\Http`, `App\Jobs`, `App\Services` outside `App\Brain`, no Eloquent, no facades, no `config()` / `app()` / `env()`. Plain PHP plus the few libraries it needs (a YAML and a CommonMark parser), with inputs passed in as `*Data` objects. The app may use the module; the module never uses the app.
 - It works on a **local folder**, so `php artisan instituta:read --path=<repo> list|search|get|outline|resolve|graph|validate` and the stdio MCP server (`php artisan instituta:mcp --path=<repo>`) can read a compatible git repository **without the database index**: this keeps the note's "reads a compatible repo without the app" as a capability of the CLI.
-- Its own tests use small synthetic fixture repositories under `tests/Brain/Fixtures`.
+- Its own tests use small synthetic fixture repositories under `tests/Unit/Brain/Fixtures`.
 - Extraction later (a package with a name that says what it is) should be a namespace move, not a rewrite. Do not extract it now.
 
 The **Composer** leg of the one contract (a client for other Laravel apps) is not in this repo: it becomes a separate later repo with a descriptive name (for example `qiick-io/instituta-sdk-php`), only when Luca says so. In the MVP the contract ships as MCP + REST + Artisan CLI, and `docs/CONTRACTS.md` is written so the SDK can follow it later.
@@ -519,7 +519,7 @@ node ../../app-ui/scripts/check-drift.mjs  # registry and standards drift
 
 CI: the app's own workflow (PHP 8.4 and 8.5 on SQLite, a PostgreSQL 17 job for search, MySQL 8 (app tests; search returns "not supported"), browser + accessibility smoke on PRs) plus `.github/workflows/qiick.yml` (`pr-title / commitlint`, `app-ui-drift / standards`, `app-ui-drift / drift`, `php-quality / php-quality`, `ui-quality / ui-quality`, `migrations-frozen / migrations-frozen`, `distribution-smoke / smoke`). Call the shared workflows with exactly those job ids.
 
-Plus `php artisan instituta:read --path=tests/Brain/Fixtures/<repo> validate` on the fixture repos.
+Plus `php artisan instituta:read --path=tests/Unit/Brain/Fixtures/<repo> validate` on the fixture repos.
 
 UI changes: check the page in the browser on `https://instituta-core.test`, light and dark, in Italian too.
 

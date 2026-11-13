@@ -4,7 +4,7 @@ English status for Luca after the overnight isolation suite (step 15). Graph UI 
 
 ## What was ingested
 
-Local fixture sync (`tests/Brain/Fixtures/native` via `SourceSyncService`) indexes the native Instituta brain:
+Local fixture sync (`tests/Unit/Brain/Fixtures/native` via `SourceSyncService`) indexes the native Instituta brain:
 
 - Rules such as `rules/coding.md` (resolution key, sections, citations).
 - Linked edges and structured tables from the fixture set.
