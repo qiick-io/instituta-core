@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\Brain\ClientsController;
 use App\Http\Controllers\Brain\KeysController;
 use App\Http\Controllers\Brain\MapController;
 use App\Http\Controllers\Brain\ReadingController;
@@ -28,6 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('brain.tables.show');
     Route::get('brain/sources', SourcesController::class)->name('brain.sources');
     Route::get('brain/keys', KeysController::class)->name('brain.keys');
+    Route::get('brain/clients', ClientsController::class)->name('brain.clients');
     Route::get('activity', ActivityLogController::class)->name('activity.index');
 });
 

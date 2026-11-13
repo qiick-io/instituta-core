@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
+    Building2,
     FolderGit2,
     KeyRound,
     LayoutGrid,
@@ -71,6 +72,11 @@ export function AppSidebar() {
             title: t('brain.nav.keys'),
             href: '/brain/keys',
             icon: KeyRound,
+        },
+        {
+            title: t('brain.nav.clients'),
+            href: '/brain/clients',
+            icon: Building2,
         },
         {
             title: t('brain.nav.activity'),

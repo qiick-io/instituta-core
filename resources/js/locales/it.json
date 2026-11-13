@@ -200,11 +200,13 @@
             "tree": "Albero",
             "sources": "Sorgenti",
             "keys": "Chiavi",
-            "activity": "Attività"
+            "activity": "Attività",
+            "clients": "Clienti"
         },
         "scope": {
             "label": "Ambito",
-            "none": "Nessun ambito ancora"
+            "none": "Nessun ambito ancora",
+            "clientLabel": "Cliente: {{name}}"
         },
         "map": {
             "title": "Mappa del cervello",
@@ -308,6 +310,20 @@
             "colStatus": "Stato",
             "active": "Attiva",
             "revoked": "Revocata"
+        },
+        "clients": {
+            "title": "Clienti",
+            "description": "Aziende cliente di questa organizzazione. Cambia lo scope per leggere il brain di un cliente.",
+            "hint": "I proprietari possono aprire un cliente o uno dei suoi prodotti come scope attivo.",
+            "ownerOnly": "Solo i proprietari dell'organizzazione possono vedere l'elenco clienti.",
+            "empty": "Nessuna azienda cliente ancora.",
+            "noProducts": "Nessun prodotto",
+            "colClient": "Cliente",
+            "colSlug": "Slug",
+            "colProducts": "Prodotti",
+            "colActions": "Scope",
+            "switchClient": "Passa al cliente",
+            "switchProduct": "Passa a {{name}}"
         }
     },
     "activity": {

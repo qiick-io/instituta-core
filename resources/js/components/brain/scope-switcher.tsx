@@ -71,7 +71,11 @@ export function ScopeSwitcher() {
                         key={scopeValue(scope)}
                         value={scopeValue(scope)}
                     >
-                        {scope.label}
+                        {scope.kind === 'client'
+                            ? t('brain.scope.clientLabel', {
+                                  name: scope.label,
+                              })
+                            : scope.label}
                     </SelectItem>
                 ))}
             </SelectContent>
