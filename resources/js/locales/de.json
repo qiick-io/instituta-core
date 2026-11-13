@@ -200,11 +200,13 @@
             "tree": "Baum",
             "sources": "Quellen",
             "keys": "Schlüssel",
-            "activity": "Aktivität"
+            "activity": "Aktivität",
+            "clients": "Kunden"
         },
         "scope": {
             "label": "Bereich",
-            "none": "Noch kein Bereich"
+            "none": "Noch kein Bereich",
+            "clientLabel": "Kunde: {{name}}"
         },
         "map": {
             "title": "Brain-Karte",
@@ -308,6 +310,20 @@
             "colStatus": "Status",
             "active": "Aktiv",
             "revoked": "Widerrufen"
+        },
+        "clients": {
+            "title": "Kunden",
+            "description": "Kundenunternehmen dieser Organisation. Wechseln Sie den Scope, um ein Kunden-Brain zu lesen.",
+            "hint": "Inhaber können einen Kunden oder eines seiner Produkte als aktiven Scope öffnen.",
+            "ownerOnly": "Nur Organisationsinhaber können die Kundenliste sehen.",
+            "empty": "Noch keine Kundenunternehmen.",
+            "noProducts": "Keine Produkte",
+            "colClient": "Kunde",
+            "colSlug": "Slug",
+            "colProducts": "Produkte",
+            "colActions": "Scope",
+            "switchClient": "Zum Kunden wechseln",
+            "switchProduct": "Zu {{name}} wechseln"
         }
     },
     "activity": {

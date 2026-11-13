@@ -3,6 +3,7 @@ export type InstitutaScopeOption = {
     scope_id: string;
     label: string;
     role: string;
+    kind?: 'own' | 'client' | null;
 };
 
 export type InstitutaPerimeter = {

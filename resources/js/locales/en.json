@@ -200,11 +200,13 @@
             "tree": "Tree",
             "sources": "Sources",
             "keys": "Keys",
-            "activity": "Activity"
+            "activity": "Activity",
+            "clients": "Clients"
         },
         "scope": {
             "label": "Scope",
-            "none": "No scope yet"
+            "none": "No scope yet",
+            "clientLabel": "Client: {{name}}"
         },
         "map": {
             "title": "Brain map",
@@ -308,6 +310,20 @@
             "colStatus": "Status",
             "active": "Active",
             "revoked": "Revoked"
+        },
+        "clients": {
+            "title": "Clients",
+            "description": "Client companies in this organisation. Switch scope to read a client brain.",
+            "hint": "Owners can open a client or one of its products as the active scope.",
+            "ownerOnly": "Only organisation owners can manage the clients list.",
+            "empty": "No client companies yet.",
+            "noProducts": "No products",
+            "colClient": "Client",
+            "colSlug": "Slug",
+            "colProducts": "Products",
+            "colActions": "Scope",
+            "switchClient": "Switch to client",
+            "switchProduct": "Switch to {{name}}"
         }
     },
     "activity": {

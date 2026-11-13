@@ -133,7 +133,7 @@ final class SessionPerimeterService
     }
 
     /**
-     * @return list<array{scope_type: string, scope_id: string, label: string, role: string}>
+     * @return list<array{scope_type: string, scope_id: string, label: string, role: string, kind: string|null}>
      */
     public function visibleScopes(Principal $principal): array
     {
@@ -146,6 +146,7 @@ final class SessionPerimeterService
                 'scope_id' => $grant->scope_id,
                 'label' => $this->labelForGrant($grant),
                 'role' => $grant->role->value,
+                'kind' => null,
             ];
 
             if ($grant->scope_type === ScopeTypeEnum::Organisation && $grant->role->value === 'owner') {
@@ -237,7 +238,7 @@ final class SessionPerimeterService
     }
 
     /**
-     * @return list<array{scope_type: string, scope_id: string, label: string, role: string}>
+     * @return list<array{scope_type: string, scope_id: string, label: string, role: string, kind: string|null}>
      */
     private function childScopesUnderOrganisation(string $organisationId): array
     {
@@ -246,6 +247,7 @@ final class SessionPerimeterService
         $companies = Company::query()
             ->where('organisation_id', $organisationId)
             ->with('products')
+            ->orderBy('name')
             ->get();
         foreach ($companies as $company) {
             $children[] = [
@@ -253,6 +255,7 @@ final class SessionPerimeterService
                 'scope_id' => $company->id,
                 'label' => $company->name,
                 'role' => 'owner',
+                'kind' => $company->kind->value,
             ];
 
             foreach ($company->products as $product) {
@@ -261,6 +264,7 @@ final class SessionPerimeterService
                     'scope_id' => $product->id,
                     'label' => $company->name.' / '.$product->name,
                     'role' => 'owner',
+                    'kind' => $company->kind->value,
                 ];
             }
         }
