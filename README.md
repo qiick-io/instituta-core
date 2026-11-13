@@ -40,21 +40,21 @@ Health probes (auth-free): `GET /health/live` (process up) and `GET /health/read
 
 ## Contract surfaces
 
-| Surface | Entry | Notes |
-| ------- | ----- | ----- |
-| REST | `/api/v1/*` | Bearer API key; OpenAPI at `/api/v1/openapi.json` |
-| MCP | `/mcp` (HTTP) | Same perimeter as REST; enable via `instituta.mcp.enabled` |
-| Artisan | `instituta:*` | Read, sync, embed, export, freeze, install, upgrade |
-| UI | Inertia / React | Map, tree, reading, resolved, graph, proposals, agency portal |
+| Surface | Entry           | Notes                                                         |
+| ------- | --------------- | ------------------------------------------------------------- |
+| REST    | `/api/v1/*`     | Bearer API key; OpenAPI at `/api/v1/openapi.json`             |
+| MCP     | `/mcp` (HTTP)   | Same perimeter as REST; enable via `instituta.mcp.enabled`    |
+| Artisan | `instituta:*`   | Read, sync, embed, export, freeze, install, upgrade           |
+| UI      | Inertia / React | Map, tree, reading, resolved, graph, proposals, agency portal |
 
 Writes go through **proposals** (`brain:write`): kill switches `INSTITUTA_API_WRITE_ENABLED` / `INSTITUTA_MCP_WRITE_ENABLED` are off by default. Optional section embeddings: `AI_EMBEDDINGS_ENABLED` (off by default) and `GET /api/v1/similar`.
 
 ## Search drivers
 
-| Driver   | Engine             | Notes                                                                                                                                                                         |
-| -------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sqlite` | FTS5 virtual table | Default install and Pest                                                                                                                                                      |
-| `pgsql`  | `tsvector` + GIN   | Reference driver (PostgreSQL 17 in CI)                                                                                                                                        |
+| Driver   | Engine             | Notes                                                                                                                                 |
+| -------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `sqlite` | FTS5 virtual table | Default install and Pest                                                                                                              |
+| `pgsql`  | `tsvector` + GIN   | Reference driver (PostgreSQL 17 in CI)                                                                                                |
 | MySQL    | —                  | **Not supported.** Search answers with a clear error (HTTP 501 / MCP tool error). A FULLTEXT driver is tracked for a later milestone. |
 
 ## Security and tenancy
