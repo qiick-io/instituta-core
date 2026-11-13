@@ -34,6 +34,14 @@ final class PrincipalLifecycleService
                 ->whereNull('revoked_at')
                 ->update(['revoked_at' => $now]);
 
+            activity('keys')
+                ->performedOn($principal)
+                ->withProperties([
+                    'owned_principal_ids' => $ownedIds,
+                    'revoked_key_principal_ids' => [$principal->id, ...$ownedIds],
+                ])
+                ->log('principal.deactivated');
+
             return $principal->refresh();
         });
     }

@@ -100,6 +100,16 @@ final class SourceSyncService
                 'last_sync_report' => $report,
             ])->save();
 
+            activity('sync')
+                ->performedOn($source)
+                ->withProperties([
+                    'status' => SyncStatusEnum::Ok->value,
+                    'commit' => $commit,
+                    'items_upserted' => $report['items_upserted'] ?? 0,
+                    'sections_upserted' => $report['sections_upserted'] ?? 0,
+                ])
+                ->log('source.synced');
+
             return $report;
         } catch (DenylistHitException $exception) {
             return $this->fail($source, [
@@ -138,6 +148,15 @@ final class SourceSyncService
             'last_synced_at' => now(),
             'last_sync_report' => $report,
         ])->save();
+
+        activity('sync')
+            ->performedOn($source)
+            ->withProperties([
+                'status' => SyncStatusEnum::Failed->value,
+                'reason' => $report['reason'] ?? null,
+                'message' => $report['message'] ?? null,
+            ])
+            ->log('source.sync_failed');
 
         return $report;
     }

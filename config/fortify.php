@@ -161,7 +161,7 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // No public registration: the first owner comes from instituta:install.
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([
