@@ -9,9 +9,12 @@ use App\Models\Activity;
 use App\Models\ApiKey;
 use App\Models\Item;
 use App\Models\ItemSection;
+use App\Models\Role;
 use App\Models\User;
 use App\Observers\ItemObserver;
 use App\Observers\ItemSectionObserver;
+use App\Policies\PermissionPolicy;
+use App\Policies\RolePolicy;
 use App\Services\ActivityEventLoggerService;
 use App\Services\ActivityOrganisationResolverService;
 use App\Services\Authorization\EffectivePermissionResolverService;
@@ -35,6 +38,7 @@ use Illuminate\Validation\Rules\Password;
 use Laravel\Fortify\Events\TwoFactorAuthenticationDisabled;
 use Laravel\Fortify\Events\TwoFactorAuthenticationEnabled;
 use Spatie\Activitylog\Facades\Activity as ActivityFacade;
+use Spatie\Permission\Models\Permission;
 
 /**
  * Core application service provider: bindings, activity logging, defaults.
@@ -77,6 +81,10 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function configureAuthorization(): void
     {
+        // Spatie models live outside App\Models; bind policies explicitly (excubia-app).
+        Gate::policy(Role::class, RolePolicy::class);
+        Gate::policy(Permission::class, PermissionPolicy::class);
+
         Gate::before(function (?User $user, string $ability, array $arguments): ?bool {
             if ($user === null) {
                 return null;

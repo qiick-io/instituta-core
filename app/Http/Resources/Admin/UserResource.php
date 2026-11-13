@@ -1,0 +1,53 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Resources\Admin;
+
+use App\Models\User;
+use App\Services\Authorization\EffectivePermissionResolverService;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Gate;
+
+/**
+ * A dashboard user for the admin list and the user drawer.
+ *
+ * Copied from excubia-app without groups / SSO fields (not in Instituta yet).
+ *
+ * @mixin User
+ */
+class UserResource extends JsonResource
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        /** @var User $user */
+        $user = $this->resource;
+        $actor = $request->user();
+        $canUpdate = Gate::allows('update', $user);
+
+        return [
+            'id' => $user->id,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'name' => $user->name,
+            'email' => $user->email,
+            'is_active' => $user->is_active,
+            'email_verified_at' => $user->email_verified_at?->toIso8601String(),
+            'created_at' => $user->created_at?->toIso8601String(),
+            'updated_at' => $user->updated_at?->toIso8601String(),
+            'roles' => $this->whenLoaded('roles', fn (): array => $user->roles
+                ->map(fn (Model $role): array => $role->only(['id', 'name']))
+                ->values()
+                ->all()),
+            'can_update' => $canUpdate,
+            'can_change_roles' => $canUpdate && $actor instanceof User
+                && (! $user->is($actor) || app(EffectivePermissionResolverService::class)->isSuperAdmin($actor)),
+            'can_delete' => Gate::allows('delete', $user),
+        ];
+    }
+}

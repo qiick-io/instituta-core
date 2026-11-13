@@ -6,6 +6,8 @@
         "resources/js/hooks/use-clipboard.ts": 2
     },
     "eslint/id-length": {
+        "resources/js/components/admin/data-table-toolbar.tsx": 1,
+        "resources/js/components/admin/paginated-multi-select.tsx": 1,
         "resources/js/components/passkey-register.tsx": 2
     }
 }

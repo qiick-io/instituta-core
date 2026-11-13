@@ -8,10 +8,12 @@ import type { AppLayoutProps } from '@/types';
 
 /**
  * Authenticated app layout with collapsible sidebar and header bar.
+ * Header actions sit after the scope switcher (list-page primary CTAs).
  */
 export default function AppSidebarLayout({
     children,
     breadcrumbs = [],
+    headerActions,
 }: AppLayoutProps) {
     return (
         <AppShell variant="sidebar">
@@ -25,7 +27,12 @@ export default function AppSidebarLayout({
             >
                 <AppSidebarHeader
                     breadcrumbs={breadcrumbs}
-                    actions={<ScopeSwitcher />}
+                    actions={
+                        <>
+                            <ScopeSwitcher />
+                            {headerActions}
+                        </>
+                    }
                 />
                 {children}
             </AppContent>

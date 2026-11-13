@@ -1,0 +1,64 @@
+/** Normalized Laravel paginator shape used across admin list views. */
+export type Paginated<T> = {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links?: { url: string | null; label: string; active: boolean }[];
+};
+
+/** Permission names grouped by resource (`can-create-users` → `users`) for the role form. */
+export type PermissionGroup = {
+    section: string;
+    label: string;
+    permissions: string[];
+};
+
+/** Generic id/label pair for admin select components. */
+export type AdminRoleRef = {
+    id: number;
+    name: string;
+};
+
+/** One row of `App\Http\Resources\Admin\UserResource`. */
+export type AdminUserRow = {
+    id: number;
+    first_name: string;
+    last_name: string | null;
+    /** First and last name. */
+    name: string;
+    email: string;
+    is_active: boolean;
+    email_verified_at: string | null;
+    roles: AdminRoleRef[];
+    can_update: boolean;
+    /** False on your own account unless you are a super-admin. */
+    can_change_roles: boolean;
+    can_delete: boolean;
+    created_at: string;
+    updated_at: string;
+};
+
+/** One row of `App\Http\Resources\Admin\RoleResource`. */
+export type AdminRoleRow = {
+    id: number;
+    name: string;
+    is_built_in: boolean;
+    can_edit: boolean;
+    permissions_count?: number;
+    permissions?: string[];
+    created_at: string;
+    updated_at: string;
+};
+
+/** One row of `App\Http\Resources\Admin\PermissionResource`. */
+export type AdminPermissionRow = {
+    id: number;
+    name: string;
+    guard_name: string;
+    /** Names of the roles that hold the permission. */
+    roles: string[];
+    created_at: string;
+    updated_at: string;
+};

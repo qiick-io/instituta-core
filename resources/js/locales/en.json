@@ -17,7 +17,8 @@
     "nav": {
         "appVersion": "v{{version}}",
         "platform": "Platform",
-        "repository": "Repository"
+        "repository": "Repository",
+        "users": "Users"
     },
     "ai": {
         "fabDescription": "Quick assistant drawer. Open the full page for history.",
@@ -98,7 +99,22 @@
         "firstName": "First name",
         "lastName": "Last name",
         "confirmPassword": "Confirm password",
-        "actions": "Actions"
+        "actions": "Actions",
+        "continue": "Continue",
+        "email": "Email",
+        "password": "Password",
+        "hide": "Hide",
+        "view": "View",
+        "created": "Created",
+        "updated": "Updated",
+        "name": "Name",
+        "back": "Back",
+        "create": "Create",
+        "description": "Description",
+        "close": "Close",
+        "confirm": "Confirm",
+        "generateSecurePassword": "Generate secure password",
+        "passwordStrength": "Password strength"
     },
     "confirmDestructive": {
         "typeToConfirm": "Type \"{{name}}\" to confirm"
@@ -147,7 +163,10 @@
             "security": "Security",
             "sessions": "Sessions",
             "appearance": "Appearance",
-            "reportBug": "Report a Bug"
+            "reportBug": "Report a Bug",
+            "sectionAccess": "Access",
+            "roles": "Roles",
+            "permissions": "Permissions"
         },
         "appearance": {
             "breadcrumb": "Appearance settings",
@@ -554,5 +573,86 @@
             "dateTo": "To"
         },
         "ip": "IP"
+    },
+    "users": {
+        "confirm": {
+            "deleteTitle": "Delete user “{{name}}”?",
+            "deleteDescription": "The account is removed. Deactivate it instead to keep it."
+        },
+        "title": "Users",
+        "newUser": "New user",
+        "searchPlaceholder": "Search users…",
+        "sortBy": "Sort by",
+        "columns": {
+            "created": "Created",
+            "updated": "Updated",
+            "name": "Name",
+            "email": "Email",
+            "roles": "Roles",
+            "groups": "Groups",
+            "status": "Status",
+            "actions": "Actions"
+        },
+        "ssoBadge": "SSO",
+        "actions": {
+            "sendResetEmail": "Send reset email"
+        },
+        "status": {
+            "active": "Active",
+            "inactive": "Inactive"
+        },
+        "form": {
+            "editTitle": "Edit user",
+            "editDescription": "Update profile, status and direct roles. Leave the password empty to keep it.",
+            "createDescription": "Create a user and assign direct roles. The email counts as verified. Prefer groups when many users share the same role set.",
+            "requiredHint": "Fields marked with * are required.",
+            "firstNameRequired": "First name *",
+            "emailRequired": "Email *",
+            "emailHint": "Use a valid email address, for example",
+            "newPasswordOptional": "New password (optional)",
+            "passwordRequired": "Password *",
+            "rolesRequired": "Roles *",
+            "rolesPlaceholder": "Select at least one role",
+            "rolesLocked": "You cannot change your own roles."
+        }
+    },
+    "roles": {
+        "names": {
+            "super-admin": "Super Admin",
+            "admin": "Admin",
+            "reader": "Reader",
+            "public": "Public"
+        },
+        "actions": {
+            "edit": "Edit",
+            "delete": "Delete",
+            "newRole": "New role"
+        },
+        "columns": {
+            "name": "Name",
+            "permissions": "Permissions",
+            "actions": "Actions"
+        },
+        "empty": "No roles yet.",
+        "systemBadge": "System",
+        "deleteTitle": "Delete role “{{name}}”?",
+        "deleteDescription": "This cannot be undone.",
+        "deleteFallback": "This cannot be undone.",
+        "form": {
+            "editTitle": "Edit role",
+            "editHead": "Edit {{name}}",
+            "readOnlyHint": "Built-in role — read-only; its permissions come with Excubia.",
+            "adminPermissions": "Admin permissions"
+        }
+    },
+    "permissions": {
+        "description": "Permissions are defined in PermissionEnum and synced to the database. Assign them to roles on the role edit page.",
+        "sync": "Sync from enum",
+        "empty": "No permissions in database. Run sync.",
+        "columns": {
+            "name": "Name",
+            "roles": "Roles",
+            "guard": "Guard"
+        }
     }
 }

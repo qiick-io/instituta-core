@@ -17,7 +17,8 @@
     "nav": {
         "appVersion": "v{{version}}",
         "platform": "Piattaforma",
-        "repository": "Repository"
+        "repository": "Repository",
+        "users": "Utenti"
     },
     "ai": {
         "fabDescription": "Drawer rapido dell'assistente. Apri la pagina completa per la cronologia.",
@@ -98,7 +99,22 @@
         "firstName": "Nome",
         "lastName": "Cognome",
         "confirmPassword": "Conferma password",
-        "actions": "Azioni"
+        "actions": "Azioni",
+        "continue": "Continua",
+        "email": "Email",
+        "password": "Password",
+        "hide": "Nascondi",
+        "view": "Mostra",
+        "created": "Creato",
+        "updated": "Aggiornato",
+        "name": "Nome",
+        "back": "Indietro",
+        "create": "Crea",
+        "description": "Descrizione",
+        "close": "Chiudi",
+        "confirm": "Conferma",
+        "generateSecurePassword": "Genera password sicura",
+        "passwordStrength": "Robustezza della password"
     },
     "confirmDestructive": {
         "typeToConfirm": "Digita \"{{name}}\" per confermare"
@@ -147,7 +163,10 @@
             "security": "Sicurezza",
             "sessions": "Sessioni",
             "appearance": "Aspetto",
-            "reportBug": "Segnala un Bug"
+            "reportBug": "Segnala un Bug",
+            "sectionAccess": "Accesso",
+            "roles": "Ruoli",
+            "permissions": "Permessi"
         },
         "appearance": {
             "breadcrumb": "Impostazioni aspetto",
@@ -554,5 +573,86 @@
             "dateTo": "A"
         },
         "ip": "IP"
+    },
+    "users": {
+        "confirm": {
+            "deleteTitle": "Eliminare l’utente “{{name}}”?",
+            "deleteDescription": "L’account viene rimosso. Disattivalo invece per conservarlo."
+        },
+        "title": "Utenti",
+        "newUser": "Nuovo utente",
+        "searchPlaceholder": "Cerca utenti…",
+        "sortBy": "Ordina per",
+        "columns": {
+            "created": "Creato",
+            "updated": "Aggiornato",
+            "name": "Nome",
+            "email": "Email",
+            "roles": "Ruoli",
+            "groups": "Gruppi",
+            "status": "Stato",
+            "actions": "Azioni"
+        },
+        "ssoBadge": "SSO",
+        "actions": {
+            "sendResetEmail": "Invia email di reset"
+        },
+        "status": {
+            "active": "Attivo",
+            "inactive": "Disattivato"
+        },
+        "form": {
+            "editTitle": "Modifica utente",
+            "editDescription": "Aggiorna profilo, stato e ruoli diretti. Lascia la password vuota per mantenerla.",
+            "createDescription": "Crea un utente e assegna i ruoli diretti. L'email è considerata verificata. Preferisci i gruppi quando molti utenti condividono gli stessi ruoli.",
+            "requiredHint": "I campi contrassegnati con * sono obbligatori.",
+            "firstNameRequired": "Nome *",
+            "emailRequired": "Email *",
+            "emailHint": "Usa un indirizzo email valido, ad esempio",
+            "newPasswordOptional": "Nuova password (facoltativa)",
+            "passwordRequired": "Password *",
+            "rolesRequired": "Ruoli *",
+            "rolesPlaceholder": "Seleziona almeno un ruolo",
+            "rolesLocked": "Non puoi cambiare i tuoi ruoli."
+        }
+    },
+    "roles": {
+        "names": {
+            "super-admin": "Super Admin",
+            "admin": "Admin",
+            "reader": "Lettore",
+            "public": "Pubblico"
+        },
+        "actions": {
+            "edit": "Modifica",
+            "delete": "Elimina",
+            "newRole": "Nuovo ruolo"
+        },
+        "columns": {
+            "name": "Nome",
+            "permissions": "Permessi",
+            "actions": "Azioni"
+        },
+        "empty": "Nessun ruolo.",
+        "systemBadge": "Sistema",
+        "deleteTitle": "Eliminare il ruolo “{{name}}”?",
+        "deleteDescription": "L’operazione non può essere annullata.",
+        "deleteFallback": "L'operazione non può essere annullata.",
+        "form": {
+            "editTitle": "Modifica ruolo",
+            "editHead": "Modifica {{name}}",
+            "readOnlyHint": "Ruolo predefinito, in sola lettura: i suoi permessi sono forniti da Excubia.",
+            "adminPermissions": "Permessi di amministrazione"
+        }
+    },
+    "permissions": {
+        "description": "I permessi sono definiti in PermissionEnum e sincronizzati nel database. Assegnali ai ruoli dalla pagina di modifica del ruolo.",
+        "sync": "Sincronizza dall’enum",
+        "empty": "Nessun permesso nel database. Esegui la sincronizzazione.",
+        "columns": {
+            "name": "Nome",
+            "roles": "Ruoli",
+            "guard": "Guard"
+        }
     }
 }

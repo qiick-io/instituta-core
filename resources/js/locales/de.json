@@ -17,7 +17,8 @@
     "nav": {
         "appVersion": "v{{version}}",
         "platform": "Plattform",
-        "repository": "Repository"
+        "repository": "Repository",
+        "users": "Benutzer"
     },
     "ai": {
         "fabDescription": "Schnelle Assistenten-Schublade. Öffnen Sie die Vollseite für den Verlauf.",
@@ -98,7 +99,22 @@
         "firstName": "Vorname",
         "lastName": "Nachname",
         "confirmPassword": "Passwort bestätigen",
-        "actions": "Aktionen"
+        "actions": "Aktionen",
+        "continue": "Weiter",
+        "email": "E-Mail",
+        "password": "Passwort",
+        "hide": "Ausblenden",
+        "view": "Anzeigen",
+        "created": "Erstellt",
+        "updated": "Aktualisiert",
+        "name": "Name",
+        "back": "Zurück",
+        "create": "Erstellen",
+        "description": "Beschreibung",
+        "close": "Schließen",
+        "confirm": "Bestätigen",
+        "generateSecurePassword": "Sicheres Passwort erzeugen",
+        "passwordStrength": "Passwortstärke"
     },
     "confirmDestructive": {
         "typeToConfirm": "Tippe „{{name}}“ zur Bestätigung"
@@ -147,7 +163,10 @@
             "security": "Sicherheit",
             "sessions": "Sitzungen",
             "appearance": "Darstellung",
-            "reportBug": "Bug melden"
+            "reportBug": "Bug melden",
+            "sectionAccess": "Zugriff",
+            "roles": "Rollen",
+            "permissions": "Berechtigungen"
         },
         "appearance": {
             "breadcrumb": "Darstellungseinstellungen",
@@ -554,5 +573,86 @@
             "dateTo": "Bis"
         },
         "ip": "IP"
+    },
+    "users": {
+        "confirm": {
+            "deleteTitle": "Benutzer „{{name}}“ löschen?",
+            "deleteDescription": "Das Konto wird entfernt. Deaktiviere es stattdessen, um es zu behalten."
+        },
+        "title": "Benutzer",
+        "newUser": "Neuer Benutzer",
+        "searchPlaceholder": "Benutzer suchen…",
+        "sortBy": "Sortieren nach",
+        "columns": {
+            "created": "Erstellt",
+            "updated": "Aktualisiert",
+            "name": "Name",
+            "email": "E-Mail",
+            "roles": "Rollen",
+            "groups": "Gruppen",
+            "status": "Status",
+            "actions": "Aktionen"
+        },
+        "ssoBadge": "SSO",
+        "actions": {
+            "sendResetEmail": "Reset-E-Mail senden"
+        },
+        "status": {
+            "active": "Aktiv",
+            "inactive": "Inaktiv"
+        },
+        "form": {
+            "editTitle": "Benutzer bearbeiten",
+            "editDescription": "Profil, Status und direkte Rollen aktualisieren. Lassen Sie das Passwort leer, um es beizubehalten.",
+            "createDescription": "Legen Sie einen Benutzer an und weisen Sie direkte Rollen zu. Die E-Mail-Adresse gilt als bestätigt. Verwenden Sie Gruppen, wenn viele Benutzer dieselben Rollen teilen.",
+            "requiredHint": "Mit * markierte Felder sind Pflichtfelder.",
+            "firstNameRequired": "Vorname *",
+            "emailRequired": "E-Mail *",
+            "emailHint": "Verwenden Sie eine gültige E-Mail-Adresse, zum Beispiel",
+            "newPasswordOptional": "Neues Passwort (optional)",
+            "passwordRequired": "Passwort *",
+            "rolesRequired": "Rollen *",
+            "rolesPlaceholder": "Mindestens eine Rolle auswählen",
+            "rolesLocked": "Sie können Ihre eigenen Rollen nicht ändern."
+        }
+    },
+    "roles": {
+        "names": {
+            "super-admin": "Super Admin",
+            "admin": "Admin",
+            "reader": "Leser",
+            "public": "Öffentlich"
+        },
+        "actions": {
+            "edit": "Bearbeiten",
+            "delete": "Löschen",
+            "newRole": "Neue Rolle"
+        },
+        "columns": {
+            "name": "Name",
+            "permissions": "Berechtigungen",
+            "actions": "Aktionen"
+        },
+        "empty": "Noch keine Rollen.",
+        "systemBadge": "System",
+        "deleteTitle": "Rolle „{{name}}“ löschen?",
+        "deleteDescription": "Das kann nicht rückgängig gemacht werden.",
+        "deleteFallback": "Dies kann nicht rückgängig gemacht werden.",
+        "form": {
+            "editTitle": "Rolle bearbeiten",
+            "editHead": "{{name}} bearbeiten",
+            "readOnlyHint": "Integrierte Rolle, schreibgeschützt: Ihre Berechtigungen kommen mit Excubia.",
+            "adminPermissions": "Admin-Berechtigungen"
+        }
+    },
+    "permissions": {
+        "description": "Berechtigungen sind in PermissionEnum definiert und werden mit der Datenbank synchronisiert. Weise sie auf der Bearbeitungsseite einer Rolle zu.",
+        "sync": "Aus Enum synchronisieren",
+        "empty": "Keine Berechtigungen in der Datenbank. Synchronisierung ausführen.",
+        "columns": {
+            "name": "Name",
+            "roles": "Rollen",
+            "guard": "Guard"
+        }
     }
 }

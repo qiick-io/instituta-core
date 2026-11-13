@@ -10,6 +10,7 @@ import {
     ListTree,
     Map as MapIcon,
     ScrollText,
+    Users,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import AppLogo from '@/components/app-logo';
@@ -26,19 +27,23 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { PermissionEnum } from '@/enums/permission-enum';
+import { useCan } from '@/hooks/use-can';
 import { dashboard } from '@/routes';
 import { index as activityIndex } from '@/routes/activity';
 import { graph, keys, map, sessionReplay, sources, tree } from '@/routes/brain';
 import { index as clientsIndex } from '@/routes/brain/clients';
 import { index as proposalsIndex } from '@/routes/brain/proposals';
+import users from '@/routes/users';
 import type { NavItem } from '@/types';
 
 /**
  * Primary application sidebar: logo, Platform nav, footer links, user menu, version.
- * Notifications bell is deferred until the notifications centre lands.
+ * Users appears when the actor can show users (Access), as in externa-core.
  */
 export function AppSidebar() {
     const { t } = useTranslation();
+    const { can } = useCan();
     const { auth, appVersion } = usePage().props;
 
     const mainNavItems: NavItem[] = [
@@ -92,6 +97,15 @@ export function AppSidebar() {
             href: activityIndex.url(),
             icon: ScrollText,
         },
+        ...(can(PermissionEnum.CanShowUsers)
+            ? [
+                  {
+                      title: t('nav.users'),
+                      href: users.index.url(),
+                      icon: Users,
+                  },
+              ]
+            : []),
     ];
 
     // Docs site is not public yet; keep the repository link only.
