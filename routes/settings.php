@@ -6,6 +6,7 @@ use App\Http\Controllers\Settings\InstanceLocalizationSettingsController;
 use App\Http\Controllers\Settings\InstanceSecuritySettingsController;
 use App\Http\Controllers\Settings\InstanceSettingsController;
 use App\Http\Controllers\Settings\LocaleController;
+use App\Http\Controllers\Settings\NotificationPreferencesController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 use App\Models\Setting;
@@ -17,6 +18,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    Route::patch('settings/notification-preferences', [NotificationPreferencesController::class, 'update'])
+        ->name('notification-preferences.update');
 
     Route::patch('settings/locale', [LocaleController::class, 'update'])->name('locale.update');
 });

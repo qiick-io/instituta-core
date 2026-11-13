@@ -20,6 +20,10 @@ declare module '@inertiajs/core' {
             sidebarOpen: boolean;
             instituta: InstitutaShared;
             instanceSettings: SharedInstanceSettings;
+            notifications: {
+                unread_count: number;
+                sound_enabled: boolean;
+            };
             projectAppearance: ProjectAppearance;
             [key: string]: unknown;
         };

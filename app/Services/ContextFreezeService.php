@@ -8,6 +8,7 @@ use App\Models\ContextFreeze;
 use App\Models\Principal;
 use App\Models\User;
 use App\Models\VaultVersion;
+use App\Notifications\FreezeActivatedNotification;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -55,6 +56,11 @@ final class ContextFreezeService
             app(ActivityEventLoggerService::class)->freezeCreated(
                 $freeze,
                 $principal->user instanceof User ? $principal->user : null,
+            );
+
+            app(NotifyOrganisationUsersService::class)->notify(
+                $freeze->organisation_id,
+                new FreezeActivatedNotification($freeze),
             );
 
             return $freeze;

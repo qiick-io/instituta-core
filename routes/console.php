@@ -9,3 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('activitylog:clean')->daily();
+Schedule::command('instituta:prune-notifications')->daily();
+Schedule::command('instituta:notify-expiring-keys')->daily();

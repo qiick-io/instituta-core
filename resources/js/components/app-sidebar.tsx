@@ -18,6 +18,7 @@ import { AppUserMenuContent } from '@/components/app-user-menu-content';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import { NotificationsBell } from '@/components/notifications/notifications-bell';
 import {
     Sidebar,
     SidebarContent,
@@ -29,6 +30,7 @@ import {
 } from '@/components/ui/sidebar';
 import { PermissionEnum } from '@/enums/permission-enum';
 import { useCan } from '@/hooks/use-can';
+import { notificationsSource } from '@/lib/notifications';
 import { dashboard } from '@/routes';
 import { index as activityIndex } from '@/routes/activity';
 import { graph, keys, map, sessionReplay, sources, tree } from '@/routes/brain';
@@ -44,7 +46,9 @@ import type { NavItem } from '@/types';
 export function AppSidebar() {
     const { t } = useTranslation();
     const { can } = useCan();
-    const { auth, appVersion } = usePage().props;
+    const { auth, appVersion, notifications } = usePage().props;
+    const unreadCount = notifications?.unread_count ?? 0;
+    const isSoundEnabled = notifications?.sound_enabled ?? false;
 
     const mainNavItems: NavItem[] = [
         {
@@ -145,6 +149,11 @@ export function AppSidebar() {
 
                 <SidebarFooter>
                     <NavFooter items={footerNavItems} className="mt-auto" />
+                    <NotificationsBell
+                        source={notificationsSource}
+                        unreadCount={unreadCount}
+                        isSoundEnabled={isSoundEnabled}
+                    />
                     <NavUser user={auth.user} connectionState="disabled">
                         {auth.user ? (
                             <AppUserMenuContent user={auth.user} />

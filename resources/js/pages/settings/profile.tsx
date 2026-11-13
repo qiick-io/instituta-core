@@ -1,19 +1,28 @@
 import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { CircleCheck } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import NotificationPreferencesController from '@/actions/App/Http/Controllers/Settings/NotificationPreferencesController';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
 import { SettingsFormActions } from '@/components/settings-form-actions';
 import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Field,
+    FieldDescription,
     FieldError,
     FieldGroup,
     FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import {
+    playTestSound,
+    unlockNotificationSound,
+} from '@/lib/notification-sound';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import type { Auth } from '@/types';
@@ -21,6 +30,10 @@ import type { Auth } from '@/types';
 type PageProps = {
     auth: Auth;
     availableLocales: Record<string, string>;
+    notifications: {
+        unread_count: number;
+        sound_enabled: boolean;
+    };
 };
 
 /**
@@ -36,8 +49,12 @@ export default function Profile({
     timezones: string[];
 }) {
     const { t } = useTranslation();
-    const { auth, availableLocales } = usePage<PageProps>().props;
+    const { auth, availableLocales, notifications } =
+        usePage<PageProps>().props;
     const user = auth.user;
+    const [isSoundEnabled, setIsSoundEnabled] = useState(
+        notifications?.sound_enabled ?? false,
+    );
 
     if (user === null) {
         return null;
@@ -292,6 +309,104 @@ export default function Profile({
                                     processing={processing}
                                     recentlySuccessful={recentlySuccessful}
                                     data-test="update-profile-button"
+                                />
+                            </>
+                        )}
+                    </Form>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-6">
+                    <Heading
+                        variant="small"
+                        title={t('settings.notificationSounds.title')}
+                        description={t(
+                            'settings.notificationSounds.description',
+                        )}
+                    />
+
+                    <Form
+                        {...NotificationPreferencesController.update.form()}
+                        options={{ preserveScroll: true }}
+                        className="space-y-6"
+                    >
+                        {({ processing, recentlySuccessful, errors }) => (
+                            <>
+                                <input
+                                    type="hidden"
+                                    name="sound_notifications_enabled"
+                                    value={isSoundEnabled ? '1' : '0'}
+                                />
+
+                                <Field
+                                    orientation="horizontal"
+                                    data-invalid={
+                                        errors.sound_notifications_enabled
+                                            ? true
+                                            : undefined
+                                    }
+                                >
+                                    <Checkbox
+                                        id="sound_notifications_enabled"
+                                        checked={isSoundEnabled}
+                                        onCheckedChange={(value) => {
+                                            const enabled = value === true;
+                                            setIsSoundEnabled(enabled);
+
+                                            if (enabled) {
+                                                unlockNotificationSound();
+                                            }
+                                        }}
+                                        aria-invalid={
+                                            errors.sound_notifications_enabled
+                                                ? true
+                                                : undefined
+                                        }
+                                        aria-describedby={
+                                            errors.sound_notifications_enabled
+                                                ? 'notification-sounds-error'
+                                                : 'sound-notifications-hint'
+                                        }
+                                    />
+                                    <div className="grid gap-1">
+                                        <FieldLabel
+                                            htmlFor="sound_notifications_enabled"
+                                            className="font-normal"
+                                        >
+                                            {t(
+                                                'settings.notificationSounds.notifications',
+                                            )}
+                                        </FieldLabel>
+                                        <FieldDescription id="sound-notifications-hint">
+                                            {t(
+                                                'settings.notificationSounds.notificationsHint',
+                                            )}
+                                        </FieldDescription>
+                                    </div>
+                                </Field>
+
+                                <FieldError id="notification-sounds-error">
+                                    {errors.sound_notifications_enabled}
+                                </FieldError>
+
+                                <div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        data-test="notification-sounds-test"
+                                        onClick={() => {
+                                            playTestSound();
+                                        }}
+                                    >
+                                        {t('settings.notificationSounds.test')}
+                                    </Button>
+                                </div>
+
+                                <SettingsFormActions
+                                    processing={processing}
+                                    recentlySuccessful={recentlySuccessful}
+                                    data-test="notification-sounds-save"
                                 />
                             </>
                         )}

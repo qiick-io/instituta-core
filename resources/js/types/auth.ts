@@ -7,6 +7,7 @@ export type User = {
     avatar?: string;
     locale?: string;
     timezone?: string;
+    notification_sound_enabled?: boolean;
     is_active?: boolean;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;

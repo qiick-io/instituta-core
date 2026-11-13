@@ -52,6 +52,8 @@ return [
         'traits' => [
             // Starter-kit validation-rule traits, never renamed.
             'App\Concerns',
+            // Notification channel helpers live next to the notification classes (externa-core).
+            'App\Notifications\Concerns',
         ],
     ],
 

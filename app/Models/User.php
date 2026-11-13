@@ -32,6 +32,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $password
  * @property string $locale
  * @property string $timezone
+ * @property bool $notification_sound_enabled
  * @property bool $is_active
  * @property Carbon|null $last_login_at
  * @property string|null $last_login_ip
@@ -49,6 +50,7 @@ use Spatie\Permission\Traits\HasRoles;
     'password',
     'locale',
     'timezone',
+    'notification_sound_enabled',
     'is_active',
     'last_login_at',
     'last_login_ip',
@@ -78,6 +80,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         'last_name' => null,
         'locale' => 'en',
         'timezone' => 'UTC',
+        'notification_sound_enabled' => false,
         'last_login_at' => null,
         'last_login_ip' => null,
         'email_verified_at' => null,
@@ -95,6 +98,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     {
         return [
             'is_active' => 'boolean',
+            'notification_sound_enabled' => 'boolean',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
