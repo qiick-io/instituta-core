@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Brain\Exceptions\DenylistHitException;
+use App\Enums\SourceAdapterEnum;
 use App\Enums\SourceProviderEnum;
 use App\Enums\SyncStatusEnum;
 use App\Jobs\SyncSourceJob;
@@ -10,6 +11,8 @@ use App\Models\Item;
 use App\Models\Organisation;
 use App\Models\Source;
 use App\Models\SourceVersion;
+use App\Models\StructuredRow;
+use App\Models\StructuredTable;
 use App\Models\VaultVersion;
 use App\Services\SourceRegistryService;
 use App\Services\SourceSyncService;
@@ -138,6 +141,39 @@ it('refuses github sync when no token is configured', function (): void {
         ->and(Item::query()->where('source_id', $source->id)->count())->toBe(0);
 
     Process::assertNothingRan();
+});
+
+it('persists structured tables and rows from a shadcn registry source', function (): void {
+    $organisation = Organisation::factory()->create();
+    $fixture = base_path('tests/Brain/Fixtures/shadcn-registry');
+
+    $source = app(SourceRegistryService::class)->add(
+        organisation: $organisation,
+        name: 'Registry fixture',
+        provider: SourceProviderEnum::Local,
+        localPath: $fixture,
+        adapter: SourceAdapterEnum::ShadcnRegistry,
+        isShared: true,
+    );
+
+    app(SourceSyncService::class)->sync($source->fresh());
+
+    $registryItem = Item::query()
+        ->where('source_id', $source->id)
+        ->where('path', 'registry.json')
+        ->firstOrFail();
+
+    $table = StructuredTable::query()
+        ->where('item_id', $registryItem->id)
+        ->where('table_key', 'registry')
+        ->firstOrFail();
+
+    expect(StructuredRow::query()->where('structured_table_id', $table->id)->count())->toBeGreaterThan(0);
+
+    app(SourceSyncService::class)->sync($source->fresh());
+
+    expect(StructuredTable::query()->where('item_id', $registryItem->id)->count())->toBe(1)
+        ->and(StructuredRow::query()->where('item_id', $registryItem->id)->count())->toBeGreaterThan(0);
 });
 
 it('adds a source and syncs via artisan commands', function (): void {
