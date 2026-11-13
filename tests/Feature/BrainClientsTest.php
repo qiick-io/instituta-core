@@ -110,6 +110,24 @@ it('hides the clients list from non-owners', function (): void {
             ->where('clients', []));
 });
 
+it('redirects client create and edit pages to the index drawer deep links', function (): void {
+    ['org' => $org, 'user' => $user] = clientsOwnerContext();
+
+    $client = Company::factory()->client()->create([
+        'organisation_id' => $org->id,
+        'name' => 'Drawer Client',
+        'slug' => 'drawer-client',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('brain.clients.create'))
+        ->assertRedirect(route('brain.clients.index', ['new' => 1]));
+
+    $this->actingAs($user)
+        ->get(route('brain.clients.edit', $client))
+        ->assertRedirect(route('brain.clients.index', ['edit' => $client->id]));
+});
+
 it('creates a client company for organisation owners', function (): void {
     ['org' => $org, 'user' => $user] = clientsOwnerContext();
 

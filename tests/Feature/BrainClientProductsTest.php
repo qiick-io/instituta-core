@@ -81,6 +81,33 @@ it('lists only products for the selected owned client', function (): void {
             ->where('products.0.inherits_from_parent', true));
 });
 
+it('redirects product create and edit pages to the index drawer deep links', function (): void {
+    ['org' => $org, 'user' => $user] = clientProductsOwnerContext();
+
+    $client = Company::factory()->client()->create([
+        'organisation_id' => $org->id,
+    ]);
+    $product = Product::factory()->create([
+        'company_id' => $client->id,
+        'name' => 'Drawer Product',
+        'slug' => 'drawer-product',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('brain.clients.products.create', $client))
+        ->assertRedirect(route('brain.clients.products.index', [
+            'company' => $client,
+            'new' => 1,
+        ]));
+
+    $this->actingAs($user)
+        ->get(route('brain.clients.products.edit', [$client, $product]))
+        ->assertRedirect(route('brain.clients.products.index', [
+            'company' => $client,
+            'edit' => $product->id,
+        ]));
+});
+
 it('creates a product under an owned client with inherit default true', function (): void {
     ['org' => $org, 'user' => $user] = clientProductsOwnerContext();
 

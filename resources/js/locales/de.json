@@ -477,7 +477,9 @@
                 "syncing": "Sync läuft",
                 "ok": "Ok",
                 "failed": "Fehlgeschlagen"
-            }
+            },
+            "searchPlaceholder": "Quellen suchen…",
+            "hideReport": "Bericht ausblenden"
         },
         "keys": {
             "title": "API-Schlüssel",
@@ -492,7 +494,8 @@
             "colLastUsed": "Zuletzt genutzt",
             "colStatus": "Status",
             "active": "Aktiv",
-            "revoked": "Widerrufen"
+            "revoked": "Widerrufen",
+            "searchPlaceholder": "Schlüssel suchen…"
         },
         "clients": {
             "title": "Kunden",
@@ -525,7 +528,13 @@
             "export": "Exportieren",
             "downloadExport": "Export herunterladen",
             "erase": "Löschen",
-            "eraseConfirm": "Alle indexierten Inhalte, Replay-Zeilen und Scope-Keys für {{name}} löschen? Das kann nicht rückgängig gemacht werden."
+            "eraseConfirm": "Alle indexierten Inhalte, Replay-Zeilen und Scope-Keys für {{name}} löschen? Das kann nicht rückgängig gemacht werden.",
+            "searchPlaceholder": "Kunden suchen…",
+            "requiredHint": "Mit * markierte Felder sind Pflicht.",
+            "confirm": {
+                "eraseTitle": "{{name}} löschen?",
+                "eraseDescription": "Entfernt dauerhaft indexierte Inhalte, Replay-Zeilen und Scope-Schlüssel für diesen Kunden. Tippen Sie den Kundennamen zur Bestätigung."
+            }
         },
         "products": {
             "title": "Produkte — {{client}}",
@@ -553,7 +562,9 @@
             "slugHint": "Nur Kleinbuchstaben, Zahlen und Bindestriche. Eindeutig im Kunden.",
             "saveCreate": "Produkt anlegen",
             "saveEdit": "Änderungen speichern",
-            "cancel": "Abbrechen"
+            "cancel": "Abbrechen",
+            "searchPlaceholder": "Produkte suchen…",
+            "requiredHint": "Mit * markierte Felder sind Pflicht."
         },
         "sessionReplay": {
             "title": "Sitzungs-Replay",
@@ -619,7 +630,8 @@
                 "materialised": "Materialisiert",
                 "local_review": "Lokale Prüfung",
                 "failed": "Fehlgeschlagen"
-            }
+            },
+            "searchPlaceholder": "Vorschläge suchen…"
         },
         "graph": {
             "title": "Eingeschränkter Graph",
@@ -735,6 +747,40 @@
             "name": "Name",
             "roles": "Rollen",
             "guard": "Guard"
+        }
+    },
+    "emptyState": {
+        "clients": {
+            "title": "Noch keine Kunden",
+            "description": "Fügen Sie ein Kundenunternehmen hinzu, um Produkte und Scopes zu verwalten.",
+            "cta": "Neuer Kunde",
+            "filteredTitle": "Keine passenden Kunden",
+            "filteredDescription": "Andere Suche versuchen oder Filter zurücksetzen."
+        },
+        "products": {
+            "title": "Noch keine Produkte",
+            "description": "Legen Sie ein Produkt unter diesem Kunden an.",
+            "cta": "Neues Produkt",
+            "filteredTitle": "Keine passenden Produkte",
+            "filteredDescription": "Andere Suche versuchen oder Filter zurücksetzen."
+        },
+        "keys": {
+            "title": "Noch keine API-Schlüssel",
+            "description": "Schlüssel mit php artisan instituta:key anlegen.",
+            "filteredTitle": "Keine passenden Schlüssel",
+            "filteredDescription": "Andere Suche versuchen oder Filter zurücksetzen."
+        },
+        "sources": {
+            "title": "Noch keine Quellen",
+            "description": "Quellen erscheinen hier nach der Konfiguration für diesen Scope.",
+            "filteredTitle": "Keine passenden Quellen",
+            "filteredDescription": "Andere Suche versuchen oder Filter zurücksetzen."
+        },
+        "proposals": {
+            "title": "Keine Vorschläge in diesem Filter",
+            "description": "Schreibvorschläge für den aktuellen Scope erscheinen hier.",
+            "filteredTitle": "Keine passenden Vorschläge",
+            "filteredDescription": "Andere Suche versuchen oder Filter zurücksetzen."
         }
     }
 }

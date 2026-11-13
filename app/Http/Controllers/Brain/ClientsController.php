@@ -19,7 +19,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Agency portal clients list and create / edit forms (case 4).
+ * Agency portal clients list; create / edit open as drawers on the index.
  */
 final class ClientsController extends Controller
 {
@@ -38,7 +38,7 @@ final class ClientsController extends Controller
         return Inertia::render('brain/clients', $this->clients->listFor($user));
     }
 
-    public function create(Request $request): Response
+    public function create(Request $request): RedirectResponse
     {
         $user = $request->user();
 
@@ -50,7 +50,7 @@ final class ClientsController extends Controller
             abort(403);
         }
 
-        return Inertia::render('brain/clients/create');
+        return to_route('brain.clients.index', ['new' => 1]);
     }
 
     public function store(
@@ -72,7 +72,7 @@ final class ClientsController extends Controller
         return to_route('brain.clients.index');
     }
 
-    public function edit(Request $request, Company $company): Response
+    public function edit(Request $request, Company $company): RedirectResponse
     {
         $user = $request->user();
 
@@ -82,13 +82,7 @@ final class ClientsController extends Controller
 
         $this->clients->assertOwnerCanManage($user, $company);
 
-        return Inertia::render('brain/clients/edit', [
-            'client' => [
-                'id' => $company->id,
-                'name' => $company->name,
-                'slug' => $company->slug,
-            ],
-        ]);
+        return to_route('brain.clients.index', ['edit' => $company->id]);
     }
 
     public function update(

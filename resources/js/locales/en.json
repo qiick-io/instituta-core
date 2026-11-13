@@ -477,7 +477,9 @@
                 "syncing": "Syncing",
                 "ok": "Ok",
                 "failed": "Failed"
-            }
+            },
+            "searchPlaceholder": "Search sources…",
+            "hideReport": "Hide report"
         },
         "keys": {
             "title": "API keys",
@@ -492,7 +494,8 @@
             "colLastUsed": "Last used",
             "colStatus": "Status",
             "active": "Active",
-            "revoked": "Revoked"
+            "revoked": "Revoked",
+            "searchPlaceholder": "Search keys…"
         },
         "clients": {
             "title": "Clients",
@@ -525,7 +528,13 @@
             "export": "Export",
             "downloadExport": "Download export",
             "erase": "Erase",
-            "eraseConfirm": "Erase all indexed content, replay rows and scoped keys for {{name}}? This cannot be undone."
+            "eraseConfirm": "Erase all indexed content, replay rows and scoped keys for {{name}}? This cannot be undone.",
+            "searchPlaceholder": "Search clients…",
+            "requiredHint": "Fields marked with * are required.",
+            "confirm": {
+                "eraseTitle": "Erase {{name}}?",
+                "eraseDescription": "This permanently removes indexed content, replay rows and scoped keys for this client. Type the client name to confirm."
+            }
         },
         "products": {
             "title": "Products — {{client}}",
@@ -553,7 +562,9 @@
             "slugHint": "Lowercase letters, numbers and hyphens only. Unique within the client.",
             "saveCreate": "Create product",
             "saveEdit": "Save changes",
-            "cancel": "Cancel"
+            "cancel": "Cancel",
+            "searchPlaceholder": "Search products…",
+            "requiredHint": "Fields marked with * are required."
         },
         "sessionReplay": {
             "title": "Session replay",
@@ -619,7 +630,8 @@
                 "materialised": "Materialised",
                 "local_review": "Local review",
                 "failed": "Failed"
-            }
+            },
+            "searchPlaceholder": "Search proposals…"
         },
         "graph": {
             "title": "Scoped graph",
@@ -735,6 +747,40 @@
             "name": "Name",
             "roles": "Roles",
             "guard": "Guard"
+        }
+    },
+    "emptyState": {
+        "clients": {
+            "title": "No clients yet",
+            "description": "Add a client company to manage products and scopes.",
+            "cta": "New client",
+            "filteredTitle": "No matching clients",
+            "filteredDescription": "Try a different search or clear filters."
+        },
+        "products": {
+            "title": "No products yet",
+            "description": "Create a product under this client.",
+            "cta": "New product",
+            "filteredTitle": "No matching products",
+            "filteredDescription": "Try a different search or clear filters."
+        },
+        "keys": {
+            "title": "No API keys yet",
+            "description": "Create keys with php artisan instituta:key.",
+            "filteredTitle": "No matching keys",
+            "filteredDescription": "Try a different search or clear filters."
+        },
+        "sources": {
+            "title": "No sources yet",
+            "description": "Sources appear here after they are configured for this scope.",
+            "filteredTitle": "No matching sources",
+            "filteredDescription": "Try a different search or clear filters."
+        },
+        "proposals": {
+            "title": "No proposals in this filter",
+            "description": "Write proposals for the current scope show up here.",
+            "filteredTitle": "No matching proposals",
+            "filteredDescription": "Try a different search or clear filters."
         }
     }
 }
