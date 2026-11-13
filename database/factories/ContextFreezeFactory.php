@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\ContextFreeze;
-use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\VaultVersion;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
+ * Freeze row. Default vault version is independent; tests that need a matching
+ * organisation pass `vault_version_id` (and usually `organisation_id`) explicitly.
+ *
  * @extends Factory<ContextFreeze>
  */
 class ContextFreezeFactory extends Factory
@@ -22,21 +24,13 @@ class ContextFreezeFactory extends Factory
      */
     public function definition(): array
     {
-        $organisation = Organisation::factory()->create();
-        $principal = Principal::factory()->create([
-            'organisation_id' => $organisation->id,
-        ]);
-        $vaultVersion = VaultVersion::factory()->create([
-            'organisation_id' => $organisation->id,
-        ]);
-
         return [
-            'organisation_id' => $organisation->id,
+            'frozen_by_principal_id' => Principal::factory(),
+            'organisation_id' => fn (array $attributes): mixed => Principal::query()->whereKey($attributes['frozen_by_principal_id'])->value('organisation_id'),
             'company_id' => null,
             'product_id' => null,
-            'vault_version_id' => $vaultVersion->id,
+            'vault_version_id' => VaultVersion::factory(),
             'reason' => fake()->sentence(),
-            'frozen_by_principal_id' => $principal->id,
             'frozen_at' => now(),
             'lifted_at' => null,
         ];

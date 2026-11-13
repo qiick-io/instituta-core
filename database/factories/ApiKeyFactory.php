@@ -9,12 +9,14 @@ use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Enums\ApiKeyAbilityEnum;
 use App\Models\ApiKey;
-use App\Models\Organisation;
 use App\Models\Principal;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
+ * Active API key bound to a fresh principal. The plain secret is never stored: a test that
+ * calls the API with the key uses {@see ApiKeyFactory::withSecret()} to choose it.
+ *
  * @extends Factory<ApiKey>
  */
 class ApiKeyFactory extends Factory
@@ -26,7 +28,6 @@ class ApiKeyFactory extends Factory
      */
     public function definition(): array
     {
-        $organisation = Organisation::factory()->create();
         $secret = $this->makeSecret();
 
         return [
@@ -34,11 +35,9 @@ class ApiKeyFactory extends Factory
             'prefix' => ApiKey::DEFAULT_PREFIX,
             'hash' => $secret['hash'],
             'display_prefix' => $secret['display_prefix'],
-            'principal_id' => Principal::factory()->state([
-                'organisation_id' => $organisation->id,
-            ]),
+            'principal_id' => Principal::factory(),
             'scope_type' => ScopeTypeEnum::Organisation,
-            'scope_id' => $organisation->id,
+            'scope_id' => fn (array $attributes): mixed => Principal::query()->whereKey($attributes['principal_id'])->value('organisation_id'),
             'role' => RoleEnum::Member,
             'max_visibility' => VisibilityEnum::Internal,
             'abilities' => [ApiKeyAbilityEnum::BrainRead->value],

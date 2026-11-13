@@ -21,14 +21,13 @@ class ItemSectionFactory extends Factory
      */
     public function definition(): array
     {
-        $item = Item::factory()->create();
         $heading = fake()->sentence(3);
 
         return [
-            'item_id' => $item->id,
-            'organisation_id' => $item->organisation_id,
-            'company_id' => $item->company_id,
-            'product_id' => $item->product_id,
+            'item_id' => Item::factory(),
+            'organisation_id' => fn (array $attributes): mixed => Item::query()->whereKey($attributes['item_id'])->value('organisation_id'),
+            'company_id' => fn (array $attributes): mixed => Item::query()->whereKey($attributes['item_id'])->value('company_id'),
+            'product_id' => fn (array $attributes): mixed => Item::query()->whereKey($attributes['item_id'])->value('product_id'),
             'anchor' => Str::slug($heading),
             'heading' => $heading,
             'level' => 2,

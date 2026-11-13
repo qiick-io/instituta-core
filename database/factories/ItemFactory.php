@@ -6,7 +6,6 @@ namespace Database\Factories;
 
 use App\Brain\Enums\VisibilityEnum;
 use App\Models\Item;
-use App\Models\Organisation;
 use App\Models\Source;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -23,17 +22,13 @@ class ItemFactory extends Factory
      */
     public function definition(): array
     {
-        $organisation = Organisation::factory()->create();
-        $source = Source::factory()->create([
-            'organisation_id' => $organisation->id,
-        ]);
         $path = 'notes/'.fake()->slug().'.md';
 
         return [
-            'organisation_id' => $organisation->id,
+            'source_id' => Source::factory(),
+            'organisation_id' => fn (array $attributes): mixed => Source::query()->whereKey($attributes['source_id'])->value('organisation_id'),
             'company_id' => null,
             'product_id' => null,
-            'source_id' => $source->id,
             'path' => $path,
             'stable_key' => Str::beforeLast($path, '.md'),
             'type' => 'note',
