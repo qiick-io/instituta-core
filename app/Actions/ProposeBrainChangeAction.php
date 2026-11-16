@@ -6,21 +6,19 @@ namespace App\Actions;
 
 use App\Brain\Data\PerimeterData;
 use App\Brain\Enums\RoleEnum;
-use App\Brain\Enums\ScopeTypeEnum;
 use App\Data\ProposeBrainChangeData;
 use App\Enums\ProposalActionEnum;
 use App\Enums\ProposalStatusEnum;
 use App\Models\ApiKey;
-use App\Models\Company;
 use App\Models\Item;
 use App\Models\ItemSection;
-use App\Models\Product;
 use App\Models\Proposal;
 use App\Models\User;
 use App\Notifications\ProposalOpenedNotification;
 use App\Services\ActivityEventLoggerService;
 use App\Services\ContractAuditService;
 use App\Services\NotifyOrganisationUsersService;
+use App\Services\PerimeterScopeColumnsService;
 use InvalidArgumentException;
 
 /**
@@ -37,6 +35,7 @@ final class ProposeBrainChangeAction
     public function __construct(
         private readonly ContractAuditService $audit = new ContractAuditService,
         private readonly ActivityEventLoggerService $activity = new ActivityEventLoggerService,
+        private readonly PerimeterScopeColumnsService $scopeColumns = new PerimeterScopeColumnsService,
     ) {}
 
     /**
@@ -54,7 +53,7 @@ final class ProposeBrainChangeAction
             throw new InvalidArgumentException('Guests cannot propose changes.');
         }
 
-        [$organisationId, $companyId, $productId] = $this->scopeColumns($perimeter);
+        [$organisationId, $companyId, $productId] = $this->scopeColumns->columnsFor($perimeter);
 
         if ($organisationId === null || $organisationId === '') {
             throw new InvalidArgumentException('Proposal requires a resolvable organisation scope.');
@@ -197,35 +196,5 @@ final class ProposeBrainChangeAction
         if (! hash_equals($currentHash, $sentHash)) {
             throw new InvalidArgumentException('The content changed since you read it ('.$field.' is stale); re-read and propose again.');
         }
-    }
-
-    /**
-     * @return array{0: string|null, 1: string|null, 2: string|null}
-     */
-    private function scopeColumns(PerimeterData $perimeter): array
-    {
-        return match ($perimeter->scopeType) {
-            ScopeTypeEnum::Organisation => [$perimeter->scopeId, null, null],
-            ScopeTypeEnum::Company => [
-                Company::query()->whereKey($perimeter->scopeId)->value('organisation_id'),
-                $perimeter->scopeId,
-                null,
-            ],
-            ScopeTypeEnum::Product => $this->productScopeColumns($perimeter->scopeId),
-        };
-    }
-
-    /**
-     * @return array{0: string|null, 1: string|null, 2: string|null}
-     */
-    private function productScopeColumns(string $productId): array
-    {
-        $product = Product::query()->with('company')->find($productId);
-
-        return [
-            $product?->company?->organisation_id,
-            $product?->company_id,
-            $productId,
-        ];
     }
 }

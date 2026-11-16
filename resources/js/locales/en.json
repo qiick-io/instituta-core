@@ -125,7 +125,9 @@
         "close": "Close",
         "confirm": "Confirm",
         "generateSecurePassword": "Generate secure password",
-        "passwordStrength": "Password strength"
+        "passwordStrength": "Password strength",
+        "copy": "Copy",
+        "copied": "Copied"
     },
     "confirmDestructive": {
         "typeToConfirm": "Type \"{{name}}\" to confirm"
@@ -523,12 +525,51 @@
                 "failed": "Failed"
             },
             "searchPlaceholder": "Search sources…",
-            "hideReport": "Hide report"
+            "hideReport": "Hide report",
+            "create": "Add source",
+            "createTitle": "Add a source",
+            "editTitle": "Edit source",
+            "formDescription": "Instituta only reads this repository; it never writes to it.",
+            "fieldLocalPath": "Local path",
+            "localPathHint": "Absolute path to a folder on this server.",
+            "fieldRemoteUrl": "Repository URL",
+            "fieldRef": "Branch or tag",
+            "fieldPath": "Subfolder",
+            "pathHint": "Optional: read only this folder of the repository.",
+            "fieldAdapter": "Format",
+            "fieldVisibility": "Default visibility",
+            "fieldSyncInterval": "Sync every (minutes)",
+            "syncIntervalHint": "0 turns scheduled syncs off. Empty uses the default: 15 for Git and GitHub, off for a local folder.",
+            "fieldShared": "Shared with every client and product of the organisation",
+            "saveCreate": "Add source",
+            "saveEdit": "Save changes",
+            "colActions": "Actions",
+            "syncNow": "Sync now",
+            "edit": "Edit",
+            "remove": "Remove",
+            "confirmRemoveTitle": "Remove {{name}}?",
+            "confirmRemoveDescription": "Everything indexed from this source is removed from Instituta. The repository itself is not touched.",
+            "providers": {
+                "local": "Local folder",
+                "git": "Git",
+                "github": "GitHub"
+            },
+            "adapters": {
+                "instituta": "Instituta",
+                "basic-memory": "Basic Memory",
+                "markdown": "Markdown",
+                "shadcn-registry": "shadcn registry"
+            },
+            "visibilities": {
+                "public": "Public",
+                "internal": "Internal",
+                "restricted": "Restricted"
+            }
         },
         "keys": {
             "title": "API keys",
             "description": "Read-only list of keys for this owner. Create and revoke stay in Artisan.",
-            "artisanHint": "Use php artisan instituta:key to create or revoke keys.",
+            "artisanHint": "Create a key for each agent; revoke it here when the agent should stop.",
             "ownerOnly": "Only owners can view API keys.",
             "empty": "No API keys yet.",
             "colName": "Name",
@@ -539,7 +580,35 @@
             "colStatus": "Status",
             "active": "Active",
             "revoked": "Revoked",
-            "searchPlaceholder": "Search keys…"
+            "searchPlaceholder": "Search keys…",
+            "create": "Create key",
+            "createTitle": "Create an API key",
+            "createDescription": "The key works in the scope you are viewing now. Its secret is shown once.",
+            "namePlaceholder": "Claude Code on my laptop",
+            "fieldPrincipal": "Key for",
+            "principalAgent": "A new agent",
+            "principalMe": "Me",
+            "principalHint": "Give each agent its own key, so you can see and revoke it on its own.",
+            "fieldAgentName": "Agent name",
+            "agentNamePlaceholder": "Cursor",
+            "roles": {
+                "owner": "Owner",
+                "member": "Member",
+                "guest": "Guest"
+            },
+            "fieldMaxVisibility": "Widest visibility",
+            "fieldExpiresAt": "Expires on",
+            "expiresAtHint": "Optional. Leave empty for a key that does not expire.",
+            "fieldCanWrite": "Can propose changes",
+            "canWriteHint": "Adds brain:write. Proposals still need a person to accept them.",
+            "colPrincipal": "Principal",
+            "colActions": "Actions",
+            "write": "Write",
+            "revoke": "Revoke",
+            "secretBanner": "Copy the key now: it will not be shown again.",
+            "secretValue": "New API key",
+            "confirmRevokeTitle": "Revoke {{name}}?",
+            "confirmRevokeDescription": "Agents using this key lose access immediately. This cannot be undone."
         },
         "clients": {
             "title": "Clients",
@@ -873,7 +942,7 @@
         },
         "keys": {
             "title": "No API keys yet",
-            "description": "Create keys with php artisan instituta:key.",
+            "description": "Create one for each agent that reads or proposes changes.",
             "filteredTitle": "No matching keys",
             "filteredDescription": "Try a different search or clear filters."
         },

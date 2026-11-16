@@ -125,7 +125,9 @@
         "close": "Chiudi",
         "confirm": "Conferma",
         "generateSecurePassword": "Genera password sicura",
-        "passwordStrength": "Robustezza della password"
+        "passwordStrength": "Robustezza della password",
+        "copy": "Copia",
+        "copied": "Copiato"
     },
     "confirmDestructive": {
         "typeToConfirm": "Digita \"{{name}}\" per confermare"
@@ -523,12 +525,51 @@
                 "failed": "Fallito"
             },
             "searchPlaceholder": "Cerca sorgenti…",
-            "hideReport": "Nascondi report"
+            "hideReport": "Nascondi report",
+            "create": "Aggiungi fonte",
+            "createTitle": "Aggiungi una fonte",
+            "editTitle": "Modifica fonte",
+            "formDescription": "Instituta legge soltanto questo repository; non ci scrive mai.",
+            "fieldLocalPath": "Percorso locale",
+            "localPathHint": "Percorso assoluto di una cartella su questo server.",
+            "fieldRemoteUrl": "URL del repository",
+            "fieldRef": "Branch o tag",
+            "fieldPath": "Sottocartella",
+            "pathHint": "Facoltativa: legge solo questa cartella del repository.",
+            "fieldAdapter": "Formato",
+            "fieldVisibility": "Visibilità predefinita",
+            "fieldSyncInterval": "Sincronizza ogni (minuti)",
+            "syncIntervalHint": "0 disattiva la sincronizzazione programmata. Vuoto usa il valore predefinito: 15 per Git e GitHub, spenta per una cartella locale.",
+            "fieldShared": "Condivisa con tutti i clienti e prodotti dell'organizzazione",
+            "saveCreate": "Aggiungi fonte",
+            "saveEdit": "Salva modifiche",
+            "colActions": "Azioni",
+            "syncNow": "Sincronizza ora",
+            "edit": "Modifica",
+            "remove": "Rimuovi",
+            "confirmRemoveTitle": "Rimuovere {{name}}?",
+            "confirmRemoveDescription": "Tutto ciò che è stato indicizzato da questa fonte viene rimosso da Instituta. Il repository non viene toccato.",
+            "providers": {
+                "local": "Cartella locale",
+                "git": "Git",
+                "github": "GitHub"
+            },
+            "adapters": {
+                "instituta": "Instituta",
+                "basic-memory": "Basic Memory",
+                "markdown": "Markdown",
+                "shadcn-registry": "Registry shadcn"
+            },
+            "visibilities": {
+                "public": "Pubblica",
+                "internal": "Interna",
+                "restricted": "Riservata"
+            }
         },
         "keys": {
             "title": "Chiavi API",
             "description": "Elenco in sola lettura delle chiavi di questo owner. Creazione e revoca restano in Artisan.",
-            "artisanHint": "Usa php artisan instituta:key per creare o revocare chiavi.",
+            "artisanHint": "Crea una chiave per ogni agente; revocala qui quando l'agente deve smettere.",
             "ownerOnly": "Solo gli owner possono vedere le chiavi API.",
             "empty": "Nessuna chiave API ancora.",
             "colName": "Nome",
@@ -539,7 +580,35 @@
             "colStatus": "Stato",
             "active": "Attiva",
             "revoked": "Revocata",
-            "searchPlaceholder": "Cerca chiavi…"
+            "searchPlaceholder": "Cerca chiavi…",
+            "create": "Crea chiave",
+            "createTitle": "Crea una chiave API",
+            "createDescription": "La chiave funziona nell'ambito che stai guardando ora. Il segreto viene mostrato una sola volta.",
+            "namePlaceholder": "Claude Code sul mio portatile",
+            "fieldPrincipal": "Chiave per",
+            "principalAgent": "Un nuovo agente",
+            "principalMe": "Me",
+            "principalHint": "Dai a ogni agente la sua chiave, così puoi vederla e revocarla da sola.",
+            "fieldAgentName": "Nome dell'agente",
+            "agentNamePlaceholder": "Cursor",
+            "roles": {
+                "owner": "Owner",
+                "member": "Membro",
+                "guest": "Ospite"
+            },
+            "fieldMaxVisibility": "Visibilità massima",
+            "fieldExpiresAt": "Scade il",
+            "expiresAtHint": "Facoltativa. Lascia vuoto per una chiave che non scade.",
+            "fieldCanWrite": "Può proporre modifiche",
+            "canWriteHint": "Aggiunge brain:write. Le proposte vanno comunque accettate da una persona.",
+            "colPrincipal": "Principal",
+            "colActions": "Azioni",
+            "write": "Scrittura",
+            "revoke": "Revoca",
+            "secretBanner": "Copia la chiave adesso: non verrà mostrata di nuovo.",
+            "secretValue": "Nuova chiave API",
+            "confirmRevokeTitle": "Revocare {{name}}?",
+            "confirmRevokeDescription": "Gli agenti che usano questa chiave perdono subito l'accesso. Non si può annullare."
         },
         "clients": {
             "title": "Clienti",
@@ -873,7 +942,7 @@
         },
         "keys": {
             "title": "Nessuna chiave API",
-            "description": "Crea le chiavi con php artisan instituta:key.",
+            "description": "Creane una per ogni agente che legge o propone modifiche.",
             "filteredTitle": "Nessuna chiave corrispondente",
             "filteredDescription": "Prova un’altra ricerca o azzera i filtri."
         },

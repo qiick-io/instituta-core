@@ -1,23 +1,40 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { Head, setLayoutProps } from '@inertiajs/react';
-import { Database, SearchX } from 'lucide-react';
+import { Head, router, setLayoutProps } from '@inertiajs/react';
+import {
+    Database,
+    Pencil,
+    Plus,
+    RefreshCw,
+    SearchX,
+    Trash2,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     DataTable,
     dataTableExpandColumn,
 } from '@/components/admin/data-table';
+import SourceSyncController from '@/actions/App/Http/Controllers/Brain/SourceSyncController';
+import SourcesController from '@/actions/App/Http/Controllers/Brain/SourcesController';
+import { HeaderIconButton } from '@/components/admin/header-icon-button';
 import { TruncatedText } from '@/components/admin/truncated-text';
 import { DataTableToolbar } from '@/components/admin/data-table-toolbar';
 import { PageEmptyState } from '@/components/admin/page-empty-state';
+import {
+    SourceFormDrawer,
+    type SourceFormRow,
+} from '@/components/brain/source-form-drawer';
+import { ConfirmDestructiveDialog } from '@/components/confirm-destructive-dialog';
 import { EmptyStatus } from '@/components/empty-status';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button-group';
+import { Drawer } from '@/components/ui/drawer';
 import brainRoutes from '@/routes/brain';
 import type { BreadcrumbItem } from '@/types';
 
-type SourceRow = {
+type SourceRow = SourceFormRow & {
     id: string;
     name: string;
     provider: string;
@@ -26,19 +43,43 @@ type SourceRow = {
     last_synced_at: string | null;
     last_sync_report: Record<string, unknown> | null;
     scope_type: string;
+    has_webhook: boolean;
 };
 
 type Props = {
     sources: SourceRow[];
     hasPerimeter: boolean;
+    /** Owners add, edit, sync and remove sources (#201). */
+    canManage: boolean;
 };
 
 /**
- * Ingest sources list with sync status and expandable last report.
+ * Ingest sources list with sync status and expandable last report. Owners manage sources from
+ * here (#201): add / edit in a drawer, sync now, remove with confirmation.
  */
-export default function BrainSources({ sources, hasPerimeter }: Props) {
+export default function BrainSources({
+    sources,
+    hasPerimeter,
+    canManage,
+}: Props) {
     const { t } = useTranslation();
     const [search, setSearch] = useState('');
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [editing, setEditing] = useState<SourceRow | null>(null);
+    const [pendingRemoval, setPendingRemoval] = useState<SourceRow | null>(
+        null,
+    );
+    const [isRemoving, setIsRemoving] = useState(false);
+
+    const openEdit = (source: SourceRow): void => {
+        setEditing(source);
+        setIsDrawerOpen(true);
+    };
+
+    const closeDrawer = (): void => {
+        setIsDrawerOpen(false);
+        setEditing(null);
+    };
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
@@ -48,6 +89,26 @@ export default function BrainSources({ sources, hasPerimeter }: Props) {
             },
         ],
         [t],
+    );
+
+    // The primary action sits at the right of the toolbar row, or in the empty state when the
+    // list is empty (as in externa-core). Passing it to setLayoutProps as headerActions
+    // re-rendered the page in a loop (React error #185).
+    const primaryAction = useMemo(
+        () =>
+            canManage ? (
+                <Button
+                    type="button"
+                    onClick={() => {
+                        setEditing(null);
+                        setIsDrawerOpen(true);
+                    }}
+                >
+                    <Plus className="mr-1 size-4" />
+                    {t('brain.sources.create')}
+                </Button>
+            ) : undefined,
+        [canManage, t],
     );
 
     setLayoutProps({ breadcrumbs });
@@ -131,12 +192,70 @@ export default function BrainSources({ sources, hasPerimeter }: Props) {
             meta: { cellClassName: 'text-sm text-muted-foreground' },
             cell: ({ row }) => row.original.last_synced_at ?? '—',
         },
+        ...(canManage
+            ? [
+                  {
+                      id: 'actions',
+                      header: t('brain.sources.colActions'),
+                      meta: {
+                          headerClassName: 'w-[1%] text-right',
+                          cellClassName: 'text-right',
+                      },
+                      cell: ({ row }) => (
+                          <ButtonGroup className="justify-end">
+                              <HeaderIconButton
+                                  type="button"
+                                  variant="outline"
+                                  size="icon-sm"
+                                  label={t('brain.sources.syncNow')}
+                                  disabled={
+                                      row.original.sync_status === 'syncing'
+                                  }
+                                  onClick={() =>
+                                      router.post(
+                                          SourceSyncController.url(
+                                              row.original.id,
+                                          ),
+                                          {},
+                                          { preserveScroll: true },
+                                      )
+                                  }
+                              >
+                                  <RefreshCw className="size-3.5" />
+                              </HeaderIconButton>
+                              <HeaderIconButton
+                                  type="button"
+                                  variant="outline"
+                                  size="icon-sm"
+                                  label={t('brain.sources.edit')}
+                                  onClick={() => openEdit(row.original)}
+                              >
+                                  <Pencil className="size-3.5" />
+                              </HeaderIconButton>
+                              <HeaderIconButton
+                                  type="button"
+                                  variant="outline"
+                                  size="icon-sm"
+                                  className="text-destructive hover:text-destructive"
+                                  label={t('brain.sources.remove')}
+                                  onClick={() =>
+                                      setPendingRemoval(row.original)
+                                  }
+                              >
+                                  <Trash2 className="size-3.5" />
+                              </HeaderIconButton>
+                          </ButtonGroup>
+                      ),
+                  } satisfies ColumnDef<SourceRow>,
+              ]
+            : []),
     ];
 
     return (
         <>
             <Head title={t('brain.sources.title')} />
             <PageLayout
+                filtersRight={hideListChrome ? undefined : primaryAction}
                 filters={
                     hideListChrome ? undefined : (
                         <DataTableToolbar
@@ -176,7 +295,9 @@ export default function BrainSources({ sources, hasPerimeter }: Props) {
                                 >
                                     {t('common.clearFilters')}
                                 </Button>
-                            ) : undefined
+                            ) : (
+                                primaryAction
+                            )
                         }
                     />
                 ) : (
@@ -201,6 +322,55 @@ export default function BrainSources({ sources, hasPerimeter }: Props) {
                     />
                 )}
             </PageLayout>
+
+            {canManage ? (
+                <Drawer
+                    direction="right"
+                    open={isDrawerOpen}
+                    onOpenChange={(isOpen) => {
+                        if (!isOpen) {
+                            closeDrawer();
+                        }
+                    }}
+                >
+                    <SourceFormDrawer
+                        editing={editing}
+                        open={isDrawerOpen}
+                        onCancel={closeDrawer}
+                        onSuccess={closeDrawer}
+                    />
+                </Drawer>
+            ) : null}
+
+            <ConfirmDestructiveDialog
+                open={pendingRemoval !== null}
+                onOpenChange={(isOpen) => {
+                    if (!isOpen) {
+                        setPendingRemoval(null);
+                    }
+                }}
+                title={t('brain.sources.confirmRemoveTitle', {
+                    name: pendingRemoval?.name ?? '',
+                })}
+                description={t('brain.sources.confirmRemoveDescription')}
+                confirmLabel={t('brain.sources.remove')}
+                confirming={isRemoving}
+                onConfirm={() => {
+                    if (pendingRemoval === null) {
+                        return;
+                    }
+
+                    setIsRemoving(true);
+                    router.delete(
+                        SourcesController.destroy.url(pendingRemoval.id),
+                        {
+                            preserveScroll: true,
+                            onFinish: () => setIsRemoving(false),
+                            onSuccess: () => setPendingRemoval(null),
+                        },
+                    );
+                }}
+            />
         </>
     );
 }

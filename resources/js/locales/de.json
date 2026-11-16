@@ -125,7 +125,9 @@
         "close": "Schließen",
         "confirm": "Bestätigen",
         "generateSecurePassword": "Sicheres Passwort erzeugen",
-        "passwordStrength": "Passwortstärke"
+        "passwordStrength": "Passwortstärke",
+        "copy": "Kopieren",
+        "copied": "Kopiert"
     },
     "confirmDestructive": {
         "typeToConfirm": "Tippe „{{name}}“ zur Bestätigung"
@@ -523,12 +525,51 @@
                 "failed": "Fehlgeschlagen"
             },
             "searchPlaceholder": "Quellen suchen…",
-            "hideReport": "Bericht ausblenden"
+            "hideReport": "Bericht ausblenden",
+            "create": "Quelle hinzufügen",
+            "createTitle": "Quelle hinzufügen",
+            "editTitle": "Quelle bearbeiten",
+            "formDescription": "Instituta liest dieses Repository nur; es schreibt nie hinein.",
+            "fieldLocalPath": "Lokaler Pfad",
+            "localPathHint": "Absoluter Pfad zu einem Ordner auf diesem Server.",
+            "fieldRemoteUrl": "Repository-URL",
+            "fieldRef": "Branch oder Tag",
+            "fieldPath": "Unterordner",
+            "pathHint": "Optional: nur diesen Ordner des Repositorys lesen.",
+            "fieldAdapter": "Format",
+            "fieldVisibility": "Standardsichtbarkeit",
+            "fieldSyncInterval": "Synchronisieren alle (Minuten)",
+            "syncIntervalHint": "0 schaltet geplante Synchronisierungen aus. Leer nutzt den Standard: 15 für Git und GitHub, aus für einen lokalen Ordner.",
+            "fieldShared": "Mit allen Kunden und Produkten der Organisation geteilt",
+            "saveCreate": "Quelle hinzufügen",
+            "saveEdit": "Änderungen speichern",
+            "colActions": "Aktionen",
+            "syncNow": "Jetzt synchronisieren",
+            "edit": "Bearbeiten",
+            "remove": "Entfernen",
+            "confirmRemoveTitle": "{{name}} entfernen?",
+            "confirmRemoveDescription": "Alles, was aus dieser Quelle indexiert wurde, wird aus Instituta entfernt. Das Repository selbst bleibt unberührt.",
+            "providers": {
+                "local": "Lokaler Ordner",
+                "git": "Git",
+                "github": "GitHub"
+            },
+            "adapters": {
+                "instituta": "Instituta",
+                "basic-memory": "Basic Memory",
+                "markdown": "Markdown",
+                "shadcn-registry": "shadcn-Registry"
+            },
+            "visibilities": {
+                "public": "Öffentlich",
+                "internal": "Intern",
+                "restricted": "Eingeschränkt"
+            }
         },
         "keys": {
             "title": "API-Schlüssel",
             "description": "Schreibgeschützte Liste der Schlüssel dieses Owners. Erstellen und Widerrufen bleiben in Artisan.",
-            "artisanHint": "Mit php artisan instituta:key Schlüssel erstellen oder widerrufen.",
+            "artisanHint": "Erstelle einen Schlüssel pro Agent; widerrufe ihn hier, wenn der Agent aufhören soll.",
             "ownerOnly": "Nur Owner können API-Schlüssel sehen.",
             "empty": "Noch keine API-Schlüssel.",
             "colName": "Name",
@@ -539,7 +580,35 @@
             "colStatus": "Status",
             "active": "Aktiv",
             "revoked": "Widerrufen",
-            "searchPlaceholder": "Schlüssel suchen…"
+            "searchPlaceholder": "Schlüssel suchen…",
+            "create": "Schlüssel erstellen",
+            "createTitle": "API-Schlüssel erstellen",
+            "createDescription": "Der Schlüssel gilt im Bereich, den du gerade ansiehst. Das Geheimnis wird nur einmal angezeigt.",
+            "namePlaceholder": "Claude Code auf meinem Laptop",
+            "fieldPrincipal": "Schlüssel für",
+            "principalAgent": "Einen neuen Agenten",
+            "principalMe": "Mich",
+            "principalHint": "Gib jedem Agenten einen eigenen Schlüssel, damit du ihn einzeln sehen und widerrufen kannst.",
+            "fieldAgentName": "Name des Agenten",
+            "agentNamePlaceholder": "Cursor",
+            "roles": {
+                "owner": "Owner",
+                "member": "Mitglied",
+                "guest": "Gast"
+            },
+            "fieldMaxVisibility": "Höchste Sichtbarkeit",
+            "fieldExpiresAt": "Läuft ab am",
+            "expiresAtHint": "Optional. Leer lassen für einen Schlüssel ohne Ablauf.",
+            "fieldCanWrite": "Darf Änderungen vorschlagen",
+            "canWriteHint": "Fügt brain:write hinzu. Vorschläge muss trotzdem eine Person annehmen.",
+            "colPrincipal": "Principal",
+            "colActions": "Aktionen",
+            "write": "Schreiben",
+            "revoke": "Widerrufen",
+            "secretBanner": "Kopiere den Schlüssel jetzt: Er wird nicht noch einmal angezeigt.",
+            "secretValue": "Neuer API-Schlüssel",
+            "confirmRevokeTitle": "{{name}} widerrufen?",
+            "confirmRevokeDescription": "Agenten mit diesem Schlüssel verlieren sofort den Zugriff. Das lässt sich nicht rückgängig machen."
         },
         "clients": {
             "title": "Kunden",
@@ -873,7 +942,7 @@
         },
         "keys": {
             "title": "Noch keine API-Schlüssel",
-            "description": "Schlüssel mit php artisan instituta:key anlegen.",
+            "description": "Erstelle einen für jeden Agenten, der liest oder Änderungen vorschlägt.",
             "filteredTitle": "Keine passenden Schlüssel",
             "filteredDescription": "Andere Suche versuchen oder Filter zurücksetzen."
         },

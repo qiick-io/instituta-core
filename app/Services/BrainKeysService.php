@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Brain\Enums\RoleEnum;
+use App\Enums\ApiKeyAbilityEnum;
 use App\Models\ApiKey;
 use App\Models\Principal;
 use App\Models\User;
 
 /**
- * Read-only API keys list for owners (create/revoke stay in Artisan).
+ * API keys list for owners: the keys of their person principal and of the agent / service
+ * principals they own (#201).
  */
 final class BrainKeysService
 {
@@ -38,9 +40,12 @@ final class BrainKeysService
             return ['is_owner' => false, 'keys' => []];
         }
 
+        $principalIds = [$principal->id, ...$principal->ownedPrincipals()->pluck('id')->all()];
+
         /** @var list<ApiKey> $keys */
         $keys = ApiKey::query()
-            ->where('principal_id', $principal->id)
+            ->with('principal')
+            ->whereIn('principal_id', $principalIds)
             ->orderByDesc('created_at')
             ->get()
             ->all();
@@ -50,6 +55,9 @@ final class BrainKeysService
             $rows[] = [
                 'id' => $key->id,
                 'name' => $key->name,
+                'principal_name' => $key->principal?->name,
+                'principal_type' => $key->principal?->type->value,
+                'can_write' => in_array(ApiKeyAbilityEnum::BrainWrite->value, $key->abilities ?? [], true),
                 'display_prefix' => $key->display_prefix,
                 'scope_type' => $key->scope_type->value,
                 'scope_id' => $key->scope_id,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Models\ApiKey;
+use App\Models\Principal;
 use App\Models\User;
 
 /**
@@ -33,10 +34,18 @@ class ApiKeyPolicy
         return $this->owns($user, $apiKey);
     }
 
+    /**
+     * The key belongs to one of the user's principals, or to an agent / service principal one
+     * of them owns (keys created for agents on the Keys page, #201).
+     */
     private function owns(User $user, ApiKey $apiKey): bool
     {
-        return $user->principals()
-            ->whereKey($apiKey->principal_id)
-            ->exists();
+        $userPrincipalIds = $user->principals()->pluck('id');
+
+        return $userPrincipalIds->contains($apiKey->principal_id)
+            || Principal::query()
+                ->whereKey($apiKey->principal_id)
+                ->whereIn('owner_principal_id', $userPrincipalIds)
+                ->exists();
     }
 }
