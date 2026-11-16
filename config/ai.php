@@ -61,7 +61,7 @@ return [
         'enabled' => (bool) env('AI_EMBEDDINGS_ENABLED', false),
         'model_name' => env('AI_EMBEDDINGS_MODEL_NAME', 'local-embedding'),
         'model_version' => env('AI_EMBEDDINGS_MODEL_VERSION', '1'),
-        'dimensions' => (int) env('AI_EMBEDDINGS_DIMENSIONS', 8),
+        'dimensions' => (int) env('AI_EMBEDDINGS_DIMENSIONS', 768),
     ],
 
     /*
@@ -192,7 +192,7 @@ return [
                 ],
                 'embeddings' => [
                     'default' => env('AI_EMBEDDINGS_PROVIDER_MODEL', 'nomic-embed-text'),
-                    'dimensions' => (int) env('AI_EMBEDDINGS_DIMENSIONS', 8),
+                    'dimensions' => (int) env('AI_EMBEDDINGS_DIMENSIONS', 768),
                 ],
             ],
         ],

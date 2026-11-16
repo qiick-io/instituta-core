@@ -26,6 +26,7 @@ final class SearchRequest extends FormRequest
             'q' => ['required', 'string'],
             'area' => ['nullable', 'string'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:50'],
+            'mode' => ['nullable', 'string', 'in:hybrid,keyword,semantic'],
         ];
     }
 }

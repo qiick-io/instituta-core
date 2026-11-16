@@ -8,11 +8,14 @@ use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Enums\SourceProviderEnum;
 use App\Models\Grant;
+use App\Models\ItemSection;
 use App\Models\Organisation;
 use App\Models\Principal;
+use App\Services\BrainEmbeddingService;
 use App\Services\SourceRegistryService;
 use App\Services\SourceSyncService;
 use Illuminate\Support\Facades\File;
+use Laravel\Ai\Embeddings;
 
 /**
  * Search hits point at the matching section (#216), so an agent opens it directly.
@@ -80,4 +83,40 @@ it('lists at most two sections of the same item', function (): void {
 
     expect($brandHits)->toHaveCount(2)
         ->and($brandHits->pluck('anchor')->all())->each->toBeString();
+});
+
+it('finds a section that contains only some of the words (#217)', function (): void {
+    $this->getJson('/api/v1/search?scope='.$this->scope.'&q=Inter%20nonexistentword', ['Authorization' => 'Bearer '.$this->plain])
+        ->assertOk()
+        ->assertJsonPath('mode', 'keyword')
+        ->assertJsonPath('results.0.anchor', 'brand/typography');
+});
+
+it('merges keyword and semantic hits when embeddings are on, and searches by meaning alone on request (#217)', function (): void {
+    config(['ai.embeddings.enabled' => true, 'ai.embeddings.dimensions' => 2]);
+    // Every section and the query embed to the same vector: semantic search ranks all sections.
+    Embeddings::fake(fn () => [[1.0, 0.0]]);
+
+    foreach (ItemSection::query()->get() as $section) {
+        app(BrainEmbeddingService::class)->embedSection($section);
+    }
+
+    $hybrid = $this->getJson('/api/v1/search?scope='.$this->scope.'&q=Inter', ['Authorization' => 'Bearer '.$this->plain])
+        ->assertOk()
+        ->assertJsonPath('mode', 'hybrid');
+
+    $matches = collect($hybrid->json('results'))->pluck('match');
+    expect($hybrid->json('results.0.anchor'))->toBe('brand/typography')
+        ->and($matches->contains(fn (string $match): bool => $match !== 'keyword'))->toBeTrue();
+
+    $this->getJson('/api/v1/search?scope='.$this->scope.'&q=colore%20principale&mode=semantic', ['Authorization' => 'Bearer '.$this->plain])
+        ->assertOk()
+        ->assertJsonPath('mode', 'semantic')
+        ->assertJsonPath('results.0.match', 'semantic');
+});
+
+it('falls back to keyword search when semantic search is asked for but embeddings are off (#217)', function (): void {
+    $this->getJson('/api/v1/search?scope='.$this->scope.'&q=Inter&mode=semantic', ['Authorization' => 'Bearer '.$this->plain])
+        ->assertOk()
+        ->assertJsonPath('mode', 'keyword');
 });
