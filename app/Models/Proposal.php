@@ -47,6 +47,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $remote_pr_url
  * @property string|null $materialised_commit
  * @property Carbon|null $materialised_at
+ * @property string|null $decision_note Why the person accepted or rejected it (#200).
  * @property Carbon|null $merged_at When a sync first saw the proposed change in the source (#199).
  * @property string|null $materialisation_error
  * @property Carbon|null $created_at
@@ -78,6 +79,7 @@ use Illuminate\Support\Carbon;
     'materialised_commit',
     'materialised_at',
     'merged_at',
+    'decision_note',
     'materialisation_error',
 ])]
 #[Hidden(['body'])]

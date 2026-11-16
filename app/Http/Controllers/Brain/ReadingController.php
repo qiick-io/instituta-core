@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Brain;
 
+use App\Brain\Enums\RoleEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Item;
 use App\Services\BrainReadingService;
@@ -42,6 +43,7 @@ final class ReadingController extends Controller
 
         return Inertia::render('brain/reading', [
             'item' => $payload,
+            'canPropose' => $perimeter->role !== RoleEnum::Guest,
         ]);
     }
 }

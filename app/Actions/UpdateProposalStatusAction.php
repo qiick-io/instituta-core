@@ -68,7 +68,7 @@ final class UpdateProposalStatusAction
             $this->assertKeyMayAccept($apiKey, $proposal);
         }
 
-        $attributes = ['status' => $payload->status];
+        $attributes = ['status' => $payload->status, 'decision_note' => $payload->note];
 
         if ($payload->status === ProposalStatusEnum::Accepted) {
             $attributes['materialisation_status'] = ProposalMaterialisationStatusEnum::Pending;

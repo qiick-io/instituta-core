@@ -1,6 +1,14 @@
 import { Head, Link } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+    ProposeChangeDrawer,
+    type ProposeChangeTarget,
+} from '@/components/brain/propose-change-drawer';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Drawer } from '@/components/ui/drawer';
 import { cn } from '@/lib/utils';
 import { reading, tree } from '@/routes/brain';
 
@@ -23,6 +31,8 @@ type Props = {
     area: string | null;
     total: number;
     hasPerimeter: boolean;
+    /** False for guests: they read but never propose. */
+    canPropose: boolean;
 };
 
 export default function BrainTree({
@@ -30,20 +40,38 @@ export default function BrainTree({
     area,
     total,
     hasPerimeter,
+    canPropose,
 }: Props) {
     const { t } = useTranslation();
+    const [isCreating, setIsCreating] = useState(false);
+    // Stable identity: the drawer resets its form when the target changes.
+    const createTarget = useMemo<ProposeChangeTarget>(
+        () => ({ mode: 'create', area }),
+        [area],
+    );
 
     return (
         <>
             <Head title={t('brain.tree.title')} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                <div className="space-y-1">
-                    <h1 className="text-xl font-semibold tracking-tight">
-                        {t('brain.tree.title')}
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.tree.description')}
-                    </p>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="space-y-1">
+                        <h1 className="text-xl font-semibold tracking-tight">
+                            {t('brain.tree.title')}
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            {t('brain.tree.description')}
+                        </p>
+                    </div>
+                    {canPropose ? (
+                        <Button
+                            type="button"
+                            onClick={() => setIsCreating(true)}
+                        >
+                            <Plus />
+                            {t('brain.propose.newItem')}
+                        </Button>
+                    ) : null}
                 </div>
 
                 {!hasPerimeter ? (
@@ -130,6 +158,18 @@ export default function BrainTree({
                     </>
                 )}
             </div>
+
+            <Drawer
+                direction="right"
+                open={isCreating}
+                onOpenChange={setIsCreating}
+            >
+                <ProposeChangeDrawer
+                    target={isCreating ? createTarget : null}
+                    open={isCreating}
+                    onCancel={() => setIsCreating(false)}
+                />
+            </Drawer>
         </>
     );
 }

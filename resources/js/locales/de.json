@@ -677,7 +677,26 @@
                 "conflict": "Konflikt",
                 "merged": "Zusammengeführt"
             },
-            "searchPlaceholder": "Vorschläge suchen…"
+            "searchPlaceholder": "Vorschläge suchen…",
+            "fieldProposedBy": "Vorgeschlagen von",
+            "viaKey": "über Schlüssel {{key}}",
+            "fieldBase": "Basiert auf",
+            "fieldDecisionNote": "Notiz zur Entscheidung",
+            "decisionNotePlaceholder": "Optional: warum du annimmst oder ablehnst",
+            "diffHeading": "Änderungen",
+            "diffDescription": "Aktuell indexierter Inhalt im Vergleich zum Vorschlag. Frontmatter wird nicht angezeigt.",
+            "diffTooLarge": "Die Datei ist zu groß für einen Vergleich hier; öffne den Branch oder Pull Request.",
+            "diffLine": {
+                "added": "Hinzugefügt:",
+                "removed": "Entfernt:"
+            },
+            "overlappingTitle_one": "{{count}} weiterer offener Vorschlag ändert denselben Inhalt",
+            "overlappingTitle_other": "{{count}} weitere offene Vorschläge ändern denselben Inhalt",
+            "principalType": {
+                "person": "Person",
+                "agent": "Agent",
+                "service": "Dienst"
+            }
         },
         "graph": {
             "title": "Eingeschränkter Graph",
@@ -688,6 +707,25 @@
             "depth2": "Tiefe 2",
             "openTree": "Baum öffnen",
             "canvasLabel": "Nachbargraph der Brain-Einträge"
+        },
+        "propose": {
+            "proposeChange": "Änderung vorschlagen",
+            "editSection": "Änderung an {{heading}} vorschlagen",
+            "newItem": "Neuer Eintrag",
+            "createTitle": "Neuen Eintrag vorschlagen",
+            "editTitle": "Änderung vorschlagen",
+            "createDescription": "Öffnet einen Vorschlag für eine neue Brain-Datei. Nichts ändert sich, bis eine Person ihn annimmt.",
+            "itemDescription": "Den ganzen Eintrag bearbeiten. Nichts ändert sich, bis eine Person den Vorschlag annimmt.",
+            "sectionDescription": "Nur den Abschnitt {{heading}} bearbeiten; der Rest der Datei bleibt unverändert.",
+            "defaultItemTitle": "{{title}} aktualisieren",
+            "defaultSectionTitle": "{{heading}} in {{title}} aktualisieren",
+            "fieldTitle": "Titel des Vorschlags",
+            "fieldPath": "Dateipfad",
+            "pathHint": "Relativ zum Quellverzeichnis, mit der Endung .md.",
+            "fieldStableKey": "Stabiler Schlüssel",
+            "fieldMarkdown": "Markdown",
+            "markdownHint": "Behalte die Überschriftszeile. Hat sich der Inhalt seit dem Öffnen geändert, wird der Vorschlag abgelehnt und du kannst ihn neu lesen.",
+            "submit": "Vorschlag öffnen"
         }
     },
     "activity": {
