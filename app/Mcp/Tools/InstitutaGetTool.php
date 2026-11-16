@@ -14,7 +14,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('instituta_get')]
-#[Description('Get one brain item by path or stable_key, including sections.')]
+#[Description('Get one whole item by path or stable_key, with every section. For long items prefer instituta_outline plus instituta_get_section.')]
 #[IsReadOnly]
 class InstitutaGetTool extends Tool
 {

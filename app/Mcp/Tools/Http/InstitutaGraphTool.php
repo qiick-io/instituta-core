@@ -15,7 +15,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('instituta_graph')]
-#[Description('Graph neighbours for one brain item (depth 1–2).')]
+#[Description('Items linked to one item (depth 1–2): what it references and what references it. Use it to find related rules or decisions.')]
 #[IsReadOnly]
 class InstitutaGraphTool extends Tool
 {

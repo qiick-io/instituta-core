@@ -15,7 +15,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('instituta_get_section')]
-#[Description('Get one section of a brain item by anchor.')]
+#[Description('Get one section of an item by anchor (from instituta_outline): its blocks, source markdown, section_hash and citation. The cheapest way to read just what you need.')]
 #[IsReadOnly]
 class InstitutaGetSectionTool extends Tool
 {

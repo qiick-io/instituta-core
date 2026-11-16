@@ -91,12 +91,24 @@ When a scope is frozen, every contract call for that scope answers from the pinn
 | Table rows | `instituta_table` | `GET /items/{id}/tables/{key}` | (via get / table) |
 | Resolved view | `instituta_resolve` | `GET /products/{id}/resolved` | `resolve` |
 | Graph neighbours | `instituta_graph` | `GET /items/{id}/neighbours` | `graph` |
+| Similar sections | `instituta_similar` | `GET /similar` | — (needs embeddings) |
 | Validate tree | — | — | `validate` |
 | Propose write | `instituta_propose` | `POST /proposals` | — |
 | List proposals | `instituta_list_proposals` | `GET /proposals` | — |
 | Update proposal | `instituta_update_proposal` | `PATCH /proposals/{id}` | — |
 
 OpenAPI 3.1 lives at `resources/openapi/instituta-v1.yaml` and is served at `GET /api/v1/openapi.json` with a route-coverage test.
+
+**MCP prompts and resources** (HTTP server, #202). They package reads the tools already offer; they add no data an agent could not read itself.
+
+| Kind | Name | Content |
+|---|---|---|
+| Prompt | `instituta_product_context` (`product_id`, `area?`) | The product's resolved view plus how to read deeper and how to propose changes |
+| Prompt | `instituta_propose_change` (`item`, `goal?`) | The item's sections with markdown and `section_hash`, `content_hash`, and the proposal steps |
+| Resource | `instituta://brain/map` | Areas of the perimeter with item counts (empty areas are gaps) |
+| Resource template | `instituta://products/{product_id}/resolved` | The resolved view of one product, as `instituta_resolve` |
+
+The local stdio server (`instituta:mcp`) offers the same reads as HTTP for one folder (`instituta_get_section` and `instituta_table` included); writes, `instituta_similar`, prompts and resources are HTTP only.
 
 ### 3.1 `instituta_scopes` / `GET /scopes`
 

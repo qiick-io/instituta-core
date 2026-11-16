@@ -14,7 +14,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('instituta_search')]
-#[Description('Search brain items. Returns summaries and snippets, not full bodies.')]
+#[Description('Search brain items in the local folder: summaries and snippets, no full bodies.')]
 #[IsReadOnly]
 class InstitutaSearchTool extends Tool
 {

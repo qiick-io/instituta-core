@@ -107,6 +107,58 @@ final class LocalContractReader
     }
 
     /**
+     * One section of an item, so local agents read only what they need, as over HTTP (#202).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getSection(BrainRepositoryData $repo, string $id, string $anchor): ?array
+    {
+        $item = $this->find($repo, $id);
+        if ($item === null) {
+            return null;
+        }
+
+        foreach ($item->sections as $section) {
+            if ($section->anchor === $anchor) {
+                return [
+                    'id' => $item->stableKey,
+                    'path' => $item->path,
+                    ...$section->toArray(),
+                    'citation' => [...$item->citation->toArray(), 'section' => $section->anchor],
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The rows of one structured table of an item (#202).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function table(BrainRepositoryData $repo, string $id, string $tableKey): ?array
+    {
+        $item = $this->find($repo, $id);
+        if ($item === null) {
+            return null;
+        }
+
+        $rows = array_values(array_filter($item->tables, static fn ($table): bool => $table->tableKey === $tableKey));
+        if ($rows === []) {
+            return null;
+        }
+
+        return [
+            'id' => $item->stableKey,
+            'table_key' => $tableKey,
+            'columns' => $rows[0]->columns,
+            'rows' => array_map(static fn ($row): array => $row->values, $rows),
+            'citation' => $item->citation->toArray(),
+        ];
+    }
+
+    /**
      * @return array<string, mixed>|null
      */
     public function outline(BrainRepositoryData $repo, string $id): ?array

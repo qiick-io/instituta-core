@@ -14,7 +14,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('instituta_scopes')]
-#[Description('Local single-owner perimeter for the folder-backed MCP server.')]
+#[Description('Start here: the single-owner perimeter of the local folder this server reads.')]
 #[IsReadOnly]
 class InstitutaScopesTool extends Tool
 {

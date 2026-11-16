@@ -17,7 +17,7 @@ use RuntimeException;
 use Throwable;
 
 #[Name('instituta_search')]
-#[Description('Search brain items inside the key perimeter. No full bodies.')]
+#[Description('Full-text search of brain items in your perimeter: summaries and short snippets, no full bodies. For questions phrased differently from the brain\'s wording, try instituta_similar.')]
 #[IsReadOnly]
 class InstitutaSearchTool extends Tool
 {

@@ -17,7 +17,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tool;
 
 #[Name('instituta_list_proposals')]
-#[Description('List brain write proposals in the key perimeter (metadata only, no bodies).')]
+#[Description('List write proposals in your perimeter (status, action, item, section, base version), no bodies. Needs brain:write.')]
 class InstitutaListProposalsTool extends Tool
 {
     public function __construct(

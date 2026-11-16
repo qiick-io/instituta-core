@@ -15,7 +15,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('instituta_scopes')]
-#[Description('Return the authenticated principal, perimeter, and visible scopes.')]
+#[Description('Start here: who you are (principal, role), your perimeter and the scopes (organisation, companies, products) you can read. Product ids for instituta_resolve come from here.')]
 #[IsReadOnly]
 class InstitutaScopesTool extends Tool
 {
