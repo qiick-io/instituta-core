@@ -180,6 +180,8 @@ final class IndexedContractService
                     'level' => $section->level,
                     'position' => $section->position,
                     'body' => $section->body,
+                    'markdown' => $section->markdown,
+                    'section_hash' => ItemSection::hashOf($section->markdown),
                     'blocks' => $section->blocks ?? [],
                 ])
                 ->all(),
@@ -235,6 +237,9 @@ final class IndexedContractService
             'heading' => $section->heading,
             'level' => $section->level,
             'body' => $section->body,
+            'markdown' => $section->markdown,
+            'section_hash' => ItemSection::hashOf($section->markdown),
+            'content_hash' => $item->content_hash,
             'blocks' => $section->blocks ?? [],
             'citation' => $this->citation($item),
             ...$this->freezeMeta($perimeter),
@@ -606,6 +611,7 @@ final class IndexedContractService
                 'source' => $item->source_id,
                 'path' => $item->path,
                 'commit' => $item->commit,
+                'content_hash' => $item->content_hash,
             ],
             'citation' => $this->citation($item),
         ];

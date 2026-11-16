@@ -37,6 +37,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $area
  * @property string $proposed_by_principal_id
  * @property string|null $api_key_id
+ * @property string|null $base_content_hash
+ * @property string|null $base_commit
+ * @property string|null $section_anchor
+ * @property string|null $base_section_hash
  * @property string|null $body
  * @property ProposalMaterialisationStatusEnum|null $materialisation_status
  * @property string|null $remote_branch
@@ -63,6 +67,10 @@ use Illuminate\Support\Carbon;
     'proposed_by_principal_id',
     'api_key_id',
     'body',
+    'base_content_hash',
+    'base_commit',
+    'section_anchor',
+    'base_section_hash',
     'materialisation_status',
     'remote_branch',
     'remote_pr_url',

@@ -123,6 +123,8 @@ final class ProposalQueryService
             'title' => $proposal->title,
             'path' => $proposal->path,
             'area' => $proposal->area,
+            'section_anchor' => $proposal->section_anchor,
+            'base_content_hash' => $proposal->base_content_hash,
             'scope_type' => $proposal->scope_type->value,
             'scope_id' => $proposal->scope_id,
             'source_id' => $proposal->source_id,
@@ -130,6 +132,42 @@ final class ProposalQueryService
             'created_at' => $proposal->created_at?->toIso8601String(),
             'updated_at' => $proposal->updated_at?->toIso8601String(),
         ];
+    }
+
+    /**
+     * The summary returned right after opening a proposal, plus the other open proposals that
+     * change the same item (the whole item, or the same section), so the author and the person
+     * deciding know two changes compete for the same content.
+     *
+     * @return array<string, mixed>
+     */
+    public function toProposedSummary(Proposal $proposal): array
+    {
+        return [
+            ...$this->toSummary($proposal),
+            'overlapping_open_proposals' => $this->overlappingOpenProposalIds($proposal),
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function overlappingOpenProposalIds(Proposal $proposal): array
+    {
+        /** @var list<string> $ids */
+        $ids = Proposal::query()
+            ->where('organisation_id', $proposal->organisation_id)
+            ->where('stable_key', $proposal->stable_key)
+            ->where('status', ProposalStatusEnum::Open)
+            ->whereKeyNot($proposal->id)
+            ->when($proposal->section_anchor !== null, fn ($query) => $query->where(function ($inner) use ($proposal): void {
+                $inner->whereNull('section_anchor')->orWhere('section_anchor', $proposal->section_anchor);
+            }))
+            ->orderBy('created_at')
+            ->pluck('id')
+            ->all();
+
+        return $ids;
     }
 
     /**
@@ -147,6 +185,7 @@ final class ProposalQueryService
             'title' => $proposal->title,
             'path' => $proposal->path,
             'area' => $proposal->area,
+            'section_anchor' => $proposal->section_anchor,
             'source_id' => $proposal->source_id,
             'materialisation_status' => $proposal->materialisation_status?->value,
             'remote_branch' => $proposal->remote_branch,

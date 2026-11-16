@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Actions\MaterialiseProposalAction;
+use App\Brain\Support\FrontmatterParser;
 use App\Enums\ProposalActionEnum;
 use App\Enums\ProposalMaterialisationStatusEnum;
 use App\Enums\ProposalStatusEnum;
@@ -125,6 +126,7 @@ it('keeps local materialisation in a review workspace without mutating the sourc
         'path' => 'rules/coding.md',
         'stable_key' => 'rules/coding',
         'body' => "# Updated locally\n",
+        'base_content_hash' => hash('sha256', "rules/coding.md\n".(new FrontmatterParser)->parse(File::get($fixture.'/rules/coding.md'))['body']),
         'materialisation_status' => ProposalMaterialisationStatusEnum::Pending,
     ]);
 
@@ -148,7 +150,8 @@ it('keeps local materialisation in a review workspace without mutating the sourc
         ->and($updated->remote_pr_url)->toBeNull()
         ->and(File::get($fixture.'/rules/coding.md'))->toBe($original)
         ->and(File::get(storage_path('app/instituta/proposals/'.$proposal->id.'/rules/coding.md')))
-        ->toBe("# Updated locally\n");
+        ->toStartWith("---\ntitle: Coding rules")
+        ->toEndWith("---\n# Updated locally\n");
 });
 
 it('refuses unsafe relative paths', function (): void {

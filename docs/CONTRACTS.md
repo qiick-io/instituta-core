@@ -63,7 +63,8 @@ Snake_case JSON. Dates ISO-8601. Errors as Laravel JSON error responses.
     "scope_id": "ulid|null",
     "source": "string",
     "path": "string",
-    "commit": "string|null"
+    "commit": "string|null",
+    "content_hash": "sha256 hex"
   },
   "citation": { "source": "…", "path": "…", "section": null, "commit": "…" }
 }
@@ -123,9 +124,11 @@ OpenAPI 3.1 lives at `resources/openapi/instituta-v1.yaml` and is served at `GET
 
 **Returns:** full content as typed blocks + citation. Honour visibility and perimeter; forbidden scope → empty / not found, not an error leak of existence across tenants.
 
+Each section also carries its source `markdown` (heading line included) and its `section_hash` (sha256 of that markdown). Writers edit from `markdown`, never from the plain-text `body`, and send `origin.content_hash` or `section_hash` back as the base of a proposal (§3.10).
+
 ### 3.6 `instituta_get_section` / `GET /items/{id}/sections/{anchor}`
 
-**Returns:** that section only (blocks + citation).
+**Returns:** that section only (blocks, `markdown`, `section_hash`, the item's `content_hash`, citation).
 
 ### 3.7 `instituta_table` / `GET /items/{id}/tables/{key}`
 
@@ -161,11 +164,21 @@ Requires `brain:write` and the surface write kill switch. Opens a proposal; neve
   "path": "string",
   "area": "string|null",
   "body": "string|null",
-  "source_id": "ulid|null"
+  "source_id": "ulid|null",
+  "base_content_hash": "sha256 hex|null",
+  "section_anchor": "string|null",
+  "base_section_hash": "sha256 hex|null"
 }
 ```
 
-**Returns:** proposal summary (id, status, action, stable_key, title, path, area, scope, timestamps). **Never returns `body`.**
+**Base version.** A proposal names the version its author read, so it never overwrites newer content:
+
+- `create`: the `stable_key` must not exist yet in the perimeter.
+- Whole-file `update` and `delete`: `base_content_hash` (the item's `origin.content_hash`) is required, and `path` must be the item's current path. A body without frontmatter fences keeps the file's current frontmatter.
+- One-section `update`: `section_anchor` plus `base_section_hash` (or `base_content_hash`); `body` is the section's new markdown, heading line included. Only that section is replaced; frontmatter and the other sections stay as they are, even if they changed meanwhile.
+- A missing or stale base is refused when the proposal is opened (422 / tool error: re-read and propose again). Before writing, materialisation checks the file (or the section) again; if it changed, the proposal ends with materialisation status `conflict` and nothing is written.
+
+**Returns:** proposal summary (id, status, action, stable_key, title, path, area, section_anchor, base_content_hash, scope, timestamps) plus `overlapping_open_proposals`: the ids of other open proposals that change the same item (whole file) or the same section. **Never returns `body`.**
 
 ### 3.11 `instituta_list_proposals` / `GET /proposals`
 

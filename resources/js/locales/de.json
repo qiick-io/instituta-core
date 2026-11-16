@@ -673,7 +673,8 @@
                 "pending": "Ausstehend",
                 "materialised": "Materialisiert",
                 "local_review": "Lokale Prüfung",
-                "failed": "Fehlgeschlagen"
+                "failed": "Fehlgeschlagen",
+                "conflict": "Konflikt"
             },
             "searchPlaceholder": "Vorschläge suchen…"
         },

@@ -610,8 +610,18 @@ components:
                     type: ['string', 'null']
                 body:
                     type: ['string', 'null']
+                    description: The whole file, or with section_anchor the new markdown of that section (heading line included).
                 source_id:
                     type: ['string', 'null']
+                base_content_hash:
+                    type: ['string', 'null']
+                    description: origin.content_hash of the item you read. Required for a whole-file update or delete.
+                section_anchor:
+                    type: ['string', 'null']
+                    description: Edit only this section (update only).
+                base_section_hash:
+                    type: ['string', 'null']
+                    description: section_hash of the section you read. Required with section_anchor unless base_content_hash is sent.
         ProposalSummary:
             type: object
             properties:
@@ -631,12 +641,21 @@ components:
                     type: string
                 area:
                     type: ['string', 'null']
+                section_anchor:
+                    type: ['string', 'null']
+                base_content_hash:
+                    type: ['string', 'null']
                 scope_type:
                     type: string
                 scope_id:
                     type: string
                 source_id:
                     type: ['string', 'null']
+                overlapping_open_proposals:
+                    type: array
+                    items:
+                        type: string
+                    description: Only right after opening a proposal. Other open proposals that change the same item or section.
                 proposed_by_principal_id:
                     type: string
                 created_at:

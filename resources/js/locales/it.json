@@ -673,7 +673,8 @@
                 "pending": "In coda",
                 "materialised": "Materializzata",
                 "local_review": "Revisione locale",
-                "failed": "Fallita"
+                "failed": "Fallita",
+                "conflict": "Conflitto"
             },
             "searchPlaceholder": "Cerca proposte…"
         },

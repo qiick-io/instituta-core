@@ -8,7 +8,6 @@ use App\Actions\ProposeBrainChangeAction;
 use App\Actions\UpdateProposalStatusAction;
 use App\Data\ProposeBrainChangeData;
 use App\Data\UpdateProposalStatusData;
-use App\Enums\ProposalActionEnum;
 use App\Enums\ProposalStatusEnum;
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
@@ -54,24 +53,20 @@ final class ProposalController extends Controller
 
     public function store(ProposeBrainChangeRequest $request): JsonResponse
     {
-        $validated = $request->validated();
+        try {
+            $proposal = $this->propose->execute(
+                $this->perimeter($request),
+                $this->apiKey($request),
+                ProposeBrainChangeData::fromInput($request->validated()),
+                'api',
+            );
+        } catch (InvalidArgumentException $exception) {
+            return (new ApiMessageResource(['message' => $exception->getMessage()]))
+                ->response()
+                ->setStatusCode(422);
+        }
 
-        $proposal = $this->propose->execute(
-            $this->perimeter($request),
-            $this->apiKey($request),
-            new ProposeBrainChangeData(
-                action: ProposalActionEnum::from($validated['action']),
-                stableKey: $validated['stable_key'],
-                title: $validated['title'],
-                path: $validated['path'],
-                area: $validated['area'] ?? null,
-                body: $validated['body'] ?? null,
-                sourceId: $validated['source_id'] ?? null,
-            ),
-            'api',
-        );
-
-        return (new ProposalSummaryResource($this->queries->toSummary($proposal)))
+        return (new ProposalSummaryResource($this->queries->toProposedSummary($proposal)))
             ->response()
             ->setStatusCode(201);
     }

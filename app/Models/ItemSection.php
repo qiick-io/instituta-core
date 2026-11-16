@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property int $level
  * @property int $position
  * @property string $body
+ * @property string|null $markdown
  * @property list<array<string, mixed>>|null $blocks
  * @property string|null $embedding_model_id
  * @property Carbon|null $embedded_at
@@ -43,6 +44,7 @@ use Illuminate\Support\Carbon;
     'level',
     'position',
     'body',
+    'markdown',
     'blocks',
     'embedding_model_id',
     'embedded_at',
@@ -106,5 +108,15 @@ class ItemSection extends Model
     public function embeddingVersion(): BelongsTo
     {
         return $this->belongsTo(EmbeddingVersion::class, 'embedding_model_id');
+    }
+
+    /**
+     * The version marker of a section's source markdown: a proposal that edits one section
+     * sends it back so materialising can tell whether that section changed meanwhile (#198).
+     * Null when the section has no stored markdown (synced before #198: re-sync to get it).
+     */
+    public static function hashOf(?string $markdown): ?string
+    {
+        return $markdown === null ? null : hash('sha256', $markdown);
     }
 }

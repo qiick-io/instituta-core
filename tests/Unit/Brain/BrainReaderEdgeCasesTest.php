@@ -189,3 +189,14 @@ it('serialises contract-shaped data objects', function (): void {
         ->and($skip->toArray()['reason'])->toBe('reason')
         ->and($issue->toArray()['code'])->toBe('code');
 });
+
+it('keeps each section source markdown and line span, ignoring heading-like lines in code', function (): void {
+    $body = "Intro.\n\n# Brand\n\nSome **bold** [link](x.md).\n\n## Colours\n\n```md\n# not a heading\n```\n\n## Type\n\nInter.\n";
+
+    $sections = (new MarkdownStructureParser)->parse($body, 'brand.md')['sections'];
+
+    expect(array_map(fn (SectionData $section): array => [$section->anchor, $section->startLine, $section->endLine], $sections))
+        ->toBe([['body', 1, 2], ['brand', 3, 6], ['brand/colours', 7, 12], ['brand/type', 13, 16]])
+        ->and($sections[1]->markdown)->toBe("# Brand\n\nSome **bold** [link](x.md).")
+        ->and($sections[2]->markdown)->toBe("## Colours\n\n```md\n# not a heading\n```");
+});

@@ -31,6 +31,9 @@ class ProposeBrainChangeRequest extends FormRequest
             'area' => ['nullable', 'string', 'max:64'],
             'body' => ['nullable', 'string'],
             'source_id' => ['nullable', 'string', 'ulid'],
+            'base_content_hash' => ['nullable', 'string', 'size:64'],
+            'section_anchor' => ['nullable', 'string', 'max:255'],
+            'base_section_hash' => ['nullable', 'string', 'size:64'],
         ];
     }
 }
