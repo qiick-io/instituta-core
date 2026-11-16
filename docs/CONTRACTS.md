@@ -112,6 +112,7 @@ When a scope is frozen, every contract call for that scope answers from the pinn
 | Propose write | `instituta_propose` | `POST /proposals` | — |
 | List proposals | `instituta_list_proposals` | `GET /proposals` | — |
 | Update proposal | `instituta_update_proposal` | `PATCH /proposals/{id}` | — |
+| Report a gap | `instituta_report_gap` | `POST /gaps` | — |
 
 OpenAPI 3.1 lives at `resources/openapi/instituta-v1.yaml` and is served at `GET /api/v1/openapi.json` with a route-coverage test.
 
@@ -267,6 +268,16 @@ Requires `brain:write` and the surface write kill switch. Accepts or rejects an 
 - A person deciding in the web UI may accept any open proposal in their perimeter (guests excepted).
 
 A refused accept returns `422` (REST) or a tool error (MCP) with the reason, and the proposal stays `open`.
+
+### 3.13 `instituta_report_gap` / `POST /gaps`
+
+For an agent that finds something missing or wrong but cannot write the fix (#229).
+
+**Body:** `kind` (`missing`: nothing answers the question; `contradiction`: two entries disagree; `unclear`; `outdated`), `summary` (one line, required), `question` (what led there), `related` (at most 10 `{item, anchor?}`, item by id, stable_key or path).
+
+**Behaviour:** open to any key with `brain:read`, guests included: a report changes nothing in the brain. Related items and anchors must be inside the reporter's perimeter (otherwise `not_found`, and nothing is stored), so a report never names what the reporter cannot read. The report is stored for the scope, the organisation's users are notified, and the scope's **owners** see it on the Gaps page, where they turn it into a proposal (the propose drawer, prefilled; storing the proposal closes the report as `converted`) or dismiss it. Audited like every call.
+
+**Returns:** `201` with the report's `id`, `kind`, `status` (`open`), `summary` and `related`.
 
 ## 4. Errors
 

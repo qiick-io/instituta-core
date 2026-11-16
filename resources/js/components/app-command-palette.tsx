@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import {
     BookOpen,
     Building2,
+    CircleHelp,
     FilePenLine,
     FolderGit2,
     GitFork,
@@ -31,6 +32,7 @@ import { dashboard, search as searchRoute } from '@/routes';
 import { index as activityIndex } from '@/routes/activity';
 import { graph, keys, map, sessionReplay, sources, tree } from '@/routes/brain';
 import { index as clientsIndex } from '@/routes/brain/clients';
+import { index as gapsIndex } from '@/routes/brain/gaps';
 import { index as proposalsIndex } from '@/routes/brain/proposals';
 import users from '@/routes/users';
 
@@ -113,6 +115,12 @@ export function AppCommandPalette({
                 titleKey: 'brain.nav.proposals',
                 href: toUrl(proposalsIndex.url()),
                 icon: FilePenLine,
+            },
+            {
+                id: 'gaps',
+                titleKey: 'brain.nav.gaps',
+                href: toUrl(gapsIndex.url()),
+                icon: CircleHelp,
             },
             {
                 id: 'keys',

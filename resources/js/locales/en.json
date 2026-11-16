@@ -413,6 +413,10 @@
             "freezeActivated": {
                 "title": "Context freeze activated",
                 "body": "{{reason}}"
+            },
+            "gapReported": {
+                "title": "Gap reported",
+                "body": "{{title}}"
             }
         }
     },
@@ -430,7 +434,8 @@
             "clients": "Clients",
             "sessionReplay": "Session replay",
             "proposals": "Proposals",
-            "graph": "Graph"
+            "graph": "Graph",
+            "gaps": "Gaps"
         },
         "scope": {
             "label": "Scope",
@@ -812,6 +817,33 @@
             "active": "Active",
             "deprecated": "Deprecated",
             "superseded": "Superseded"
+        },
+        "gaps": {
+            "title": "Gaps",
+            "colSummary": "Gap",
+            "colKind": "Kind",
+            "colRelated": "Related",
+            "colReporter": "Reported by",
+            "colCreated": "Reported",
+            "colActions": "Actions",
+            "colStatus": "Status",
+            "searchPlaceholder": "Search gaps…",
+            "propose": "Propose a change",
+            "dismiss": "Dismiss",
+            "ownersOnly": "Gap reports are visible to the owners of this scope.",
+            "confirmDismissTitle": "Dismiss this gap?",
+            "confirmDismissDescription": "It leaves the open list; the brain does not change.",
+            "kind": {
+                "missing": "Missing",
+                "contradiction": "Contradiction",
+                "unclear": "Unclear",
+                "outdated": "Outdated"
+            },
+            "status": {
+                "open": "Open",
+                "converted": "Proposed",
+                "dismissed": "Dismissed"
+            }
         }
     },
     "activity": {
@@ -980,6 +1012,12 @@
             "description": "Organisation audit entries appear here as people use the product.",
             "filteredTitle": "No matching activity",
             "filteredDescription": "Try a different search or clear filters."
+        },
+        "gaps": {
+            "title": "No gaps reported",
+            "description": "Agents report here what is missing or contradictory in the brain.",
+            "filteredTitle": "No gaps match",
+            "filteredDescription": "Try another search."
         }
     },
     "errors": {

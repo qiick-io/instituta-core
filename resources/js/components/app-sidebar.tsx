@@ -1,9 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    Sparkles,
     Building2,
-    FolderGit2,
+    CircleHelp,
     FilePenLine,
+    FolderGit2,
     GitFork,
     History,
     KeyRound,
@@ -11,6 +11,7 @@ import {
     ListTree,
     Map as MapIcon,
     ScrollText,
+    Sparkles,
     Users,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -37,6 +38,7 @@ import { dashboard } from '@/routes';
 import { index as activityIndex } from '@/routes/activity';
 import { graph, keys, map, sessionReplay, sources, tree } from '@/routes/brain';
 import { index as clientsIndex } from '@/routes/brain/clients';
+import { index as gapsIndex } from '@/routes/brain/gaps';
 import { index as proposalsIndex } from '@/routes/brain/proposals';
 import users from '@/routes/users';
 import type { NavItem } from '@/types';
@@ -82,6 +84,11 @@ export function AppSidebar() {
             title: t('brain.nav.proposals'),
             href: proposalsIndex.url(),
             icon: FilePenLine,
+        },
+        {
+            title: t('brain.nav.gaps'),
+            href: gapsIndex.url(),
+            icon: CircleHelp,
         },
         {
             title: t('brain.nav.keys'),

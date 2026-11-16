@@ -38,6 +38,11 @@ export type ProposeChangeTarget =
     | {
           mode: 'create';
           area: string | null;
+          /** Prefill from a gap report (#229): its summary as title and AI request. */
+          title?: string;
+          draftRequest?: string;
+          /** The gap report this proposal answers; storing the proposal closes it. */
+          gapReportId?: string;
       }
     | {
           mode: 'item';
@@ -73,6 +78,8 @@ type ProposeChangeForm = {
     /** '' keeps the current status (#219). */
     status: string;
     superseded_by: string;
+    /** '' when the proposal answers no gap report (#229). */
+    gap_report_id: string;
 };
 
 function initialForm(
@@ -82,7 +89,7 @@ function initialForm(
     if (target.mode === 'create') {
         return {
             action: 'create',
-            title: '',
+            title: target.title ?? '',
             stable_key: '',
             path: target.area ? `${target.area}/` : '',
             area: target.area ?? '',
@@ -92,6 +99,7 @@ function initialForm(
             base_section_hash: '',
             status: '',
             superseded_by: '',
+            gap_report_id: target.gapReportId ?? '',
         };
     }
 
@@ -108,6 +116,7 @@ function initialForm(
             target.mode === 'section' ? target.baseSectionHash : '',
         status: '',
         superseded_by: '',
+        gap_report_id: '',
     };
 }
 
@@ -169,7 +178,9 @@ export function ProposeChangeDrawer({
         form.setDefaults({ ...payload });
         form.setData(payload);
         form.clearErrors();
-        setDraftRequest('');
+        setDraftRequest(
+            target.mode === 'create' ? (target.draftRequest ?? '') : '',
+        );
         setDraftError(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- Inertia form identity is unstable
     }, [target, open]);

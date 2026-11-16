@@ -573,6 +573,61 @@ paths:
                                 additionalProperties: true
                 '401':
                     $ref: '#/components/responses/Unauthorized'
+    /gaps:
+        post:
+            tags: [Contract]
+            summary: Report a gap or contradiction in the brain
+            description: Open to any key with brain:read; changes nothing in the brain. The scope's owners see it and turn it into a proposal or dismiss it.
+            operationId: reportGap
+            security:
+                - ApiKeyBearer: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [kind, summary]
+                            properties:
+                                kind:
+                                    type: string
+                                    enum:
+                                        [
+                                            missing,
+                                            contradiction,
+                                            unclear,
+                                            outdated,
+                                        ]
+                                summary:
+                                    type: string
+                                    maxLength: 2000
+                                question:
+                                    type: string
+                                    maxLength: 2000
+                                related:
+                                    type: array
+                                    maxItems: 10
+                                    items:
+                                        type: object
+                                        required: [item]
+                                        properties:
+                                            item:
+                                                type: string
+                                                description: Item id, stable_key, or path inside the perimeter
+                                            anchor:
+                                                type: string
+            responses:
+                '201':
+                    description: The open report
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: true
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '422':
+                    $ref: '#/components/responses/ValidationError'
     /proposals:
         get:
             tags: [Contract]

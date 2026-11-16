@@ -1,6 +1,7 @@
 import {
     AlertTriangle,
     CheckCircle2,
+    CircleHelp,
     FilePenLine,
     KeyRound,
     Snowflake,
@@ -62,6 +63,13 @@ export function toNotificationItem(
             icon: FilePenLine,
             title: i18n.t('notifications.types.proposalOpened.title'),
             body: i18n.t('notifications.types.proposalOpened.body', {
+                title: proposalTitle,
+            }),
+        },
+        gap_reported: {
+            icon: CircleHelp,
+            title: i18n.t('notifications.types.gapReported.title'),
+            body: i18n.t('notifications.types.gapReported.body', {
                 title: proposalTitle,
             }),
         },
