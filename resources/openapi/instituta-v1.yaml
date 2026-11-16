@@ -248,12 +248,32 @@ paths:
                       default: 20
             responses:
                 '200':
-                    description: Ranked hits without full bodies
+                    description: One hit per matching section (at most two per item), best first, without full bodies
                     content:
                         application/json:
                             schema:
                                 type: object
                                 additionalProperties: true
+                                properties:
+                                    results:
+                                        type: array
+                                        items:
+                                            type: object
+                                            additionalProperties: true
+                                            properties:
+                                                id:
+                                                    type: string
+                                                title:
+                                                    type: string
+                                                anchor:
+                                                    type: ['string', 'null']
+                                                    description: The matching section; open it with GET /items/{id}/sections/{anchor}
+                                                heading:
+                                                    type: ['string', 'null']
+                                                snippet:
+                                                    type: string
+                                                score:
+                                                    type: number
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '404':

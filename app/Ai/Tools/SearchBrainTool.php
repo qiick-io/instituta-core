@@ -17,7 +17,7 @@ final class SearchBrainTool implements Tool
 
     public function description(): string
     {
-        return 'Search the company brain by words. Returns item ids, titles, paths, summaries and snippets, never full bodies. Start here, then open the best hits with OutlineBrainItemTool and ReadBrainSectionTool.';
+        return 'Search the company brain by words. Each hit is a matching section: item id, title, the section anchor and heading, a snippet and the citation; never full bodies. Start here, then read the best hits with ReadBrainSectionTool (item id + anchor).';
     }
 
     public function handle(Request $request): string

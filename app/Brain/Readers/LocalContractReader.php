@@ -56,23 +56,44 @@ final class LocalContractReader
      */
     public function search(BrainRepositoryData $repo, string $q, ?string $area = null, int $limit = 20): array
     {
-        $needle = strtolower(trim($q));
+        $terms = array_values(array_filter(
+            preg_split('/\s+/', mb_strtolower(trim($q))) ?: [],
+            static fn (string $term): bool => mb_strlen($term) > 1,
+        ));
         $hits = [];
+
         foreach ($repo->items as $item) {
             if ($area !== null && $item->area !== $area) {
                 continue;
             }
-            $hay = strtolower($item->title.' '.$item->summary.' '.$item->body);
-            if ($needle !== '' && ! str_contains($hay, $needle)) {
-                continue;
+
+            $sectionHits = [];
+            foreach ($item->sections as $section) {
+                $haystack = mb_strtolower($item->title.' '.$section->heading.' '.$section->body);
+                $matched = $terms === [] ? 0 : count(array_filter($terms, static fn (string $term): bool => str_contains($haystack, $term)));
+
+                if ($matched === 0) {
+                    continue;
+                }
+
+                // Any term matches (#217); more matched terms and a title match rank higher.
+                $titleBonus = str_contains(mb_strtolower($item->title), $terms[0]) ? 0.25 : 0.0;
+                $sectionHits[] = [
+                    ...$this->summary($item, $repo),
+                    'anchor' => $section->anchor,
+                    'heading' => $section->heading,
+                    'score' => round($matched / count($terms) + $titleBonus, 6),
+                    'snippet' => mb_substr($section->body, 0, 160),
+                    'citation' => [...$item->citation->toArray(), 'section' => $section->anchor],
+                ];
             }
-            $row = $this->summary($item, $repo);
-            $row['score'] = $needle === '' ? 0.0 : (str_contains(strtolower($item->title), $needle) ? 1.0 : 0.5);
-            $row['snippet'] = mb_substr($item->summary, 0, 160);
-            $hits[] = $row;
+
+            usort($sectionHits, static fn (array $left, array $right): int => $right['score'] <=> $left['score']);
+            // One hit per matching section (#216), at most two per item.
+            array_push($hits, ...array_slice($sectionHits, 0, 2));
         }
 
-        usort($hits, static fn (array $a, array $b): int => $b['score'] <=> $a['score']);
+        usort($hits, static fn (array $left, array $right): int => $right['score'] <=> $left['score']);
 
         return array_slice($hits, 0, max(1, min(50, $limit)));
     }

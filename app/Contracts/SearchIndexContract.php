@@ -18,6 +18,8 @@ interface SearchIndexContract
      *     id: string,
      *     title: string,
      *     summary: string,
+     *     anchor: string|null,
+     *     heading: string|null,
      *     snippet: string,
      *     score: float,
      *     citation: array{source: string, path: string, section: string|null, commit: string|null}
