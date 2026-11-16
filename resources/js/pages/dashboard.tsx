@@ -1,36 +1,49 @@
-import { Head } from '@inertiajs/react';
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
+import { Head, setLayoutProps } from '@inertiajs/react';
+import { Brain } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { DashboardOverviewPanel } from '@/components/dashboard/dashboard-overview-panel';
+import type { DashboardOverviewMetrics } from '@/components/dashboard/dashboard-types';
+import { PageLayout } from '@/components/layout/page-layout';
 import { dashboard } from '@/routes';
 
-export default function Dashboard() {
+type DashboardProps =
+    | ({ hasPerimeter: true } & DashboardOverviewMetrics)
+    | { hasPerimeter: false };
+
+/**
+ * The first screen after sign-in: key numbers and short lists for the session perimeter.
+ * Page structure copied from externa-core `pages/dashboard.tsx` (one view, so no tabs);
+ * without a perimeter it shows the empty state instead of zeros.
+ */
+export default function Dashboard(props: DashboardProps) {
+    const { t } = useTranslation();
+
+    setLayoutProps({
+        breadcrumbs: [{ title: t('dashboard.title'), href: dashboard() }],
+    });
+
     return (
         <>
-            <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-muted-foreground/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-muted-foreground/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-muted-foreground/20" />
-                    </div>
-                </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                    <PlaceholderPattern className="absolute inset-0 size-full stroke-muted-foreground/20" />
-                </div>
-            </div>
+            <Head title={t('dashboard.title')} />
+            <PageLayout scrollContent>
+                {props.hasPerimeter ? (
+                    <DashboardOverviewPanel
+                        contentStats={props.contentStats}
+                        areaCounts={props.areaCounts}
+                        sources={props.sources}
+                        proposals={props.proposals}
+                        apiKeys={props.apiKeys}
+                        latestActivity={props.latestActivity}
+                    />
+                ) : (
+                    <PageEmptyState
+                        icon={Brain}
+                        title={t('dashboard.noPerimeterTitle')}
+                        description={t('dashboard.noPerimeterDescription')}
+                    />
+                )}
+            </PageLayout>
         </>
     );
 }
-
-Dashboard.layout = {
-    breadcrumbs: [
-        {
-            title: 'Dashboard',
-            href: dashboard(),
-        },
-    ],
-};
