@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Drawer } from '@/components/ui/drawer';
 import { cn } from '@/lib/utils';
 import { reading, tree } from '@/routes/brain';
+import AppLayout from '@/layouts/app-layout';
 
 type TreeItem = {
     id: string;
@@ -43,6 +44,14 @@ export default function BrainTree({
     canPropose,
 }: Props) {
     const { t } = useTranslation();
+    const layoutProps = {
+        breadcrumbs: [
+            {
+                title: t('brain.nav.tree'),
+                href: tree.url(),
+            },
+        ],
+    };
     const [isCreating, setIsCreating] = useState(false);
     // Stable identity: the drawer resets its form when the target changes.
     const createTarget = useMemo<ProposeChangeTarget>(
@@ -51,7 +60,7 @@ export default function BrainTree({
     );
 
     return (
-        <>
+        <AppLayout {...layoutProps}>
             <Head title={t('brain.tree.title')} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -170,15 +179,6 @@ export default function BrainTree({
                     onCancel={() => setIsCreating(false)}
                 />
             </Drawer>
-        </>
+        </AppLayout>
     );
 }
-
-BrainTree.layout = {
-    breadcrumbs: [
-        {
-            title: 'Tree',
-            href: tree.url(),
-        },
-    ],
-};

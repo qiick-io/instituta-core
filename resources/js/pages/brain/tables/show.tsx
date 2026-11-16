@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/table';
 import { reading } from '@/routes/brain';
 import { index as tablesIndex } from '@/routes/brain/tables';
+import AppLayout from '@/layouts/app-layout';
 
 function cellText(value: unknown): string {
     if (value === null || value === undefined) {
@@ -43,9 +44,21 @@ type Props = {
 
 export default function BrainTableShow({ table }: Props) {
     const { t } = useTranslation();
+    const layoutProps = {
+        breadcrumbs: [
+            {
+                title: t('brain.tables.title'),
+                href: tablesIndex.url(),
+            },
+            {
+                title: table.table_key,
+                href: '#',
+            },
+        ],
+    };
 
     return (
-        <>
+        <AppLayout {...layoutProps}>
             <Head title={table.table_key} />
             <PageLayout
                 description={t('brain.tables.showDescription', {
@@ -99,19 +112,6 @@ export default function BrainTableShow({ table }: Props) {
                     </Table>
                 )}
             </PageLayout>
-        </>
+        </AppLayout>
     );
 }
-
-BrainTableShow.layout = {
-    breadcrumbs: [
-        {
-            title: 'Tables',
-            href: tablesIndex.url(),
-        },
-        {
-            title: 'Table',
-            href: '#',
-        },
-    ],
-};

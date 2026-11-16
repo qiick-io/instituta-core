@@ -1,10 +1,11 @@
-import { Form, Head, setLayoutProps } from '@inertiajs/react';
+import { Form, Head } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
+import AuthLayout from '@/layouts/auth-layout';
 
 /**
  * Prompt to verify email after registration.
@@ -13,13 +14,13 @@ import { send } from '@/routes/verification';
 export default function VerifyEmail({ status }: { status?: string }) {
     const { t } = useTranslation();
 
-    setLayoutProps({
+    const layoutProps = {
         title: t('auth.verifyEmail.title'),
         description: t('auth.verifyEmail.description'),
-    });
+    };
 
     return (
-        <>
+        <AuthLayout {...layoutProps}>
             <Head title={t('auth.verifyEmail.head')} />
 
             {status === 'verification-link-sent' && (
@@ -45,6 +46,6 @@ export default function VerifyEmail({ status }: { status?: string }) {
                     </>
                 )}
             </Form>
-        </>
+        </AuthLayout>
     );
 }

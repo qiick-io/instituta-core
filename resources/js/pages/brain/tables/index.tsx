@@ -14,6 +14,7 @@ import {
     index as tablesIndex,
     show as tablesShow,
 } from '@/routes/brain/tables';
+import AppLayout from '@/layouts/app-layout';
 
 type TablesListRow = {
     id: string;
@@ -32,9 +33,17 @@ type Props = {
 
 export default function BrainTablesIndex({ tables, hasPerimeter }: Props) {
     const { t } = useTranslation();
+    const layoutProps = {
+        breadcrumbs: [
+            {
+                title: t('brain.tables.title'),
+                href: tablesIndex.url(),
+            },
+        ],
+    };
 
     return (
-        <>
+        <AppLayout {...layoutProps}>
             <Head title={t('brain.tables.title')} />
             <PageLayout description={t('brain.tables.description')}>
                 <div className="space-y-1 pb-2">
@@ -105,15 +114,6 @@ export default function BrainTablesIndex({ tables, hasPerimeter }: Props) {
                     </Table>
                 )}
             </PageLayout>
-        </>
+        </AppLayout>
     );
 }
-
-BrainTablesIndex.layout = {
-    breadcrumbs: [
-        {
-            title: 'Tables',
-            href: tablesIndex.url(),
-        },
-    ],
-};

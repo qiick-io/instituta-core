@@ -28,6 +28,8 @@ import {
     index as sessionsIndex,
 } from '@/routes/sessions';
 import type { BrowserSession } from '@/types';
+import AppLayout from '@/layouts/app-layout';
+import SettingsLayout from '@/layouts/settings/layout';
 
 /**
  * Settings → Sessions: every browser signed in to this account, with sign-out per
@@ -36,6 +38,15 @@ import type { BrowserSession } from '@/types';
  */
 export default function Sessions({ sessions }: { sessions: BrowserSession[] }) {
     const { t } = useTranslation();
+    const layoutProps = {
+        breadcrumbs: [
+            {
+                title: t('settings.layout.sessions'),
+                href: sessionsIndex(),
+            },
+        ],
+        wide: true,
+    };
     const { locale } = usePage().props;
     const [sessionToRevoke, setSessionToRevoke] =
         useState<BrowserSession | null>(null);
@@ -64,168 +75,164 @@ export default function Sessions({ sessions }: { sessions: BrowserSession[] }) {
     };
 
     return (
-        <>
-            <Head title={t('settings.sessions.head')} />
+        <AppLayout {...layoutProps}>
+            <SettingsLayout>
+                <Head title={t('settings.sessions.head')} />
 
-            <h1 className="sr-only">{t('settings.sessions.head')}</h1>
+                <h1 className="sr-only">{t('settings.sessions.head')}</h1>
 
-            <div className="space-y-6">
-                <Heading
-                    variant="small"
-                    title={t('settings.sessions.title')}
-                    description={t('settings.sessions.description')}
-                />
-
-                {sessions.length === 0 ? (
-                    <PageEmptyState
-                        compact
-                        icon={Monitor}
-                        title={t('settings.sessions.emptyTitle')}
-                        description={t('settings.sessions.emptyDescription')}
+                <div className="space-y-6">
+                    <Heading
+                        variant="small"
+                        title={t('settings.sessions.title')}
+                        description={t('settings.sessions.description')}
                     />
-                ) : (
-                    <TablePanel>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>
-                                        {t('settings.sessions.columns.browser')}
-                                    </TableHead>
-                                    <TableHead>
-                                        {t(
-                                            'settings.sessions.columns.ipAddress',
-                                        )}
-                                    </TableHead>
-                                    <TableHead>
-                                        {t(
-                                            'settings.sessions.columns.lastActive',
-                                        )}
-                                    </TableHead>
-                                    <TableHead className="w-10">
-                                        <span className="sr-only">
-                                            {t('common.actions')}
-                                        </span>
-                                    </TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {sessions.map((session) => (
-                                    <TableRow key={session.publicId}>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <Monitor
-                                                    className="size-4 text-muted-foreground"
-                                                    aria-hidden
-                                                />
-                                                <span className="font-medium">
-                                                    {t(
-                                                        'settings.sessions.browserOnPlatform',
-                                                        {
-                                                            browser:
-                                                                session.browser,
-                                                            platform:
-                                                                session.platform,
-                                                        },
-                                                    )}
-                                                </span>
-                                                {session.isCurrentDevice ? (
-                                                    <Badge variant="success">
-                                                        {t(
-                                                            'settings.sessions.thisDevice',
-                                                        )}
-                                                    </Badge>
-                                                ) : null}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="font-mono text-xs text-muted-foreground">
-                                            {session.ipAddress ?? '—'}
-                                        </TableCell>
-                                        <TableCell className="text-muted-foreground">
-                                            {formatRelativeTime(
-                                                session.lastActiveAt,
-                                                locale,
+
+                    {sessions.length === 0 ? (
+                        <PageEmptyState
+                            compact
+                            icon={Monitor}
+                            title={t('settings.sessions.emptyTitle')}
+                            description={t(
+                                'settings.sessions.emptyDescription',
+                            )}
+                        />
+                    ) : (
+                        <TablePanel>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>
+                                            {t(
+                                                'settings.sessions.columns.browser',
                                             )}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            {session.isCurrentDevice ? null : (
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon-sm"
-                                                            aria-label={t(
+                                        </TableHead>
+                                        <TableHead>
+                                            {t(
+                                                'settings.sessions.columns.ipAddress',
+                                            )}
+                                        </TableHead>
+                                        <TableHead>
+                                            {t(
+                                                'settings.sessions.columns.lastActive',
+                                            )}
+                                        </TableHead>
+                                        <TableHead className="w-10">
+                                            <span className="sr-only">
+                                                {t('common.actions')}
+                                            </span>
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {sessions.map((session) => (
+                                        <TableRow key={session.publicId}>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <Monitor
+                                                        className="size-4 text-muted-foreground"
+                                                        aria-hidden
+                                                    />
+                                                    <span className="font-medium">
+                                                        {t(
+                                                            'settings.sessions.browserOnPlatform',
+                                                            {
+                                                                browser:
+                                                                    session.browser,
+                                                                platform:
+                                                                    session.platform,
+                                                            },
+                                                        )}
+                                                    </span>
+                                                    {session.isCurrentDevice ? (
+                                                        <Badge variant="success">
+                                                            {t(
+                                                                'settings.sessions.thisDevice',
+                                                            )}
+                                                        </Badge>
+                                                    ) : null}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="font-mono text-xs text-muted-foreground">
+                                                {session.ipAddress ?? '—'}
+                                            </TableCell>
+                                            <TableCell className="text-muted-foreground">
+                                                {formatRelativeTime(
+                                                    session.lastActiveAt,
+                                                    locale,
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                {session.isCurrentDevice ? null : (
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon-sm"
+                                                                aria-label={t(
+                                                                    'settings.sessions.signOut',
+                                                                )}
+                                                                onClick={() =>
+                                                                    setSessionToRevoke(
+                                                                        session,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <LogOut />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            {t(
                                                                 'settings.sessions.signOut',
                                                             )}
-                                                            onClick={() =>
-                                                                setSessionToRevoke(
-                                                                    session,
-                                                                )
-                                                            }
-                                                        >
-                                                            <LogOut />
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        {t(
-                                                            'settings.sessions.signOut',
-                                                        )}
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TablePanel>
-                )}
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TablePanel>
+                    )}
 
-                {hasOtherSessions ? (
-                    <div className="flex justify-end">
-                        <Button
-                            variant="destructive-outline"
-                            onClick={() => setIsRevokingOthers(true)}
-                            data-test="sign-out-other-sessions"
-                        >
-                            <LogOut />
-                            {t('settings.sessions.signOutOthers')}
-                        </Button>
-                    </div>
-                ) : null}
-            </div>
+                    {hasOtherSessions ? (
+                        <div className="flex justify-end">
+                            <Button
+                                variant="destructive-outline"
+                                onClick={() => setIsRevokingOthers(true)}
+                                data-test="sign-out-other-sessions"
+                            >
+                                <LogOut />
+                                {t('settings.sessions.signOutOthers')}
+                            </Button>
+                        </div>
+                    ) : null}
+                </div>
 
-            <ConfirmDestructiveDialog
-                open={sessionToRevoke !== null || isRevokingOthers}
-                onOpenChange={(isOpen) => {
-                    if (!isOpen) {
-                        setSessionToRevoke(null);
-                        setIsRevokingOthers(false);
+                <ConfirmDestructiveDialog
+                    open={sessionToRevoke !== null || isRevokingOthers}
+                    onOpenChange={(isOpen) => {
+                        if (!isOpen) {
+                            setSessionToRevoke(null);
+                            setIsRevokingOthers(false);
+                        }
+                    }}
+                    title={
+                        isRevokingOthers
+                            ? t('settings.sessions.confirm.othersTitle')
+                            : t('settings.sessions.confirm.title')
                     }
-                }}
-                title={
-                    isRevokingOthers
-                        ? t('settings.sessions.confirm.othersTitle')
-                        : t('settings.sessions.confirm.title')
-                }
-                description={
-                    isRevokingOthers
-                        ? t('settings.sessions.confirm.othersDescription')
-                        : t('settings.sessions.confirm.description')
-                }
-                confirmLabel={t('settings.sessions.signOut')}
-                confirming={isConfirming}
-                onConfirm={confirmRevoke}
-            />
-        </>
+                    description={
+                        isRevokingOthers
+                            ? t('settings.sessions.confirm.othersDescription')
+                            : t('settings.sessions.confirm.description')
+                    }
+                    confirmLabel={t('settings.sessions.signOut')}
+                    confirming={isConfirming}
+                    onConfirm={confirmRevoke}
+                />
+            </SettingsLayout>
+        </AppLayout>
     );
 }
-
-Sessions.layout = {
-    breadcrumbs: [
-        {
-            title: 'Sessions',
-            href: sessionsIndex(),
-        },
-    ],
-    wide: true,
-};

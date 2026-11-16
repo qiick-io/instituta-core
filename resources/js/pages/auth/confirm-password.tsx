@@ -1,4 +1,4 @@
-import { Form, Head, router, setLayoutProps } from '@inertiajs/react';
+import { Form, Head, router } from '@inertiajs/react';
 import { UserCancelledError } from '@laravel/passkeys';
 import { usePasskeyVerify } from '@laravel/passkeys/react';
 import { KeyRound } from 'lucide-react';
@@ -14,6 +14,7 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { confirm, confirmOptions } from '@/routes/passkey';
 import { store } from '@/routes/password/confirm';
+import AuthLayout from '@/layouts/auth-layout';
 
 type Props = {
     canManagePasskeys?: boolean;
@@ -30,10 +31,10 @@ export default function ConfirmPassword({
 }: Props) {
     const { t } = useTranslation();
 
-    setLayoutProps({
+    const layoutProps = {
         title: t('auth.confirmPassword.title'),
         description: t('auth.confirmPassword.description'),
-    });
+    };
 
     const {
         verify,
@@ -67,7 +68,7 @@ export default function ConfirmPassword({
             : passkeyError;
 
     return (
-        <>
+        <AuthLayout {...layoutProps}>
             <Head title={t('auth.confirmPassword.head')} />
 
             <Form {...store.form()} resetOnSuccess={['password']} noValidate>
@@ -142,6 +143,6 @@ export default function ConfirmPassword({
                     </FieldError>
                 </div>
             )}
-        </>
+        </AuthLayout>
     );
 }

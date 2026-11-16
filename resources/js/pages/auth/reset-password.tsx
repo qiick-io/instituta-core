@@ -1,4 +1,4 @@
-import { Form, Head, setLayoutProps } from '@inertiajs/react';
+import { Form, Head } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { update } from '@/routes/password';
+import AuthLayout from '@/layouts/auth-layout';
 
 type Props = {
     token: string;
@@ -24,13 +25,13 @@ type Props = {
 export default function ResetPassword({ token, email }: Props) {
     const { t } = useTranslation();
 
-    setLayoutProps({
+    const layoutProps = {
         title: t('auth.resetPassword.title'),
         description: t('auth.resetPassword.description'),
-    });
+    };
 
     return (
-        <>
+        <AuthLayout {...layoutProps}>
             <Head title={t('auth.resetPassword.head')} />
 
             <Form
@@ -132,6 +133,6 @@ export default function ResetPassword({ token, email }: Props) {
                     </FieldGroup>
                 )}
             </Form>
-        </>
+        </AuthLayout>
     );
 }

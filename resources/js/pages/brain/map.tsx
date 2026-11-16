@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { map, tree } from '@/routes/brain';
+import AppLayout from '@/layouts/app-layout';
 
 type AreaCard = {
     area: string;
@@ -17,9 +18,17 @@ type Props = {
 
 export default function BrainMap({ areas, hasPerimeter }: Props) {
     const { t } = useTranslation();
+    const layoutProps = {
+        breadcrumbs: [
+            {
+                title: t('brain.nav.map'),
+                href: map.url(),
+            },
+        ],
+    };
 
     return (
-        <>
+        <AppLayout {...layoutProps}>
             <Head title={t('brain.map.title')} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
                 <div className="space-y-1">
@@ -75,15 +84,6 @@ export default function BrainMap({ areas, hasPerimeter }: Props) {
                     </div>
                 )}
             </div>
-        </>
+        </AppLayout>
     );
 }
-
-BrainMap.layout = {
-    breadcrumbs: [
-        {
-            title: 'Map',
-            href: map.url(),
-        },
-    ],
-};

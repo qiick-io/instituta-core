@@ -12,6 +12,7 @@ import {
     show as proposalsShow,
     update as proposalsUpdate,
 } from '@/routes/brain/proposals';
+import AppLayout from '@/layouts/app-layout';
 
 type ProposalDetail = {
     id: string;
@@ -130,6 +131,18 @@ export default function BrainProposalShow({
     canDecide,
 }: Props) {
     const { t } = useTranslation();
+    const layoutProps = {
+        breadcrumbs: [
+            {
+                title: t('brain.nav.proposals'),
+                href: proposalsIndex.url(),
+            },
+            {
+                title: proposal.title,
+                href: '#',
+            },
+        ],
+    };
     const [decisionNote, setDecisionNote] = useState('');
 
     const decide = (status: 'accepted' | 'rejected') => {
@@ -140,7 +153,7 @@ export default function BrainProposalShow({
     };
 
     return (
-        <>
+        <AppLayout {...layoutProps}>
             <Head title={proposal.title} />
             <PageLayout description={t('brain.proposals.showDescription')}>
                 <div className="flex flex-wrap items-start justify-between gap-3 pb-4">
@@ -392,19 +405,6 @@ export default function BrainProposalShow({
                     </div>
                 ) : null}
             </PageLayout>
-        </>
+        </AppLayout>
     );
 }
-
-BrainProposalShow.layout = {
-    breadcrumbs: [
-        {
-            title: 'Proposals',
-            href: proposalsIndex.url(),
-        },
-        {
-            title: 'Proposal',
-            href: '#',
-        },
-    ],
-};

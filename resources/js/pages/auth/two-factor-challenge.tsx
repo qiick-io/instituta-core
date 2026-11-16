@@ -1,4 +1,4 @@
-import { Form, Head, setLayoutProps } from '@inertiajs/react';
+import { Form, Head } from '@inertiajs/react';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/input-otp';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
 import { store } from '@/routes/two-factor/login';
+import AuthLayout from '@/layouts/auth-layout';
 
 /**
  * Two-factor authentication challenge during login.
@@ -42,10 +43,10 @@ export default function TwoFactorChallenge() {
         };
     }, [showRecoveryInput, t]);
 
-    setLayoutProps({
+    const layoutProps = {
         title: authConfigContent.title,
         description: authConfigContent.description,
-    });
+    };
 
     const toggleRecoveryMode = (clearErrors: () => void): void => {
         setShowRecoveryInput(!showRecoveryInput);
@@ -54,7 +55,7 @@ export default function TwoFactorChallenge() {
     };
 
     return (
-        <>
+        <AuthLayout {...layoutProps}>
             <Head title={t('auth.twoFactorChallenge.head')} />
 
             <div className="space-y-6">
@@ -178,6 +179,6 @@ export default function TwoFactorChallenge() {
                     )}
                 </Form>
             </div>
-        </>
+        </AuthLayout>
     );
 }

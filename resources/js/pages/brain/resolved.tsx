@@ -20,6 +20,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { resolved } from '@/routes/brain';
+import AppLayout from '@/layouts/app-layout';
 
 type ProductOption = {
     id: string;
@@ -68,10 +69,18 @@ export default function BrainResolved({
     agent_view,
 }: Props) {
     const { t } = useTranslation();
+    const layoutProps = {
+        breadcrumbs: [
+            {
+                title: t('brain.resolved.title'),
+                href: resolved.url(),
+            },
+        ],
+    };
     const [agentMode, setAgentMode] = useState(false);
 
     return (
-        <>
+        <AppLayout {...layoutProps}>
             <Head title={t('brain.resolved.title')} />
             <PageLayout
                 description={t('brain.resolved.description')}
@@ -218,15 +227,6 @@ export default function BrainResolved({
                     </Table>
                 )}
             </PageLayout>
-        </>
+        </AppLayout>
     );
 }
-
-BrainResolved.layout = {
-    breadcrumbs: [
-        {
-            title: 'Resolved',
-            href: resolved.url(),
-        },
-    ],
-};

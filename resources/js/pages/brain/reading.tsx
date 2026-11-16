@@ -34,6 +34,7 @@ import {
 import { cn } from '@/lib/utils';
 import { tree } from '@/routes/brain';
 import { show as tablesShow } from '@/routes/brain/tables';
+import AppLayout from '@/layouts/app-layout';
 
 function cellText(value: unknown): string {
     if (value === null || value === undefined) {
@@ -180,6 +181,18 @@ function BlockView({ block }: { block: Block }) {
 
 export default function BrainReading({ item, canPropose }: Props) {
     const { t } = useTranslation();
+    const layoutProps = {
+        breadcrumbs: [
+            {
+                title: t('brain.nav.tree'),
+                href: tree.url(),
+            },
+            {
+                title: item.title,
+                href: '#',
+            },
+        ],
+    };
     const [proposeTarget, setProposeTarget] =
         useState<ProposeChangeTarget | null>(null);
     // Sections synced before #198 have no stored markdown: they cannot be edited from here.
@@ -221,7 +234,7 @@ export default function BrainReading({ item, canPropose }: Props) {
     };
 
     return (
-        <>
+        <AppLayout {...layoutProps}>
             <Head title={item.title} />
             <PageLayout
                 description={item.summary ?? t('brain.reading.description')}
@@ -464,19 +477,6 @@ export default function BrainReading({ item, canPropose }: Props) {
                     onCancel={() => setProposeTarget(null)}
                 />
             </Drawer>
-        </>
+        </AppLayout>
     );
 }
-
-BrainReading.layout = {
-    breadcrumbs: [
-        {
-            title: 'Tree',
-            href: tree.url(),
-        },
-        {
-            title: 'Reading',
-            href: '#',
-        },
-    ],
-};

@@ -19,6 +19,8 @@ import {
 } from '@/components/ui/select';
 import { edit as editLocalization } from '@/routes/instance/localization';
 import type { InstanceSettingsForm } from '@/types';
+import AppLayout from '@/layouts/app-layout';
+import SettingsLayout from '@/layouts/settings/layout';
 
 type LocalizationInstanceSettings = Pick<
     InstanceSettingsForm,
@@ -38,111 +40,114 @@ export default function InstanceLocalizationSettingsPage({
     availableLocales,
 }: Props) {
     const { t } = useTranslation();
+    const layoutProps = {
+        breadcrumbs: [
+            {
+                title: t('settings.layout.localization'),
+                href: editLocalization(),
+            },
+        ],
+    };
     const [defaultLanguage, setDefaultLanguage] = useState(
         instance.default_language,
     );
 
     return (
-        <>
-            <Head title={t('settings.instance.localization.head')} />
+        <AppLayout {...layoutProps}>
+            <SettingsLayout>
+                <Head title={t('settings.instance.localization.head')} />
 
-            <h1 className="sr-only">
-                {t('settings.instance.localization.head')}
-            </h1>
+                <h1 className="sr-only">
+                    {t('settings.instance.localization.head')}
+                </h1>
 
-            <Form
-                {...InstanceLocalizationSettingsController.update.form()}
-                options={{ preserveScroll: true }}
-                className="space-y-12"
-                noValidate
-            >
-                {({ processing, recentlySuccessful, errors }) => (
-                    <>
-                        <input
-                            type="hidden"
-                            name="default_language"
-                            value={defaultLanguage}
-                        />
-
-                        <div className="space-y-6">
-                            <Heading
-                                variant="small"
-                                title={t(
-                                    'settings.instance.localization.title',
-                                )}
-                                description={t(
-                                    'settings.instance.localization.description',
-                                )}
+                <Form
+                    {...InstanceLocalizationSettingsController.update.form()}
+                    options={{ preserveScroll: true }}
+                    className="space-y-12"
+                    noValidate
+                >
+                    {({ processing, recentlySuccessful, errors }) => (
+                        <>
+                            <input
+                                type="hidden"
+                                name="default_language"
+                                value={defaultLanguage}
                             />
 
-                            <FieldGroup>
-                                <Field
-                                    data-invalid={
-                                        errors.default_language
-                                            ? true
-                                            : undefined
-                                    }
-                                >
-                                    <FieldLabel htmlFor="default_language">
-                                        {t('settings.instance.defaultLanguage')}
-                                    </FieldLabel>
-                                    <Select
-                                        value={defaultLanguage}
-                                        onValueChange={setDefaultLanguage}
-                                    >
-                                        <SelectTrigger
-                                            id="default_language"
-                                            className="w-full"
-                                            aria-invalid={
-                                                errors.default_language
-                                                    ? true
-                                                    : undefined
-                                            }
-                                            aria-describedby={
-                                                errors.default_language
-                                                    ? 'default-language-error'
-                                                    : undefined
-                                            }
-                                        >
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Object.entries(
-                                                availableLocales,
-                                            ).map(([code, label]) => (
-                                                <SelectItem
-                                                    key={code}
-                                                    value={code}
-                                                >
-                                                    {label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FieldError id="default-language-error">
-                                        {errors.default_language}
-                                    </FieldError>
-                                </Field>
-                            </FieldGroup>
-                        </div>
+                            <div className="space-y-6">
+                                <Heading
+                                    variant="small"
+                                    title={t(
+                                        'settings.instance.localization.title',
+                                    )}
+                                    description={t(
+                                        'settings.instance.localization.description',
+                                    )}
+                                />
 
-                        <SettingsFormActions
-                            processing={processing}
-                            recentlySuccessful={recentlySuccessful}
-                            data-test="instance-localization-settings-save"
-                        />
-                    </>
-                )}
-            </Form>
-        </>
+                                <FieldGroup>
+                                    <Field
+                                        data-invalid={
+                                            errors.default_language
+                                                ? true
+                                                : undefined
+                                        }
+                                    >
+                                        <FieldLabel htmlFor="default_language">
+                                            {t(
+                                                'settings.instance.defaultLanguage',
+                                            )}
+                                        </FieldLabel>
+                                        <Select
+                                            value={defaultLanguage}
+                                            onValueChange={setDefaultLanguage}
+                                        >
+                                            <SelectTrigger
+                                                id="default_language"
+                                                className="w-full"
+                                                aria-invalid={
+                                                    errors.default_language
+                                                        ? true
+                                                        : undefined
+                                                }
+                                                aria-describedby={
+                                                    errors.default_language
+                                                        ? 'default-language-error'
+                                                        : undefined
+                                                }
+                                            >
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Object.entries(
+                                                    availableLocales,
+                                                ).map(([code, label]) => (
+                                                    <SelectItem
+                                                        key={code}
+                                                        value={code}
+                                                    >
+                                                        {label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FieldError id="default-language-error">
+                                            {errors.default_language}
+                                        </FieldError>
+                                    </Field>
+                                </FieldGroup>
+                            </div>
+
+                            <SettingsFormActions
+                                processing={processing}
+                                recentlySuccessful={recentlySuccessful}
+                                data-test="instance-localization-settings-save"
+                            />
+                        </>
+                    )}
+                </Form>
+            </SettingsLayout>
+        </AppLayout>
     );
 }
-
-InstanceLocalizationSettingsPage.layout = {
-    breadcrumbs: [
-        {
-            title: 'Localization settings',
-            href: editLocalization(),
-        },
-    ],
-};

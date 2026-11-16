@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { Head, router, setLayoutProps } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { FilePenLine, SearchX } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import brainRoutes from '@/routes/brain';
 import type { BreadcrumbItem } from '@/types';
+import AppLayout from '@/layouts/app-layout';
 
 type ProposalRow = {
     id: string;
@@ -55,7 +56,7 @@ export default function BrainProposals({
         [t],
     );
 
-    setLayoutProps({ breadcrumbs });
+    const layoutProps = { breadcrumbs };
 
     const setStatusFilter = (nextStatus: string): void => {
         if (nextStatus === '' || nextStatus === statusFilter) {
@@ -133,7 +134,7 @@ export default function BrainProposals({
     ];
 
     return (
-        <>
+        <AppLayout {...layoutProps}>
             <Head title={t('brain.proposals.title')} />
             <PageLayout
                 filters={
@@ -214,6 +215,6 @@ export default function BrainProposals({
                     />
                 )}
             </PageLayout>
-        </>
+        </AppLayout>
     );
 }

@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { Head, router, setLayoutProps } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
     Check,
     Copy,
@@ -32,6 +32,7 @@ import {
 import { useClipboard } from '@/hooks/use-clipboard';
 import keysRoutes from '@/routes/brain';
 import type { BreadcrumbItem } from '@/types';
+import AppLayout from '@/layouts/app-layout';
 
 type KeyRow = {
     id: string;
@@ -79,9 +80,8 @@ export default function BrainKeys({ is_owner, keys, plainTextKey }: Props) {
         [t],
     );
 
-    // The primary action sits at the right of the toolbar row, or in the empty state when the
-    // list is empty (as in externa-core). Passing it to setLayoutProps as headerActions
-    // re-rendered the page in a loop (React error #185).
+    // The primary action sits in the header, or in the empty state when the list is empty,
+    // as in externa-core.
     const primaryAction = useMemo(
         () =>
             is_owner ? (
@@ -93,7 +93,7 @@ export default function BrainKeys({ is_owner, keys, plainTextKey }: Props) {
         [is_owner, t],
     );
 
-    setLayoutProps({ breadcrumbs });
+    const layoutProps = { breadcrumbs };
 
     const filteredKeys = useMemo(() => {
         const needle = search.trim().toLowerCase();
@@ -211,10 +211,12 @@ export default function BrainKeys({ is_owner, keys, plainTextKey }: Props) {
     ];
 
     return (
-        <>
+        <AppLayout
+            {...layoutProps}
+            headerActions={hideListChrome ? undefined : primaryAction}
+        >
             <Head title={t('brain.keys.title')} />
             <PageLayout
-                filtersRight={hideListChrome ? undefined : primaryAction}
                 filters={
                     hideListChrome ? undefined : (
                         <DataTableToolbar
@@ -340,6 +342,6 @@ export default function BrainKeys({ is_owner, keys, plainTextKey }: Props) {
                     );
                 }}
             />
-        </>
+        </AppLayout>
     );
 }

@@ -4,6 +4,7 @@ import { BrainGraphCanvas } from '@/components/brain/brain-graph-canvas';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Button } from '@/components/ui/button';
 import { graph, tree } from '@/routes/brain';
+import AppLayout from '@/layouts/app-layout';
 
 type GraphNode = {
     id: string;
@@ -35,6 +36,14 @@ export default function BrainGraph({
     itemId,
 }: Props) {
     const { t } = useTranslation();
+    const layoutProps = {
+        breadcrumbs: [
+            {
+                title: t('brain.nav.graph'),
+                href: graph.url(),
+            },
+        ],
+    };
 
     const setDepth = (nextDepth: number) => {
         router.get(
@@ -45,7 +54,7 @@ export default function BrainGraph({
     };
 
     return (
-        <>
+        <AppLayout {...layoutProps}>
             <Head title={t('brain.graph.title')} />
             <PageLayout description={t('brain.graph.description')}>
                 <div className="flex flex-wrap items-end justify-between gap-3 pb-2">
@@ -107,15 +116,6 @@ export default function BrainGraph({
                     />
                 )}
             </PageLayout>
-        </>
+        </AppLayout>
     );
 }
-
-BrainGraph.layout = {
-    breadcrumbs: [
-        {
-            title: 'Graph',
-            href: graph.url(),
-        },
-    ],
-};
