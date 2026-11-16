@@ -32,7 +32,7 @@ class GapReportedNotification extends Notification implements ShouldQueue
             'organisation_id' => $this->gapReport->organisation_id,
             'gap_report_id' => $this->gapReport->id,
             'title' => $this->gapReport->summary,
-            'url' => route('brain.gaps.index'),
+            'url' => route('review.gaps.index'),
         ];
     }
 }

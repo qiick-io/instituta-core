@@ -71,7 +71,7 @@ it('lists only products for the selected owned client', function (): void {
     ]);
 
     $this->actingAs($user)
-        ->get(route('brain.clients.products.index', $client))
+        ->get(route('clients.products.index', $client))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('brain/clients/products')
@@ -94,15 +94,15 @@ it('redirects product create and edit pages to the index drawer deep links', fun
     ]);
 
     $this->actingAs($user)
-        ->get(route('brain.clients.products.create', $client))
-        ->assertRedirect(route('brain.clients.products.index', [
+        ->get(route('clients.products.create', $client))
+        ->assertRedirect(route('clients.products.index', [
             'company' => $client,
             'new' => 1,
         ]));
 
     $this->actingAs($user)
-        ->get(route('brain.clients.products.edit', [$client, $product]))
-        ->assertRedirect(route('brain.clients.products.index', [
+        ->get(route('clients.products.edit', [$client, $product]))
+        ->assertRedirect(route('clients.products.index', [
             'company' => $client,
             'edit' => $product->id,
         ]));
@@ -116,11 +116,11 @@ it('creates a product under an owned client with inherit default true', function
     ]);
 
     $this->actingAs($user)
-        ->post(route('brain.clients.products.store', $client), [
+        ->post(route('clients.products.store', $client), [
             'name' => 'New App',
             'slug' => 'new-app',
         ])
-        ->assertRedirect(route('brain.clients.products.index', $client));
+        ->assertRedirect(route('clients.products.index', $client));
 
     $product = Product::query()
         ->where('company_id', $client->id)
@@ -145,12 +145,12 @@ it('creates an isolated product when inherits_from_parent is false', function ()
     ]);
 
     $this->actingAs($user)
-        ->post(route('brain.clients.products.store', $client), [
+        ->post(route('clients.products.store', $client), [
             'name' => 'Isolated App',
             'slug' => 'isolated-app',
             'inherits_from_parent' => false,
         ])
-        ->assertRedirect(route('brain.clients.products.index', $client));
+        ->assertRedirect(route('clients.products.index', $client));
 
     $product = Product::query()->where('slug', 'isolated-app')->first();
 
@@ -182,12 +182,12 @@ it('updates an owned client product and blocks cross-tenant access', function ()
     ]);
 
     $this->actingAs($user)
-        ->put(route('brain.clients.products.update', [$client, $product]), [
+        ->put(route('clients.products.update', [$client, $product]), [
             'name' => 'After',
             'slug' => 'after',
             'inherits_from_parent' => false,
         ])
-        ->assertRedirect(route('brain.clients.products.index', $client));
+        ->assertRedirect(route('clients.products.index', $client));
 
     $product->refresh();
     expect($product->name)->toBe('After')
@@ -195,11 +195,11 @@ it('updates an owned client product and blocks cross-tenant access', function ()
         ->and($product->inherits_from_parent)->toBeFalse();
 
     $this->actingAs($user)
-        ->get(route('brain.clients.products.index', $foreignClient))
+        ->get(route('clients.products.index', $foreignClient))
         ->assertForbidden();
 
     $this->actingAs($user)
-        ->put(route('brain.clients.products.update', [$foreignClient, $foreignProduct]), [
+        ->put(route('clients.products.update', [$foreignClient, $foreignProduct]), [
             'name' => 'Hijacked',
             'slug' => 'hijacked',
             'inherits_from_parent' => true,
@@ -231,7 +231,7 @@ it('rejects product create under another client or for non-owners', function ():
     ]);
 
     $this->actingAs($member)
-        ->post(route('brain.clients.products.store', $client), [
+        ->post(route('clients.products.store', $client), [
             'name' => 'Nope',
             'slug' => 'nope',
         ])
@@ -252,7 +252,7 @@ it('rejects duplicate product slugs within the same client', function (): void {
     ]);
 
     $this->actingAs($user)
-        ->post(route('brain.clients.products.store', $client), [
+        ->post(route('clients.products.store', $client), [
             'name' => 'Taken Again',
             'slug' => 'taken',
         ])

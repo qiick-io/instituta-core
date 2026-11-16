@@ -58,7 +58,7 @@ it('lists open proposals in the session perimeter', function (): void {
     ]);
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.proposals.index'))
+        ->get(route('review.proposals.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/proposals')
@@ -81,7 +81,7 @@ it('shows proposal body on the detail page for owners', function (): void {
     ]);
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.proposals.show', $proposal->id))
+        ->get(route('review.proposals.show', $proposal->id))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/proposals/show')
@@ -101,10 +101,10 @@ it('lets an owner accept a proposal and queues materialisation', function (): vo
     ]);
 
     $this->actingAs($seed['user'])
-        ->patch(route('brain.proposals.update', $proposal->id), [
+        ->patch(route('review.proposals.update', $proposal->id), [
             'status' => 'accepted',
         ])
-        ->assertRedirect(route('brain.proposals.show', $proposal->id));
+        ->assertRedirect(route('review.proposals.show', $proposal->id));
 
     expect($proposal->fresh()->status)->toBe(ProposalStatusEnum::Accepted);
     Queue::assertPushed(MaterialiseProposalJob::class);
@@ -121,11 +121,11 @@ it('refuses guests from accepting proposals', function (): void {
     ]);
 
     $this->actingAs($seed['user'])
-        ->from(route('brain.proposals.show', $proposal->id))
-        ->patch(route('brain.proposals.update', $proposal->id), [
+        ->from(route('review.proposals.show', $proposal->id))
+        ->patch(route('review.proposals.update', $proposal->id), [
             'status' => 'accepted',
         ])
-        ->assertRedirect(route('brain.proposals.show', $proposal->id))
+        ->assertRedirect(route('review.proposals.show', $proposal->id))
         ->assertSessionHasErrors('status');
 
     expect($proposal->fresh()->status)->toBe(ProposalStatusEnum::Open);
@@ -133,5 +133,5 @@ it('refuses guests from accepting proposals', function (): void {
 });
 
 it('requires authentication for proposals', function (): void {
-    $this->get(route('brain.proposals.index'))->assertRedirect();
+    $this->get(route('review.proposals.index'))->assertRedirect();
 });

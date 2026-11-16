@@ -24,7 +24,7 @@ import {
 } from '@/lib/brain-graph-layout';
 import { cn } from '@/lib/utils';
 import '@xyflow/react/dist/style.css';
-import { reading } from '@/routes/brain';
+import { show as reading } from '@/routes/explorer';
 
 type BrainGraphNodeData = {
     title: string;

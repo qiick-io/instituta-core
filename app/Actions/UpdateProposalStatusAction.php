@@ -82,7 +82,7 @@ final class UpdateProposalStatusAction
         $this->audit->record(
             toolOrEndpoint: match ($surface) {
                 'mcp' => 'instituta_update_proposal',
-                'web' => 'PATCH /brain/proposals/{id}',
+                'web' => 'PATCH /review/proposals/{id}',
                 default => 'PATCH /proposals/{id}',
             },
             perimeter: $perimeter,

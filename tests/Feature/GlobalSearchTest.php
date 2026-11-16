@@ -105,7 +105,7 @@ it('finds brain item titles inside the session perimeter only', function () {
 
     expect(globalSearchLabels($answer, 'items'))->toBe(['Billing rules'])
         ->and($answer['groups'][0]['items'][0]['url'])
-        ->toBe(route('brain.reading', ['item' => $seed['itemA']->id], false))
+        ->toBe(route('explorer.show', ['item' => $seed['itemA']->id], false))
         ->and($answer['groups'][0]['items'][0])->not->toHaveKey('body')
         ->and($answer['groups'][0]['items'][0])->not->toHaveKey('summary');
 });

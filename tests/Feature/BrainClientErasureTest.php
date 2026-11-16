@@ -173,8 +173,8 @@ it('erases client A content and keys without touching client B or own company', 
     $request = $export['request'];
 
     $this->actingAs($user)
-        ->post(route('brain.clients.export.erase', [$clientA, $request]))
-        ->assertRedirect(route('brain.clients.index'));
+        ->post(route('clients.export.erase', [$clientA, $request]))
+        ->assertRedirect(route('clients.index'));
 
     $request->refresh();
     expect($request->status)->toBe(OffboardingStatusEnum::Erased)
@@ -223,7 +223,7 @@ it('forbids erase outside owner perimeter and before export', function (): void 
         ->toThrow(InvalidArgumentException::class);
 
     $this->actingAs($user)
-        ->post(route('brain.clients.export.erase', [$client, $pending]))
+        ->post(route('clients.export.erase', [$client, $pending]))
         ->assertStatus(422);
 
     $foreignOrg = Organisation::factory()->create();
@@ -237,6 +237,6 @@ it('forbids erase outside owner perimeter and before export', function (): void 
     ]);
 
     $this->actingAs($user)
-        ->post(route('brain.clients.export.erase', [$foreignClient, $foreignExport]))
+        ->post(route('clients.export.erase', [$foreignClient, $foreignExport]))
         ->assertForbidden();
 });

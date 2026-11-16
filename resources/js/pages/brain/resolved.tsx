@@ -18,7 +18,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { resolved } from '@/routes/brain';
+import { resolved } from '@/routes';
 import AppLayout from '@/layouts/app-layout';
 import { Bot, Boxes, KeyRound, Table as TableIcon } from 'lucide-react';
 import { PageEmptyState } from '@/components/admin/page-empty-state';

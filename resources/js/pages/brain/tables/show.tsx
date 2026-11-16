@@ -9,11 +9,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { reading } from '@/routes/brain';
-import {
-    index as tablesIndex,
-    show as tablesShow,
-} from '@/routes/brain/tables';
+import { show as reading } from '@/routes/explorer';
+import { index as tablesIndex, show as tablesShow } from '@/routes/tables';
 import AppLayout from '@/layouts/app-layout';
 import { Sheet } from 'lucide-react';
 import { PageEmptyState } from '@/components/admin/page-empty-state';

@@ -42,7 +42,7 @@ final class ClientExportController extends Controller
             'message' => __('Client export ready (:count items).', ['count' => $itemCount]),
         ]);
 
-        return to_route('brain.clients.index', [
+        return to_route('clients.index', [
             'exported' => $result['request']->id,
         ]);
     }

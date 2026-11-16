@@ -45,7 +45,7 @@ final class BrainReadingService
             ->where('from_item_id', $item->id)
             ->whereNotNull('to_item_id')
             ->get(['target', 'to_item_id'])
-            ->mapWithKeys(static fn (ItemLink $link): array => [$link->target => route('brain.reading', (string) $link->to_item_id, absolute: false)])
+            ->mapWithKeys(static fn (ItemLink $link): array => [$link->target => route('explorer.show', (string) $link->to_item_id, absolute: false)])
             ->all();
 
         return [

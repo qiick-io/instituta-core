@@ -58,7 +58,7 @@ function uiPerson(Organisation $organisation, RoleEnum $role): User
 
 it('gives the reading view what it needs to propose a change', function (): void {
     $this->actingAs(uiPerson($this->organisation, RoleEnum::Member))
-        ->get(route('brain.reading', $this->coding->id))
+        ->get(route('explorer.show', $this->coding->id))
         ->assertInertia(fn (Assert $page) => $page
             ->where('canPropose', true)
             ->where('item.content_hash', $this->coding->content_hash)
@@ -71,9 +71,9 @@ it('renders each section from its markdown, with resolved links to the reading v
     $decision = Item::query()->where('path', 'decisions/one-repo.md')->sole();
 
     $this->actingAs(uiPerson($this->organisation, RoleEnum::Member))
-        ->get(route('brain.reading', $this->coding->id))
+        ->get(route('explorer.show', $this->coding->id))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('item.sections.1.html', '<p>Prefer boring code over clever code. See <a href="'.route('brain.reading', $decision->id, absolute: false).'">decisions</a>.</p>'));
+            ->where('item.sections.1.html', '<p>Prefer boring code over clever code. See <a href="'.route('explorer.show', $decision->id, absolute: false).'">decisions</a>.</p>'));
 });
 
 it('lets a member propose a one-section change and opens its page with a diff', function (): void {
@@ -81,7 +81,7 @@ it('lets a member propose a one-section change and opens its page with a diff', 
     $newStyle = "## Style\n\nTabs, never spaces.";
 
     $this->actingAs($member)
-        ->post(route('brain.proposals.store'), [
+        ->post(route('review.proposals.store'), [
             'action' => 'update',
             'title' => 'Tabs please',
             'stable_key' => $this->coding->stable_key,
@@ -99,7 +99,7 @@ it('lets a member propose a one-section change and opens its page with a diff', 
         ->and($proposal->section_anchor)->toBe('coding-rules/style');
 
     $this->actingAs($member)
-        ->get(route('brain.proposals.show', $proposal->id))
+        ->get(route('review.proposals.show', $proposal->id))
         ->assertInertia(fn (Assert $page) => $page
             ->where('proposal.proposed_by.name', $member->name)
             ->where('proposal.proposed_by.type', 'person')
@@ -111,7 +111,7 @@ it('lets a member propose a one-section change and opens its page with a diff', 
 
 it('proposes a new item from the tree', function (): void {
     $this->actingAs(uiPerson($this->organisation, RoleEnum::Owner))
-        ->post(route('brain.proposals.store'), [
+        ->post(route('review.proposals.store'), [
             'action' => 'create',
             'title' => 'Naming rules',
             'stable_key' => 'rules/naming',
@@ -125,7 +125,7 @@ it('proposes a new item from the tree', function (): void {
 
     expect($proposal->action)->toBe(ProposalActionEnum::Create);
 
-    $this->get(route('brain.proposals.show', $proposal->id))
+    $this->get(route('review.proposals.show', $proposal->id))
         ->assertInertia(fn (Assert $page) => $page
             ->where('diff.current', null)
             ->where('diff.lines', [['type' => 'added', 'text' => '# Naming'], ['type' => 'added', 'text' => ''], ['type' => 'added', 'text' => 'Full words.']]));
@@ -133,8 +133,8 @@ it('proposes a new item from the tree', function (): void {
 
 it('returns a stale or refused proposal to the form as an error', function (): void {
     $this->actingAs(uiPerson($this->organisation, RoleEnum::Member))
-        ->from(route('brain.reading', $this->coding->id))
-        ->post(route('brain.proposals.store'), [
+        ->from(route('explorer.show', $this->coding->id))
+        ->post(route('review.proposals.store'), [
             'action' => 'update',
             'title' => 'Stale',
             'stable_key' => $this->coding->stable_key,
@@ -142,7 +142,7 @@ it('returns a stale or refused proposal to the form as an error', function (): v
             'base_content_hash' => str_repeat('a', 64),
             'body' => '# Coding rules',
         ])
-        ->assertRedirect(route('brain.reading', $this->coding->id))
+        ->assertRedirect(route('explorer.show', $this->coding->id))
         ->assertSessionHasErrors(['body' => 'The content changed since you read it (base_content_hash is stale); re-read and propose again.']);
 
     expect(Proposal::query()->count())->toBe(0);
@@ -152,11 +152,11 @@ it('refuses guests', function (): void {
     $guest = uiPerson($this->organisation, RoleEnum::Guest);
 
     $this->actingAs($guest)
-        ->get(route('brain.tree'))
+        ->get(route('explorer.index'))
         ->assertInertia(fn (Assert $page) => $page->where('canPropose', false));
 
     $this->actingAs($guest)
-        ->post(route('brain.proposals.store'), [
+        ->post(route('review.proposals.store'), [
             'action' => 'create',
             'title' => 'Guest idea',
             'stable_key' => 'rules/guest',
@@ -175,8 +175,8 @@ it('stores the decision note with the decision', function (): void {
     ]);
 
     $this->actingAs($owner)
-        ->patch(route('brain.proposals.update', $proposal->id), ['status' => 'rejected', 'note' => 'Duplicate of the naming rule.'])
-        ->assertRedirect(route('brain.proposals.show', $proposal->id));
+        ->patch(route('review.proposals.update', $proposal->id), ['status' => 'rejected', 'note' => 'Duplicate of the naming rule.'])
+        ->assertRedirect(route('review.proposals.show', $proposal->id));
 
     expect($proposal->fresh()->status)->toBe(ProposalStatusEnum::Rejected)
         ->and($proposal->fresh()->decision_note)->toBe('Duplicate of the naming rule.');

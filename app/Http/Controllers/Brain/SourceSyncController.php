@@ -24,6 +24,6 @@ final class SourceSyncController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Sync queued.')]);
 
-        return to_route('brain.sources');
+        return to_route('repositories.index');
     }
 }

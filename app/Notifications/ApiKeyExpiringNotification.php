@@ -36,7 +36,7 @@ class ApiKeyExpiringNotification extends Notification implements ShouldQueue
             'api_key_id' => $this->apiKey->id,
             'key_name' => $this->apiKey->name,
             'expires_at' => $this->expiresAtIso,
-            'url' => route('brain.keys'),
+            'url' => route('api-keys.index'),
         ];
     }
 }

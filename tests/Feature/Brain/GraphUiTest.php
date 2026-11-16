@@ -72,7 +72,7 @@ it('renders the scoped graph for an item inside the perimeter', function (): voi
     $seed = graphUiSeed();
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.graph', ['item' => $seed['item']->id, 'depth' => 1]))
+        ->get(route('graph', ['item' => $seed['item']->id, 'depth' => 1]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/graph')
@@ -88,7 +88,7 @@ it('falls back to the first perimeter item when no id is given', function (): vo
     $seed = graphUiSeed();
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.graph'))
+        ->get(route('graph'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/graph')
@@ -97,5 +97,5 @@ it('falls back to the first perimeter item when no id is given', function (): vo
 });
 
 it('requires authentication for the graph', function (): void {
-    $this->get(route('brain.graph'))->assertRedirect();
+    $this->get(route('graph'))->assertRedirect();
 });

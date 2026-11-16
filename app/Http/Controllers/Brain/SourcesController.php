@@ -77,7 +77,7 @@ final class SourcesController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Source added. Sync it to index its content.')]);
 
-        return to_route('brain.sources');
+        return to_route('repositories.index');
     }
 
     public function update(UpdateSourceRequest $request, Source $source, UpdateSourceAction $updateSource): RedirectResponse
@@ -90,7 +90,7 @@ final class SourcesController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Source updated.')]);
 
-        return to_route('brain.sources');
+        return to_route('repositories.index');
     }
 
     public function destroy(Request $request, Source $source, RemoveSourceAction $removeSource): RedirectResponse
@@ -102,6 +102,6 @@ final class SourcesController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Source removed.')]);
 
-        return to_route('brain.sources');
+        return to_route('repositories.index');
     }
 }

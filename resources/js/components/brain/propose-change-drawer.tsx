@@ -28,7 +28,7 @@ import { PermissionEnum } from '@/enums/permission-enum';
 import { useCan } from '@/hooks/use-can';
 import { draftProposalMarkdown } from '@/lib/ai-chat';
 import { STRING_LIMITS } from '@/lib/string-limits';
-import { store as proposalsStore } from '@/routes/brain/proposals';
+import { store as proposalsStore } from '@/routes/review/proposals';
 
 /**
  * What the drawer proposes: a new item, a whole existing item, or one section of it. The base

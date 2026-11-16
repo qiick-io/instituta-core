@@ -41,11 +41,11 @@ it('proposes a section change, shows the diff and accepts it, in light and dark'
     $this->actingAs($owner);
 
     $coding = Item::query()->where('path', 'rules/coding.md')->sole();
-    $start = visit(route('brain.reading', $coding->id, absolute: false));
+    $start = visit(route('explorer.show', $coding->id, absolute: false));
     $page = $mode === 'dark' ? $start->inDarkMode() : $start->inLightMode();
 
     // The reading page belongs to Tree in the sidebar (#250).
-    $page->assertPresent('a[data-active="true"][href$="/brain/tree"]');
+    $page->assertPresent('a[data-active="true"][href$="/explorer"]');
 
     $page->click('[aria-label="Propose a change to Style"]')
         ->assertSee('Propose a change')

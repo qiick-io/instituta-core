@@ -34,8 +34,8 @@ import {
 } from '@/components/ui/table';
 import { markdownToPlainText } from '@/lib/markdown-plain-text';
 import { cn } from '@/lib/utils';
-import { reading, tree } from '@/routes/brain';
-import { show as tablesShow } from '@/routes/brain/tables';
+import { index as tree, show as reading } from '@/routes/explorer';
+import { show as tablesShow } from '@/routes/tables';
 import AppLayout from '@/layouts/app-layout';
 
 function cellText(value: unknown): string {

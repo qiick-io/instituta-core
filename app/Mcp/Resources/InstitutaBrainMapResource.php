@@ -19,7 +19,7 @@ use Laravel\Mcp\Server\Resource;
  * attach "what this brain holds" without a tool call.
  */
 #[Name('brain-map')]
-#[Uri('instituta://brain/map')]
+#[Uri('instituta://map')]
 #[MimeType('application/json')]
 #[Description('Areas of the brain in your perimeter with how many items each holds; empty areas are gaps.')]
 class InstitutaBrainMapResource extends Resource

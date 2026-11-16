@@ -46,7 +46,7 @@ it('lists api keys for an owner', function (): void {
     $seed = keysSeed();
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.keys'))
+        ->get(route('api-keys.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/keys')
@@ -74,7 +74,7 @@ it('hides keys from non-owners', function (): void {
     ]);
 
     $this->actingAs($user)
-        ->get(route('brain.keys'))
+        ->get(route('api-keys.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/keys')
@@ -83,5 +83,5 @@ it('hides keys from non-owners', function (): void {
 });
 
 it('requires authentication for keys', function (): void {
-    $this->get(route('brain.keys'))->assertRedirect();
+    $this->get(route('api-keys.index'))->assertRedirect();
 });

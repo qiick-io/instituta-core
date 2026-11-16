@@ -74,7 +74,7 @@ it('renders the brain tree grouped by area', function (): void {
     $seed = treeSeed();
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.tree'))
+        ->get(route('explorer.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/tree')
@@ -91,7 +91,7 @@ it('filters the tree by area query', function (): void {
     $seed = treeSeed();
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.tree', ['area' => 'rules']))
+        ->get(route('explorer.index', ['area' => 'rules']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/tree')
@@ -102,5 +102,5 @@ it('filters the tree by area query', function (): void {
 });
 
 it('requires authentication for the tree', function (): void {
-    $this->get(route('brain.tree'))->assertRedirect();
+    $this->get(route('explorer.index'))->assertRedirect();
 });

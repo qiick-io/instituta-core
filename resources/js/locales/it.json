@@ -183,7 +183,10 @@
             "general": "Generale",
             "localization": "Localizzazione",
             "authSecurity": "Autenticazione e sicurezza",
-            "sectionInstance": "Istanza"
+            "sectionInstance": "Istanza",
+            "sectionBrain": "Cervello",
+            "repositories": "Repository",
+            "apiKeys": "Chiavi API"
         },
         "appearance": {
             "breadcrumb": "Impostazioni aspetto",
@@ -330,6 +333,12 @@
             "notifications": "Suono per le notifiche",
             "notificationsHint": "Riproduce solo le notifiche in tempo reale a cassetto chiuso.",
             "test": "Prova suono"
+        },
+        "repositories": {
+            "description": "Le cartelle e i repository Git da cui viene letto il cervello, e quando si sincronizzano."
+        },
+        "apiKeys": {
+            "description": "Le chiavi con cui agenti e script leggono il cervello via MCP e API, ognuna limitata a un ambito."
         }
     },
     "shortcuts": {
@@ -518,9 +527,9 @@
             "emptyDescription": "Le tabelle markdown sotto un titolo con una chiave di tabella compaiono qui come righe strutturate."
         },
         "sources": {
-            "title": "Sorgenti",
+            "title": "Repository",
             "description": "Sorgenti di ingest nell'ambito corrente, con stato di sync e ultimo report.",
-            "empty": "Nessuna sorgente in questo ambito ancora.",
+            "empty": "Nessun repository in questo ambito.",
             "colName": "Nome",
             "colProvider": "Provider",
             "colStatus": "Stato",
@@ -534,11 +543,11 @@
                 "ok": "Ok",
                 "failed": "Fallito"
             },
-            "searchPlaceholder": "Cerca sorgenti…",
+            "searchPlaceholder": "Cerca repository…",
             "hideReport": "Nascondi report",
-            "create": "Aggiungi fonte",
-            "createTitle": "Aggiungi una fonte",
-            "editTitle": "Modifica fonte",
+            "create": "Aggiungi repository",
+            "createTitle": "Aggiungi un repository",
+            "editTitle": "Modifica repository",
             "formDescription": "Instituta legge soltanto questo repository; non ci scrive mai.",
             "fieldLocalPath": "Percorso locale",
             "localPathHint": "Percorso assoluto di una cartella su questo server.",
@@ -551,14 +560,14 @@
             "fieldSyncInterval": "Sincronizza ogni (minuti)",
             "syncIntervalHint": "0 disattiva la sincronizzazione programmata. Vuoto usa il valore predefinito: 15 per Git e GitHub, spenta per una cartella locale.",
             "fieldShared": "Condivisa con tutti i clienti e prodotti dell'organizzazione",
-            "saveCreate": "Aggiungi fonte",
+            "saveCreate": "Aggiungi repository",
             "saveEdit": "Salva modifiche",
             "colActions": "Azioni",
             "syncNow": "Sincronizza ora",
             "edit": "Modifica",
             "remove": "Rimuovi",
             "confirmRemoveTitle": "Rimuovere {{name}}?",
-            "confirmRemoveDescription": "Tutto ciò che è stato indicizzato da questa fonte viene rimosso da Instituta. Il repository non viene toccato.",
+            "confirmRemoveDescription": "Tutto ciò che è stato indicizzato da questo repository viene rimosso da Instituta. Il repository in sé non viene toccato.",
             "providers": {
                 "local": "Cartella locale",
                 "git": "Git",

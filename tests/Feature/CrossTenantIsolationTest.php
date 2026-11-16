@@ -198,7 +198,7 @@ it('keeps brain UI lists and reads inside the session perimeter', function (): v
     $seed = isolationSeed();
 
     $this->actingAs($seed['userA'])
-        ->get(route('brain.tree'))
+        ->get(route('explorer.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/tree')
@@ -206,31 +206,31 @@ it('keeps brain UI lists and reads inside the session perimeter', function (): v
             ->where('groups.0.items.0.title', 'Tenant A rules'));
 
     $this->actingAs($seed['userA'])
-        ->get(route('brain.map'))
+        ->get(route('map'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('areas.0.area', 'rules')
             ->where('areas.0.count', 1));
 
     $this->actingAs($seed['userA'])
-        ->get(route('brain.sources'))
+        ->get(route('repositories.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->has('sources', 1)
             ->where('sources.0.name', 'source-a'));
 
     $this->actingAs($seed['userA'])
-        ->get(route('brain.reading', ['item' => $seed['itemA']->id]))
+        ->get(route('explorer.show', ['item' => $seed['itemA']->id]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('item.title', 'Tenant A rules'));
 
     $this->actingAs($seed['userA'])
-        ->get(route('brain.reading', ['item' => $seed['itemB']->id]))
+        ->get(route('explorer.show', ['item' => $seed['itemB']->id]))
         ->assertNotFound();
 
     $this->actingAs($seed['userA'])
-        ->get(route('brain.resolved', ['product' => $seed['productA']->id]))
+        ->get(route('resolved', ['product' => $seed['productA']->id]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->has('entries', 1)
@@ -238,7 +238,7 @@ it('keeps brain UI lists and reads inside the session perimeter', function (): v
 
     $this->actingAs($seed['userA'])
         ->from(route('dashboard'))
-        ->post(route('brain.scope'), [
+        ->post(route('scope.update'), [
             'scope_type' => 'organisation',
             'scope_id' => $seed['orgB']->id,
         ])
@@ -388,14 +388,14 @@ it('keeps the graph UI inside the session perimeter', function (): void {
     $seed = isolationSeed();
 
     $this->actingAs($seed['userA'])
-        ->get(route('brain.graph', ['item' => $seed['itemA']->id, 'depth' => 1]))
+        ->get(route('graph', ['item' => $seed['itemA']->id, 'depth' => 1]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/graph')
             ->where('root.id', $seed['itemA']->id));
 
     $this->actingAs($seed['userA'])
-        ->get(route('brain.graph', ['item' => $seed['itemB']->id, 'depth' => 1]))
+        ->get(route('graph', ['item' => $seed['itemB']->id, 'depth' => 1]))
         ->assertNotFound();
 });
 
@@ -420,7 +420,7 @@ it('keeps proposals UI inside the organisation perimeter', function (): void {
     ]);
 
     $this->actingAs($seed['userA'])
-        ->get(route('brain.proposals.index'))
+        ->get(route('review.proposals.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/proposals')
@@ -428,11 +428,11 @@ it('keeps proposals UI inside the organisation perimeter', function (): void {
             ->where('proposals.0.title', 'Tenant A proposal'));
 
     $this->actingAs($seed['userA'])
-        ->get(route('brain.proposals.show', $proposalA->id))
+        ->get(route('review.proposals.show', $proposalA->id))
         ->assertOk();
 
     $this->actingAs($seed['userA'])
-        ->get(route('brain.proposals.show', $proposalB->id))
+        ->get(route('review.proposals.show', $proposalB->id))
         ->assertNotFound();
 });
 

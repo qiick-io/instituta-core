@@ -88,8 +88,8 @@ it('exports client A from the portal without client B data', function (): void {
     ]);
 
     $this->actingAs($user)
-        ->post(route('brain.clients.export.store', $clientA))
-        ->assertRedirect(route('brain.clients.index', [
+        ->post(route('clients.export.store', $clientA))
+        ->assertRedirect(route('clients.index', [
             'exported' => OffboardingRequest::query()->where('company_id', $clientA->id)->value('id'),
         ]));
 
@@ -102,7 +102,7 @@ it('exports client A from the portal without client B data', function (): void {
         ->and(collect($index['items'])->pluck('title')->all())->not->toContain('Only B');
 
     $this->actingAs($user)
-        ->get(route('brain.clients.index'))
+        ->get(route('clients.index'))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('clients', function ($clients) use ($clientA, $request): bool {
@@ -112,7 +112,7 @@ it('exports client A from the portal without client B data', function (): void {
             }));
 
     $download = $this->actingAs($user)
-        ->get(route('brain.clients.export.download', [$clientA, $request]))
+        ->get(route('clients.export.download', [$clientA, $request]))
         ->assertOk();
 
     $zipPath = storage_path('framework/testing/portal-a-download.zip');
@@ -140,11 +140,11 @@ it('forbids export and download outside the owner perimeter', function (): void 
     File::put($foreignExport->export_path.'/manifest.json', "{}\n");
 
     $this->actingAs($user)
-        ->post(route('brain.clients.export.store', $foreignClient))
+        ->post(route('clients.export.store', $foreignClient))
         ->assertForbidden();
 
     $this->actingAs($user)
-        ->get(route('brain.clients.export.download', [$foreignClient, $foreignExport]))
+        ->get(route('clients.export.download', [$foreignClient, $foreignExport]))
         ->assertForbidden();
 
     $member = User::factory()->create();
@@ -165,6 +165,6 @@ it('forbids export and download outside the owner perimeter', function (): void 
     ]);
 
     $this->actingAs($member)
-        ->post(route('brain.clients.export.store', $client))
+        ->post(route('clients.export.store', $client))
         ->assertForbidden();
 });

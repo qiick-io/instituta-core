@@ -36,7 +36,7 @@ it('turns a gap into a prefilled proposal and dismisses another, in light and da
     $toDismiss = $gap('Glossary lacks “vault”');
 
     $this->actingAs($owner);
-    $start = visit(route('brain.gaps.index', absolute: false));
+    $start = visit(route('review.gaps.index', absolute: false));
     $page = $mode === 'dark' ? $start->inDarkMode() : $start->inLightMode();
 
     $page->assertSee('No rule on commit messages')

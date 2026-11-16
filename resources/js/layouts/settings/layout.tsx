@@ -20,8 +20,10 @@ import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editInstance } from '@/routes/instance';
 import { edit as editLocalization } from '@/routes/instance/localization';
 import { edit as editInstanceSecurity } from '@/routes/instance/security';
+import { index as apiKeysIndex } from '@/routes/api-keys';
 import permissions from '@/routes/permissions';
 import { edit } from '@/routes/profile';
+import { index as repositoriesIndex } from '@/routes/repositories';
 import roles from '@/routes/roles';
 import { edit as editSecurity } from '@/routes/security';
 import { index as sessions } from '@/routes/sessions';
@@ -91,6 +93,20 @@ export default function SettingsLayout({
               },
           ]
         : [];
+
+    // The brain's own settings (#252): what it reads from, and the keys agents use.
+    const brainNavItems: NavItem[] = [
+        {
+            title: t('settings.layout.repositories'),
+            href: repositoriesIndex(),
+            icon: null,
+        },
+        {
+            title: t('settings.layout.apiKeys'),
+            href: apiKeysIndex(),
+            icon: null,
+        },
+    ];
 
     const accessNavItems: NavItem[] = [
         ...(can(PermissionEnum.CanShowRoles)
@@ -167,6 +183,11 @@ export default function SettingsLayout({
                                   instanceNavItems,
                               )
                             : null}
+
+                        {renderNavGroup(
+                            t('settings.layout.sectionBrain'),
+                            brainNavItems,
+                        )}
 
                         {accessNavItems.length > 0
                             ? renderNavGroup(

@@ -79,7 +79,7 @@ it('renders the resolved view with product override winning', function (): void 
     $seed = resolvedSeed();
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.resolved', ['product' => $seed['product']->id]))
+        ->get(route('resolved', ['product' => $seed['product']->id]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/resolved')
@@ -94,5 +94,5 @@ it('renders the resolved view with product override winning', function (): void 
 });
 
 it('requires authentication for the resolved view', function (): void {
-    $this->get(route('brain.resolved'))->assertRedirect();
+    $this->get(route('resolved'))->assertRedirect();
 });

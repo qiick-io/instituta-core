@@ -80,7 +80,7 @@ it('renders the reading view for an item in the perimeter', function (): void {
     $seed = readingSeed();
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.reading', ['item' => $seed['item']->id]))
+        ->get(route('explorer.show', ['item' => $seed['item']->id]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/reading')
@@ -96,7 +96,7 @@ it('resolves reading view by stable_key', function (): void {
     $seed = readingSeed();
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.reading', ['item' => 'rules/coding']))
+        ->get(route('explorer.show', ['item' => 'rules/coding']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/reading')
@@ -113,10 +113,10 @@ it('returns 404 when the item is outside the perimeter', function (): void {
     ]);
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.reading', ['item' => $other->id]))
+        ->get(route('explorer.show', ['item' => $other->id]))
         ->assertNotFound();
 });
 
 it('requires authentication for the reading view', function (): void {
-    $this->get(route('brain.reading', ['item' => 'x']))->assertRedirect();
+    $this->get(route('explorer.show', ['item' => 'x']))->assertRedirect();
 });

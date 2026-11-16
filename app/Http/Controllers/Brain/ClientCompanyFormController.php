@@ -26,7 +26,7 @@ final class ClientCompanyFormController extends Controller
 
         Gate::authorize('create', Company::class);
 
-        return to_route('brain.clients.index', ['new' => 1]);
+        return to_route('clients.index', ['new' => 1]);
     }
 
     public function edit(Request $request, Company $company): RedirectResponse
@@ -39,6 +39,6 @@ final class ClientCompanyFormController extends Controller
 
         Gate::authorize('update', $company);
 
-        return to_route('brain.clients.index', ['edit' => $company->id]);
+        return to_route('clients.index', ['edit' => $company->id]);
     }
 }

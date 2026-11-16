@@ -99,7 +99,7 @@ final class ProposalsController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Proposal opened.')]);
 
-        return redirect()->route('brain.proposals.show', $proposal);
+        return redirect()->route('review.proposals.show', $proposal);
     }
 
     public function update(UpdateBrainProposalStatusRequest $request, string $proposal): RedirectResponse
@@ -131,7 +131,7 @@ final class ProposalsController extends Controller
         }
 
         return redirect()
-            ->route('brain.proposals.show', $proposal)
+            ->route('review.proposals.show', $proposal)
             ->with('success', true);
     }
 

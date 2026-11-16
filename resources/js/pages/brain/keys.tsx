@@ -30,9 +30,12 @@ import {
     InputGroupInput,
 } from '@/components/ui/input-group';
 import { useClipboard } from '@/hooks/use-clipboard';
-import keysRoutes from '@/routes/brain';
+import { index as apiKeysIndex } from '@/routes/api-keys';
 import type { BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
+import SettingsLayout from '@/layouts/settings/layout';
+import { edit as editProfile } from '@/routes/profile';
+import Heading from '@/components/heading';
 
 type KeyRow = {
     id: string;
@@ -72,9 +75,10 @@ export default function BrainKeys({ is_owner, keys, plainTextKey }: Props) {
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
+            { title: t('settings.layout.title'), href: editProfile() },
             {
-                title: t('brain.keys.title'),
-                href: keysRoutes.keys.url(),
+                title: t('settings.layout.apiKeys'),
+                href: apiKeysIndex.url(),
             },
         ],
         [t],
@@ -215,96 +219,106 @@ export default function BrainKeys({ is_owner, keys, plainTextKey }: Props) {
             {...layoutProps}
             headerActions={hideListChrome ? undefined : primaryAction}
         >
-            <Head title={t('brain.keys.title')} />
-            <PageLayout
-                filters={
-                    hideListChrome ? undefined : (
-                        <DataTableToolbar
-                            search={search}
-                            onSearchChange={setSearch}
-                            searchPlaceholder={t(
-                                'brain.keys.searchPlaceholder',
-                            )}
-                        />
-                    )
-                }
-            >
-                {plainTextKey ? (
-                    <Alert variant="warning" className="mb-4">
-                        <TriangleAlert />
-                        <AlertTitle>{t('brain.keys.secretBanner')}</AlertTitle>
-                        <AlertDescription>
-                            <InputGroup className="mt-1 w-full bg-background">
-                                <InputGroupInput
-                                    readOnly
-                                    aria-label={t('brain.keys.secretValue')}
-                                    value={plainTextKey}
-                                    className="font-mono text-foreground"
-                                />
-                                <InputGroupAddon align="inline-end">
-                                    <InputGroupButton
-                                        size="icon-xs"
-                                        aria-label={
-                                            copiedSecret === plainTextKey
-                                                ? t('common.copied')
-                                                : t('common.copy')
-                                        }
-                                        onClick={() =>
-                                            void copySecret(plainTextKey)
-                                        }
-                                    >
-                                        {copiedSecret === plainTextKey ? (
-                                            <Check />
-                                        ) : (
-                                            <Copy />
-                                        )}
-                                    </InputGroupButton>
-                                </InputGroupAddon>
-                            </InputGroup>
-                        </AlertDescription>
-                    </Alert>
-                ) : null}
+            <Head title={t('settings.layout.apiKeys')} />
+            <SettingsLayout wide>
+                <Heading
+                    variant="small"
+                    title={t('settings.layout.apiKeys')}
+                    description={t('settings.apiKeys.description')}
+                />
+                <PageLayout
+                    className="p-0"
+                    filters={
+                        hideListChrome ? undefined : (
+                            <DataTableToolbar
+                                search={search}
+                                onSearchChange={setSearch}
+                                searchPlaceholder={t(
+                                    'brain.keys.searchPlaceholder',
+                                )}
+                            />
+                        )
+                    }
+                >
+                    {plainTextKey ? (
+                        <Alert variant="warning" className="mb-4">
+                            <TriangleAlert />
+                            <AlertTitle>
+                                {t('brain.keys.secretBanner')}
+                            </AlertTitle>
+                            <AlertDescription>
+                                <InputGroup className="mt-1 w-full bg-background">
+                                    <InputGroupInput
+                                        readOnly
+                                        aria-label={t('brain.keys.secretValue')}
+                                        value={plainTextKey}
+                                        className="font-mono text-foreground"
+                                    />
+                                    <InputGroupAddon align="inline-end">
+                                        <InputGroupButton
+                                            size="icon-xs"
+                                            aria-label={
+                                                copiedSecret === plainTextKey
+                                                    ? t('common.copied')
+                                                    : t('common.copy')
+                                            }
+                                            onClick={() =>
+                                                void copySecret(plainTextKey)
+                                            }
+                                        >
+                                            {copiedSecret === plainTextKey ? (
+                                                <Check />
+                                            ) : (
+                                                <Copy />
+                                            )}
+                                        </InputGroupButton>
+                                    </InputGroupAddon>
+                                </InputGroup>
+                            </AlertDescription>
+                        </Alert>
+                    ) : null}
 
-                {!is_owner ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.keys.ownerOnly')}
-                    </p>
-                ) : isListEmpty ? (
-                    <PageEmptyState
-                        icon={hasActiveFilters ? SearchX : KeyRound}
-                        title={
-                            <EmptyStatus>
-                                {hasActiveFilters
-                                    ? t('emptyState.keys.filteredTitle')
-                                    : t('emptyState.keys.title')}
-                            </EmptyStatus>
-                        }
-                        description={
-                            hasActiveFilters
-                                ? t('emptyState.keys.filteredDescription')
-                                : t('emptyState.keys.description')
-                        }
-                        action={
-                            hasActiveFilters ? (
-                                <Button
-                                    type="button"
-                                    onClick={() => setSearch('')}
-                                >
-                                    {t('common.clearFilters')}
-                                </Button>
-                            ) : (
-                                primaryAction
-                            )
-                        }
-                    />
-                ) : (
-                    <DataTable
-                        columns={columns}
-                        data={filteredKeys}
-                        getRowId={(key) => key.id}
-                    />
-                )}
-            </PageLayout>
+                    {!is_owner ? (
+                        <p className="text-sm text-muted-foreground">
+                            {t('brain.keys.ownerOnly')}
+                        </p>
+                    ) : isListEmpty ? (
+                        <PageEmptyState
+                            icon={hasActiveFilters ? SearchX : KeyRound}
+                            title={
+                                <EmptyStatus>
+                                    {hasActiveFilters
+                                        ? t('emptyState.keys.filteredTitle')
+                                        : t('emptyState.keys.title')}
+                                </EmptyStatus>
+                            }
+                            description={
+                                hasActiveFilters
+                                    ? t('emptyState.keys.filteredDescription')
+                                    : t('emptyState.keys.description')
+                            }
+                            action={
+                                hasActiveFilters ? (
+                                    <Button
+                                        type="button"
+                                        onClick={() => setSearch('')}
+                                    >
+                                        {t('common.clearFilters')}
+                                    </Button>
+                                ) : (
+                                    primaryAction
+                                )
+                            }
+                        />
+                    ) : (
+                        <DataTable
+                            columns={columns}
+                            data={filteredKeys}
+                            getRowId={(key) => key.id}
+                        />
+                    )}
+                </PageLayout>
+            </SettingsLayout>
 
             {is_owner ? (
                 <ApiKeyCreateDialog

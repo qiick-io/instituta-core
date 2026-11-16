@@ -12,7 +12,7 @@ import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import brainRoutes from '@/routes/brain';
+import proposalRoutes from '@/routes/review/proposals';
 import type { BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
 
@@ -50,7 +50,7 @@ export default function BrainProposals({
         () => [
             {
                 title: t('brain.proposals.title'),
-                href: brainRoutes.proposals.index.url(),
+                href: proposalRoutes.index.url(),
             },
         ],
         [t],
@@ -64,7 +64,7 @@ export default function BrainProposals({
         }
 
         router.get(
-            brainRoutes.proposals.index.url(),
+            proposalRoutes.index.url(),
             { status: nextStatus },
             { preserveState: true, replace: true },
         );
@@ -207,9 +207,7 @@ export default function BrainProposals({
                         data={filteredProposals}
                         getRowId={(proposal) => proposal.id}
                         onRowClick={(proposal) =>
-                            router.visit(
-                                brainRoutes.proposals.show.url(proposal.id),
-                            )
+                            router.visit(proposalRoutes.show.url(proposal.id))
                         }
                         getRowProps={() => ({ className: 'cursor-pointer' })}
                     />

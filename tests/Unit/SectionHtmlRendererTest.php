@@ -20,13 +20,13 @@ it('renders lists, emphasis and inline code, without the section heading', funct
 it('links resolved wiki and relative links to the reading view and keeps the text of the others', function (): void {
     $html = (new SectionHtmlRendererService)->render(
         "## Relations\n\npart_of [[Knowledge Base]], follows [[Missing Note|the missing note]], see [coding](../rules/coding.md).",
-        ['Knowledge Base' => '/brain/items/01kb', '../rules/coding.md' => '/brain/items/01coding'],
+        ['Knowledge Base' => '/explorer/01kb', '../rules/coding.md' => '/explorer/01coding'],
     );
 
-    expect($html)->toContain('<a href="/brain/items/01kb">Knowledge Base</a>')
+    expect($html)->toContain('<a href="/explorer/01kb">Knowledge Base</a>')
         ->and($html)->toContain('the missing note')
         ->and($html)->not->toContain('[[')
-        ->and($html)->toContain('<a href="/brain/items/01coding">coding</a>');
+        ->and($html)->toContain('<a href="/explorer/01coding">coding</a>');
 });
 
 it('escapes raw html and drops unsafe links', function (): void {

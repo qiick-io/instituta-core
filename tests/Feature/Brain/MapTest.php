@@ -59,7 +59,7 @@ it('renders the brain map with area coverage and gaps', function (): void {
     $seed = mapSeed();
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.map'))
+        ->get(route('map'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/map')
@@ -73,5 +73,5 @@ it('renders the brain map with area coverage and gaps', function (): void {
 });
 
 it('requires authentication for the map', function (): void {
-    $this->get(route('brain.map'))->assertRedirect();
+    $this->get(route('map'))->assertRedirect();
 });

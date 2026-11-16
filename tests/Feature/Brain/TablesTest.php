@@ -81,7 +81,7 @@ it('lists structured tables in the perimeter', function (): void {
     $seed = tablesSeed();
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.tables.index'))
+        ->get(route('tables.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/tables/index')
@@ -95,7 +95,7 @@ it('shows one structured table', function (): void {
     $seed = tablesSeed();
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.tables.show', [
+        ->get(route('tables.show', [
             'item' => $seed['item']->id,
             'table' => 'colours',
         ]))
@@ -108,5 +108,5 @@ it('shows one structured table', function (): void {
 });
 
 it('requires authentication for structured tables', function (): void {
-    $this->get(route('brain.tables.index'))->assertRedirect();
+    $this->get(route('tables.index'))->assertRedirect();
 });

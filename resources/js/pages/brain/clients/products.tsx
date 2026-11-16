@@ -25,8 +25,8 @@ import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
 import { Drawer } from '@/components/ui/drawer';
 import { useDrawerDeepLink } from '@/hooks/use-drawer-deep-link';
-import { scope } from '@/routes/brain';
-import clientsRoutes from '@/routes/brain/clients';
+import { update as scope } from '@/routes/scope';
+import clientsRoutes from '@/routes/clients';
 import type { BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
 

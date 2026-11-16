@@ -16,6 +16,7 @@ use App\Http\Controllers\Brain\ClientsController;
 use App\Http\Controllers\Brain\GapsController;
 use App\Http\Controllers\Brain\GraphController;
 use App\Http\Controllers\Brain\KeysController;
+use App\Http\Controllers\Brain\LegacyBrainRedirectController;
 use App\Http\Controllers\Brain\MapController;
 use App\Http\Controllers\Brain\ProposalsController;
 use App\Http\Controllers\Brain\ReadingController;
@@ -54,56 +55,65 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:60,1')
         ->name('search');
 
-    Route::post('brain/scope', ScopeSwitcherController::class)->name('brain.scope');
-    Route::get('brain/map', MapController::class)->name('brain.map');
-    Route::get('brain/graph/{item?}', GraphController::class)
+    Route::post('scope', ScopeSwitcherController::class)->name('scope.update');
+
+    // The brain (#252): explorer and graph. Map and Tree fold into the explorer in #253.
+    Route::get('map', MapController::class)->name('map');
+    Route::get('explorer', TreeController::class)->name('explorer.index');
+    Route::get('explorer/{item}', ReadingController::class)
         ->where('item', '.*')
-        ->name('brain.graph');
-    Route::get('brain/tree', TreeController::class)->name('brain.tree');
-    Route::get('brain/items/{item}', ReadingController::class)
+        ->name('explorer.show');
+    Route::get('graph/{item?}', GraphController::class)
         ->where('item', '.*')
-        ->name('brain.reading');
-    Route::get('brain/resolved', ResolvedController::class)->name('brain.resolved');
-    Route::get('brain/tables', [TablesController::class, 'index'])->name('brain.tables.index');
-    Route::get('brain/tables/{item}/{table}', [TablesController::class, 'show'])
-        ->name('brain.tables.show');
-    Route::get('brain/sources', [SourcesController::class, 'index'])->name('brain.sources');
-    Route::post('brain/sources', [SourcesController::class, 'store'])->name('brain.sources.store');
-    Route::put('brain/sources/{source}', [SourcesController::class, 'update'])->name('brain.sources.update');
-    Route::delete('brain/sources/{source}', [SourcesController::class, 'destroy'])->name('brain.sources.destroy');
-    Route::post('brain/sources/{source}/sync', SourceSyncController::class)->name('brain.sources.sync');
-    Route::get('brain/proposals', [ProposalsController::class, 'index'])->name('brain.proposals.index');
-    Route::post('brain/proposals', [ProposalsController::class, 'store'])->name('brain.proposals.store');
-    Route::get('brain/proposals/{proposal}', [ProposalsController::class, 'show'])->name('brain.proposals.show');
-    Route::patch('brain/proposals/{proposal}', [ProposalsController::class, 'update'])->name('brain.proposals.update');
-    Route::get('brain/gaps', [GapsController::class, 'index'])->name('brain.gaps.index');
-    Route::delete('brain/gaps/{gap}', [GapsController::class, 'destroy'])->name('brain.gaps.destroy');
-    Route::get('brain/keys', [KeysController::class, 'index'])->name('brain.keys');
-    Route::post('brain/keys', [KeysController::class, 'store'])->name('brain.keys.store');
-    Route::delete('brain/keys/{key}', [KeysController::class, 'destroy'])->name('brain.keys.destroy');
-    Route::get('brain/clients', [ClientsController::class, 'index'])->name('brain.clients.index');
-    Route::get('brain/clients/create', [ClientCompanyFormController::class, 'create'])->name('brain.clients.create');
-    Route::post('brain/clients', [ClientsController::class, 'store'])->name('brain.clients.store');
-    Route::get('brain/clients/{company}/edit', [ClientCompanyFormController::class, 'edit'])->name('brain.clients.edit');
-    Route::put('brain/clients/{company}', [ClientsController::class, 'update'])->name('brain.clients.update');
-    Route::get('brain/clients/{company}/products', [ClientProductsController::class, 'index'])
-        ->name('brain.clients.products.index');
-    Route::get('brain/clients/{company}/products/create', [ClientProductFormController::class, 'create'])
-        ->name('brain.clients.products.create');
-    Route::post('brain/clients/{company}/products', [ClientProductsController::class, 'store'])
-        ->name('brain.clients.products.store');
-    Route::get('brain/clients/{company}/products/{product}/edit', [ClientProductFormController::class, 'edit'])
-        ->name('brain.clients.products.edit');
-    Route::put('brain/clients/{company}/products/{product}', [ClientProductsController::class, 'update'])
-        ->name('brain.clients.products.update');
-    Route::post('brain/clients/{company}/export', [ClientExportController::class, 'store'])
-        ->name('brain.clients.export.store');
-    Route::get('brain/clients/{company}/exports/{offboarding}/download', [ClientExportController::class, 'download'])
-        ->name('brain.clients.export.download');
-    Route::post('brain/clients/{company}/exports/{offboarding}/erase', ClientEraseController::class)
-        ->name('brain.clients.export.erase');
-    Route::get('brain/session-replay', SessionReplayController::class)
-        ->name('brain.session-replay');
+        ->name('graph');
+    Route::get('resolved', ResolvedController::class)->name('resolved');
+    Route::get('tables', [TablesController::class, 'index'])->name('tables.index');
+    Route::get('tables/{item}/{table}', [TablesController::class, 'show'])->name('tables.show');
+
+    // What waits for a person: proposed changes and reported gaps.
+    Route::get('review/proposals', [ProposalsController::class, 'index'])->name('review.proposals.index');
+    Route::post('review/proposals', [ProposalsController::class, 'store'])->name('review.proposals.store');
+    Route::get('review/proposals/{proposal}', [ProposalsController::class, 'show'])->name('review.proposals.show');
+    Route::patch('review/proposals/{proposal}', [ProposalsController::class, 'update'])->name('review.proposals.update');
+    Route::get('review/gaps', [GapsController::class, 'index'])->name('review.gaps.index');
+    Route::delete('review/gaps/{gap}', [GapsController::class, 'destroy'])->name('review.gaps.destroy');
+
+    // Brain settings: the repositories the brain reads and the API keys agents use.
+    Route::get('settings/repositories', [SourcesController::class, 'index'])->name('repositories.index');
+    Route::post('settings/repositories', [SourcesController::class, 'store'])->name('repositories.store');
+    Route::put('settings/repositories/{source}', [SourcesController::class, 'update'])->name('repositories.update');
+    Route::delete('settings/repositories/{source}', [SourcesController::class, 'destroy'])->name('repositories.destroy');
+    Route::post('settings/repositories/{source}/sync', SourceSyncController::class)->name('repositories.sync');
+    Route::get('settings/api-keys', [KeysController::class, 'index'])->name('api-keys.index');
+    Route::post('settings/api-keys', [KeysController::class, 'store'])->name('api-keys.store');
+    Route::delete('settings/api-keys/{key}', [KeysController::class, 'destroy'])->name('api-keys.destroy');
+
+    Route::get('clients', [ClientsController::class, 'index'])->name('clients.index');
+    Route::get('clients/create', [ClientCompanyFormController::class, 'create'])->name('clients.create');
+    Route::post('clients', [ClientsController::class, 'store'])->name('clients.store');
+    Route::get('clients/{company}/edit', [ClientCompanyFormController::class, 'edit'])->name('clients.edit');
+    Route::put('clients/{company}', [ClientsController::class, 'update'])->name('clients.update');
+    Route::get('clients/{company}/products', [ClientProductsController::class, 'index'])
+        ->name('clients.products.index');
+    Route::get('clients/{company}/products/create', [ClientProductFormController::class, 'create'])
+        ->name('clients.products.create');
+    Route::post('clients/{company}/products', [ClientProductsController::class, 'store'])
+        ->name('clients.products.store');
+    Route::get('clients/{company}/products/{product}/edit', [ClientProductFormController::class, 'edit'])
+        ->name('clients.products.edit');
+    Route::put('clients/{company}/products/{product}', [ClientProductsController::class, 'update'])
+        ->name('clients.products.update');
+    Route::post('clients/{company}/export', [ClientExportController::class, 'store'])
+        ->name('clients.export.store');
+    Route::get('clients/{company}/exports/{offboarding}/download', [ClientExportController::class, 'download'])
+        ->name('clients.export.download');
+    Route::post('clients/{company}/exports/{offboarding}/erase', ClientEraseController::class)
+        ->name('clients.export.erase');
+
+    Route::get('activity/agent-calls', SessionReplayController::class)->name('activity.agent-calls');
+
+    // Links from before #252 keep working.
+    Route::get('brain/{path}', LegacyBrainRedirectController::class)->where('path', '.*')->name('brain.legacy');
     Route::get('activity', ActivityLogController::class)->name('activity.index');
 });
 

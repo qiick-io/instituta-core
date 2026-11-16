@@ -70,7 +70,7 @@ it('lists only client companies for organisation owners', function (): void {
     ]);
 
     $this->actingAs($user)
-        ->get(route('brain.clients.index'))
+        ->get(route('clients.index'))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('brain/clients')
@@ -102,7 +102,7 @@ it('hides the clients list from non-owners', function (): void {
     ]);
 
     $this->actingAs($user)
-        ->get(route('brain.clients.index'))
+        ->get(route('clients.index'))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('brain/clients')
@@ -120,23 +120,23 @@ it('redirects client create and edit pages to the index drawer deep links', func
     ]);
 
     $this->actingAs($user)
-        ->get(route('brain.clients.create'))
-        ->assertRedirect(route('brain.clients.index', ['new' => 1]));
+        ->get(route('clients.create'))
+        ->assertRedirect(route('clients.index', ['new' => 1]));
 
     $this->actingAs($user)
-        ->get(route('brain.clients.edit', $client))
-        ->assertRedirect(route('brain.clients.index', ['edit' => $client->id]));
+        ->get(route('clients.edit', $client))
+        ->assertRedirect(route('clients.index', ['edit' => $client->id]));
 });
 
 it('creates a client company for organisation owners', function (): void {
     ['org' => $org, 'user' => $user] = clientsOwnerContext();
 
     $this->actingAs($user)
-        ->post(route('brain.clients.store'), [
+        ->post(route('clients.store'), [
             'name' => 'New Client Co',
             'slug' => 'new-client-co',
         ])
-        ->assertRedirect(route('brain.clients.index'));
+        ->assertRedirect(route('clients.index'));
 
     $client = Company::query()
         ->where('organisation_id', $org->id)
@@ -170,7 +170,7 @@ it('rejects client create outside owner perimeter and for non-owners', function 
     ]);
 
     $this->actingAs($member)
-        ->post(route('brain.clients.store'), [
+        ->post(route('clients.store'), [
             'name' => 'Forbidden',
             'slug' => 'forbidden-client',
         ])
@@ -196,18 +196,18 @@ it('updates an owned client company and blocks cross-tenant edits', function ():
     ]);
 
     $this->actingAs($user)
-        ->put(route('brain.clients.update', $client), [
+        ->put(route('clients.update', $client), [
             'name' => 'After Name',
             'slug' => 'after-slug',
         ])
-        ->assertRedirect(route('brain.clients.index'));
+        ->assertRedirect(route('clients.index'));
 
     $client->refresh();
     expect($client->name)->toBe('After Name')
         ->and($client->slug)->toBe('after-slug');
 
     $this->actingAs($user)
-        ->put(route('brain.clients.update', $foreign), [
+        ->put(route('clients.update', $foreign), [
             'name' => 'Hijacked',
             'slug' => 'hijacked',
         ])
@@ -227,14 +227,14 @@ it('rejects invalid or duplicate client slugs', function (): void {
     ]);
 
     $this->actingAs($user)
-        ->post(route('brain.clients.store'), [
+        ->post(route('clients.store'), [
             'name' => 'Bad Slug',
             'slug' => 'Bad Slug!',
         ])
         ->assertSessionHasErrors('slug');
 
     $this->actingAs($user)
-        ->post(route('brain.clients.store'), [
+        ->post(route('clients.store'), [
             'name' => 'Taken',
             'slug' => 'taken-slug',
         ])
@@ -278,7 +278,7 @@ it('switches the session perimeter to a client company', function (): void {
     ]);
 
     $this->actingAs($user)
-        ->post(route('brain.scope'), [
+        ->post(route('scope.update'), [
             'scope_type' => 'company',
             'scope_id' => $client->id,
         ])

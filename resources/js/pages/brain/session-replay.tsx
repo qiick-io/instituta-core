@@ -33,7 +33,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { sessionReplay } from '@/routes/brain';
+import { agentCalls as sessionReplay } from '@/routes/activity';
 import AppLayout from '@/layouts/app-layout';
 import { History } from 'lucide-react';
 import { PageEmptyState } from '@/components/admin/page-empty-state';

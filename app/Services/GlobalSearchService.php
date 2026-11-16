@@ -81,7 +81,7 @@ final class GlobalSearchService
                 id: 'item:'.$item->id,
                 label: $item->title,
                 description: $item->area,
-                url: route('brain.reading', ['item' => $item->id], false),
+                url: route('explorer.show', ['item' => $item->id], false),
             ))
             ->all());
     }

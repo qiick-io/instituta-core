@@ -115,7 +115,7 @@ it('shows reports to owners only and never another tenant\'s', function (): void
     $member = User::factory()->create();
     app(GrantOrganisationAccessAction::class)->execute($member, $this->organisation, RoleEnum::Member);
 
-    $this->actingAs($this->owner)->get(route('brain.gaps.index'))
+    $this->actingAs($this->owner)->get(route('review.gaps.index'))
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/gaps')
             ->where('isOwner', true)
@@ -123,10 +123,10 @@ it('shows reports to owners only and never another tenant\'s', function (): void
             ->where('gaps.0.kind', 'contradiction')
             ->where('gaps.0.reporter', 'Docs agent'));
 
-    $this->actingAs($member)->get(route('brain.gaps.index'))
+    $this->actingAs($member)->get(route('review.gaps.index'))
         ->assertInertia(fn (Assert $page) => $page->where('isOwner', false)->has('gaps', 0));
 
-    $this->actingAs($otherOwner)->get(route('brain.gaps.index'))
+    $this->actingAs($otherOwner)->get(route('review.gaps.index'))
         ->assertInertia(fn (Assert $page) => $page->has('gaps', 0));
 });
 
@@ -135,21 +135,21 @@ it('lets an owner dismiss a report, but not a member', function (): void {
     $member = User::factory()->create();
     app(GrantOrganisationAccessAction::class)->execute($member, $this->organisation, RoleEnum::Member);
 
-    $this->actingAs($member)->delete(route('brain.gaps.destroy', $gapId))->assertForbidden();
+    $this->actingAs($member)->delete(route('review.gaps.destroy', $gapId))->assertForbidden();
 
-    $this->actingAs($this->owner)->delete(route('brain.gaps.destroy', $gapId))->assertRedirect(route('brain.gaps.index'));
+    $this->actingAs($this->owner)->delete(route('review.gaps.destroy', $gapId))->assertRedirect(route('review.gaps.index'));
     expect(GapReport::query()->findOrFail($gapId)->status)->toBe(GapReportStatusEnum::Dismissed);
 
-    $this->actingAs($this->owner)->delete(route('brain.gaps.destroy', $gapId))->assertSessionHasErrors('gap');
+    $this->actingAs($this->owner)->delete(route('review.gaps.destroy', $gapId))->assertSessionHasErrors('gap');
 
-    $this->actingAs($this->owner)->get(route('brain.gaps.index', ['status' => 'dismissed']))
+    $this->actingAs($this->owner)->get(route('review.gaps.index', ['status' => 'dismissed']))
         ->assertInertia(fn (Assert $page) => $page->where('statusFilter', 'dismissed')->has('gaps', 1));
 });
 
 it('converts a report when the owner opens the proposal that answers it', function (): void {
     $gapId = reportGap()->json('id');
 
-    $this->actingAs($this->owner)->post(route('brain.proposals.store'), [
+    $this->actingAs($this->owner)->post(route('review.proposals.store'), [
         'action' => 'create',
         'title' => 'PR size rule',
         'stable_key' => 'rules/pr-size',

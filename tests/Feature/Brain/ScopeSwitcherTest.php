@@ -62,7 +62,7 @@ it('switches the session scope to a child product', function (): void {
 
     $this->actingAs($seed['user'])
         ->from(route('dashboard'))
-        ->post(route('brain.scope'), [
+        ->post(route('scope.update'), [
             'scope_type' => 'product',
             'scope_id' => $seed['product']->id,
         ])
@@ -86,7 +86,7 @@ it('rejects a scope outside the principal grants', function (): void {
 
     $this->actingAs($seed['user'])
         ->from(route('dashboard'))
-        ->post(route('brain.scope'), [
+        ->post(route('scope.update'), [
             'scope_type' => 'organisation',
             'scope_id' => $foreign->id,
         ])

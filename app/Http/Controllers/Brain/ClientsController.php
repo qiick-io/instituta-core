@@ -54,7 +54,7 @@ final class ClientsController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Client created.')]);
 
-        return to_route('brain.clients.index');
+        return to_route('clients.index');
     }
 
     public function update(
@@ -74,6 +74,6 @@ final class ClientsController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Client updated.')]);
 
-        return to_route('brain.clients.index');
+        return to_route('clients.index');
     }
 }

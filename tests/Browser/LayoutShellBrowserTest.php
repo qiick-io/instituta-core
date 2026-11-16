@@ -27,9 +27,9 @@ it('renders one shell with header actions on lists that have rows, in light and 
     $this->actingAs($owner);
 
     $pages = [
-        route('brain.clients.index', absolute: false) => 'Acme Client',
-        route('brain.sources', absolute: false) => null,
-        route('brain.keys', absolute: false) => null,
+        route('clients.index', absolute: false) => 'Acme Client',
+        route('repositories.index', absolute: false) => null,
+        route('api-keys.index', absolute: false) => null,
         route('users.index', absolute: false) => $owner->email,
     ];
 

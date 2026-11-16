@@ -27,7 +27,7 @@ final class ClientProductFormController extends Controller
 
         Gate::authorize('create', [Product::class, $company]);
 
-        return to_route('brain.clients.products.index', [
+        return to_route('clients.products.index', [
             'company' => $company,
             'new' => 1,
         ]);
@@ -47,7 +47,7 @@ final class ClientProductFormController extends Controller
 
         Gate::authorize('update', $product);
 
-        return to_route('brain.clients.products.index', [
+        return to_route('clients.products.index', [
             'company' => $company,
             'edit' => $product->id,
         ]);

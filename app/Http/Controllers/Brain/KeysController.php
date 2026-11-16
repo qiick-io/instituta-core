@@ -61,7 +61,7 @@ final class KeysController extends Controller
             return back()->withErrors(['name' => $exception->getMessage()]);
         }
 
-        return to_route('brain.keys')->with(self::PLAIN_KEY_FLASH, $issued['plain']);
+        return to_route('api-keys.index')->with(self::PLAIN_KEY_FLASH, $issued['plain']);
     }
 
     public function destroy(ApiKey $key, RevokeApiKeyAction $revokeKey): RedirectResponse
@@ -72,6 +72,6 @@ final class KeysController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('API key revoked.')]);
 
-        return to_route('brain.keys');
+        return to_route('api-keys.index');
     }
 }

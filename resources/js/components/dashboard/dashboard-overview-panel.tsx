@@ -33,8 +33,8 @@ import {
 import { formatRelativeTime } from '@/lib/relative-time';
 import { cn } from '@/lib/utils';
 import activityRoutes from '@/routes/activity';
-import brainRoutes from '@/routes/brain';
-import proposalRoutes from '@/routes/brain/proposals';
+import explorerRoutes from '@/routes/explorer';
+import proposalRoutes from '@/routes/review/proposals';
 
 /**
  * The dashboard overview: four key numbers, then content per area and sources, then open
@@ -141,7 +141,7 @@ export function DashboardOverviewPanel({
                                 <TableRow key={row.area}>
                                     <TableCell className="max-w-0 min-w-0">
                                         <Link
-                                            href={brainRoutes.tree.url({
+                                            href={explorerRoutes.index.url({
                                                 query: { area: row.area },
                                             })}
                                             className="block truncate font-medium hover:underline"
@@ -397,7 +397,7 @@ export function DashboardOverviewPanel({
                                         <TableCell className="max-w-[28rem]">
                                             {issue.stable_key !== null ? (
                                                 <Link
-                                                    href={brainRoutes.reading.url(
+                                                    href={explorerRoutes.show.url(
                                                         issue.stable_key,
                                                     )}
                                                     className="block truncate font-mono text-xs underline-offset-4 hover:underline"

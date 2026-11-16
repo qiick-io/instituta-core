@@ -11,7 +11,7 @@ import {
     index as proposalsIndex,
     show as proposalsShow,
     update as proposalsUpdate,
-} from '@/routes/brain/proposals';
+} from '@/routes/review/proposals';
 import AppLayout from '@/layouts/app-layout';
 import { Check, X } from 'lucide-react';
 
