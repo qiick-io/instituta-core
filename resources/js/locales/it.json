@@ -892,13 +892,62 @@
             "restored": "Ripristinato",
             "login": "Accesso",
             "logout": "Uscita",
-            "failed": "Accesso non riuscito"
+            "failed": "Accesso non riuscito",
+            "client": {
+                "created": "Cliente creato",
+                "updated": "Cliente modificato"
+            },
+            "export": {
+                "completed": "Export completato"
+            },
+            "freeze": {
+                "created": "Freeze attivato",
+                "lifted": "Freeze rimosso"
+            },
+            "offboarding": {
+                "erased": "Cliente cancellato"
+            },
+            "principal": {
+                "expired": "Principal scaduto"
+            },
+            "product": {
+                "created": "Prodotto creato",
+                "updated": "Prodotto modificato"
+            },
+            "proposal": {
+                "accepted": "Proposta accettata",
+                "opened": "Proposta aperta",
+                "rejected": "Proposta rifiutata"
+            },
+            "settings": {
+                "updated": "Impostazioni modificate"
+            },
+            "source": {
+                "added": "Sorgente aggiunta",
+                "synced": "Sorgente sincronizzata",
+                "scanner_skip": "File saltati"
+            },
+            "two_factor": {
+                "disabled": "2FA disattivata",
+                "enabled": "2FA attivata"
+            },
+            "gap": {
+                "reported": "Lacuna segnalata",
+                "dismissed": "Lacuna archiviata",
+                "converted": "Lacuna proposta"
+            }
         },
         "logs": {
             "default": "Applicazione",
             "auth": "Autenticazione",
             "settings": "Impostazioni",
             "ai": "AI"
+        },
+        "descriptions": {
+            "source": {
+                "scanner_skip_one": "{{count}} file saltato",
+                "scanner_skip_other": "{{count}} file saltati"
+            }
         }
     },
     "users": {

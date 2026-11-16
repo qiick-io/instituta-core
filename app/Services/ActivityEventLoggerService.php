@@ -21,6 +21,11 @@ use Illuminate\Database\Eloquent\Model;
 final class ActivityEventLoggerService
 {
     /**
+     * How many skipped paths one scanner-skip entry lists.
+     */
+    private const int MAX_LOGGED_SKIPPED_PATHS = 50;
+
+    /**
      * @param  array<string, mixed>  $properties
      */
     public function log(
@@ -61,24 +66,37 @@ final class ActivityEventLoggerService
     }
 
     /**
+     * One entry per sync, not per file (#244): a large source skips hundreds of files and filled
+     * the activity log with one row each. Keeps the count, the count per reason and the first
+     * paths.
+     *
      * @param  list<array{path?: string, reason?: string}>  $skipped
      */
     public function scannerSkips(Source $source, array $skipped): void
     {
-        foreach ($skipped as $skip) {
-            $this->log(
-                'ingest',
-                'source.scanner_skip',
-                'source.scanner_skip',
-                $source,
-                null,
-                [
-                    'organisation_id' => $source->organisation_id,
-                    'path' => $skip['path'] ?? null,
-                    'reason' => $skip['reason'] ?? null,
-                ],
-            );
+        if ($skipped === []) {
+            return;
         }
+
+        $this->log(
+            'ingest',
+            'source.scanner_skip',
+            'source.scanner_skip',
+            $source,
+            null,
+            [
+                'organisation_id' => $source->organisation_id,
+                'count' => count($skipped),
+                'reasons' => array_count_values(array_map(
+                    static fn (array $skip): string => (string) ($skip['reason'] ?? 'unknown'),
+                    $skipped,
+                )),
+                'paths' => array_slice(array_values(array_filter(array_map(
+                    static fn (array $skip): ?string => $skip['path'] ?? null,
+                    $skipped,
+                ))), 0, self::MAX_LOGGED_SKIPPED_PATHS),
+            ],
+        );
     }
 
     public function freezeCreated(ContextFreeze $freeze, ?User $causer = null): void

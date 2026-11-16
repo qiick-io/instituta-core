@@ -34,6 +34,7 @@ import { Drawer } from '@/components/ui/drawer';
 import brainRoutes from '@/routes/brain';
 import type { BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
+import { formatRelativeTime } from '@/lib/relative-time';
 
 type SourceRow = SourceFormRow & {
     id: string;
@@ -63,7 +64,7 @@ export default function BrainSources({
     hasPerimeter,
     canManage,
 }: Props) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [search, setSearch] = useState('');
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [editing, setEditing] = useState<SourceRow | null>(null);
@@ -190,7 +191,13 @@ export default function BrainSources({
             id: 'synced',
             header: t('brain.sources.colSynced'),
             meta: { cellClassName: 'text-sm text-muted-foreground' },
-            cell: ({ row }) => row.original.last_synced_at ?? '—',
+            cell: ({ row }) =>
+                row.original.last_synced_at === null
+                    ? '—'
+                    : formatRelativeTime(
+                          Date.parse(row.original.last_synced_at) / 1000,
+                          i18n.language,
+                      ),
         },
         ...(canManage
             ? [

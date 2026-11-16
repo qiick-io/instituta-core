@@ -179,6 +179,27 @@ export default function ActivityIndex({
     const formatDate = (value: string | null): string =>
         value ? new Date(value).toLocaleString() : '—';
 
+    /**
+     * Events logged with their key as description (`source.scanner_skip`) read as a sentence,
+     * with the count they carry; other descriptions show as logged.
+     */
+    const descriptionLabel = (row: ActivityRow): string => {
+        if (!row.description) {
+            return '—';
+        }
+
+        if (row.event === null || row.description !== row.event) {
+            return row.description;
+        }
+
+        const count = row.properties.meta.count;
+
+        return t(`activity.descriptions.${row.event}`, {
+            count: typeof count === 'number' ? count : undefined,
+            defaultValue: eventLabel(row.event),
+        });
+    };
+
     const eventLabel = (eventName: string | null | undefined): string => {
         if (!eventName) {
             return '—';
@@ -262,7 +283,7 @@ export default function ActivityIndex({
             header: t('activity.colDescription'),
             meta: { cellClassName: 'max-w-xs text-sm' },
             cell: ({ row }) => (
-                <TruncatedText text={row.original.description || '—'} />
+                <TruncatedText text={descriptionLabel(row.original)} />
             ),
         },
         {

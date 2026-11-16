@@ -28,6 +28,10 @@ import { send } from '@/routes/verification';
 import type { Auth } from '@/types';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import {
+    NativeSelect,
+    NativeSelectOption,
+} from '@/components/ui/native-select';
 
 type PageProps = {
     auth: Auth;
@@ -219,14 +223,14 @@ export default function Profile({
                                                 {t('settings.profile.locale')}
                                             </FieldLabel>
 
-                                            <select
+                                            <NativeSelect
                                                 id="locale"
                                                 name="locale"
                                                 required
                                                 defaultValue={
                                                     user.locale ?? 'en'
                                                 }
-                                                className="mt-1 flex h-control w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 aria-invalid:border-destructive"
+                                                className="w-full"
                                                 aria-invalid={
                                                     errors.locale
                                                         ? true
@@ -241,14 +245,14 @@ export default function Profile({
                                                 {Object.entries(
                                                     availableLocales,
                                                 ).map(([code, label]) => (
-                                                    <option
+                                                    <NativeSelectOption
                                                         key={code}
                                                         value={code}
                                                     >
                                                         {label}
-                                                    </option>
+                                                    </NativeSelectOption>
                                                 ))}
-                                            </select>
+                                            </NativeSelect>
 
                                             <FieldError id="locale-error">
                                                 {errors.locale}
@@ -266,14 +270,14 @@ export default function Profile({
                                                 {t('settings.profile.timezone')}
                                             </FieldLabel>
 
-                                            <select
+                                            <NativeSelect
                                                 id="timezone"
                                                 name="timezone"
                                                 required
                                                 defaultValue={
                                                     user.timezone ?? 'UTC'
                                                 }
-                                                className="mt-1 flex h-control w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 aria-invalid:border-destructive"
+                                                className="w-full"
                                                 aria-invalid={
                                                     errors.timezone
                                                         ? true
@@ -286,14 +290,14 @@ export default function Profile({
                                                 }
                                             >
                                                 {timezones.map((timezone) => (
-                                                    <option
+                                                    <NativeSelectOption
                                                         key={timezone}
                                                         value={timezone}
                                                     >
                                                         {timezone}
-                                                    </option>
+                                                    </NativeSelectOption>
                                                 ))}
-                                            </select>
+                                            </NativeSelect>
 
                                             <FieldError id="timezone-error">
                                                 {errors.timezone}

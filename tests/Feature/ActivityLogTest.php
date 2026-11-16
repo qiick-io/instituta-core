@@ -238,6 +238,23 @@ it('logs settings key changes without secret values and proposal helper events',
     }
 });
 
+it('logs the files a sync skipped as one entry with the count, reasons and paths', function (): void {
+    ['org' => $org] = activityOwnerContext();
+    $source = Source::factory()->create(['organisation_id' => $org->id]);
+
+    app(ActivityEventLoggerService::class)->scannerSkips($source, [
+        ['path' => 'secret.env', 'reason' => 'pii'],
+        ['path' => 'logo.png', 'reason' => 'not_markdown'],
+        ['path' => 'icon.png', 'reason' => 'not_markdown'],
+    ]);
+
+    $entry = Activity::query()->where('event', 'source.scanner_skip')->sole();
+
+    expect($entry->properties['count'])->toBe(3)
+        ->and($entry->properties['reasons'])->toBe(['pii' => 1, 'not_markdown' => 2])
+        ->and($entry->properties['paths'])->toBe(['secret.env', 'logo.png', 'icon.png']);
+});
+
 it('scopes the activity page to the owner organisation and hides other tenants', function (): void {
     ['org' => $orgA, 'user' => $ownerA] = activityOwnerContext();
     ['org' => $orgB, 'user' => $ownerB] = activityOwnerContext();

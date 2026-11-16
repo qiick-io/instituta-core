@@ -892,13 +892,62 @@
             "restored": "Wiederhergestellt",
             "login": "Anmeldung",
             "logout": "Abmeldung",
-            "failed": "Fehlgeschlagene Anmeldung"
+            "failed": "Fehlgeschlagene Anmeldung",
+            "client": {
+                "created": "Kunde angelegt",
+                "updated": "Kunde geändert"
+            },
+            "export": {
+                "completed": "Export abgeschlossen"
+            },
+            "freeze": {
+                "created": "Freeze gesetzt",
+                "lifted": "Freeze aufgehoben"
+            },
+            "offboarding": {
+                "erased": "Kunde gelöscht"
+            },
+            "principal": {
+                "expired": "Principal abgelaufen"
+            },
+            "product": {
+                "created": "Produkt angelegt",
+                "updated": "Produkt geändert"
+            },
+            "proposal": {
+                "accepted": "Vorschlag angenommen",
+                "opened": "Vorschlag eröffnet",
+                "rejected": "Vorschlag abgelehnt"
+            },
+            "settings": {
+                "updated": "Einstellungen geändert"
+            },
+            "source": {
+                "added": "Quelle hinzugefügt",
+                "synced": "Quelle synchronisiert",
+                "scanner_skip": "Dateien übersprungen"
+            },
+            "two_factor": {
+                "disabled": "2FA deaktiviert",
+                "enabled": "2FA aktiviert"
+            },
+            "gap": {
+                "reported": "Lücke gemeldet",
+                "dismissed": "Lücke verworfen",
+                "converted": "Lücke vorgeschlagen"
+            }
         },
         "logs": {
             "default": "Anwendung",
             "auth": "Authentifizierung",
             "settings": "Einstellungen",
             "ai": "KI"
+        },
+        "descriptions": {
+            "source": {
+                "scanner_skip_one": "{{count}} Datei übersprungen",
+                "scanner_skip_other": "{{count}} Dateien übersprungen"
+            }
         }
     },
     "users": {

@@ -892,13 +892,62 @@
             "restored": "Restored",
             "login": "Login",
             "logout": "Logout",
-            "failed": "Failed login"
+            "failed": "Failed login",
+            "client": {
+                "created": "Client created",
+                "updated": "Client updated"
+            },
+            "export": {
+                "completed": "Export completed"
+            },
+            "freeze": {
+                "created": "Freeze set",
+                "lifted": "Freeze lifted"
+            },
+            "offboarding": {
+                "erased": "Client erased"
+            },
+            "principal": {
+                "expired": "Principal expired"
+            },
+            "product": {
+                "created": "Product created",
+                "updated": "Product updated"
+            },
+            "proposal": {
+                "accepted": "Proposal accepted",
+                "opened": "Proposal opened",
+                "rejected": "Proposal rejected"
+            },
+            "settings": {
+                "updated": "Settings updated"
+            },
+            "source": {
+                "added": "Source added",
+                "synced": "Source synced",
+                "scanner_skip": "Files skipped"
+            },
+            "two_factor": {
+                "disabled": "2FA disabled",
+                "enabled": "2FA enabled"
+            },
+            "gap": {
+                "reported": "Gap reported",
+                "dismissed": "Gap dismissed",
+                "converted": "Gap proposed"
+            }
         },
         "logs": {
             "default": "Application",
             "auth": "Authentication",
             "settings": "Settings",
             "ai": "AI"
+        },
+        "descriptions": {
+            "source": {
+                "scanner_skip_one": "Skipped {{count}} file",
+                "scanner_skip_other": "Skipped {{count}} files"
+            }
         }
     },
     "users": {
