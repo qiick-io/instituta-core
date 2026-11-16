@@ -443,7 +443,6 @@
             "keys": "Keys",
             "activity": "Activity",
             "clients": "Clients",
-            "sessionReplay": "Session replay",
             "proposals": "Proposals",
             "graph": "Graph",
             "gaps": "Gaps",
@@ -702,10 +701,10 @@
             "requiredHint": "Fields marked with * are required."
         },
         "sessionReplay": {
-            "title": "Session replay",
-            "description": "Inspect contract calls for this organisation. Metadata only — no bodies or secrets.",
+            "title": "Agent calls",
+            "description": "Every API and MCP call agents made (tool, key, items read, tokens); content is never stored.",
             "hint": "Filter by principal, tool, or date. Open a call to see item ids and token estimate.",
-            "ownerOnly": "Only organisation owners can view session replay.",
+            "ownerOnly": "Only organisation owners can view agent calls.",
             "searchPlaceholder": "Search tool or scope id…",
             "empty": "No contract calls yet.",
             "view": "View",
@@ -884,6 +883,11 @@
     "activity": {
         "title": "Activity",
         "description": "Audit log for this organisation. Entries older than {{days}} days are pruned.",
+        "tabs": {
+            "ariaLabel": "Activity views",
+            "auditLog": "Audit log",
+            "agentCalls": "Agent calls"
+        },
         "searchPlaceholder": "Search description or event…",
         "ownerOnly": "Only organisation owners can view the activity log.",
         "empty": "No activity yet.",

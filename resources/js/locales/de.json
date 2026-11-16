@@ -443,7 +443,6 @@
             "keys": "Schlüssel",
             "activity": "Aktivität",
             "clients": "Kunden",
-            "sessionReplay": "Sitzungs-Replay",
             "proposals": "Vorschläge",
             "graph": "Graph",
             "gaps": "Lücken",
@@ -702,10 +701,10 @@
             "requiredHint": "Mit * markierte Felder sind Pflicht."
         },
         "sessionReplay": {
-            "title": "Sitzungs-Replay",
-            "description": "Vertragsaufrufe dieser Organisation prüfen. Nur Metadaten — keine Bodies oder Geheimnisse.",
+            "title": "Agent-Aufrufe",
+            "description": "Jeder API- und MCP-Aufruf von Agenten (Tool, Schlüssel, gelesene Items, Tokens); Inhalt wird nie gespeichert.",
             "hint": "Nach Principal, Tool oder Datum filtern. Aufruf öffnen für Item-IDs und Token-Schätzung.",
-            "ownerOnly": "Nur Organisationsbesitzer können das Sitzungs-Replay sehen.",
+            "ownerOnly": "Nur Organisationsbesitzer können Agent-Aufrufe sehen.",
             "searchPlaceholder": "Tool oder Scope-ID suchen…",
             "empty": "Noch keine Vertragsaufrufe.",
             "view": "Ansehen",
@@ -884,6 +883,11 @@
     "activity": {
         "title": "Aktivität",
         "description": "Audit-Protokoll dieser Organisation. Einträge älter als {{days}} Tage werden bereinigt.",
+        "tabs": {
+            "ariaLabel": "Aktivitätsansichten",
+            "auditLog": "Audit-Protokoll",
+            "agentCalls": "Agent-Aufrufe"
+        },
         "searchPlaceholder": "Beschreibung oder Ereignis suchen…",
         "ownerOnly": "Nur Organisationsinhaber können das Aktivitätsprotokoll sehen.",
         "empty": "Noch keine Aktivität.",

@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/react';
 import { ClipboardList, SearchX } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ActivityViewTabs } from '@/components/activity/activity-view-tabs';
 import {
     DataTable,
     dataTableExpandColumn,
@@ -304,6 +305,7 @@ export default function ActivityIndex({
     return (
         <AppLayout {...layoutProps}>
             <Head title={t('activity.title')} />
+            <ActivityViewTabs view="audit-log" />
             <PageLayout
                 description={t('activity.description', {
                     days: retention_days,

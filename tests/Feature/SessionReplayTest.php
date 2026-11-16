@@ -136,3 +136,18 @@ it('filters session replay by principal and tool', function (): void {
             ->where('calls.data.0.tool_or_endpoint', 'brain.search')
             ->where('calls.data.0.principal.id', $principal->id));
 });
+
+it('renders the agent calls activity page', function (): void {
+    ['user' => $user] = sessionReplayOwnerContext();
+
+    $this->actingAs($user)
+        ->get(route('activity.agent-calls'))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('brain/session-replay')
+            ->where('is_owner', true)
+            ->has('calls')
+            ->has('principals')
+            ->has('tools')
+            ->has('filters'));
+});
