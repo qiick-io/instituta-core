@@ -11,4 +11,6 @@ export type NavItem = {
     href: NonNullable<InertiaLinkProps['href']>;
     icon?: LucideIcon | null;
     isActive?: boolean;
+    /** Path prefixes of pages that belong to this item too (Tree for an item's reading page). */
+    activePathPrefixes?: string[];
 };

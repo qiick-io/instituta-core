@@ -47,7 +47,15 @@ import { useCan } from '@/hooks/use-can';
 import { notificationsSource } from '@/lib/notifications';
 import { dashboard } from '@/routes';
 import { index as activityIndex } from '@/routes/activity';
-import { graph, keys, map, sessionReplay, sources, tree } from '@/routes/brain';
+import {
+    graph,
+    keys,
+    map,
+    reading,
+    sessionReplay,
+    sources,
+    tree,
+} from '@/routes/brain';
 import { index as clientsIndex } from '@/routes/brain/clients';
 import { index as gapsIndex } from '@/routes/brain/gaps';
 import { index as proposalsIndex } from '@/routes/brain/proposals';
@@ -80,6 +88,8 @@ export function AppSidebar() {
             title: t('brain.nav.tree'),
             href: tree.url(),
             icon: ListTree,
+            // An item's reading page sits under Tree (its breadcrumb is Tree › item).
+            activePathPrefixes: [reading.definition.url.replace('{item}', '')],
         },
         {
             title: t('brain.nav.graph'),

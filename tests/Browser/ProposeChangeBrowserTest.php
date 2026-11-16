@@ -44,6 +44,9 @@ it('proposes a section change, shows the diff and accepts it, in light and dark'
     $start = visit(route('brain.reading', $coding->id, absolute: false));
     $page = $mode === 'dark' ? $start->inDarkMode() : $start->inLightMode();
 
+    // The reading page belongs to Tree in the sidebar (#250).
+    $page->assertPresent('a[data-active="true"][href$="/brain/tree"]');
+
     $page->click('[aria-label="Propose a change to Style"]')
         ->assertSee('Propose a change')
         ->fill('#proposal_body', "## Style\n\nTabs, never spaces.")
