@@ -34,7 +34,7 @@ class SyncFinishedNotification extends Notification implements ShouldQueue
             'source_id' => $this->source->id,
             'source_name' => $this->source->name,
             'items_upserted' => $this->itemsUpserted,
-            'url' => route('brain.sources'),
+            'url' => route('repositories.index'),
         ];
     }
 }

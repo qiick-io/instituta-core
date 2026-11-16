@@ -60,7 +60,7 @@ final class ClientProductsController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Product created.')]);
 
-        return to_route('brain.clients.products.index', $company);
+        return to_route('clients.products.index', $company);
     }
 
     public function update(
@@ -82,6 +82,6 @@ final class ClientProductsController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Product updated.')]);
 
-        return to_route('brain.clients.products.index', $company);
+        return to_route('clients.products.index', $company);
     }
 }

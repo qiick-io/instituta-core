@@ -8,7 +8,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import type { InstitutaScopeOption } from '@/types';
-import { scope } from '@/routes/brain';
+import { update as scope } from '@/routes/scope';
 
 function scopeValue(
     scope: Pick<InstitutaScopeOption, 'scope_type' | 'scope_id'>,

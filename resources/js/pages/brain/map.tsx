@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { map, tree } from '@/routes/brain';
+import { map } from '@/routes';
+import { index as tree } from '@/routes/explorer';
 import AppLayout from '@/layouts/app-layout';
 
 type AreaCard = {

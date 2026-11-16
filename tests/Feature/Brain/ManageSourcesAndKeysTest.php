@@ -54,11 +54,11 @@ function githubSourcePayload(array $overrides = []): array
 }
 
 it('lets owners add a source with the provider defaults and refuses members', function (): void {
-    $this->actingAs($this->owner)->get(route('brain.sources'))->assertInertia(fn (Assert $page) => $page->where('canManage', true));
+    $this->actingAs($this->owner)->get(route('repositories.index'))->assertInertia(fn (Assert $page) => $page->where('canManage', true));
 
     $this->actingAs($this->owner)
-        ->post(route('brain.sources.store'), githubSourcePayload())
-        ->assertRedirect(route('brain.sources'));
+        ->post(route('repositories.store'), githubSourcePayload())
+        ->assertRedirect(route('repositories.index'));
 
     $source = Source::query()->sole();
     expect($source->organisation_id)->toBe($this->organisation->id)
@@ -67,17 +67,17 @@ it('lets owners add a source with the provider defaults and refuses members', fu
         ->and($source->is_shared)->toBeTrue();
 
     $member = organisationMember($this->organisation);
-    $this->actingAs($member)->get(route('brain.sources'))->assertInertia(fn (Assert $page) => $page->where('canManage', false));
-    $this->actingAs($member)->post(route('brain.sources.store'), githubSourcePayload(['name' => 'Other']))->assertForbidden();
+    $this->actingAs($member)->get(route('repositories.index'))->assertInertia(fn (Assert $page) => $page->where('canManage', false));
+    $this->actingAs($member)->post(route('repositories.store'), githubSourcePayload(['name' => 'Other']))->assertForbidden();
 });
 
 it('validates the location and refuses denylisted sources', function (): void {
     $this->actingAs($this->owner)
-        ->post(route('brain.sources.store'), githubSourcePayload(['remote_url' => '']))
+        ->post(route('repositories.store'), githubSourcePayload(['remote_url' => '']))
         ->assertSessionHasErrors('remote_url');
 
     $this->actingAs($this->owner)
-        ->post(route('brain.sources.store'), githubSourcePayload(['remote_url' => 'https://github.com/acme/klover-docs']))
+        ->post(route('repositories.store'), githubSourcePayload(['remote_url' => 'https://github.com/acme/klover-docs']))
         ->assertSessionHasErrors('name');
 
     expect(Source::query()->count())->toBe(0);
@@ -90,21 +90,21 @@ it('lets owners edit, sync and remove a source, and nobody else', function (): v
     $outsider = User::factory()->create();
     app(GrantOrganisationAccessAction::class)->execute($outsider, Organisation::factory()->create(), RoleEnum::Owner);
 
-    $this->actingAs($outsider)->put(route('brain.sources.update', $source), githubSourcePayload())->assertForbidden();
-    $this->actingAs(organisationMember($this->organisation))->post(route('brain.sources.sync', $source))->assertForbidden();
+    $this->actingAs($outsider)->put(route('repositories.update', $source), githubSourcePayload())->assertForbidden();
+    $this->actingAs(organisationMember($this->organisation))->post(route('repositories.sync', $source))->assertForbidden();
 
     $this->actingAs($this->owner)
-        ->put(route('brain.sources.update', $source), githubSourcePayload(['name' => 'Renamed', 'ref' => 'develop', 'sync_interval_minutes' => 0]))
-        ->assertRedirect(route('brain.sources'));
+        ->put(route('repositories.update', $source), githubSourcePayload(['name' => 'Renamed', 'ref' => 'develop', 'sync_interval_minutes' => 0]))
+        ->assertRedirect(route('repositories.index'));
     expect($source->fresh()->name)->toBe('Renamed')
         ->and($source->fresh()->ref)->toBe('develop')
         ->and($source->fresh()->sync_interval_minutes)->toBeNull();
 
-    $this->actingAs($this->owner)->post(route('brain.sources.sync', $source))->assertRedirect(route('brain.sources'));
+    $this->actingAs($this->owner)->post(route('repositories.sync', $source))->assertRedirect(route('repositories.index'));
     Queue::assertPushed(SyncSourceJob::class, fn (SyncSourceJob $job): bool => $job->sourceId === $source->id && $job->isForced);
 
-    $this->actingAs($outsider)->delete(route('brain.sources.destroy', $source))->assertForbidden();
-    $this->actingAs($this->owner)->delete(route('brain.sources.destroy', $source))->assertRedirect(route('brain.sources'));
+    $this->actingAs($outsider)->delete(route('repositories.destroy', $source))->assertForbidden();
+    $this->actingAs($this->owner)->delete(route('repositories.destroy', $source))->assertRedirect(route('repositories.index'));
 
     expect(Source::query()->find($source->id))->toBeNull()
         ->and(Item::query()->find($item->id))->toBeNull();
@@ -112,7 +112,7 @@ it('lets owners edit, sync and remove a source, and nobody else', function (): v
 
 it('creates a key for a new agent, shows the secret once and stores only its hash', function (): void {
     $this->actingAs($this->owner)
-        ->post(route('brain.keys.store'), [
+        ->post(route('api-keys.store'), [
             'name' => 'Cursor laptop',
             'principal' => 'agent',
             'agent_name' => 'Cursor',
@@ -121,7 +121,7 @@ it('creates a key for a new agent, shows the secret once and stores only its has
             'can_write' => false,
             'expires_at' => now()->addMonth()->toDateString(),
         ])
-        ->assertRedirect(route('brain.keys'));
+        ->assertRedirect(route('api-keys.index'));
 
     $agent = Principal::query()->where('type', PrincipalTypeEnum::Agent)->sole();
     $key = ApiKey::query()->sole();
@@ -134,20 +134,20 @@ it('creates a key for a new agent, shows the secret once and stores only its has
         ->and($key->expires_at)->not->toBeNull();
 
     $this->actingAs($this->owner)
-        ->get(route('brain.keys'))
+        ->get(route('api-keys.index'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('plainTextKey', fn (?string $plain): bool => $plain !== null && ! str_contains($key->hash, $plain))
             ->where('keys.0.principal_name', 'Cursor')
             ->where('keys.0.principal_type', 'agent'));
 
     $this->actingAs($this->owner)
-        ->get(route('brain.keys'))
+        ->get(route('api-keys.index'))
         ->assertInertia(fn (Assert $page) => $page->where('plainTextKey', null));
 });
 
 it('hands the new secret to the keys page through the session', function (): void {
     $this->actingAs($this->owner)
-        ->post(route('brain.keys.store'), [
+        ->post(route('api-keys.store'), [
             'name' => 'Mine',
             'principal' => 'me',
             'role' => 'owner',
@@ -163,25 +163,25 @@ it('refuses a write key while writes are switched off, and members entirely', fu
     config(['instituta.api.write_enabled' => false, 'instituta.mcp.write_enabled' => false]);
 
     $this->actingAs($this->owner)
-        ->post(route('brain.keys.store'), ['name' => 'Writer', 'principal' => 'agent', 'agent_name' => 'Bot', 'role' => 'member', 'max_visibility' => 'internal', 'can_write' => true])
+        ->post(route('api-keys.store'), ['name' => 'Writer', 'principal' => 'agent', 'agent_name' => 'Bot', 'role' => 'member', 'max_visibility' => 'internal', 'can_write' => true])
         ->assertSessionHasErrors(['name' => 'Ability brain:write is refused while writes are disabled.']);
 
     expect(ApiKey::query()->count())->toBe(0)
         ->and(Principal::query()->where('type', PrincipalTypeEnum::Agent)->count())->toBe(0);
 
     $this->actingAs(organisationMember($this->organisation))
-        ->post(route('brain.keys.store'), ['name' => 'Nope', 'principal' => 'me', 'role' => 'member', 'max_visibility' => 'internal'])
+        ->post(route('api-keys.store'), ['name' => 'Nope', 'principal' => 'me', 'role' => 'member', 'max_visibility' => 'internal'])
         ->assertForbidden();
 });
 
 it('lets the owner revoke an agent key they own, but not someone else\'s', function (): void {
-    $this->actingAs($this->owner)->post(route('brain.keys.store'), ['name' => 'Agent key', 'principal' => 'agent', 'agent_name' => 'Bot', 'role' => 'member', 'max_visibility' => 'internal']);
+    $this->actingAs($this->owner)->post(route('api-keys.store'), ['name' => 'Agent key', 'principal' => 'agent', 'agent_name' => 'Bot', 'role' => 'member', 'max_visibility' => 'internal']);
     $key = ApiKey::query()->sole();
     $otherOwner = User::factory()->create();
     app(GrantOrganisationAccessAction::class)->execute($otherOwner, $this->organisation, RoleEnum::Owner);
 
-    $this->actingAs($otherOwner)->delete(route('brain.keys.destroy', $key))->assertForbidden();
-    $this->actingAs($this->owner)->delete(route('brain.keys.destroy', $key))->assertRedirect(route('brain.keys'));
+    $this->actingAs($otherOwner)->delete(route('api-keys.destroy', $key))->assertForbidden();
+    $this->actingAs($this->owner)->delete(route('api-keys.destroy', $key))->assertRedirect(route('api-keys.index'));
 
     expect($key->fresh()->revoked_at)->not->toBeNull();
 });

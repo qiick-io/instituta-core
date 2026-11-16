@@ -20,11 +20,11 @@ import { Button } from '@/components/ui/button';
 import { Drawer } from '@/components/ui/drawer';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import AppLayout from '@/layouts/app-layout';
-import { reading } from '@/routes/brain';
+import { show as reading } from '@/routes/explorer';
 import {
     destroy as gapsDestroy,
     index as gapsIndex,
-} from '@/routes/brain/gaps';
+} from '@/routes/review/gaps';
 import type { BreadcrumbItem } from '@/types';
 
 type RelatedItem = {

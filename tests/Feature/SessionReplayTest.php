@@ -63,7 +63,7 @@ it('scopes session replay to the owner organisation and hides other tenants', fu
     ]);
 
     $this->actingAs($ownerA)
-        ->get(route('brain.session-replay'))
+        ->get(route('activity.agent-calls'))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('brain/session-replay')
@@ -93,7 +93,7 @@ it('scopes session replay to the owner organisation and hides other tenants', fu
     ]);
 
     $this->actingAs($member)
-        ->get(route('brain.session-replay'))
+        ->get(route('activity.agent-calls'))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('brain/session-replay')
@@ -125,7 +125,7 @@ it('filters session replay by principal and tool', function (): void {
     ]);
 
     $this->actingAs($user)
-        ->get(route('brain.session-replay', [
+        ->get(route('activity.agent-calls', [
             'principal_id' => $principal->id,
             'tool_or_endpoint' => 'brain.search',
         ]))

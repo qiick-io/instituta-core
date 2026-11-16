@@ -31,9 +31,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
 import { Drawer } from '@/components/ui/drawer';
-import brainRoutes from '@/routes/brain';
+import { index as repositoriesIndex } from '@/routes/repositories';
 import type { BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
+import SettingsLayout from '@/layouts/settings/layout';
+import { edit as editProfile } from '@/routes/profile';
+import Heading from '@/components/heading';
 import { formatRelativeTime } from '@/lib/relative-time';
 
 type SourceRow = SourceFormRow & {
@@ -85,9 +88,10 @@ export default function BrainSources({
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
+            { title: t('settings.layout.title'), href: editProfile() },
             {
-                title: t('brain.sources.title'),
-                href: brainRoutes.sources.url(),
+                title: t('settings.layout.repositories'),
+                href: repositoriesIndex.url(),
             },
         ],
         [t],
@@ -263,74 +267,84 @@ export default function BrainSources({
             {...layoutProps}
             headerActions={hideListChrome ? undefined : primaryAction}
         >
-            <Head title={t('brain.sources.title')} />
-            <PageLayout
-                filters={
-                    hideListChrome ? undefined : (
-                        <DataTableToolbar
-                            search={search}
-                            onSearchChange={setSearch}
-                            searchPlaceholder={t(
-                                'brain.sources.searchPlaceholder',
-                            )}
+            <Head title={t('settings.layout.repositories')} />
+            <SettingsLayout wide>
+                <Heading
+                    variant="small"
+                    title={t('settings.layout.repositories')}
+                    description={t('settings.repositories.description')}
+                />
+                <PageLayout
+                    className="p-0"
+                    filters={
+                        hideListChrome ? undefined : (
+                            <DataTableToolbar
+                                search={search}
+                                onSearchChange={setSearch}
+                                searchPlaceholder={t(
+                                    'brain.sources.searchPlaceholder',
+                                )}
+                            />
+                        )
+                    }
+                >
+                    {!hasPerimeter ? (
+                        <p className="text-sm text-muted-foreground">
+                            {t('brain.scope.none')}
+                        </p>
+                    ) : isListEmpty ? (
+                        <PageEmptyState
+                            icon={hasActiveFilters ? SearchX : Database}
+                            title={
+                                <EmptyStatus>
+                                    {hasActiveFilters
+                                        ? t('emptyState.sources.filteredTitle')
+                                        : t('emptyState.sources.title')}
+                                </EmptyStatus>
+                            }
+                            description={
+                                hasActiveFilters
+                                    ? t(
+                                          'emptyState.sources.filteredDescription',
+                                      )
+                                    : t('emptyState.sources.description')
+                            }
+                            action={
+                                hasActiveFilters ? (
+                                    <Button
+                                        type="button"
+                                        onClick={() => setSearch('')}
+                                    >
+                                        {t('common.clearFilters')}
+                                    </Button>
+                                ) : (
+                                    primaryAction
+                                )
+                            }
                         />
-                    )
-                }
-            >
-                {!hasPerimeter ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.scope.none')}
-                    </p>
-                ) : isListEmpty ? (
-                    <PageEmptyState
-                        icon={hasActiveFilters ? SearchX : Database}
-                        title={
-                            <EmptyStatus>
-                                {hasActiveFilters
-                                    ? t('emptyState.sources.filteredTitle')
-                                    : t('emptyState.sources.title')}
-                            </EmptyStatus>
-                        }
-                        description={
-                            hasActiveFilters
-                                ? t('emptyState.sources.filteredDescription')
-                                : t('emptyState.sources.description')
-                        }
-                        action={
-                            hasActiveFilters ? (
-                                <Button
-                                    type="button"
-                                    onClick={() => setSearch('')}
-                                >
-                                    {t('common.clearFilters')}
-                                </Button>
-                            ) : (
-                                primaryAction
-                            )
-                        }
-                    />
-                ) : (
-                    <DataTable
-                        columns={columns}
-                        data={filteredSources}
-                        getRowId={(source) => source.id}
-                        renderExpandedRow={
-                            hasExpandableReport
-                                ? (source) =>
-                                      source.last_sync_report ? (
-                                          <pre className="max-w-3xl overflow-x-auto rounded-md bg-muted/40 p-2 font-mono text-xs">
-                                              {JSON.stringify(
-                                                  source.last_sync_report,
-                                                  null,
-                                                  2,
-                                              )}
-                                          </pre>
-                                      ) : null
-                                : undefined
-                        }
-                    />
-                )}
-            </PageLayout>
+                    ) : (
+                        <DataTable
+                            columns={columns}
+                            data={filteredSources}
+                            getRowId={(source) => source.id}
+                            renderExpandedRow={
+                                hasExpandableReport
+                                    ? (source) =>
+                                          source.last_sync_report ? (
+                                              <pre className="max-w-3xl overflow-x-auto rounded-md bg-muted/40 p-2 font-mono text-xs">
+                                                  {JSON.stringify(
+                                                      source.last_sync_report,
+                                                      null,
+                                                      2,
+                                                  )}
+                                              </pre>
+                                          ) : null
+                                    : undefined
+                            }
+                        />
+                    )}
+                </PageLayout>
+            </SettingsLayout>
 
             {canManage ? (
                 <Drawer

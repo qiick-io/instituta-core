@@ -35,7 +35,7 @@ class ProposalResolvedNotification extends Notification implements ShouldQueue
             'proposal_id' => $this->proposal->id,
             'title' => $this->proposal->title,
             'status' => $this->status->value,
-            'url' => route('brain.proposals.show', ['proposal' => $this->proposal->id]),
+            'url' => route('review.proposals.show', ['proposal' => $this->proposal->id]),
         ];
     }
 }

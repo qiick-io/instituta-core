@@ -6,7 +6,6 @@ import {
     FolderGit2,
     GitFork,
     History,
-    KeyRound,
     LayoutGrid,
     ListTree,
     Map as MapIcon,
@@ -47,18 +46,12 @@ import { useCan } from '@/hooks/use-can';
 import { notificationsSource } from '@/lib/notifications';
 import { dashboard } from '@/routes';
 import { index as activityIndex } from '@/routes/activity';
-import {
-    graph,
-    keys,
-    map,
-    reading,
-    sessionReplay,
-    sources,
-    tree,
-} from '@/routes/brain';
-import { index as clientsIndex } from '@/routes/brain/clients';
-import { index as gapsIndex } from '@/routes/brain/gaps';
-import { index as proposalsIndex } from '@/routes/brain/proposals';
+import { graph, map } from '@/routes';
+import { agentCalls as sessionReplay } from '@/routes/activity';
+import { index as tree } from '@/routes/explorer';
+import { index as clientsIndex } from '@/routes/clients';
+import { index as gapsIndex } from '@/routes/review/gaps';
+import { index as proposalsIndex } from '@/routes/review/proposals';
 import users from '@/routes/users';
 import type { NavItem } from '@/types';
 
@@ -88,18 +81,11 @@ export function AppSidebar() {
             title: t('brain.nav.tree'),
             href: tree.url(),
             icon: ListTree,
-            // An item's reading page sits under Tree (its breadcrumb is Tree › item).
-            activePathPrefixes: [reading.definition.url.replace('{item}', '')],
         },
         {
             title: t('brain.nav.graph'),
             href: graph.url(),
             icon: GitFork,
-        },
-        {
-            title: t('brain.nav.sources'),
-            href: sources.url(),
-            icon: FolderGit2,
         },
         {
             title: t('brain.nav.proposals'),
@@ -110,11 +96,6 @@ export function AppSidebar() {
             title: t('brain.nav.gaps'),
             href: gapsIndex.url(),
             icon: CircleHelp,
-        },
-        {
-            title: t('brain.nav.keys'),
-            href: keys.url(),
-            icon: KeyRound,
         },
         {
             title: t('brain.nav.clients'),

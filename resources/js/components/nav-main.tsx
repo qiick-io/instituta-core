@@ -25,28 +25,19 @@ export function NavMain({ items }: { items: NavItem[] }) {
             <SidebarMenu>
                 {items.map((item) => {
                     const hrefPath = toUrl(item.href);
+                    // Child pages (an item, a proposal) keep their section active.
                     const shouldMatchPrefix =
-                        hrefPath !== '/' && hrefPath.startsWith('/brain');
+                        hrefPath !== '/' && hrefPath !== '/dashboard';
 
                     return (
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
                                 asChild
-                                isActive={
-                                    isCurrentUrl(
-                                        item.href,
-                                        undefined,
-                                        shouldMatchPrefix,
-                                    ) ||
-                                    (item.activePathPrefixes ?? []).some(
-                                        (prefix) =>
-                                            isCurrentUrl(
-                                                prefix,
-                                                undefined,
-                                                true,
-                                            ),
-                                    )
-                                }
+                                isActive={isCurrentUrl(
+                                    item.href,
+                                    undefined,
+                                    shouldMatchPrefix,
+                                )}
                                 tooltip={{ children: item.title }}
                             >
                                 <Link href={item.href} prefetch>

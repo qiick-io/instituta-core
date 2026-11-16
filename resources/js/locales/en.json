@@ -183,7 +183,10 @@
             "general": "General",
             "localization": "Localization",
             "authSecurity": "Authentication & security",
-            "sectionInstance": "Instance"
+            "sectionInstance": "Instance",
+            "sectionBrain": "Brain",
+            "repositories": "Repositories",
+            "apiKeys": "API keys"
         },
         "appearance": {
             "breadcrumb": "Appearance settings",
@@ -330,6 +333,12 @@
             "notifications": "Sound for notifications",
             "notificationsHint": "Plays only for live notifications when the drawer is closed.",
             "test": "Test sound"
+        },
+        "repositories": {
+            "description": "The folders and Git repositories the brain is read from, and when they sync."
+        },
+        "apiKeys": {
+            "description": "Keys that agents and scripts use to read the brain over MCP and the API, each limited to a scope."
         }
     },
     "shortcuts": {
@@ -518,9 +527,9 @@
             "emptyDescription": "Markdown tables under a heading with a table key appear here as structured rows."
         },
         "sources": {
-            "title": "Sources",
+            "title": "Repositories",
             "description": "Ingest sources in the current scope, with sync status and last report.",
-            "empty": "No sources in this scope yet.",
+            "empty": "No repositories in this scope yet.",
             "colName": "Name",
             "colProvider": "Provider",
             "colStatus": "Status",
@@ -534,11 +543,11 @@
                 "ok": "Ok",
                 "failed": "Failed"
             },
-            "searchPlaceholder": "Search sources…",
+            "searchPlaceholder": "Search repositories…",
             "hideReport": "Hide report",
-            "create": "Add source",
-            "createTitle": "Add a source",
-            "editTitle": "Edit source",
+            "create": "Add repository",
+            "createTitle": "Add a repository",
+            "editTitle": "Edit repository",
             "formDescription": "Instituta only reads this repository; it never writes to it.",
             "fieldLocalPath": "Local path",
             "localPathHint": "Absolute path to a folder on this server.",
@@ -551,14 +560,14 @@
             "fieldSyncInterval": "Sync every (minutes)",
             "syncIntervalHint": "0 turns scheduled syncs off. Empty uses the default: 15 for Git and GitHub, off for a local folder.",
             "fieldShared": "Shared with every client and product of the organisation",
-            "saveCreate": "Add source",
+            "saveCreate": "Add repository",
             "saveEdit": "Save changes",
             "colActions": "Actions",
             "syncNow": "Sync now",
             "edit": "Edit",
             "remove": "Remove",
             "confirmRemoveTitle": "Remove {{name}}?",
-            "confirmRemoveDescription": "Everything indexed from this source is removed from Instituta. The repository itself is not touched.",
+            "confirmRemoveDescription": "Everything indexed from this repository is removed from Instituta. The repository itself is not touched.",
             "providers": {
                 "local": "Local folder",
                 "git": "Git",

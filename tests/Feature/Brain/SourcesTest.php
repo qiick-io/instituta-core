@@ -52,7 +52,7 @@ it('lists sources in the perimeter', function (): void {
     $seed = sourcesSeed();
 
     $this->actingAs($seed['user'])
-        ->get(route('brain.sources'))
+        ->get(route('repositories.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/sources')
@@ -64,5 +64,5 @@ it('lists sources in the perimeter', function (): void {
 });
 
 it('requires authentication for sources', function (): void {
-    $this->get(route('brain.sources'))->assertRedirect();
+    $this->get(route('repositories.index'))->assertRedirect();
 });

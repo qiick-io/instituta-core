@@ -30,10 +30,14 @@ import { useCan } from '@/hooks/use-can';
 import { toUrl } from '@/lib/utils';
 import { dashboard, search as searchRoute } from '@/routes';
 import { index as activityIndex } from '@/routes/activity';
-import { graph, keys, map, sessionReplay, sources, tree } from '@/routes/brain';
-import { index as clientsIndex } from '@/routes/brain/clients';
-import { index as gapsIndex } from '@/routes/brain/gaps';
-import { index as proposalsIndex } from '@/routes/brain/proposals';
+import { graph, map } from '@/routes';
+import { agentCalls as sessionReplay } from '@/routes/activity';
+import { index as keys } from '@/routes/api-keys';
+import { index as tree } from '@/routes/explorer';
+import { index as sources } from '@/routes/repositories';
+import { index as clientsIndex } from '@/routes/clients';
+import { index as gapsIndex } from '@/routes/review/gaps';
+import { index as proposalsIndex } from '@/routes/review/proposals';
 import users from '@/routes/users';
 
 /** Server result groups (`GlobalSearchService`) and how the palette shows them. */
@@ -106,7 +110,7 @@ export function AppCommandPalette({
             },
             {
                 id: 'sources',
-                titleKey: 'brain.nav.sources',
+                titleKey: 'settings.layout.repositories',
                 href: toUrl(sources.url()),
                 icon: FolderGit2,
             },
@@ -124,7 +128,7 @@ export function AppCommandPalette({
             },
             {
                 id: 'keys',
-                titleKey: 'brain.nav.keys',
+                titleKey: 'settings.layout.apiKeys',
                 href: toUrl(keys.url()),
                 icon: KeyRound,
             },

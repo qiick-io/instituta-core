@@ -93,7 +93,7 @@ final class ProposeBrainChangeAction
         $this->audit->record(
             toolOrEndpoint: match ($surface) {
                 'mcp' => 'instituta_propose',
-                'web' => 'POST /brain/proposals',
+                'web' => 'POST /review/proposals',
                 default => 'POST /proposals',
             },
             perimeter: $perimeter,

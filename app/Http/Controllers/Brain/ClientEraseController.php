@@ -41,6 +41,6 @@ final class ClientEraseController extends Controller
             ]),
         ]);
 
-        return to_route('brain.clients.index');
+        return to_route('clients.index');
     }
 }

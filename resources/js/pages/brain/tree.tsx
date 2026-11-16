@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Drawer } from '@/components/ui/drawer';
 import { markdownToPlainText } from '@/lib/markdown-plain-text';
 import { cn } from '@/lib/utils';
-import { reading, tree } from '@/routes/brain';
+import { index as tree, show as reading } from '@/routes/explorer';
 import AppLayout from '@/layouts/app-layout';
 import { PageEmptyState } from '@/components/admin/page-empty-state';
 import { EmptyStatus } from '@/components/empty-status';

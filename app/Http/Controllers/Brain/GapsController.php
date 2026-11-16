@@ -65,6 +65,6 @@ final class GapsController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Gap dismissed.')]);
 
-        return redirect()->route('brain.gaps.index');
+        return redirect()->route('review.gaps.index');
     }
 }

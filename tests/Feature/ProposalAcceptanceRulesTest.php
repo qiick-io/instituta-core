@@ -172,8 +172,8 @@ it('lets a signed-in person accept in the web ui a proposal their own agent open
     $proposalId = openProposalWith($agent['plain']);
 
     $this->actingAs($person['principal']->user)
-        ->patch(route('brain.proposals.update', $proposalId), ['status' => 'accepted'])
-        ->assertRedirect(route('brain.proposals.show', $proposalId));
+        ->patch(route('review.proposals.update', $proposalId), ['status' => 'accepted'])
+        ->assertRedirect(route('review.proposals.show', $proposalId));
 
     expect(Proposal::query()->findOrFail($proposalId)->status)->toBe(ProposalStatusEnum::Accepted);
 });
