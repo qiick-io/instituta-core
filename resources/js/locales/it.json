@@ -765,7 +765,9 @@
                 "person": "Persona",
                 "agent": "Agente",
                 "service": "Servizio"
-            }
+            },
+            "frontmatterHeading": "Modifiche ai metadati",
+            "frontmatterRemoved": "rimosso"
         },
         "graph": {
             "title": "Grafo nello scope",
@@ -799,7 +801,17 @@
             "aiPlaceholder": "Per esempio: cambia il colore primario in blu",
             "aiDraft": "Scrivi bozza",
             "aiDrafting": "Sto scrivendo…",
-            "aiHint": "La bozza sostituisce il markdown qui sotto. Rileggila prima di aprire la proposta."
+            "aiHint": "La bozza sostituisce il markdown qui sotto. Rileggila prima di aprire la proposta.",
+            "fieldStatus": "Stato",
+            "statusUnchanged": "Invariato",
+            "fieldSupersededBy": "Sostituita da",
+            "supersededByHint": "Chiave stabile della voce che sostituisce questa."
+        },
+        "itemStatus": {
+            "draft": "Bozza",
+            "active": "Attiva",
+            "deprecated": "Deprecata",
+            "superseded": "Sostituita"
         }
     },
     "activity": {

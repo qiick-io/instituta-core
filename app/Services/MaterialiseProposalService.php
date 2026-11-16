@@ -38,6 +38,7 @@ final class MaterialiseProposalService
         private readonly DenylistGuardService $denylist = new DenylistGuardService,
         private readonly FrontmatterParser $frontmatter = new FrontmatterParser,
         private readonly MarkdownStructureParser $structure = new MarkdownStructureParser,
+        private readonly FrontmatterEditorService $frontmatterEditor = new FrontmatterEditorService,
     ) {}
 
     /**
@@ -217,7 +218,14 @@ final class MaterialiseProposalService
                 $contents = $this->replaceSection($currentContents, $proposal);
             } else {
                 $this->assertFileUnchanged($currentContents, $proposal);
-                $contents = $this->keepFrontmatter($currentContents, $contents);
+                // A frontmatter-only proposal keeps the body as it is (#219).
+                $contents = $proposal->body === null || $proposal->body === ''
+                    ? $currentContents
+                    : $this->keepFrontmatter($currentContents, $contents);
+            }
+
+            if ($proposal->frontmatter_changes !== null && $proposal->frontmatter_changes !== []) {
+                $contents = $this->frontmatterEditor->apply($contents, $proposal->frontmatter_changes);
             }
         }
 

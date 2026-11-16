@@ -7,6 +7,7 @@ use App\Actions\MaterialiseProposalAction;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
+use App\Brain\Support\FrontmatterParser;
 use App\Enums\ApiKeyAbilityEnum;
 use App\Enums\ProposalMaterialisationStatusEnum;
 use App\Enums\ProposalStatusEnum;
@@ -255,4 +256,47 @@ it('lists the other open proposals that change the same item or section', functi
 
     proposeBrand(['section_anchor' => 'brand/typography', 'base_section_hash' => hash('sha256', (string) $typography->markdown), 'body' => '## Typography'])
         ->assertJsonPath('overlapping_open_proposals', []);
+});
+
+it('changes only the frontmatter and keeps the body byte for byte (#219)', function (): void {
+    $proposalId = proposeBrand([
+        'base_content_hash' => brandItem()->content_hash,
+        'frontmatter' => ['status' => 'superseded', 'superseded_by' => 'rules/brand-2027', 'visibility' => null],
+    ])->assertCreated()->assertJsonPath('frontmatter_changes.status', 'superseded')->json('id');
+
+    ['proposal' => $proposal, 'written' => $written] = materialiseProposal($proposalId);
+    [$frontmatter, $body] = [(new FrontmatterParser)->parse((string) $written)['frontmatter'], (new FrontmatterParser)->parse((string) $written)['body']];
+
+    expect($proposal->materialisation_status)->toBe(ProposalMaterialisationStatusEnum::LocalReview)
+        ->and($frontmatter)->toBe(['title' => 'Brand', 'area' => 'rules', 'status' => 'superseded', 'superseded_by' => 'rules/brand-2027'])
+        ->and($body)->toBe((new FrontmatterParser)->parse(BRAND_FILE."\n")['body']);
+});
+
+it('combines a frontmatter change with a section edit (#219)', function (): void {
+    $colours = brandItem()->sections()->where('anchor', 'brand/colours')->sole();
+    $proposalId = proposeBrand([
+        'section_anchor' => 'brand/colours',
+        'base_section_hash' => hash('sha256', (string) $colours->markdown),
+        'body' => "## Colours\n\nPrimary: blue.",
+        'frontmatter' => ['review_date' => '2027-06-30'],
+    ])->assertCreated()->json('id');
+
+    ['written' => $written] = materialiseProposal($proposalId);
+
+    expect($written)->toContain('Primary: blue.')
+        ->and((new FrontmatterParser)->parse((string) $written)['frontmatter']['review_date'])->toBe('2027-06-30');
+});
+
+it('refuses invalid metadata changes (#219)', function (array $payload, string $message): void {
+    proposeBrand($payload)->assertUnprocessable()->assertJsonPath('message', $message);
+})->with([
+    'unknown status' => [['base_content_hash' => str_repeat('a', 64), 'frontmatter' => ['status' => 'retired']], 'frontmatter "status" has an invalid value.'],
+    'bad date' => [['base_content_hash' => str_repeat('a', 64), 'frontmatter' => ['review_date' => 'next year']], 'frontmatter "review_date" has an invalid value.'],
+    'on create' => [['action' => 'create', 'stable_key' => 'rules/new', 'path' => 'rules/new.md', 'body' => '# New', 'frontmatter' => ['status' => 'draft']], 'frontmatter is only allowed on update.'],
+]);
+
+it('refuses an update that changes nothing (#219)', function (): void {
+    proposeBrand(['base_content_hash' => brandItem()->content_hash])
+        ->assertUnprocessable()
+        ->assertJsonPath('message', 'An update needs a body, frontmatter changes, or both.');
 });

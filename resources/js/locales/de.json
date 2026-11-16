@@ -765,7 +765,9 @@
                 "person": "Person",
                 "agent": "Agent",
                 "service": "Dienst"
-            }
+            },
+            "frontmatterHeading": "Änderungen an den Metadaten",
+            "frontmatterRemoved": "entfernt"
         },
         "graph": {
             "title": "Eingeschränkter Graph",
@@ -799,7 +801,17 @@
             "aiPlaceholder": "Zum Beispiel: Primärfarbe auf Blau ändern",
             "aiDraft": "Entwerfen",
             "aiDrafting": "Entwerfe…",
-            "aiHint": "Der Entwurf ersetzt das Markdown unten. Prüfe ihn, bevor du den Vorschlag öffnest."
+            "aiHint": "Der Entwurf ersetzt das Markdown unten. Prüfe ihn, bevor du den Vorschlag öffnest.",
+            "fieldStatus": "Status",
+            "statusUnchanged": "Unverändert",
+            "fieldSupersededBy": "Ersetzt durch",
+            "supersededByHint": "Stabiler Schlüssel des Eintrags, der diesen ersetzt."
+        },
+        "itemStatus": {
+            "draft": "Entwurf",
+            "active": "Aktiv",
+            "deprecated": "Veraltet",
+            "superseded": "Ersetzt"
         }
     },
     "activity": {

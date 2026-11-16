@@ -765,7 +765,9 @@
                 "person": "Person",
                 "agent": "Agent",
                 "service": "Service"
-            }
+            },
+            "frontmatterHeading": "Metadata changes",
+            "frontmatterRemoved": "removed"
         },
         "graph": {
             "title": "Scoped graph",
@@ -799,7 +801,17 @@
             "aiPlaceholder": "For example: switch the primary colour to blue",
             "aiDraft": "Draft",
             "aiDrafting": "Drafting…",
-            "aiHint": "The draft replaces the markdown below. Review it before opening the proposal."
+            "aiHint": "The draft replaces the markdown below. Review it before opening the proposal.",
+            "fieldStatus": "Status",
+            "statusUnchanged": "Unchanged",
+            "fieldSupersededBy": "Superseded by",
+            "supersededByHint": "Stable key of the entry that replaces this one."
+        },
+        "itemStatus": {
+            "draft": "Draft",
+            "active": "Active",
+            "deprecated": "Deprecated",
+            "superseded": "Superseded"
         }
     },
     "activity": {

@@ -40,6 +40,7 @@ type ProposalDetail = {
         key_name: string | null;
     };
     overlapping_open_proposals: string[];
+    frontmatter_changes: Record<string, unknown> | null;
 };
 
 type DiffLine = {
@@ -344,6 +345,33 @@ export default function BrainProposalShow({
                                 ),
                             )}
                         </ul>
+                    </div>
+                ) : null}
+
+                {proposal.frontmatter_changes &&
+                Object.keys(proposal.frontmatter_changes).length > 0 ? (
+                    <div className="mt-6 space-y-2">
+                        <h2 className="text-sm font-medium">
+                            {t('brain.proposals.frontmatterHeading')}
+                        </h2>
+                        <dl className="grid gap-1 rounded-xl border border-sidebar-border/70 p-3 font-mono text-xs dark:border-sidebar-border">
+                            {Object.entries(proposal.frontmatter_changes).map(
+                                ([key, value]) => (
+                                    <div key={key} className="flex gap-2">
+                                        <dt className="text-muted-foreground">
+                                            {key}
+                                        </dt>
+                                        <dd>
+                                            {value === null
+                                                ? t(
+                                                      'brain.proposals.frontmatterRemoved',
+                                                  )
+                                                : JSON.stringify(value)}
+                                        </dd>
+                                    </div>
+                                ),
+                            )}
+                        </dl>
                     </div>
                 ) : null}
 
