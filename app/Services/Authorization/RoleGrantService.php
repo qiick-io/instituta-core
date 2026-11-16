@@ -61,6 +61,24 @@ class RoleGrantService
     }
 
     /**
+     * Whether the actor may grant every role the given user groups carry (trashed groups
+     * included): joining a group grants its roles, so it follows the same rule.
+     *
+     * @param  array<int, mixed>  $groupIds
+     */
+    public function canGrantGroups(User $actor, array $groupIds): bool
+    {
+        $groupRoleNames = Role::query()
+            ->whereIn('id', fn ($query) => $query->select('role_id')
+                ->from('user_group_role')
+                ->whereIn('user_group_id', array_map(intval(...), array_filter($groupIds, is_numeric(...)))))
+            ->pluck('name')
+            ->all();
+
+        return $this->canGrantRoles($actor, array_values($groupRoleNames));
+    }
+
+    /**
      * Whether the actor holds every one of these permissions (super-admins hold all).
      *
      * @param  list<string>  $permissionNames

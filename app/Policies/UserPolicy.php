@@ -14,7 +14,7 @@ use App\Services\Authorization\SuperAdminGuardService;
  * (RoleGrantService): nobody edits or deletes a more powerful account. Nobody may delete
  * themselves, and the last active super-admin cannot be deleted.
  *
- * Copied from excubia-app without group-picker ability (no user groups in Instituta yet).
+ * Copied from excubia-app. "Above" counts roles inherited through user groups too (the resolver).
  */
 class UserPolicy
 {
