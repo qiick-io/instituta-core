@@ -648,6 +648,9 @@ components:
                 visibility:
                     type: string
                     enum: [public, internal, restricted]
+                token_estimate:
+                    type: integer
+                    description: Rough tokens to read the whole item (characters / 4 of its markdown, see CONTRACTS.md §2.3.1)
                 origin:
                     type: object
                     additionalProperties: true

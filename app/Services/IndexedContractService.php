@@ -218,6 +218,7 @@ final class IndexedContractService
                     'body' => $section->body,
                     'markdown' => $section->markdown,
                     'section_hash' => ItemSection::hashOf($section->markdown),
+                    'token_estimate' => $section->token_estimate,
                     'blocks' => $section->blocks ?? [],
                 ])
                 ->all(),
@@ -319,6 +320,7 @@ final class IndexedContractService
             'markdown' => $section->markdown,
             'section_hash' => ItemSection::hashOf($section->markdown),
             'content_hash' => $item->content_hash,
+            'token_estimate' => $section->token_estimate,
             'blocks' => $section->blocks ?? [],
             'citation' => $this->citation($item),
             ...$this->freezeMeta($perimeter),
@@ -396,10 +398,12 @@ final class IndexedContractService
             'id' => $item->id,
             'stable_key' => $item->stable_key,
             'path' => $item->path,
+            'token_estimate' => $item->token_estimate,
             'sections' => $sections->map(static fn (ItemSection $section): array => [
                 'anchor' => $section->anchor,
                 'heading' => $section->heading,
                 'level' => $section->level,
+                'token_estimate' => $section->token_estimate,
                 'block_types' => array_values(array_unique(array_map(
                     static fn (array $block): string => (string) ($block['type'] ?? 'unknown'),
                     $section->blocks ?? [],
@@ -486,6 +490,7 @@ final class IndexedContractService
                     'title' => $item->title,
                     'summary' => $item->summary,
                     'visibility' => $item->visibility->value,
+                    'token_estimate' => $item->token_estimate,
                     ...$this->validity($item),
                     'origin' => [
                         'scope_type' => $layer['scope_type'],
@@ -507,7 +512,8 @@ final class IndexedContractService
         return [
             'product_id' => $product->id,
             'entries' => $entries,
-            'token_estimate' => count($entries) * 40,
+            // What reading every resolved entry in full costs (#230).
+            'token_estimate' => array_sum(array_column($entries, 'token_estimate')),
             ...$this->freezeMeta($perimeter),
         ];
     }
@@ -700,6 +706,7 @@ final class IndexedContractService
             'area' => $item->area,
             'type' => $item->type,
             'visibility' => $item->visibility->value,
+            'token_estimate' => $item->token_estimate,
             ...$this->validity($item),
             'origin' => [
                 'scope_type' => $item->product_id !== null

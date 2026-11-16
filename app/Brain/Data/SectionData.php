@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Brain\Data;
 
+use App\Brain\Support\TokenEstimator;
+
 final readonly class SectionData
 {
     /**
@@ -25,6 +27,14 @@ final readonly class SectionData
     ) {}
 
     /**
+     * What reading this section costs (#230): its markdown, or its text when there is none.
+     */
+    public function tokenEstimate(): int
+    {
+        return TokenEstimator::forText($this->markdown !== '' ? $this->markdown : $this->body);
+    }
+
+    /**
      * @return array{
      *     anchor: string,
      *     heading: string,
@@ -32,6 +42,7 @@ final readonly class SectionData
      *     position: int,
      *     body: string,
      *     markdown: string,
+     *     token_estimate: int,
      *     blocks: list<array{type: string, payload: array<string, mixed>}>
      * }
      */
@@ -44,6 +55,7 @@ final readonly class SectionData
             'position' => $this->position,
             'body' => $this->body,
             'markdown' => $this->markdown,
+            'token_estimate' => $this->tokenEstimate(),
             'blocks' => array_map(
                 static fn (BlockData $block): array => $block->toArray(),
                 $this->blocks,

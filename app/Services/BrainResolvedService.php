@@ -121,6 +121,7 @@ final class BrainResolvedService
                     'title' => $item->title,
                     'summary' => $item->summary,
                     'visibility' => $item->visibility->value,
+                    'token_estimate' => $item->token_estimate,
                     'origin' => [
                         'scope_type' => $layer['scope_type'],
                         'scope_id' => $layer['scope_id'],
@@ -146,7 +147,7 @@ final class BrainResolvedService
         return [
             'product_id' => $product->id,
             'entries' => $entries,
-            'token_estimate' => count($entries) * 40,
+            'token_estimate' => array_sum(array_column($entries, 'token_estimate')),
             'agent_view' => $agentView,
         ];
     }

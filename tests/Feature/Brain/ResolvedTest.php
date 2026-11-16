@@ -51,6 +51,7 @@ function resolvedSeed(): array
         'source_id' => $source->id,
         'area' => 'style',
         'title' => 'Org voice',
+        'token_estimate' => 120,
         'path' => 'style/voice.md',
         'stable_key' => 'style/voice',
         'resolution_key' => 'brand.voice',
@@ -64,6 +65,7 @@ function resolvedSeed(): array
         'source_id' => $source->id,
         'area' => 'style',
         'title' => 'Product voice',
+        'token_estimate' => 45,
         'path' => 'style/voice-product.md',
         'stable_key' => 'style/voice-product',
         'resolution_key' => 'brand.voice',
@@ -87,7 +89,7 @@ it('renders the resolved view with product override winning', function (): void 
             ->where('entries.0.resolution_key', 'brand.voice')
             ->where('entries.0.title', 'Product voice')
             ->where('entries.0.overridden', true)
-            ->where('token_estimate', 40)
+            ->where('token_estimate', 45)
             ->has('agent_view', 1));
 });
 

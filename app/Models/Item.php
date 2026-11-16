@@ -34,6 +34,7 @@ use Illuminate\Support\Carbon;
  * @property VisibilityEnum $visibility
  * @property string|null $commit
  * @property string $content_hash
+ * @property int $token_estimate
  * @property array<string, mixed>|null $frontmatter
  * @property ItemStatusEnum $status
  * @property string|null $superseded_by
@@ -58,6 +59,7 @@ use Illuminate\Support\Carbon;
     'visibility',
     'commit',
     'content_hash',
+    'token_estimate',
     'frontmatter',
     'status',
     'superseded_by',
@@ -78,6 +80,7 @@ class Item extends Model
     {
         return [
             'visibility' => VisibilityEnum::class,
+            'token_estimate' => 'integer',
             'frontmatter' => 'array',
             'status' => ItemStatusEnum::class,
             'decision_date' => 'date',

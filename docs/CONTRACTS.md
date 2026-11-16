@@ -58,6 +58,7 @@ Snake_case JSON. Dates ISO-8601. Errors as Laravel JSON error responses.
   "area": "string",
   "type": "string",
   "visibility": "public|internal|restricted",
+  "token_estimate": 640,
   "status": "draft|active|deprecated|superseded",
   "superseded_by": "stable_key|null",
   "decision_date": "YYYY-MM-DD|null",
@@ -75,6 +76,12 @@ Snake_case JSON. Dates ISO-8601. Errors as Laravel JSON error responses.
   "citation": { "source": "…", "path": "…", "section": null, "commit": "…" }
 }
 ```
+
+### 2.3.1 Token estimates
+
+Every read says roughly what reading it costs, so an agent plans within its context budget (#230): `token_estimate` on each item summary (the whole item), each outline section, each search hit (the hit's section, or the item when the hit has none) and each section read; the resolved view's `token_estimate` is the sum of its entries' estimates.
+
+The estimate is **characters ÷ 4, rounded up**, of the section's source markdown (its plain text when there is no markdown), and an item's estimate is the sum of its sections (its body when it has none), so outline, section and item agree. It is computed at sync and stored, never per request. It is a planning figure, not a tokenizer count: code, tables and languages other than English can differ by a third either way, and frontmatter is not counted.
 
 ### 2.4 Freeze
 
@@ -167,7 +174,7 @@ Each section also carries its source `markdown` (heading line included) and its 
 
 **Resolution order (default):** **product > company/client > organisation**, every value with its **origin** (scope, source, file, commit). `inherits_from_parent = false` isolates a product (case 3). Shared sources are referenced by id + version (case 6), never copied.
 
-**Returns:** resolved keys, origins, ACL cuts, token estimate.
+**Returns:** resolved keys, origins, ACL cuts; each entry carries its item's `token_estimate` and the view's `token_estimate` is their sum (§2.3.1).
 
 
 **Validity (#218).** For each resolution key the most specific **active** entry wins; a draft, deprecated or superseded entry never replaces an active one, and shows only when no active entry exists for its key (or with `include_inactive=true`). Every entry carries its `status` and dates.
