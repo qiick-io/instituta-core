@@ -1,3 +1,4 @@
+import { AppAssistantPanel } from '@/components/ai/app-assistant-panel';
 import { FlashToasts } from '@/components/flash-toasts';
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import type { AppLayoutProps } from '@/types';
@@ -17,6 +18,7 @@ export default function AppLayout({
         >
             <FlashToasts />
             {children}
+            <AppAssistantPanel />
         </AppLayoutTemplate>
     );
 }

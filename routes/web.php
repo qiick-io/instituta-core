@@ -4,6 +4,7 @@ use App\Enums\PermissionEnum;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\Ai\AiChatController;
 use App\Http\Controllers\Ai\AiConversationController;
+use App\Http\Controllers\Ai\AiPageController;
 use App\Http\Controllers\Ai\AiStatusController;
 use App\Http\Controllers\Brain\ClientCompanyFormController;
 use App\Http\Controllers\Brain\ClientEraseController;
@@ -110,6 +111,7 @@ Route::middleware(['auth', 'verified', 'permission:'.PermissionEnum::CanUseAi->v
     ->prefix('ai')
     ->name('ai.')
     ->group(function (): void {
+        Route::get('/', AiPageController::class)->name('index');
         Route::get('status', AiStatusController::class)->name('status');
 
         Route::middleware(EnsureAiAssistantEnabledMiddleware::class)->group(function (): void {

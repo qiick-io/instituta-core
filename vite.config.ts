@@ -78,6 +78,14 @@ export default defineConfig({
             'resources/js/components/admin/*',
             'resources/js/components/realtime/*',
             'resources/views/mail/*',
+            // @qiick registry chat / assistant items (#203): kept byte for byte for the drift check.
+            'resources/js/components/ai-elements/*',
+            'resources/js/components/ai/ai-answer-parts.tsx',
+            'resources/js/components/ai/assistant-panel.tsx',
+            'resources/js/components/layout/chat-layout.tsx',
+            'resources/js/lib/ai-message-parts.ts',
+            'resources/js/lib/composer-chrome.ts',
+            'resources/js/hooks/use-autosize-textarea.ts',
             // Synthetic brain corpora: oxfmt must not rewrite fixture bodies
             // (e.g. PEM fences that look like markdown frontmatter).
             'tests/Unit/Brain/Fixtures/**',
