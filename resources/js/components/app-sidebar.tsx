@@ -1,12 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Building2,
-    CircleHelp,
-    FilePenLine,
     FolderGit2,
     FolderTree,
     GitFork,
     History,
+    Inbox,
     LayoutGrid,
     PanelRight,
     ScrollText,
@@ -49,8 +48,7 @@ import { graph } from '@/routes';
 import { agentCalls as sessionReplay } from '@/routes/activity';
 import { index as explorerIndex } from '@/routes/explorer';
 import { index as clientsIndex } from '@/routes/clients';
-import { index as gapsIndex } from '@/routes/review/gaps';
-import { index as proposalsIndex } from '@/routes/review/proposals';
+import { index as reviewIndex } from '@/routes/review';
 import users from '@/routes/users';
 import type { NavItem } from '@/types';
 
@@ -61,7 +59,7 @@ import type { NavItem } from '@/types';
 export function AppSidebar() {
     const { t } = useTranslation();
     const { can } = useCan();
-    const { auth, appVersion, notifications } = usePage().props;
+    const { auth, appVersion, notifications, review } = usePage().props;
     const unreadCount = notifications?.unread_count ?? 0;
     const isSoundEnabled = notifications?.sound_enabled ?? false;
 
@@ -82,14 +80,10 @@ export function AppSidebar() {
             icon: GitFork,
         },
         {
-            title: t('brain.nav.proposals'),
-            href: proposalsIndex.url(),
-            icon: FilePenLine,
-        },
-        {
-            title: t('brain.nav.gaps'),
-            href: gapsIndex.url(),
-            icon: CircleHelp,
+            title: t('review.title'),
+            href: reviewIndex.url(),
+            icon: Inbox,
+            badgeCount: review.open_proposals + review.open_gaps,
         },
         {
             title: t('brain.nav.clients'),

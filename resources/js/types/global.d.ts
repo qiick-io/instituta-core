@@ -24,6 +24,11 @@ declare module '@inertiajs/core' {
                 unread_count: number;
                 sound_enabled: boolean;
             };
+            /** What waits for review in the session scope (#255); gaps count for owners only. */
+            review: {
+                open_proposals: number;
+                open_gaps: number;
+            };
             projectAppearance: ProjectAppearance;
             [key: string]: unknown;
         };

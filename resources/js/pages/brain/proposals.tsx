@@ -15,6 +15,8 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import proposalRoutes from '@/routes/review/proposals';
 import type { BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
+import { ReviewTabs } from '@/components/brain/review-tabs';
+import { index as reviewIndex } from '@/routes/review';
 
 type ProposalRow = {
     id: string;
@@ -48,6 +50,7 @@ export default function BrainProposals({
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
+            { title: t('review.title'), href: reviewIndex.url() },
             {
                 title: t('brain.proposals.title'),
                 href: proposalRoutes.index.url(),
@@ -136,7 +139,9 @@ export default function BrainProposals({
     return (
         <AppLayout {...layoutProps}>
             <Head title={t('brain.proposals.title')} />
+            <ReviewTabs view="proposals" />
             <PageLayout
+                description={t('review.proposalsDescription')}
                 filters={
                     hideListChrome ? undefined : (
                         <DataTableToolbar

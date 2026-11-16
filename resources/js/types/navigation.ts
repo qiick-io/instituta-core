@@ -11,4 +11,6 @@ export type NavItem = {
     href: NonNullable<InertiaLinkProps['href']>;
     icon?: LucideIcon | null;
     isActive?: boolean;
+    /** A count shown next to the item (open items to review); hidden when zero. */
+    badgeCount?: number;
 };

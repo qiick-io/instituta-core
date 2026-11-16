@@ -13,6 +13,7 @@ import {
     update as proposalsUpdate,
 } from '@/routes/review/proposals';
 import AppLayout from '@/layouts/app-layout';
+import { index as reviewIndex } from '@/routes/review';
 import { Check, X } from 'lucide-react';
 
 type ProposalDetail = {
@@ -135,6 +136,7 @@ export default function BrainProposalShow({
     const { t } = useTranslation();
     const layoutProps = {
         breadcrumbs: [
+            { title: t('review.title'), href: reviewIndex.url() },
             {
                 title: t('brain.nav.proposals'),
                 href: proposalsIndex.url(),

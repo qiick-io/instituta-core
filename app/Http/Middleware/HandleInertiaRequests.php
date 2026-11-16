@@ -8,6 +8,7 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Services\AppVersionService;
 use App\Services\Authorization\EffectivePermissionResolverService;
+use App\Services\ReviewCountsService;
 use App\Services\SessionPerimeterService;
 use App\Services\SettingsRepositoryService;
 use App\Services\ThemePresetService;
@@ -65,6 +66,10 @@ class HandleInertiaRequests extends Middleware
             'availableLocales' => config('i18n.available_locales', ['en' => 'English']),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'instituta' => app(SessionPerimeterService::class)->sharedPayload($request),
+            // What waits for review in the session scope (#255): sidebar badge and Review tabs.
+            'review' => fn (): array => $user instanceof User
+                ? app(ReviewCountsService::class)->counts(app(SessionPerimeterService::class)->optionalPerimeter($request))
+                : ['open_proposals' => 0, 'open_gaps' => 0],
             'instanceSettings' => [
                 'reportBugUrl' => $settings->reportBugUrl(),
             ],
