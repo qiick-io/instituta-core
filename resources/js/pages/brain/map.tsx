@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
+import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { map, tree } from '@/routes/brain';
@@ -30,16 +31,7 @@ export default function BrainMap({ areas, hasPerimeter }: Props) {
     return (
         <AppLayout {...layoutProps}>
             <Head title={t('brain.map.title')} />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                <div className="space-y-1">
-                    <h1 className="text-xl font-semibold tracking-tight">
-                        {t('brain.map.title')}
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.map.description')}
-                    </p>
-                </div>
-
+            <PageLayout description={t('brain.map.description')} scrollContent>
                 {!hasPerimeter ? (
                     <p className="text-sm text-muted-foreground">
                         {t('brain.scope.none')}
@@ -83,7 +75,7 @@ export default function BrainMap({ areas, hasPerimeter }: Props) {
                         ))}
                     </div>
                 )}
-            </div>
+            </PageLayout>
         </AppLayout>
     );
 }

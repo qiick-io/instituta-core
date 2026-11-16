@@ -13,6 +13,7 @@ import {
     update as proposalsUpdate,
 } from '@/routes/brain/proposals';
 import AppLayout from '@/layouts/app-layout';
+import { Check, X } from 'lucide-react';
 
 type ProposalDetail = {
     id: string;
@@ -140,7 +141,7 @@ export default function BrainProposalShow({
             },
             {
                 title: proposal.title,
-                href: '#',
+                href: proposalsShow.url(proposal.id),
             },
         ],
     };
@@ -154,40 +155,50 @@ export default function BrainProposalShow({
     };
 
     return (
-        <AppLayout {...layoutProps}>
+        <AppLayout
+            {...layoutProps}
+            headerActions={
+                canDecide ? (
+                    <>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => decide('rejected')}
+                        >
+                            <X />
+                            {t('brain.proposals.reject')}
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={() => decide('accepted')}
+                        >
+                            <Check />
+                            {t('brain.proposals.accept')}
+                        </Button>
+                    </>
+                ) : undefined
+            }
+        >
             <Head title={proposal.title} />
-            <PageLayout description={t('brain.proposals.showDescription')}>
-                <div className="flex flex-wrap items-start justify-between gap-3 pb-4">
-                    <div className="space-y-2">
-                        <h1 className="text-xl font-semibold tracking-tight">
-                            {proposal.title}
-                        </h1>
-                        <div className="flex flex-wrap gap-2">
-                            <Badge variant="secondary">
-                                {t(
-                                    `brain.proposals.status.${proposal.status}`,
-                                    {
-                                        defaultValue: proposal.status,
-                                    },
-                                )}
-                            </Badge>
-                            <Badge variant="outline">
-                                {t(
-                                    `brain.proposals.action.${proposal.action}`,
-                                    {
-                                        defaultValue: proposal.action,
-                                    },
-                                )}
-                            </Badge>
-                        </div>
+            <PageLayout
+                description={t('brain.proposals.showDescription')}
+                subheader={
+                    <div className="flex flex-wrap gap-2">
+                        <Badge variant="secondary">
+                            {t(`brain.proposals.status.${proposal.status}`, {
+                                defaultValue: proposal.status,
+                            })}
+                        </Badge>
+                        <Badge variant="outline">
+                            {t(`brain.proposals.action.${proposal.action}`, {
+                                defaultValue: proposal.action,
+                            })}
+                        </Badge>
                     </div>
-                    <Button type="button" variant="outline" asChild>
-                        <Link href={proposalsIndex.url()}>
-                            {t('brain.proposals.backToList')}
-                        </Link>
-                    </Button>
-                </div>
-
+                }
+                scrollContent
+            >
                 <dl className="grid gap-3 text-sm sm:grid-cols-2">
                     <div>
                         <dt className="text-muted-foreground">
@@ -413,24 +424,6 @@ export default function BrainProposalShow({
                             )}
                         />
                     </Field>
-                ) : null}
-
-                {canDecide ? (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                        <Button
-                            type="button"
-                            onClick={() => decide('accepted')}
-                        >
-                            {t('brain.proposals.accept')}
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="destructive"
-                            onClick={() => decide('rejected')}
-                        >
-                            {t('brain.proposals.reject')}
-                        </Button>
-                    </div>
                 ) : null}
             </PageLayout>
         </AppLayout>

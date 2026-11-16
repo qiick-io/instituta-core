@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -21,6 +20,10 @@ import {
 } from '@/components/ui/table';
 import { resolved } from '@/routes/brain';
 import AppLayout from '@/layouts/app-layout';
+import { Bot, Boxes, KeyRound, Table as TableIcon } from 'lucide-react';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { EmptyStatus } from '@/components/empty-status';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 type ProductOption = {
     id: string;
@@ -86,87 +89,99 @@ export default function BrainResolved({
                 description={t('brain.resolved.description')}
                 filters={
                     hasPerimeter && products.length > 0 ? (
-                        <div className="flex flex-wrap items-center gap-3">
-                            <div className="space-y-1">
-                                <Label htmlFor="resolved-product">
-                                    {t('brain.resolved.product')}
-                                </Label>
-                                <Select
-                                    value={product_id ?? undefined}
-                                    onValueChange={(value) =>
-                                        router.get(
-                                            resolved.url(),
-                                            { product: value },
-                                            { preserveState: true },
-                                        )
-                                    }
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Select
+                                value={product_id ?? undefined}
+                                onValueChange={(value) =>
+                                    router.get(
+                                        resolved.url(),
+                                        { product: value },
+                                        { preserveState: true },
+                                    )
+                                }
+                            >
+                                <SelectTrigger
+                                    className="min-w-[12rem]"
+                                    aria-label={t('brain.resolved.product')}
                                 >
-                                    <SelectTrigger
-                                        id="resolved-product"
-                                        className="min-w-[12rem]"
-                                    >
-                                        <SelectValue
-                                            placeholder={t(
-                                                'brain.resolved.product',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {products.map((product) => (
-                                            <SelectItem
-                                                key={product.id}
-                                                value={product.id}
-                                            >
-                                                {product.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <label className="flex items-center gap-2 text-sm">
-                                <input
-                                    type="checkbox"
-                                    checked={agentMode}
-                                    onChange={(event) =>
-                                        setAgentMode(event.target.checked)
-                                    }
-                                    className="size-4 rounded border"
-                                />
-                                {t('brain.resolved.agentToggle')}
-                            </label>
+                                    <SelectValue
+                                        placeholder={t(
+                                            'brain.resolved.product',
+                                        )}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {products.map((product) => (
+                                        <SelectItem
+                                            key={product.id}
+                                            value={product.id}
+                                        >
+                                            {product.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Badge variant="secondary">
+                                {t('brain.resolved.tokens', {
+                                    count: token_estimate,
+                                })}
+                            </Badge>
                         </div>
                     ) : null
                 }
+                filtersRight={
+                    hasPerimeter && products.length > 0 ? (
+                        <ToggleGroup
+                            type="single"
+                            value={agentMode ? 'agent' : 'table'}
+                            onValueChange={(value) => {
+                                if (value !== '') {
+                                    setAgentMode(value === 'agent');
+                                }
+                            }}
+                            variant="outline"
+                            aria-label={t('brain.resolved.viewLabel')}
+                        >
+                            <ToggleGroupItem value="table">
+                                <TableIcon />
+                                {t('brain.resolved.viewTable')}
+                            </ToggleGroupItem>
+                            <ToggleGroupItem value="agent">
+                                <Bot />
+                                {t('brain.resolved.agentToggle')}
+                            </ToggleGroupItem>
+                        </ToggleGroup>
+                    ) : null
+                }
             >
-                <div className="flex flex-wrap items-center gap-2 pb-2">
-                    <h1 className="text-xl font-semibold tracking-tight">
-                        {t('brain.resolved.title')}
-                    </h1>
-                    {hasPerimeter ? (
-                        <Badge variant="secondary">
-                            {t('brain.resolved.tokens', {
-                                count: token_estimate,
-                            })}
-                        </Badge>
-                    ) : null}
-                </div>
-
                 {!hasPerimeter ? (
                     <p className="text-sm text-muted-foreground">
                         {t('brain.scope.none')}
                     </p>
                 ) : products.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.resolved.noProducts')}
-                    </p>
+                    <PageEmptyState
+                        icon={Boxes}
+                        title={
+                            <EmptyStatus>
+                                {t('brain.resolved.noProducts')}
+                            </EmptyStatus>
+                        }
+                        description={t('brain.resolved.description')}
+                    />
                 ) : agentMode ? (
                     <pre className="overflow-x-auto rounded-xl border border-sidebar-border/70 bg-muted/30 p-4 font-mono text-xs dark:border-sidebar-border">
                         {JSON.stringify(agent_view, null, 2)}
                     </pre>
                 ) : entries.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.resolved.empty')}
-                    </p>
+                    <PageEmptyState
+                        icon={KeyRound}
+                        title={
+                            <EmptyStatus>
+                                {t('brain.resolved.empty')}
+                            </EmptyStatus>
+                        }
+                        description={t('brain.resolved.emptyDescription')}
+                    />
                 ) : (
                     <Table>
                         <TableHeader>

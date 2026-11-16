@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { ListTree, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -12,6 +12,9 @@ import { Drawer } from '@/components/ui/drawer';
 import { cn } from '@/lib/utils';
 import { reading, tree } from '@/routes/brain';
 import AppLayout from '@/layouts/app-layout';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { EmptyStatus } from '@/components/empty-status';
+import { PageLayout } from '@/components/layout/page-layout';
 
 type TreeItem = {
     id: string;
@@ -60,35 +63,22 @@ export default function BrainTree({
     );
 
     return (
-        <AppLayout {...layoutProps}>
+        <AppLayout
+            {...layoutProps}
+            headerActions={
+                canPropose ? (
+                    <Button type="button" onClick={() => setIsCreating(true)}>
+                        <Plus />
+                        {t('brain.propose.newItem')}
+                    </Button>
+                ) : undefined
+            }
+        >
             <Head title={t('brain.tree.title')} />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="space-y-1">
-                        <h1 className="text-xl font-semibold tracking-tight">
-                            {t('brain.tree.title')}
-                        </h1>
-                        <p className="text-sm text-muted-foreground">
-                            {t('brain.tree.description')}
-                        </p>
-                    </div>
-                    {canPropose ? (
-                        <Button
-                            type="button"
-                            onClick={() => setIsCreating(true)}
-                        >
-                            <Plus />
-                            {t('brain.propose.newItem')}
-                        </Button>
-                    ) : null}
-                </div>
-
-                {!hasPerimeter ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.scope.none')}
-                    </p>
-                ) : (
-                    <>
+            <PageLayout
+                description={t('brain.tree.description')}
+                subheader={
+                    hasPerimeter ? (
                         <div className="flex flex-wrap items-center gap-2">
                             <Badge variant="secondary">
                                 {t('brain.tree.count', {
@@ -112,11 +102,26 @@ export default function BrainTree({
                                 </>
                             ) : null}
                         </div>
-
+                    ) : undefined
+                }
+                scrollContent
+            >
+                {!hasPerimeter ? (
+                    <p className="text-sm text-muted-foreground">
+                        {t('brain.scope.none')}
+                    </p>
+                ) : (
+                    <>
                         {groups.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">
-                                {t('brain.tree.empty')}
-                            </p>
+                            <PageEmptyState
+                                icon={ListTree}
+                                title={
+                                    <EmptyStatus>
+                                        {t('brain.tree.empty')}
+                                    </EmptyStatus>
+                                }
+                                description={t('brain.tree.emptyDescription')}
+                            />
                         ) : (
                             <div className="space-y-6">
                                 {groups.map((group) => (
@@ -166,7 +171,7 @@ export default function BrainTree({
                         )}
                     </>
                 )}
-            </div>
+            </PageLayout>
 
             <Drawer
                 direction="right"

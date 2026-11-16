@@ -457,7 +457,8 @@
             "count_one": "{{count}} item",
             "count_other": "{{count}} items",
             "empty": "No concepts in this scope yet.",
-            "clearArea": "Show all areas"
+            "clearArea": "Show all areas",
+            "emptyDescription": "Sync a source, or pick another area or scope."
         },
         "areas": {
             "rules": "Rules",
@@ -499,7 +500,10 @@
                 "product": "Product",
                 "company": "Company",
                 "organisation": "Organisation"
-            }
+            },
+            "viewLabel": "View",
+            "viewTable": "Table",
+            "emptyDescription": "Entries with a resolution_key in their frontmatter appear here, most specific scope first."
         },
         "tables": {
             "title": "Structured tables",
@@ -510,7 +514,8 @@
             "colKey": "Key",
             "colItem": "Item",
             "colRows": "Rows",
-            "colColumns": "Columns"
+            "colColumns": "Columns",
+            "emptyDescription": "Markdown tables under a heading with a table key appear here as structured rows."
         },
         "sources": {
             "title": "Sources",
@@ -708,7 +713,9 @@
                 "principal": "Principal",
                 "tool": "Tool",
                 "dateFrom": "From",
-                "dateTo": "To"
+                "dateTo": "To",
+                "allPrincipals": "All principals",
+                "allTools": "All tools"
             }
         },
         "proposals": {
@@ -782,7 +789,8 @@
             "depth1": "Depth 1",
             "depth2": "Depth 2",
             "openTree": "Open tree",
-            "canvasLabel": "Brain item neighbour graph"
+            "canvasLabel": "Brain item neighbour graph",
+            "depthLabel": "Graph depth"
         },
         "propose": {
             "proposeChange": "Propose change",

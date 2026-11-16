@@ -457,7 +457,8 @@
             "count_one": "{{count}} Eintrag",
             "count_other": "{{count}} Einträge",
             "empty": "Noch keine Konzepte in diesem Bereich.",
-            "clearArea": "Alle Areas zeigen"
+            "clearArea": "Alle Areas zeigen",
+            "emptyDescription": "Synchronisiere eine Quelle oder wähle einen anderen Bereich."
         },
         "areas": {
             "rules": "Regeln",
@@ -499,7 +500,10 @@
                 "product": "Produkt",
                 "company": "Unternehmen",
                 "organisation": "Organisation"
-            }
+            },
+            "viewLabel": "Ansicht",
+            "viewTable": "Tabelle",
+            "emptyDescription": "Hier erscheinen Einträge mit resolution_key im Frontmatter, der spezifischste Bereich zuerst."
         },
         "tables": {
             "title": "Strukturierte Tabellen",
@@ -510,7 +514,8 @@
             "colKey": "Schlüssel",
             "colItem": "Eintrag",
             "colRows": "Zeilen",
-            "colColumns": "Spalten"
+            "colColumns": "Spalten",
+            "emptyDescription": "Markdown-Tabellen unter einer Überschrift mit Tabellenschlüssel erscheinen hier als strukturierte Zeilen."
         },
         "sources": {
             "title": "Quellen",
@@ -708,7 +713,9 @@
                 "principal": "Principal",
                 "tool": "Tool",
                 "dateFrom": "Von",
-                "dateTo": "Bis"
+                "dateTo": "Bis",
+                "allPrincipals": "Alle Principals",
+                "allTools": "Alle Werkzeuge"
             }
         },
         "proposals": {
@@ -782,7 +789,8 @@
             "depth1": "Tiefe 1",
             "depth2": "Tiefe 2",
             "openTree": "Baum öffnen",
-            "canvasLabel": "Nachbargraph der Brain-Einträge"
+            "canvasLabel": "Nachbargraph der Brain-Einträge",
+            "depthLabel": "Graphtiefe"
         },
         "propose": {
             "proposeChange": "Änderung vorschlagen",

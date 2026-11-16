@@ -457,7 +457,8 @@
             "count_one": "{{count}} elemento",
             "count_other": "{{count}} elementi",
             "empty": "Nessun concetto in questo ambito ancora.",
-            "clearArea": "Mostra tutte le aree"
+            "clearArea": "Mostra tutte le aree",
+            "emptyDescription": "Sincronizza una sorgente, o scegli un'altra area o ambito."
         },
         "areas": {
             "rules": "Regole",
@@ -499,7 +500,10 @@
                 "product": "Prodotto",
                 "company": "Azienda",
                 "organisation": "Organizzazione"
-            }
+            },
+            "viewLabel": "Vista",
+            "viewTable": "Tabella",
+            "emptyDescription": "Qui compaiono le voci con una resolution_key nel frontmatter, dall'ambito più specifico."
         },
         "tables": {
             "title": "Tabelle strutturate",
@@ -510,7 +514,8 @@
             "colKey": "Chiave",
             "colItem": "Elemento",
             "colRows": "Righe",
-            "colColumns": "Colonne"
+            "colColumns": "Colonne",
+            "emptyDescription": "Le tabelle markdown sotto un titolo con una chiave di tabella compaiono qui come righe strutturate."
         },
         "sources": {
             "title": "Sorgenti",
@@ -708,7 +713,9 @@
                 "principal": "Principal",
                 "tool": "Tool",
                 "dateFrom": "Da",
-                "dateTo": "A"
+                "dateTo": "A",
+                "allPrincipals": "Tutti i principal",
+                "allTools": "Tutti gli strumenti"
             }
         },
         "proposals": {
@@ -782,7 +789,8 @@
             "depth1": "Profondità 1",
             "depth2": "Profondità 2",
             "openTree": "Apri albero",
-            "canvasLabel": "Grafo dei vicini degli elementi del brain"
+            "canvasLabel": "Grafo dei vicini degli elementi del brain",
+            "depthLabel": "Profondità del grafo"
         },
         "propose": {
             "proposeChange": "Proponi modifica",
