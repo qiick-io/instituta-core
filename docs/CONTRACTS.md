@@ -99,6 +99,7 @@ When a scope is frozen, every contract call for that scope answers from the pinn
 | List | `instituta_list` | `GET /items` | `list` |
 | Context pack | `instituta_context` | `GET /context` | — |
 | Search | `instituta_search` | `GET /search` | `search` |
+| Changes since | `instituta_changes` | `GET /changes` | — |
 | Outline | `instituta_outline` | `GET /items/{id}/outline` | `outline` |
 | Get by id | `instituta_get` | `GET /items/{id}` | `get` |
 | Get by section | `instituta_get_section` | `GET /items/{id}/sections/{anchor}` | `get` + section |
@@ -157,6 +158,16 @@ Perimeter, freeze and audit rules as for every read (one audit row with the item
 **Behaviour:** apply perimeter first, then rank. Keyword matching takes **any** term of the query, as a prefix, and ranks sections that match more terms higher (language-neutral: Postgres uses the `simple` configuration). With embeddings on, `hybrid` merges keyword and semantic hits by reciprocal rank fusion and `semantic` uses meaning alone; with embeddings off every mode runs as `keyword`. The answer's `mode` says what ran, and each hit's `match` (`keyword`, `semantic`, `both`) why it was found. Active entries are listed before draft, deprecated and superseded ones (relevance order within each group); every hit carries `status` and `superseded_by`. Drivers: `pgsql` (reference), `sqlite` (FTS5). MySQL: not supported in v0.1.0 → clear error (`501` on REST, tool error on MCP).
 
 **Returns:** one hit per matching **section** (at most two per item, best first): item id, title, summary, the section's `anchor` and `heading`, a short snippet from that section, score, and a citation whose `section` is the anchor, so the caller opens it with `get_section` directly. **No full bodies.**
+
+### 3.3.1 `instituta_changes` / `GET /changes`
+
+For agents that keep a memory of the brain (instructions, caches): what changed since they last looked, instead of re-reading everything (#228).
+
+**Query:** `scope` (required), `since` (required: an ISO 8601 date-time, or a vault version label `instituta@vN` for the changes after that version), `area`, `cursor`, `limit` (default 50, max 200).
+
+**Returns:** `changes`, oldest first: `kind` (`created`, `updated`, `removed`), `item`, `stable_key`, `title`, `area`, `status`, `superseded_by`, `changed_sections` (for `updated`: the anchors whose content changed, appeared or disappeared), `changed_at`, citation (path and commit at that change); and `next_cursor`. An item changed by several syncs appears once per sync. Removed items stay listed after they are gone. Under a freeze, only changes up to the frozen version show. An unknown version label answers `not_found`, a `since` that is neither a date-time nor a label `validation_failed`.
+
+Backed by the sync, which records per item what it created, changed or removed (unchanged files record nothing). Perimeter and audit as every read. HTTP MCP and REST only.
 
 ### 3.4 `instituta_outline` / `GET /items/{id}/outline`
 

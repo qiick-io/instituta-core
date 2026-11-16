@@ -8,6 +8,7 @@ use App\Mcp\Prompts\InstitutaProductContextPrompt;
 use App\Mcp\Prompts\InstitutaProposeChangePrompt;
 use App\Mcp\Resources\InstitutaBrainMapResource;
 use App\Mcp\Resources\InstitutaResolvedProductResource;
+use App\Mcp\Tools\Http\InstitutaChangesTool;
 use App\Mcp\Tools\Http\InstitutaContextTool;
 use App\Mcp\Tools\Http\InstitutaGetSectionsTool;
 use App\Mcp\Tools\Http\InstitutaGetSectionTool;
@@ -30,7 +31,7 @@ use Laravel\Mcp\Server\Attributes\Version;
 
 #[Name('Instituta Brain')]
 #[Version('0.1.0')]
-#[Instructions('Instituta is a company brain: brand, rules, decisions, design systems and plans, scoped to your API key. For a task, start with instituta_context: the relevant sections already read within a token budget. To go further, read progressively: instituta_scopes (what you can see), then instituta_search or instituta_similar (find), instituta_outline (structure), instituta_get_section (only the part you need; instituta_get_sections for several at once); instituta_resolve gives the rules that apply to one product. List and search never return bodies. Cite the path of what you rely on. Prefer entries with status active; say when you rely on a draft, deprecated or superseded one (follow superseded_by) or one whose review is overdue. Writes are proposals only (brain:write and the MCP write switch): read the item, send its base version with instituta_propose, and let a person accept it. Prompts instituta_product_context and instituta_propose_change set these steps up for you.')]
+#[Instructions('Instituta is a company brain: brand, rules, decisions, design systems and plans, scoped to your API key. For a task, start with instituta_context: the relevant sections already read within a token budget. To go further, read progressively: instituta_scopes (what you can see), then instituta_search or instituta_similar (find), instituta_outline (structure), instituta_get_section (only the part you need; instituta_get_sections for several at once); instituta_resolve gives the rules that apply to one product. instituta_changes tells what changed since you last looked. List and search never return bodies. Cite the path of what you rely on. Prefer entries with status active; say when you rely on a draft, deprecated or superseded one (follow superseded_by) or one whose review is overdue. Writes are proposals only (brain:write and the MCP write switch): read the item, send its base version with instituta_propose, and let a person accept it. Prompts instituta_product_context and instituta_propose_change set these steps up for you.')]
 class HttpBrainServer extends Server
 {
     protected array $tools = [
@@ -46,6 +47,7 @@ class HttpBrainServer extends Server
         InstitutaOutlineTool::class,
         InstitutaResolveTool::class,
         InstitutaGraphTool::class,
+        InstitutaChangesTool::class,
         InstitutaProposeTool::class,
         InstitutaListProposalsTool::class,
         InstitutaUpdateProposalTool::class,
