@@ -15,7 +15,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('instituta_get')]
-#[Description('Get one brain item by id, stable_key, or path.')]
+#[Description('Get one whole item by id, stable_key or path: every section (plain text, source markdown, section_hash), tables, origin.content_hash and citation. For long items prefer instituta_outline plus instituta_get_section.')]
 #[IsReadOnly]
 class InstitutaGetTool extends Tool
 {

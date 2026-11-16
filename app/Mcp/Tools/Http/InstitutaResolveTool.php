@@ -15,7 +15,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('instituta_resolve')]
-#[Description('Resolved view for a product (product > company > organisation).')]
+#[Description('The rules, decisions and design entries that apply to one product: for each key the most specific version (product over company over organisation). Use it before working on a product.')]
 #[IsReadOnly]
 class InstitutaResolveTool extends Tool
 {

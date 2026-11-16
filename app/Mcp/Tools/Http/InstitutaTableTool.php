@@ -15,7 +15,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('instituta_table')]
-#[Description('Get structured table rows for an item.')]
+#[Description('Get the rows of one structured table of an item (for example a component registry), by table key, with an optional exact-match filter.')]
 #[IsReadOnly]
 class InstitutaTableTool extends Tool
 {

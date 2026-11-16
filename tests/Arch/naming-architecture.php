@@ -69,6 +69,10 @@ return [
         'Brain\\Exceptions' => 'Exception',
         // Plan step 11 search drivers (SearchIndexContract implementations).
         'Services\\Search' => 'Driver',
+        // MCP primitives (laravel/mcp): tools, prompts and resources (#202).
+        'Mcp\\Tools' => 'Tool',
+        'Mcp\\Prompts' => 'Prompt',
+        'Mcp\\Resources' => 'Resource',
     ],
 
     'controllerPublicMethods' => [],

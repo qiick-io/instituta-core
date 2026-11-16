@@ -14,7 +14,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('instituta_graph')]
-#[Description('Graph neighbours for one item (derived edges).')]
+#[Description('Items linked to one item in the local folder (derived edges): what it references and what references it.')]
 #[IsReadOnly]
 class InstitutaGraphTool extends Tool
 {

@@ -21,7 +21,13 @@ Proposal bodies are not echoed in list responses or activity logs.
 
 ## MCP (HTTP `/mcp`)
 
-Enable with `instituta.mcp.enabled`. Same perimeter as REST. Tools include list/get/search/graph and, when write is enabled, propose / list_proposals / update_proposal. Local stdio: `php artisan instituta:mcp`.
+Enable with `instituta.mcp.enabled`. Same perimeter as REST. The server's instructions tell agents how to read progressively.
+
+- **Tools:** `instituta_scopes`, `instituta_list`, `instituta_search`, `instituta_similar` (by meaning, when `AI_EMBEDDINGS_ENABLED=true`), `instituta_outline`, `instituta_get`, `instituta_get_section`, `instituta_table`, `instituta_resolve`, `instituta_graph`; with `brain:write` and `INSTITUTA_MCP_WRITE_ENABLED=true`, `instituta_propose`, `instituta_list_proposals`, `instituta_update_proposal`.
+- **Prompts:** `instituta_product_context` (load the rules that apply to a product) and `instituta_propose_change` (prepare a conflict-safe change to an item).
+- **Resources:** `instituta://brain/map` and `instituta://products/{product_id}/resolved`.
+
+Local stdio: `php artisan instituta:mcp --path=<folder>` serves the same reads over one folder, without writes, embeddings, prompts or resources.
 
 ## Artisan
 

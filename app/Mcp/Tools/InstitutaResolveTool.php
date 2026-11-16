@@ -14,7 +14,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('instituta_resolve')]
-#[Description('Resolved resolution_key entries for the local folder (single-owner perimeter).')]
+#[Description('The resolved entries of the local folder: for each resolution key the entry that applies (single-owner perimeter).')]
 #[IsReadOnly]
 class InstitutaResolveTool extends Tool
 {

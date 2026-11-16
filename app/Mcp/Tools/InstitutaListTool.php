@@ -14,7 +14,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('instituta_list')]
-#[Description('List brain items (ids, titles, summaries). No bodies.')]
+#[Description('List brain items in the local folder (ids, titles, summaries, areas), optionally by area or type. No bodies: open one with instituta_outline then instituta_get_section.')]
 #[IsReadOnly]
 class InstitutaListTool extends Tool
 {

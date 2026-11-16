@@ -14,7 +14,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('instituta_outline')]
-#[Description('Outline of section anchors and headings for one item. No bodies.')]
+#[Description('The section structure of one item (anchors, headings, levels, block types), no bodies. Use it to pick the section to open with instituta_get_section.')]
 #[IsReadOnly]
 class InstitutaOutlineTool extends Tool
 {
