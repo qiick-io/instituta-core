@@ -265,7 +265,7 @@ export function DashboardOverviewPanel({
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>
+                                <TableHead className="w-full">
                                     {t('brain.proposals.colTitle')}
                                 </TableHead>
                                 <TableHead>
@@ -521,7 +521,12 @@ function ActivityTable({
                     <TableRow key={event.id}>
                         <TableCell className="max-w-0 min-w-0">
                             <div className="truncate font-medium">
-                                {event.description}
+                                {event.event !== null &&
+                                event.description === event.event
+                                    ? t(`activity.events.${event.event}`, {
+                                          defaultValue: event.description,
+                                      })
+                                    : event.description}
                             </div>
                             {event.log_name !== null ? (
                                 <div className="truncate font-mono text-xs text-muted-foreground">

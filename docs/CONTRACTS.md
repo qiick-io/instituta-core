@@ -289,7 +289,7 @@ What the last syncs left wrong in the perimeter (#231), for **owner** keys (othe
 | Code | Severity | Found when |
 |---|---|---|
 | `reader_issue` | error / warning | The reader could not parse a file (frontmatter, structure), from the source's last sync report |
-| `skipped_file` | warning | The sync skipped a file |
+| `skipped_file` | warning | The sync skipped files: one issue per source and reason, with the count and the first paths |
 | `broken_link` | warning | A link to a brain file (markdown or wiki link, not a URL or an image) resolves to no item |
 | `missing_superseded_by` | error | `superseded_by` names no entry in the organisation |
 | `duplicate_resolution_key` | error | Several active entries claim the same `resolution_key` in the same scope (one issue per entry) |

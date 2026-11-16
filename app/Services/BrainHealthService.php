@@ -90,17 +90,23 @@ final class BrainHealthService
                 );
             }
 
+            // One warning per reason, not per file: a source can skip hundreds (#244).
+            $skippedPathsByReason = [];
+
             foreach (is_array($report['skipped'] ?? null) ? $report['skipped'] : [] as $skipped) {
                 $path = is_array($skipped) ? (string) ($skipped['path'] ?? '') : (string) $skipped;
                 $reason = is_array($skipped) ? (string) ($skipped['reason'] ?? 'skipped') : 'skipped';
+                $skippedPathsByReason[$reason][] = $path;
+            }
 
+            foreach ($skippedPathsByReason as $reason => $paths) {
                 $issues[] = $this->issue(
                     self::CODE_SKIPPED_FILE,
                     'warning',
                     null,
-                    $path,
-                    $source->name.': the sync skipped this file ('.$reason.').',
-                    'Move the file inside the brain format, or exclude it on purpose.',
+                    $paths[0],
+                    $source->name.': the sync skipped '.count($paths).' file(s) ('.$reason.'), first '.implode(', ', array_slice($paths, 0, 3)).'.',
+                    'Move the files inside the brain format, or exclude them on purpose.',
                 );
             }
         }
