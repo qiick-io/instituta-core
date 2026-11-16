@@ -10,20 +10,24 @@ use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Support\TokenEstimator;
 use App\Contracts\SearchIndexContract;
 use App\Enums\ContractErrorCodeEnum;
+use App\Exceptions\ContractException;
 use App\Models\ApiKey;
 use App\Models\Company;
 use App\Models\ContextFreeze;
 use App\Models\Grant;
 use App\Models\Item;
+use App\Models\ItemChange;
 use App\Models\ItemLink;
 use App\Models\ItemSection;
 use App\Models\Principal;
 use App\Models\Product;
 use App\Models\StructuredTable;
 use App\Models\VaultVersion;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use RuntimeException;
+use Throwable;
 
 /**
  * Database-backed contract operations for HTTP MCP / REST (perimeter first).
@@ -282,6 +286,95 @@ final class IndexedContractService
             'omitted' => $omitted,
             ...$this->freezeMeta($perimeter),
         ];
+    }
+
+    /**
+     * What changed in the brain since a moment (#228): items created, updated (with the sections
+     * whose content changed) and removed, oldest first, from the sync's change log. `$since` is an
+     * ISO 8601 date-time or a vault version label (`instituta@v12`: changes after that version).
+     * Under a freeze, only changes up to the frozen version show. Cursor-paginated by change id.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws ContractException When `$since` is neither a date-time nor a known version label.
+     */
+    public function changes(
+        PerimeterData $perimeter,
+        ?ApiKey $apiKey,
+        string $since,
+        ?string $area = null,
+        ?string $cursor = null,
+        int $limit = 50,
+    ): array {
+        $limit = max(1, min(200, $limit));
+        $query = ItemChange::query()
+            ->withinPerimeter($perimeter)
+            ->where('changed_at', '>', $this->changesSince($perimeter, $since))
+            ->orderBy('id');
+
+        $freeze = $this->activeFreeze($perimeter);
+
+        if ($freeze !== null) {
+            $query->where('changed_at', '<=', $freeze->vaultVersion->created_at ?? CarbonImmutable::createFromTimestamp(0));
+        }
+
+        if ($area !== null && $area !== '') {
+            $query->where('area', $area);
+        }
+
+        if ($cursor !== null && $cursor !== '') {
+            $query->where('id', '>', $cursor);
+        }
+
+        $changes = $query->limit($limit + 1)->get();
+        $hasMore = $changes->count() > $limit;
+        $page = $changes->take($limit)->values();
+
+        $this->audit->record('instituta_changes', $perimeter, $apiKey, array_values(array_unique(array_map(
+            static fn (ItemChange $change): string => $change->item_id,
+            $page->all(),
+        ))));
+
+        return [
+            'since' => $since,
+            'changes' => $page->map(static fn (ItemChange $change): array => [
+                'kind' => $change->kind->value,
+                'item' => $change->item_id,
+                'stable_key' => $change->stable_key,
+                'title' => $change->title,
+                'area' => $change->area,
+                'status' => $change->status->value,
+                'superseded_by' => $change->superseded_by,
+                'changed_sections' => $change->changed_sections,
+                'changed_at' => $change->changed_at->toIso8601String(),
+                'citation' => ['source' => $change->source_id, 'path' => $change->path, 'section' => null, 'commit' => $change->commit],
+            ])->all(),
+            'next_cursor' => $hasMore ? $page->last()?->id : null,
+            ...$this->freezeMeta($perimeter),
+        ];
+    }
+
+    /**
+     * @throws ContractException When the value is neither a date-time nor a version label of the perimeter's organisation.
+     */
+    private function changesSince(PerimeterData $perimeter, string $since): CarbonImmutable
+    {
+        if (preg_match('/^instituta@v\d+$/', $since) === 1) {
+            [$organisationId] = app(PerimeterScopeColumnsService::class)->columnsFor($perimeter);
+            $version = VaultVersion::query()->where('organisation_id', $organisationId)->where('label', $since)->first();
+
+            if ($version?->created_at === null) {
+                throw new ContractException(ContractErrorCodeEnum::NotFound, 'No vault version with this label in your perimeter.');
+            }
+
+            return CarbonImmutable::parse($version->created_at);
+        }
+
+        try {
+            return CarbonImmutable::parse($since);
+        } catch (Throwable) {
+            throw new ContractException(ContractErrorCodeEnum::ValidationFailed, 'since must be an ISO 8601 date-time or a vault version label (instituta@vN).');
+        }
     }
 
     /**

@@ -15,12 +15,14 @@ use App\Brain\Data\ValidationIssueData;
 use App\Brain\Enums\ItemStatusEnum;
 use App\Brain\Exceptions\DenylistHitException;
 use App\Brain\Readers\BrainReader;
+use App\Enums\ItemChangeKindEnum;
 use App\Enums\QuotaMetricEnum;
 use App\Enums\SourceProviderEnum;
 use App\Enums\SyncStatusEnum;
 use App\Exceptions\QuotaExceededException;
 use App\Jobs\EmbedItemSectionJob;
 use App\Models\Item;
+use App\Models\ItemChange;
 use App\Models\ItemLink;
 use App\Models\ItemSection;
 use App\Models\Source;
@@ -532,9 +534,17 @@ final class SourceSyncService
 
         foreach ($repo->items as $itemData) {
             $item = $this->upsertItem($source, $itemData, $commit);
+            $isItemChanged = $item->wasChanged(['content_hash', 'title', 'summary', 'area', 'visibility', 'status', 'superseded_by', 'frontmatter']);
             $pathToItemId[$itemData->path] = $item->id;
             $items++;
-            $sections += $this->upsertSections($source, $item, $itemData->sections);
+            ['count' => $sectionCount, 'changed_anchors' => $changedAnchors] = $this->upsertSections($source, $item, $itemData->sections);
+            $sections += $sectionCount;
+
+            if ($item->wasRecentlyCreated) {
+                $this->recordChange($item, ItemChangeKindEnum::Created, null);
+            } elseif ($isItemChanged || $changedAnchors !== []) {
+                $this->recordChange($item, ItemChangeKindEnum::Updated, $changedAnchors);
+            }
             $this->upsertTables($source, $item, $itemData->tables);
         }
 
@@ -576,7 +586,38 @@ final class SourceSyncService
 
         $this->searchIndex->deleteByItemIds($staleItemIds);
 
+        foreach (Item::query()->whereIn('id', $staleItemIds)->get() as $staleItem) {
+            $this->recordChange($staleItem, ItemChangeKindEnum::Removed, null);
+        }
+
         Item::query()->whereIn('id', $staleItemIds)->delete();
+    }
+
+    /**
+     * Appends what this sync did to an item (#228); removed items keep this row as a tombstone.
+     *
+     * @param  list<string>|null  $changedAnchors  For an update, the sections whose content changed, appeared or disappeared.
+     */
+    private function recordChange(Item $item, ItemChangeKindEnum $kind, ?array $changedAnchors): void
+    {
+        ItemChange::query()->create([
+            'organisation_id' => $item->organisation_id,
+            'company_id' => $item->company_id,
+            'product_id' => $item->product_id,
+            'source_id' => $item->source_id,
+            'item_id' => $item->id,
+            'kind' => $kind,
+            'stable_key' => $item->stable_key,
+            'path' => $item->path,
+            'title' => $item->title,
+            'area' => $item->area,
+            'visibility' => $item->visibility,
+            'status' => $item->status,
+            'superseded_by' => $item->superseded_by,
+            'commit' => $item->commit,
+            'changed_sections' => $changedAnchors,
+            'changed_at' => now(),
+        ]);
     }
 
     private function upsertItem(Source $source, ItemData $itemData, string $commit): Item
@@ -617,11 +658,13 @@ final class SourceSyncService
 
     /**
      * @param  list<SectionData>  $sections
+     * @return array{count: int, changed_anchors: list<string>}
      */
-    private function upsertSections(Source $source, Item $item, array $sections): int
+    private function upsertSections(Source $source, Item $item, array $sections): array
     {
         $count = 0;
         $seenAnchors = [];
+        $changedAnchors = [];
 
         foreach ($sections as $section) {
             $stored = ItemSection::query()->updateOrCreate(
@@ -650,20 +693,27 @@ final class SourceSyncService
                 $this->sectionsToEmbed[] = $stored->id;
             }
 
+            if ($stored->wasRecentlyCreated || $stored->wasChanged(['heading', 'body', 'markdown'])) {
+                $changedAnchors[] = $section->anchor;
+            }
+
             $seenAnchors[] = $section->anchor;
             $count++;
         }
 
+        $removedSections = ItemSection::query()->where('item_id', $item->id);
+
         if ($seenAnchors !== []) {
-            ItemSection::query()
-                ->where('item_id', $item->id)
-                ->whereNotIn('anchor', $seenAnchors)
-                ->delete();
-        } else {
-            ItemSection::query()->where('item_id', $item->id)->delete();
+            $removedSections->whereNotIn('anchor', $seenAnchors);
         }
 
-        return $count;
+        foreach ($removedSections->pluck('anchor')->all() as $removedAnchor) {
+            $changedAnchors[] = (string) $removedAnchor;
+        }
+
+        $removedSections->delete();
+
+        return ['count' => $count, 'changed_anchors' => $changedAnchors];
     }
 
     /**

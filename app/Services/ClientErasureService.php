@@ -15,6 +15,7 @@ use App\Models\Company;
 use App\Models\ContractCall;
 use App\Models\Grant;
 use App\Models\Item;
+use App\Models\ItemChange;
 use App\Models\OffboardingRequest;
 use App\Models\Principal;
 use App\Models\Product;
@@ -90,6 +91,17 @@ final class ClientErasureService
 
             $deletedItems = (clone $itemQuery)->count();
             $itemQuery->delete();
+
+            // The change log (#228) names erased items too: it goes with them.
+            ItemChange::query()
+                ->where(function ($query) use ($company, $productIds): void {
+                    $query->where('company_id', $company->id);
+
+                    if ($productIds !== []) {
+                        $query->orWhereIn('product_id', $productIds);
+                    }
+                })
+                ->delete();
 
             Source::query()
                 ->where(function ($query) use ($company, $productIds): void {

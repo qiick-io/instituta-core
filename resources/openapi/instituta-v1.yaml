@@ -344,6 +344,83 @@ paths:
                     $ref: '#/components/responses/NotFound'
                 '422':
                     $ref: '#/components/responses/ValidationError'
+    /changes:
+        get:
+            tags: [Contract]
+            summary: What changed since a date or version
+            description: Items created, updated (changed_sections lists the anchors whose content changed, appeared or disappeared) and removed by the syncs since `since`, oldest first, within the perimeter.
+            operationId: listChanges
+            security:
+                - ApiKeyBearer: []
+            parameters:
+                - $ref: '#/components/parameters/Scope'
+                - name: since
+                  in: query
+                  required: true
+                  description: ISO 8601 date-time, or a vault version label (instituta@vN) for the changes after that version
+                  schema:
+                      type: string
+                - name: area
+                  in: query
+                  schema:
+                      type: string
+                - name: cursor
+                  in: query
+                  schema:
+                      type: string
+                - name: limit
+                  in: query
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 200
+                      default: 50
+            responses:
+                '200':
+                    description: Changes, oldest first, and the cursor of the next page
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    changes:
+                                        type: array
+                                        items:
+                                            type: object
+                                            properties:
+                                                kind:
+                                                    type: string
+                                                    enum:
+                                                        [
+                                                            created,
+                                                            updated,
+                                                            removed,
+                                                        ]
+                                                item:
+                                                    type: string
+                                                stable_key:
+                                                    type: string
+                                                status:
+                                                    type: string
+                                                superseded_by:
+                                                    type: ['string', 'null']
+                                                changed_sections:
+                                                    type: ['array', 'null']
+                                                    items:
+                                                        type: string
+                                                changed_at:
+                                                    type: string
+                                                    format: date-time
+                                                citation:
+                                                    $ref: '#/components/schemas/Citation'
+                                    next_cursor:
+                                        type: ['string', 'null']
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '422':
+                    $ref: '#/components/responses/ValidationError'
     /search:
         get:
             tags: [Contract]
