@@ -1095,5 +1095,58 @@
         "activityViewAll": "Alle Aktivitäten anzeigen",
         "noPerimeterTitle": "Noch kein Brain-Zugriff",
         "noPerimeterDescription": "Dein Konto hat keinen Perimeter in einer Organisation. Bitte einen Owner um Zugriff."
+    },
+    "assistant": {
+        "title": "Assistent",
+        "newChat": "Neuer Chat",
+        "conversations": "Unterhaltungen",
+        "noConversations": "Noch keine Unterhaltungen.",
+        "recent": "Zuletzt",
+        "untitled": "Unbenannte Unterhaltung",
+        "deleteConversation": "Unterhaltung löschen",
+        "composerLabel": "Das Brain fragen",
+        "send": "Senden",
+        "placeholder": "Frag nach Regeln, Marke, Entscheidungen…",
+        "offTitle": "Der Assistent ist aus",
+        "offDescription": "Ein Admin kann ihn mit AI_ASSISTANT_ENABLED und einem Anbieter einschalten: standardmäßig ein lokales Modell (Ollama, LM Studio), sonst Anthropic, OpenAI oder Gemini.",
+        "emptyTitle": "Das Brain fragen",
+        "emptyDescription": "Antworten kommen aus deinem Brain, innerhalb deines Bereichs, mit den zitierten Quellen.",
+        "offlineDescription": "Das lokale Modell antwortet gerade nicht. Prüfe, ob Ollama oder LM Studio läuft.",
+        "confirmDeleteTitle": "Diese Unterhaltung löschen?",
+        "confirmDeleteDescription": "Ihre Nachrichten werden entfernt. Das lässt sich nicht rückgängig machen.",
+        "thinking": "Denke nach…",
+        "errors": {
+            "request": "Der Assistent hat mit einem Fehler geantwortet ({{status}}).",
+            "stream": "Die Antwort wurde abgebrochen.",
+            "network": "Der Server ist nicht erreichbar.",
+            "streamInterrupted": "Die Verbindung ist während der Antwort abgebrochen."
+        },
+        "tools": {
+            "search": {
+                "running": "Durchsuche das Brain nach „{{subject}}“",
+                "done": "Das Brain nach „{{subject}}“ durchsucht",
+                "error": "Konnte das Brain nicht durchsuchen"
+            },
+            "similar": {
+                "running": "Suche Abschnitte zu „{{subject}}“",
+                "done": "Abschnitte zu „{{subject}}“ gesucht",
+                "error": "Konnte keine ähnlichen Abschnitte suchen"
+            },
+            "outline": {
+                "running": "Öffne die Gliederung von {{subject}}",
+                "done": "Gliederung von {{subject}} geöffnet",
+                "error": "Konnte die Gliederung nicht öffnen"
+            },
+            "read": {
+                "running": "Lese einen Abschnitt von {{subject}}",
+                "done": "Einen Abschnitt von {{subject}} gelesen",
+                "error": "Konnte den Abschnitt nicht lesen"
+            },
+            "resolve": {
+                "running": "Löse die Regeln des Produkts auf",
+                "done": "Regeln des Produkts aufgelöst",
+                "error": "Konnte das Produkt nicht auflösen"
+            }
+        }
     }
 }

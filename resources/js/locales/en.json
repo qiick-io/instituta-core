@@ -1095,5 +1095,58 @@
         "activityViewAll": "View all activity",
         "noPerimeterTitle": "No brain access yet",
         "noPerimeterDescription": "Your account has no organisation perimeter. Ask an owner to grant you access."
+    },
+    "assistant": {
+        "title": "Assistant",
+        "newChat": "New chat",
+        "conversations": "Conversations",
+        "noConversations": "No conversations yet.",
+        "recent": "Recent",
+        "untitled": "Untitled conversation",
+        "deleteConversation": "Delete conversation",
+        "composerLabel": "Ask the brain",
+        "send": "Send",
+        "placeholder": "Ask about your rules, brand, decisions…",
+        "offTitle": "The assistant is off",
+        "offDescription": "An admin can turn it on with AI_ASSISTANT_ENABLED and a provider: a local model (Ollama, LM Studio) by default, or Anthropic, OpenAI or Gemini.",
+        "emptyTitle": "Ask the brain",
+        "emptyDescription": "Answers come from your brain, inside your perimeter, with the sources they cite.",
+        "offlineDescription": "The local model does not answer right now. Check that Ollama or LM Studio is running.",
+        "confirmDeleteTitle": "Delete this conversation?",
+        "confirmDeleteDescription": "Its messages are removed. This cannot be undone.",
+        "thinking": "Thinking…",
+        "errors": {
+            "request": "The assistant answered with an error ({{status}}).",
+            "stream": "The answer stopped.",
+            "network": "Could not reach the server.",
+            "streamInterrupted": "The connection dropped while the answer was streaming."
+        },
+        "tools": {
+            "search": {
+                "running": "Searching the brain for “{{subject}}”",
+                "done": "Searched the brain for “{{subject}}”",
+                "error": "Could not search the brain"
+            },
+            "similar": {
+                "running": "Looking for sections about “{{subject}}”",
+                "done": "Looked for sections about “{{subject}}”",
+                "error": "Could not look for similar sections"
+            },
+            "outline": {
+                "running": "Opening the outline of {{subject}}",
+                "done": "Opened the outline of {{subject}}",
+                "error": "Could not open the outline"
+            },
+            "read": {
+                "running": "Reading a section of {{subject}}",
+                "done": "Read a section of {{subject}}",
+                "error": "Could not read the section"
+            },
+            "resolve": {
+                "running": "Resolving the rules for the product",
+                "done": "Resolved the rules for the product",
+                "error": "Could not resolve the product"
+            }
+        }
     }
 }

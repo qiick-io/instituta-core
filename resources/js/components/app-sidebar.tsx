@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    Sparkles,
     Building2,
     FolderGit2,
     FilePenLine,
@@ -13,6 +14,7 @@ import {
     Users,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { index as assistantIndex } from '@/routes/ai';
 import AppLogo from '@/components/app-logo';
 import { AppUserMenuContent } from '@/components/app-user-menu-content';
 import { NavFooter } from '@/components/nav-footer';
@@ -101,6 +103,16 @@ export function AppSidebar() {
             href: activityIndex.url(),
             icon: ScrollText,
         },
+        ...(can(PermissionEnum.CanUseAi)
+            ? [
+                  {
+                      title: t('assistant.title'),
+                      href: assistantIndex.url(),
+                      icon: Sparkles,
+                      isAiAccent: true,
+                  },
+              ]
+            : []),
         ...(can(PermissionEnum.CanShowUsers)
             ? [
                   {

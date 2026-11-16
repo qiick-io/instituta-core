@@ -1095,5 +1095,58 @@
         "activityViewAll": "Vedi tutta l'attività",
         "noPerimeterTitle": "Nessun accesso al brain",
         "noPerimeterDescription": "Il tuo account non ha un perimetro in un'organizzazione. Chiedi a un owner di darti accesso."
+    },
+    "assistant": {
+        "title": "Assistente",
+        "newChat": "Nuova chat",
+        "conversations": "Conversazioni",
+        "noConversations": "Ancora nessuna conversazione.",
+        "recent": "Recenti",
+        "untitled": "Conversazione senza titolo",
+        "deleteConversation": "Elimina conversazione",
+        "composerLabel": "Chiedi al brain",
+        "send": "Invia",
+        "placeholder": "Chiedi delle tue regole, del brand, delle decisioni…",
+        "offTitle": "L'assistente è spento",
+        "offDescription": "Un admin può accenderlo con AI_ASSISTANT_ENABLED e un provider: un modello locale (Ollama, LM Studio) per impostazione predefinita, oppure Anthropic, OpenAI o Gemini.",
+        "emptyTitle": "Chiedi al brain",
+        "emptyDescription": "Le risposte vengono dal tuo brain, dentro il tuo perimetro, con le fonti citate.",
+        "offlineDescription": "Il modello locale non risponde. Controlla che Ollama o LM Studio siano avviati.",
+        "confirmDeleteTitle": "Eliminare questa conversazione?",
+        "confirmDeleteDescription": "I suoi messaggi vengono rimossi. Non si può annullare.",
+        "thinking": "Sto pensando…",
+        "errors": {
+            "request": "L'assistente ha risposto con un errore ({{status}}).",
+            "stream": "La risposta si è interrotta.",
+            "network": "Impossibile raggiungere il server.",
+            "streamInterrupted": "La connessione si è interrotta durante la risposta."
+        },
+        "tools": {
+            "search": {
+                "running": "Cerco nel brain “{{subject}}”",
+                "done": "Cercato nel brain “{{subject}}”",
+                "error": "Non sono riuscito a cercare nel brain"
+            },
+            "similar": {
+                "running": "Cerco sezioni su “{{subject}}”",
+                "done": "Cercate sezioni su “{{subject}}”",
+                "error": "Non sono riuscito a cercare sezioni simili"
+            },
+            "outline": {
+                "running": "Apro l'indice di {{subject}}",
+                "done": "Aperto l'indice di {{subject}}",
+                "error": "Non sono riuscito ad aprire l'indice"
+            },
+            "read": {
+                "running": "Leggo una sezione di {{subject}}",
+                "done": "Letta una sezione di {{subject}}",
+                "error": "Non sono riuscito a leggere la sezione"
+            },
+            "resolve": {
+                "running": "Risolvo le regole del prodotto",
+                "done": "Risolte le regole del prodotto",
+                "error": "Non sono riuscito a risolvere il prodotto"
+            }
+        }
     }
 }

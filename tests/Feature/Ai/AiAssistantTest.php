@@ -20,6 +20,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia;
 use Laravel\Ai\Models\Conversation;
 use Laravel\Ai\Tools\Request as ToolRequest;
 
@@ -158,4 +159,20 @@ it('lets the brain tools read only inside the user perimeter', function (): void
     expect($outline->handle(new ToolRequest(['item' => $own->id])))->toContain($own->path)
         ->and($outline->handle(new ToolRequest(['item' => $foreignItem->id])))->toBe('{"error":"Not found in your perimeter."}')
         ->and((new SearchBrainTool($perimeter))->handle(new ToolRequest(['q' => 'another company'])))->not->toContain('another company');
+});
+
+it('renders the assistant page with its status, also while the assistant is off', function (): void {
+    config(['ai.assistant.enabled' => false]);
+
+    $this->withoutVite()
+        ->actingAs($this->user)
+        ->get(route('ai.index'))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('ai/index')
+            ->where('status.enabled', false)
+            ->where('conversations', []));
+
+    $reader = User::factory()->create()->assignRole(AppRoleEnum::Reader->value);
+    $this->actingAs($reader)->get(route('ai.index'))->assertForbidden();
 });

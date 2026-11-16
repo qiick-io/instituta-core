@@ -15,7 +15,11 @@
         "resources/js/types/ui.ts",
         "resources/js/components/admin/data-table-faceted-filter.tsx",
         "resources/js/components/admin/data-table.tsx",
-        "resources/js/components/stat-card.tsx"
+        "resources/js/components/stat-card.tsx",
+        "resources/js/components/ai/ai-answer-parts.tsx",
+        "resources/js/components/ai/assistant-panel.tsx",
+        "resources/js/components/ai-elements/**",
+        "resources/js/lib/ai-message-parts.ts"
     ],
     "ignoreDependencies": [
         "@radix-ui/react-avatar",
