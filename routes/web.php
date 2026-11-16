@@ -18,6 +18,7 @@ use App\Http\Controllers\Brain\SessionReplayController;
 use App\Http\Controllers\Brain\SourcesController;
 use App\Http\Controllers\Brain\TablesController;
 use App\Http\Controllers\Brain\TreeController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
@@ -29,7 +30,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     Route::get('notifications', [NotificationController::class, 'index'])
         ->name('notifications.index');
