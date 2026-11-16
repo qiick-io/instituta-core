@@ -16,6 +16,7 @@ use App\Http\Controllers\Brain\ResolvedController;
 use App\Http\Controllers\Brain\ScopeSwitcherController;
 use App\Http\Controllers\Brain\SessionReplayController;
 use App\Http\Controllers\Brain\SourcesController;
+use App\Http\Controllers\Brain\SourceSyncController;
 use App\Http\Controllers\Brain\TablesController;
 use App\Http\Controllers\Brain\TreeController;
 use App\Http\Controllers\DashboardController;
@@ -58,12 +59,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('brain/tables', [TablesController::class, 'index'])->name('brain.tables.index');
     Route::get('brain/tables/{item}/{table}', [TablesController::class, 'show'])
         ->name('brain.tables.show');
-    Route::get('brain/sources', SourcesController::class)->name('brain.sources');
+    Route::get('brain/sources', [SourcesController::class, 'index'])->name('brain.sources');
+    Route::post('brain/sources', [SourcesController::class, 'store'])->name('brain.sources.store');
+    Route::put('brain/sources/{source}', [SourcesController::class, 'update'])->name('brain.sources.update');
+    Route::delete('brain/sources/{source}', [SourcesController::class, 'destroy'])->name('brain.sources.destroy');
+    Route::post('brain/sources/{source}/sync', SourceSyncController::class)->name('brain.sources.sync');
     Route::get('brain/proposals', [ProposalsController::class, 'index'])->name('brain.proposals.index');
     Route::post('brain/proposals', [ProposalsController::class, 'store'])->name('brain.proposals.store');
     Route::get('brain/proposals/{proposal}', [ProposalsController::class, 'show'])->name('brain.proposals.show');
     Route::patch('brain/proposals/{proposal}', [ProposalsController::class, 'update'])->name('brain.proposals.update');
-    Route::get('brain/keys', KeysController::class)->name('brain.keys');
+    Route::get('brain/keys', [KeysController::class, 'index'])->name('brain.keys');
+    Route::post('brain/keys', [KeysController::class, 'store'])->name('brain.keys.store');
+    Route::delete('brain/keys/{key}', [KeysController::class, 'destroy'])->name('brain.keys.destroy');
     Route::get('brain/clients', [ClientsController::class, 'index'])->name('brain.clients.index');
     Route::get('brain/clients/create', [ClientCompanyFormController::class, 'create'])->name('brain.clients.create');
     Route::post('brain/clients', [ClientsController::class, 'store'])->name('brain.clients.store');

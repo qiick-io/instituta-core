@@ -49,6 +49,15 @@ final class BrainSourcesService
                 'last_synced_at' => $source->last_synced_at?->toIso8601String(),
                 'last_sync_report' => $source->last_sync_report,
                 'scope_type' => $source->scope_type->value,
+                'remote_url' => $source->remote_url,
+                'local_path' => $source->local_path,
+                'ref' => $source->ref,
+                'path' => $source->path,
+                'adapter' => $source->adapter->value,
+                'default_visibility' => $source->default_visibility->value,
+                'is_shared' => $source->is_shared,
+                'sync_interval_minutes' => $source->sync_interval_minutes,
+                'has_webhook' => $source->webhook_secret !== null,
             ];
         }
 
