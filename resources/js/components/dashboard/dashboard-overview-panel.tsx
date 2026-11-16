@@ -86,8 +86,12 @@ export function DashboardOverviewPanel({
                         health === null
                             ? t('dashboard.statSourcesContext')
                             : t('dashboard.statSourcesHealth', {
-                                  errors: health.error_count,
-                                  warnings: health.warning_count,
+                                  errors: t('dashboard.healthErrors', {
+                                      count: health.error_count,
+                                  }),
+                                  warnings: t('dashboard.healthWarnings', {
+                                      count: health.warning_count,
+                                  }),
                               })
                     }
                 />
