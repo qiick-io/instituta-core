@@ -1387,7 +1387,11 @@
             "rolesPlaceholder": "Select roles",
             "rolesHint": "Members inherit these roles’ permissions.",
             "users": "Users",
-            "usersPlaceholder": "Select users"
+            "usersPlaceholder": "Select users",
+            "brainAccess": "Brain access",
+            "noBrainAccess": "No brain access",
+            "brainRole": "Role in the brain",
+            "brainAccessHint": "Every member gets this access to the organisation or client. A person's own access is kept when it differs."
         }
     }
 }

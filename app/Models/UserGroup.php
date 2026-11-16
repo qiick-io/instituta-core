@@ -10,6 +10,7 @@ use Database\Factories\UserGroupFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -50,6 +51,16 @@ class UserGroup extends Model
         return $this->belongsToMany(User::class, 'user_group_user')
             ->using(UserGroupUser::class)
             ->withTimestamps();
+    }
+
+    /**
+     * The brain access this group gives its members (#258).
+     *
+     * @return HasMany<UserGroupBrainAccess, $this>
+     */
+    public function brainAccess(): HasMany
+    {
+        return $this->hasMany(UserGroupBrainAccess::class);
     }
 
     /**

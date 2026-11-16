@@ -7,6 +7,7 @@ namespace App\Http\Resources\Admin;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserGroup;
+use App\Models\UserGroupBrainAccess;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
@@ -38,6 +39,14 @@ class UserGroupResource extends JsonResource
             'users_count' => $group->users_count,
             'roles_count' => $group->roles_count,
             'deleted_at' => $group->deleted_at?->toIso8601String(),
+            // The group's brain access (#258) as the drawer's `scope_type:scope_id` value and role.
+            'brain_access' => $this->whenLoaded('brainAccess', fn (): array => $group->brainAccess
+                ->map(fn (UserGroupBrainAccess $access): array => [
+                    'scope' => $access->scope_type->value.':'.$access->scope_id,
+                    'role' => $access->role->value,
+                ])
+                ->values()
+                ->all(), []),
             'roles' => $this->whenLoaded('roles', fn (): array => $group->roles
                 ->map(fn (Role $role): array => ['id' => $role->id, 'name' => $role->name])
                 ->values()

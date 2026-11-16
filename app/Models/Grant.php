@@ -23,6 +23,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @property string $id
  * @property string $principal_id
+ * @property int|null $user_group_id Set when the grant comes from a user group (#258).
  * @property ScopeTypeEnum $scope_type
  * @property string $scope_id
  * @property RoleEnum $role
@@ -35,6 +36,7 @@ use Spatie\Activitylog\Support\LogOptions;
  */
 #[Fillable([
     'principal_id',
+    'user_group_id',
     'scope_type',
     'scope_id',
     'role',

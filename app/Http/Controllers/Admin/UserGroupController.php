@@ -14,6 +14,7 @@ use App\Http\Requests\Admin\UpdateUserGroupRequest;
 use App\Http\Resources\Admin\UserGroupResource;
 use App\Models\User;
 use App\Models\UserGroup;
+use App\Services\GroupBrainScopesService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
@@ -50,7 +51,7 @@ class UserGroupController extends Controller
 
         $query = $request->applySearch(UserGroup::query(), ['name', 'description'])
             ->withCount(['users', 'roles'])
-            ->with(['roles:id,name', 'users:id,first_name,last_name,email']);
+            ->with(['roles:id,name', 'users:id,first_name,last_name,email', 'brainAccess']);
 
         if ($isTrashed) {
             $query->onlyTrashed();
@@ -70,6 +71,8 @@ class UserGroupController extends Controller
             'groups' => UserGroupResource::collection($groups),
             'filters' => [...$request->filters($sort, $direction), 'trashed' => $isTrashed],
             'roles' => StoreUserRequest::assignableRoleOptionsFor($actor instanceof User ? $actor : null),
+            // The organisation and clients the actor may give a group brain access to (#258).
+            'brainScopes' => $actor instanceof User ? app(GroupBrainScopesService::class)->optionsFor($actor) : [],
         ]);
     }
 
@@ -81,6 +84,7 @@ class UserGroupController extends Controller
             $request->filled('description') ? $request->string('description')->toString() : null,
             $request->userIds() ?? [],
             $request->roleIds() ?? [],
+            $request->brainAccess(),
         );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('User group created.')]);
@@ -96,6 +100,7 @@ class UserGroupController extends Controller
             $request->filled('description') ? $request->string('description')->toString() : null,
             $request->userIds(),
             $request->roleIds(),
+            $request->brainAccess(),
         );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('User group updated.')]);

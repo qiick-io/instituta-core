@@ -64,6 +64,8 @@ export type AdminGroupRow = {
     users: AdminGroupMember[];
     user_ids: number[];
     role_ids: number[];
+    /** Brain access the group gives its members (#258): `scope_type:scope_id` and a role. */
+    brain_access: { scope: string; role: string }[];
     can_update: boolean;
     can_delete: boolean;
     can_restore: boolean;
@@ -93,4 +95,11 @@ export type AdminPermissionRow = {
     roles: string[];
     created_at: string;
     updated_at: string;
+};
+
+/** A scope a group can be given brain access to (#258): the organisation or one of its clients. */
+export type AdminBrainScopeOption = {
+    value: string;
+    label: string;
+    scope_type: 'organisation' | 'company';
 };

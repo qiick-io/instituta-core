@@ -1387,7 +1387,11 @@
             "rolesPlaceholder": "Seleziona ruoli",
             "rolesHint": "I membri ereditano i permessi di questi ruoli.",
             "users": "Utenti",
-            "usersPlaceholder": "Seleziona utenti"
+            "usersPlaceholder": "Seleziona utenti",
+            "brainAccess": "Accesso al cervello",
+            "noBrainAccess": "Nessun accesso al cervello",
+            "brainRole": "Ruolo nel cervello",
+            "brainAccessHint": "Ogni membro riceve questo accesso all'organizzazione o al cliente. L'accesso personale, se diverso, resta."
         }
     }
 }

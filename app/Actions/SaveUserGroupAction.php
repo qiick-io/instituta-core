@@ -20,17 +20,24 @@ use Illuminate\Validation\ValidationException;
  */
 class SaveUserGroupAction
 {
-    public function __construct(private SuperAdminGuardService $superAdminGuard) {}
+    public function __construct(
+        private SuperAdminGuardService $superAdminGuard,
+        private ReconcileGroupBrainAccessAction $reconcileBrainAccess,
+    ) {}
 
     /**
      * @param  list<int>|null  $userIds  null keeps the current members
      * @param  list<int>|null  $roleIds  null keeps the current roles
+     * @param  list<array{organisation_id: string, scope_type: string, scope_id: string, role: string}>|null  $brainAccess  null keeps it; members' grants follow (#258)
      *
      * @throws ValidationException under `user_ids` when no active super-admin would be left
      */
-    public function execute(UserGroup $group, string $name, ?string $description, ?array $userIds, ?array $roleIds): UserGroup
+    public function execute(UserGroup $group, string $name, ?string $description, ?array $userIds, ?array $roleIds, ?array $brainAccess = null): UserGroup
     {
-        return $this->superAdminGuard->preventLosingLastSuperAdmin(function () use ($group, $name, $description, $userIds, $roleIds): UserGroup {
+        return $this->superAdminGuard->preventLosingLastSuperAdmin(function () use ($group, $name, $description, $userIds, $roleIds, $brainAccess): UserGroup {
+            // Members before and after the save: everyone whose group grants may change.
+            $previousMembers = $group->exists ? $group->users()->get() : collect();
+
             $group->fill(['name' => $name, 'description' => $description])->save();
 
             if ($userIds !== null) {
@@ -51,6 +58,24 @@ class SaveUserGroupAction
                     ->event('roles_synced')
                     ->withProperties(['role_ids' => $roleIds])
                     ->log('Group roles synced');
+            }
+
+            if ($brainAccess !== null) {
+                $group->brainAccess()->delete();
+
+                foreach ($brainAccess as $access) {
+                    $group->brainAccess()->create($access);
+                }
+
+                activity()
+                    ->performedOn($group)
+                    ->event('brain_access_synced')
+                    ->withProperties(['brain_access' => $brainAccess])
+                    ->log('Group brain access synced');
+            }
+
+            if ($userIds !== null || $brainAccess !== null) {
+                $this->reconcileBrainAccess->execute($previousMembers->merge($group->users()->get())->unique('id'));
             }
 
             return $group;
