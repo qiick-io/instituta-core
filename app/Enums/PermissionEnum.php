@@ -32,6 +32,9 @@ enum PermissionEnum: string
 
     case CanManageSettings = 'can-manage-settings';
 
+    /** The in-app assistant: ask the brain and draft proposals (#203). */
+    case CanUseAi = 'can-use-ai';
+
     /**
      * @return list<string>
      */

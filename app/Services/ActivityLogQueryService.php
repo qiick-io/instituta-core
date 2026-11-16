@@ -22,7 +22,7 @@ final class ActivityLogQueryService
      */
     public function logNames(): array
     {
-        return ['default', 'auth', 'settings', 'keys', 'ingest', 'sync', 'security', 'tenancy', 'brain'];
+        return ['default', 'auth', 'settings', 'keys', 'ingest', 'sync', 'security', 'tenancy', 'brain', 'ai'];
     }
 
     public function organisationIdForOwner(User $user): ?string

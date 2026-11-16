@@ -22,6 +22,41 @@ return [
     'default_for_reranking' => 'cohere',
     'default_for_classification' => 'typesafe',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Assistant (#203)
+    |--------------------------------------------------------------------------
+    |
+    | The in-app assistant (App\Ai\Agents\AppAssistant): it answers from the
+    | brain inside the user's perimeter and drafts proposals, never writes.
+    | Off until an admin sets AI_ASSISTANT_ENABLED=true and a provider. The
+    | default provider is the local OpenAI-compatible endpoint (Ollama, LM
+    | Studio), so nothing leaves the server; anthropic, openai and gemini work
+    | with their keys. Copied from externa-core's `assistant` block.
+    |
+    */
+
+    'assistant' => [
+        'enabled' => (bool) env('AI_ASSISTANT_ENABLED', false),
+        'provider' => env('AI_ASSISTANT_PROVIDER', 'openai-compatible'),
+        // Tool calls in one answer: search, outline and a few sections, then the reply.
+        'max_steps' => (int) env('AI_ASSISTANT_MAX_STEPS', 12),
+        'timeout' => (int) env('AI_ASSISTANT_TIMEOUT', 300),
+    ],
+
+    /*
+    | Per-user daily budget, counted from midnight in the app timezone. 0 = off.
+    | Both cover the chat and proposal drafts (externa-core #275).
+    */
+
+    'daily_prompt_limit' => (int) env('AI_DAILY_PROMPT_LIMIT', 0),
+    'daily_token_budget' => (int) env('AI_DAILY_TOKEN_BUDGET', 0),
+
+    'drafts' => [
+        // Caps one proposal draft response (#203).
+        'max_tokens' => (int) env('AI_DRAFTS_MAX_TOKENS', 2000),
+    ],
+
     'embeddings' => [
         'enabled' => (bool) env('AI_EMBEDDINGS_ENABLED', false),
         'model_name' => env('AI_EMBEDDINGS_MODEL_NAME', 'local-embedding'),
@@ -62,6 +97,7 @@ return [
     'providers' => [
         'anthropic' => [
             'driver' => 'anthropic',
+            'context_window' => (int) env('ANTHROPIC_CONTEXT_WINDOW', 200000),
             'key' => env('ANTHROPIC_API_KEY'),
             'url' => env('ANTHROPIC_URL', 'https://api.anthropic.com/v1'),
         ],
@@ -110,6 +146,7 @@ return [
 
         'gemini' => [
             'driver' => 'gemini',
+            'context_window' => (int) env('GEMINI_CONTEXT_WINDOW', 1048576),
             'key' => env('GEMINI_API_KEY'),
             'url' => env('GEMINI_URL', 'https://generativelanguage.googleapis.com/v1beta/'),
         ],
@@ -137,6 +174,7 @@ return [
 
         'openai' => [
             'driver' => 'openai',
+            'context_window' => (int) env('OPENAI_CONTEXT_WINDOW', 400000),
             'key' => env('OPENAI_API_KEY'),
             'url' => env('OPENAI_URL', 'https://api.openai.com/v1'),
             'store' => env('OPENAI_STORE', true),
@@ -144,6 +182,7 @@ return [
 
         'openai-compatible' => [
             'driver' => 'openai-compatible',
+            'context_window' => (int) env('LOCAL_AI_CONTEXT_WINDOW', 131072),
             // Default: local Ollama / LM Studio OpenAI-compatible endpoint.
             'url' => env('OPENAI_COMPATIBLE_URL', 'http://127.0.0.1:11434/v1'),
             'key' => env('OPENAI_COMPATIBLE_API_KEY', ''),

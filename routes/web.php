@@ -1,6 +1,10 @@
 <?php
 
+use App\Enums\PermissionEnum;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\Ai\AiChatController;
+use App\Http\Controllers\Ai\AiConversationController;
+use App\Http\Controllers\Ai\AiStatusController;
 use App\Http\Controllers\Brain\ClientCompanyFormController;
 use App\Http\Controllers\Brain\ClientEraseController;
 use App\Http\Controllers\Brain\ClientExportController;
@@ -22,6 +26,7 @@ use App\Http\Controllers\Brain\TreeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Middleware\EnsureAiAssistantEnabledMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -99,3 +104,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 require __DIR__.'/admin.php';
 require __DIR__.'/settings.php';
+
+// The in-app assistant (#203): status is open to every AI user, the rest needs AI_ASSISTANT_ENABLED.
+Route::middleware(['auth', 'verified', 'permission:'.PermissionEnum::CanUseAi->value])
+    ->prefix('ai')
+    ->name('ai.')
+    ->group(function (): void {
+        Route::get('status', AiStatusController::class)->name('status');
+
+        Route::middleware(EnsureAiAssistantEnabledMiddleware::class)->group(function (): void {
+            Route::post('chat', AiChatController::class)->middleware('throttle:20,1')->name('chat');
+            Route::get('conversations', [AiConversationController::class, 'index'])->name('conversations.index');
+            Route::get('conversations/{conversation}', [AiConversationController::class, 'show'])->name('conversations.show');
+            Route::delete('conversations/{conversation}', [AiConversationController::class, 'destroy'])->name('conversations.destroy');
+        });
+    });

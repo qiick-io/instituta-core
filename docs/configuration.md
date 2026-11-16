@@ -32,6 +32,11 @@ Search: PostgreSQL is the production FTS driver; SQLite FTS5 for local/tests; My
 | `INSTITUTA_AGENTS_CAN_ACCEPT_PROPOSALS` | `false` | Let agent and service keys accept write proposals (a key never accepts its own) |
 | `INSTITUTA_MCP_WRITE_ENABLED` | `false` | MCP write kill switch |
 | `INSTITUTA_GITHUB_TOKEN` | empty | Optional remote sync / proposal materialisation |
+| `AI_ASSISTANT_ENABLED` | `false` | In-app assistant (ask the brain, proposal drafts); nothing calls a provider while off |
+| `AI_ASSISTANT_PROVIDER` | `openai-compatible` | `openai-compatible` (local Ollama / LM Studio at `OPENAI_COMPATIBLE_URL`), `anthropic`, `openai` or `gemini` (with their `*_API_KEY`) |
+| `AI_DAILY_PROMPT_LIMIT` | `0` | Prompts per user per day (chat and drafts); `0` = no limit |
+| `AI_DAILY_TOKEN_BUDGET` | `0` | Tokens per user per day; `0` = no limit |
+| `AI_DRAFTS_MAX_TOKENS` | `2000` | Cap on one proposal draft |
 | `AI_EMBEDDINGS_ENABLED` | `false` | Section embeddings + `/api/v1/similar` |
 
 Full shapes: [`CONTRACTS.md`](CONTRACTS.md), [`config/instituta.php`](../config/instituta.php), [`config/ai.php`](../config/ai.php).
