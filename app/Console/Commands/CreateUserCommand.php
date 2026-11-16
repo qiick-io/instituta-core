@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Actions\CreateUserAction;
+use App\Brain\Enums\PrincipalTypeEnum;
+use App\Brain\Enums\RoleEnum as BrainRoleEnum;
 use App\Enums\RoleEnum;
+use App\Models\Organisation;
+use App\Models\Principal;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Console\Command;
@@ -27,6 +31,11 @@ use function Laravel\Prompts\text;
  * default. The email is marked as verified because the operator created the
  * account on the server. The first user becomes super-admin by default, later
  * users reader. Copied from excubia-app `CreateUserCommand`.
+ *
+ * Instituta addition: the user also gets a perimeter in an organisation (person
+ * principal + organisation grant), otherwise every brain screen is empty for them.
+ * With one organisation it is picked automatically; the first person of an
+ * organisation becomes its brain owner, later ones members.
  */
 #[AsCommand(name: 'instituta:create-user')]
 class CreateUserCommand extends Command
@@ -35,7 +44,9 @@ class CreateUserCommand extends Command
         {--first-name= : First name}
         {--last-name= : Last name (optional)}
         {--email= : Login email}
-        {--role= : Role name (default: super-admin for the first user, reader afterwards)}';
+        {--role= : Role name (default: super-admin for the first user, reader afterwards)}
+        {--organisation= : Organisation ULID or slug the user gets access to (asked when there are several)}
+        {--brain-role= : Brain role in that organisation: owner, member or guest (default: owner for its first person, member afterwards)}';
 
     protected $description = 'Create a dashboard user (the password is prompted)';
 
@@ -74,16 +85,105 @@ class CreateUserCommand extends Command
 
         $validated = $validator->validated();
 
+        $organisation = $this->resolveOrganisation();
+
+        if ($organisation === false) {
+            return self::FAILURE;
+        }
+
+        $brainRole = BrainRoleEnum::Member;
+
+        if ($organisation instanceof Organisation) {
+            $resolvedBrainRole = $this->resolveBrainRole($organisation);
+
+            if ($resolvedBrainRole === null) {
+                return self::FAILURE;
+            }
+
+            $brainRole = $resolvedBrainRole;
+        }
+
         $user = $createUser->execute(
             $validated['first_name'],
             ($validated['last_name'] ?? '') !== '' ? $validated['last_name'] : null,
             $validated['email'],
             $validated['password'],
             [$validated['role']],
+            organisation: $organisation,
+            brainRole: $brainRole,
         );
 
         $this->info("Created user {$user->email} with role {$validated['role']}.");
 
+        if ($organisation instanceof Organisation) {
+            $this->info("Granted {$brainRole->value} access to organisation {$organisation->name} ({$organisation->slug}).");
+        } else {
+            $this->warn('No organisation exists yet: the user has no brain perimeter. Run instituta:install to create one.');
+        }
+
         return self::SUCCESS;
+    }
+
+    /**
+     * The organisation from `--organisation` (ULID or slug), the only one, or a prompt.
+     * Null when none exists yet; false (after printing the error) when the option matches none.
+     */
+    private function resolveOrganisation(): Organisation|false|null
+    {
+        $option = $this->option('organisation');
+
+        if (is_string($option) && $option !== '') {
+            $organisation = Organisation::query()
+                ->where('id', $option)
+                ->orWhere('slug', $option)
+                ->first();
+
+            if (! $organisation instanceof Organisation) {
+                $this->error("Organisation {$option} not found.");
+
+                return false;
+            }
+
+            return $organisation;
+        }
+
+        $organisations = Organisation::query()->orderBy('name')->get();
+
+        if ($organisations->count() <= 1) {
+            return $organisations->first();
+        }
+
+        $selectedId = select(
+            'Organisation',
+            $organisations->mapWithKeys(fn (Organisation $organisation): array => [$organisation->id => $organisation->name])->all(),
+        );
+
+        return $organisations->firstWhere('id', $selectedId);
+    }
+
+    /**
+     * The brain role from `--brain-role`, otherwise owner for the organisation's first person
+     * and member afterwards. Null (after printing the error) when the option is not a role.
+     */
+    private function resolveBrainRole(Organisation $organisation): ?BrainRoleEnum
+    {
+        $option = $this->option('brain-role');
+
+        if (is_string($option) && $option !== '') {
+            $brainRole = BrainRoleEnum::tryFrom(strtolower($option));
+
+            if (! $brainRole instanceof BrainRoleEnum) {
+                $this->error('The brain role must be one of: owner, member, guest.');
+            }
+
+            return $brainRole;
+        }
+
+        $hasPerson = Principal::query()
+            ->where('organisation_id', $organisation->id)
+            ->where('type', PrincipalTypeEnum::Person)
+            ->exists();
+
+        return $hasPerson ? BrainRoleEnum::Member : BrainRoleEnum::Owner;
     }
 }

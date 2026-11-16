@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Actions\GrantOrganisationAccessAction;
+use App\Brain\Enums\RoleEnum as BrainRoleEnum;
 use App\Enums\PermissionEnum;
 use App\Enums\RoleEnum;
+use App\Models\Grant;
+use App\Models\Organisation;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
@@ -259,4 +263,26 @@ it('lists the roles the user may grant for the role picker', function (): void {
         ->toBe([RoleEnum::Reader->value]);
 
     $this->actingAs(User::factory()->create())->getJson(route('users.assignable-roles'))->assertForbidden();
+});
+
+it('makes a user created by an admin a member of the admin organisation', function (): void {
+    $admin = managedUser(RoleEnum::Admin);
+    $organisation = Organisation::factory()->create();
+    app(GrantOrganisationAccessAction::class)->execute($admin, $organisation, BrainRoleEnum::Owner);
+
+    $this->actingAs($admin)->post(route('users.store'), userPayload())->assertRedirect(route('users.index'));
+
+    $created = User::query()->where('email', 'grace@example.com')->firstOrFail();
+    $grant = Grant::query()->where('principal_id', $created->principals()->sole()->id)->sole();
+
+    expect($grant->scope_id)->toBe($organisation->id)
+        ->and($grant->role)->toBe(BrainRoleEnum::Member);
+});
+
+it('creates a user without a perimeter when the admin has none', function (): void {
+    $admin = managedUser(RoleEnum::Admin);
+
+    $this->actingAs($admin)->post(route('users.store'), userPayload())->assertRedirect(route('users.index'));
+
+    expect(User::query()->where('email', 'grace@example.com')->firstOrFail()->principals()->count())->toBe(0);
 });

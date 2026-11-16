@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Actions\CreateApiKeyAction;
-use App\Brain\Enums\PrincipalTypeEnum;
+use App\Actions\GrantOrganisationAccessAction;
 use App\Brain\Enums\RoleEnum as BrainRoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
@@ -13,7 +13,6 @@ use App\Console\Concerns\ManagesDotEnvTrait;
 use App\Enums\CompanyKindEnum;
 use App\Enums\RoleEnum;
 use App\Models\Company;
-use App\Models\Grant;
 use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\User;
@@ -50,7 +49,7 @@ class InstallCommand extends Command
 
     protected $description = 'First-run setup: write .env, migrate, bootstrap owner, optional npm build (CI: --no-interaction --force)';
 
-    public function handle(CreateApiKeyAction $createApiKey): int
+    public function handle(CreateApiKeyAction $createApiKey, GrantOrganisationAccessAction $grantOrganisationAccess): int
     {
         $force = (bool) $this->option('force');
         $stack = (string) $this->option('stack');
@@ -123,7 +122,7 @@ class InstallCommand extends Command
         $this->call('db:seed', ['--class' => RoleSeeder::class, '--force' => true]);
 
         if (! $this->option('no-owner')) {
-            $boot = $this->bootstrapOwner($createApiKey);
+            $boot = $this->bootstrapOwner($createApiKey, $grantOrganisationAccess);
             if ($boot !== self::SUCCESS) {
                 return $boot;
             }
@@ -173,7 +172,7 @@ class InstallCommand extends Command
         return $env;
     }
 
-    private function bootstrapOwner(CreateApiKeyAction $createApiKey): int
+    private function bootstrapOwner(CreateApiKeyAction $createApiKey, GrantOrganisationAccessAction $grantOrganisationAccess): int
     {
         if (Organisation::query()->exists()) {
             $this->warn('Organisation already exists; skipping owner bootstrap.');
@@ -194,6 +193,7 @@ class InstallCommand extends Command
         /** @var array{org: Organisation, company: Company, user: User, principal: Principal, plain: string} $created */
         $created = DB::transaction(function () use (
             $createApiKey,
+            $grantOrganisationAccess,
             $orgName,
             $orgSlug,
             $companyName,
@@ -225,20 +225,7 @@ class InstallCommand extends Command
             ]);
             $user->forceFill(['email_verified_at' => now()])->save();
 
-            $principal = Principal::query()->create([
-                'organisation_id' => $org->id,
-                'type' => PrincipalTypeEnum::Person,
-                'user_id' => $user->id,
-                'name' => $user->name,
-            ]);
-
-            Grant::query()->create([
-                'principal_id' => $principal->id,
-                'scope_type' => ScopeTypeEnum::Organisation,
-                'scope_id' => $org->id,
-                'role' => BrainRoleEnum::Owner,
-                'max_visibility' => VisibilityEnum::Restricted,
-            ]);
+            $principal = $grantOrganisationAccess->execute($user, $org, BrainRoleEnum::Owner);
 
             $user->assignRole(RoleEnum::SuperAdmin->value);
 

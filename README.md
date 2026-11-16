@@ -42,7 +42,7 @@ To add another dashboard user without the web UI (for example when mail is off):
 php artisan instituta:create-user
 ```
 
-The first user defaults to `super-admin`, later users to `reader`. Pass `--first-name`, `--last-name`, `--email`, and `--role` for non-interactive use; the password is always prompted.
+The first user defaults to `super-admin`, later users to `reader`. The user also gets a brain perimeter in an organisation (picked automatically when there is only one): the organisation's first person becomes its brain `owner`, later ones `member`. Pass `--first-name`, `--last-name`, `--email`, `--role`, `--organisation` (ULID or slug) and `--brain-role` (`owner`, `member`, `guest`) for non-interactive use; the password is always prompted. Users created from the Users admin page join the creating admin's organisation as members.
 
 Health probes (auth-free): `GET /health/live` (process up) and `GET /health/ready` (database, and redis when cache/queue/session/broadcasting use it; `503` when a check fails).
 

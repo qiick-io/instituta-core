@@ -13,6 +13,7 @@ use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Http\Resources\Admin\UserResource;
 use App\Models\User;
+use App\Services\SessionPerimeterService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
@@ -86,8 +87,15 @@ class UserController extends Controller
         return response()->json(['data' => $roles, 'current_page' => 1, 'last_page' => 1]);
     }
 
-    public function store(StoreUserRequest $request, CreateUserAction $createUser): RedirectResponse
+    /**
+     * Creates the user and, when the admin has a brain perimeter, makes them a member of the
+     * admin's organisation so they do not sign in to an empty brain.
+     */
+    public function store(StoreUserRequest $request, CreateUserAction $createUser, SessionPerimeterService $sessionPerimeters): RedirectResponse
     {
+        $actor = $request->user();
+        $actorPrincipal = $actor instanceof User ? $sessionPerimeters->personPrincipal($actor) : null;
+
         $createUser->execute(
             $request->string('first_name')->toString(),
             $request->filled('last_name') ? $request->string('last_name')->toString() : null,
@@ -95,6 +103,7 @@ class UserController extends Controller
             $request->string('password')->toString(),
             $request->roles(),
             $request->boolean('is_active', true),
+            organisation: $actorPrincipal?->organisation,
         );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('User created.')]);
