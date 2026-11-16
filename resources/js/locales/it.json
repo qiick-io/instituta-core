@@ -794,7 +794,12 @@
             "fieldStableKey": "Chiave stabile",
             "fieldMarkdown": "Markdown",
             "markdownHint": "Mantieni la riga del titolo. Se il contenuto è cambiato da quando l'hai aperto, la proposta viene rifiutata e puoi rileggerlo.",
-            "submit": "Apri proposta"
+            "submit": "Apri proposta",
+            "aiLabel": "Scrivi con l'AI",
+            "aiPlaceholder": "Per esempio: cambia il colore primario in blu",
+            "aiDraft": "Scrivi bozza",
+            "aiDrafting": "Sto scrivendo…",
+            "aiHint": "La bozza sostituisce il markdown qui sotto. Rileggila prima di aprire la proposta."
         }
     },
     "activity": {
