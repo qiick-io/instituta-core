@@ -37,7 +37,7 @@ Search: PostgreSQL is the production FTS driver; SQLite FTS5 for local/tests; My
 | `AI_DAILY_PROMPT_LIMIT` | `0` | Prompts per user per day (chat and drafts); `0` = no limit |
 | `AI_DAILY_TOKEN_BUDGET` | `0` | Tokens per user per day; `0` = no limit |
 | `AI_DRAFTS_MAX_TOKENS` | `2000` | Cap on one proposal draft |
-| `AI_EMBEDDINGS_ENABLED` | `false` | Section embeddings: hybrid search (words and meaning) in every search, plus `/api/v1/similar`. Locally: `ollama pull nomic-embed-text`, then `AI_EMBEDDINGS_ENABLED=true` and `php artisan instituta:embed` |
+| `AI_EMBEDDINGS_ENABLED` | `false` | Section embeddings: hybrid search (words and meaning) in every search, plus `/api/v1/similar`. Locally: `ollama pull nomic-embed-text`, then `AI_EMBEDDINGS_ENABLED=true` and `php artisan instituta:embed` once; afterwards every sync embeds new and changed sections on the queue |
 | `AI_EMBEDDINGS_DIMENSIONS` | `768` | Vector size of the embedding model (`nomic-embed-text`: 768) |
 
 Full shapes: [`CONTRACTS.md`](CONTRACTS.md), [`config/instituta.php`](../config/instituta.php), [`config/ai.php`](../config/ai.php).

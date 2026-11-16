@@ -7,8 +7,10 @@ use App\Enums\ProposalMaterialisationStatusEnum;
 use App\Enums\ProposalStatusEnum;
 use App\Enums\SourceProviderEnum;
 use App\Enums\SyncStatusEnum;
+use App\Jobs\EmbedItemSectionJob;
 use App\Jobs\SyncSourceJob;
 use App\Models\Item;
+use App\Models\ItemSection;
 use App\Models\Organisation;
 use App\Models\Proposal;
 use App\Models\Source;
@@ -237,4 +239,40 @@ it('numbers vault versions by sequence even when syncs land in the same second',
     expect(VaultVersion::query()->where('organisation_id', $source->organisation_id)->pluck('label')->sort()->values()->all())
         ->toBe(['instituta@v1', 'instituta@v2', 'instituta@v3'])
         ->and($source->fresh()->sync_status)->toBe(SyncStatusEnum::Ok);
+});
+
+it('queues embeddings only for new and changed sections, and none while embeddings are off (#226)', function (): void {
+    Queue::fake();
+    $source = gitLikeLocalSource(Organisation::factory()->create());
+    $sync = app(SourceSyncService::class);
+
+    config(['ai.embeddings.enabled' => false]);
+    fakeLocalCommit(str_repeat('a', 40));
+    $sync->sync($source->fresh());
+    Queue::assertNotPushed(EmbedItemSectionJob::class);
+
+    config(['ai.embeddings.enabled' => true]);
+    fakeLocalCommit(str_repeat('b', 40));
+    $sync->sync($source->fresh());
+    Queue::assertNotPushed(EmbedItemSectionJob::class);
+
+    $file = $source->local_path.'/rules/coding.md';
+    File::put($file, str_replace('Prefer boring code over clever code.', 'Prefer boring, obvious code.', File::get($file)));
+    fakeLocalCommit(str_repeat('c', 40));
+    $sync->sync($source->fresh());
+
+    $style = ItemSection::query()->where('anchor', 'coding-rules/style')->sole();
+    Queue::assertPushed(EmbedItemSectionJob::class, 1);
+    Queue::assertPushed(EmbedItemSectionJob::class, fn (EmbedItemSectionJob $job): bool => $job->itemSectionId === $style->id);
+});
+
+it('queues an embedding for every section of a first sync with embeddings on (#226)', function (): void {
+    Queue::fake();
+    config(['ai.embeddings.enabled' => true]);
+    $source = gitLikeLocalSource(Organisation::factory()->create());
+    fakeLocalCommit(str_repeat('d', 40));
+
+    app(SourceSyncService::class)->sync($source->fresh());
+
+    Queue::assertPushed(EmbedItemSectionJob::class, ItemSection::query()->count());
 });

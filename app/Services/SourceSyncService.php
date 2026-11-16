@@ -19,6 +19,7 @@ use App\Enums\QuotaMetricEnum;
 use App\Enums\SourceProviderEnum;
 use App\Enums\SyncStatusEnum;
 use App\Exceptions\QuotaExceededException;
+use App\Jobs\EmbedItemSectionJob;
 use App\Models\Item;
 use App\Models\ItemLink;
 use App\Models\ItemSection;
@@ -45,6 +46,9 @@ use Throwable;
  */
 final class SourceSyncService
 {
+    /** @var list<string> Sections created or changed by the running sync, embedded once it commits (#226). */
+    private array $sectionsToEmbed = [];
+
     public function __construct(
         private readonly DenylistGuardService $denylist = new DenylistGuardService,
         private readonly BrainReader $reader = new BrainReader,
@@ -59,6 +63,7 @@ final class SourceSyncService
     public function sync(Source $source, bool $isForced = true): array
     {
         $statusBeforeSync = $source->sync_status;
+        $this->sectionsToEmbed = [];
 
         $source->forceFill([
             'sync_status' => SyncStatusEnum::Syncing,
@@ -143,6 +148,7 @@ final class SourceSyncService
             ])->save();
 
             $this->mergedProposals->markMergedIn($source);
+            $this->queueEmbeddings();
 
             activity('sync')
                 ->performedOn($source)
@@ -193,6 +199,26 @@ final class SourceSyncService
                 'versions_upserted' => 0,
             ]);
         }
+    }
+
+    /**
+     * Queues an embedding for every section the sync created or changed (#226), so hybrid search
+     * never runs on stale vectors. Nothing while embeddings are off; `instituta:embed` stays for
+     * a full backfill (first enable, model change).
+     *
+     * @side-effect Dispatches EmbedItemSectionJob per section.
+     */
+    private function queueEmbeddings(): void
+    {
+        if (! (bool) config('ai.embeddings.enabled')) {
+            return;
+        }
+
+        foreach (array_unique($this->sectionsToEmbed) as $sectionId) {
+            EmbedItemSectionJob::dispatch($sectionId);
+        }
+
+        $this->sectionsToEmbed = [];
     }
 
     /**
@@ -597,7 +623,7 @@ final class SourceSyncService
         $seenAnchors = [];
 
         foreach ($sections as $section) {
-            ItemSection::query()->updateOrCreate(
+            $stored = ItemSection::query()->updateOrCreate(
                 [
                     'item_id' => $item->id,
                     'anchor' => $section->anchor,
@@ -617,6 +643,11 @@ final class SourceSyncService
                     ),
                 ],
             );
+            // New or changed text needs a fresh embedding (#226); unchanged sections keep theirs.
+            if ($stored->wasRecentlyCreated || $stored->wasChanged(['heading', 'body'])) {
+                $this->sectionsToEmbed[] = $stored->id;
+            }
+
             $seenAnchors[] = $section->anchor;
             $count++;
         }
