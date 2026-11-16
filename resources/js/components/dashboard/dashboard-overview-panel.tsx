@@ -1,5 +1,11 @@
 import { Link } from '@inertiajs/react';
-import { Activity, Database, FolderOpen, Inbox } from 'lucide-react';
+import {
+    Activity,
+    Database,
+    FolderOpen,
+    HeartPulse,
+    Inbox,
+} from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageEmptyState } from '@/components/admin/page-empty-state';
@@ -42,6 +48,7 @@ export function DashboardOverviewPanel({
     proposals,
     apiKeys,
     latestActivity,
+    health,
 }: DashboardOverviewMetrics) {
     const { t, i18n } = useTranslation();
     const syncedSourcesCount = sources.filter(
@@ -75,7 +82,14 @@ export function DashboardOverviewPanel({
                     headline={t('dashboard.statSourcesHeadline', {
                         count: syncedSourcesCount,
                     })}
-                    context={t('dashboard.statSourcesContext')}
+                    context={
+                        health === null
+                            ? t('dashboard.statSourcesContext')
+                            : t('dashboard.statSourcesHealth', {
+                                  errors: health.error_count,
+                                  warnings: health.warning_count,
+                              })
+                    }
                 />
                 <StatCard
                     className="xl:col-span-3"
@@ -332,6 +346,94 @@ export function DashboardOverviewPanel({
                     </DashboardCard>
                 ) : null}
             </section>
+
+            {health !== null ? (
+                <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+                    <DashboardCard
+                        className="xl:col-span-12"
+                        title={t('dashboard.healthTitle')}
+                        description={t('dashboard.healthDescription')}
+                    >
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[7rem]">
+                                        {t('dashboard.colSeverity')}
+                                    </TableHead>
+                                    <TableHead>
+                                        {t('dashboard.colIssue')}
+                                    </TableHead>
+                                    <TableHead>
+                                        {t('dashboard.colFix')}
+                                    </TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {health.issues.map((issue, index) => (
+                                    <TableRow
+                                        key={`${issue.code}-${issue.path}-${index}`}
+                                    >
+                                        <TableCell>
+                                            <Badge
+                                                variant={
+                                                    issue.severity === 'error'
+                                                        ? 'destructive'
+                                                        : 'warning'
+                                                }
+                                            >
+                                                {t(
+                                                    `dashboard.health.${issue.code}`,
+                                                    {
+                                                        defaultValue:
+                                                            issue.code,
+                                                    },
+                                                )}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="max-w-[28rem]">
+                                            {issue.stable_key !== null ? (
+                                                <Link
+                                                    href={brainRoutes.reading.url(
+                                                        issue.stable_key,
+                                                    )}
+                                                    className="block truncate font-mono text-xs underline-offset-4 hover:underline"
+                                                >
+                                                    {issue.path}
+                                                </Link>
+                                            ) : (
+                                                <div className="truncate font-mono text-xs">
+                                                    {issue.path}
+                                                </div>
+                                            )}
+                                            <div className="text-sm">
+                                                {issue.message}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-sm text-muted-foreground">
+                                            {issue.suggested_fix}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {health.issues.length === 0 ? (
+                                    <EmptyRow colSpan={3}>
+                                        <PageEmptyState
+                                            icon={HeartPulse}
+                                            title={t(
+                                                'dashboard.healthEmptyTitle',
+                                            )}
+                                            description={t(
+                                                'dashboard.healthEmptyDescription',
+                                            )}
+                                            compact
+                                            className="border-0"
+                                        />
+                                    </EmptyRow>
+                                ) : null}
+                            </TableBody>
+                        </Table>
+                    </DashboardCard>
+                </section>
+            ) : null}
         </div>
     );
 }

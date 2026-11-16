@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Brain\Enums\RoleEnum;
 use App\Models\User;
+use App\Services\BrainHealthService;
 use App\Services\Dashboard\DashboardOverviewMetricsService;
 use App\Services\SessionPerimeterService;
 use Illuminate\Http\Request;
@@ -23,6 +25,7 @@ final class DashboardController extends Controller
     public function __construct(
         private readonly SessionPerimeterService $sessions,
         private readonly DashboardOverviewMetricsService $metrics,
+        private readonly BrainHealthService $health,
     ) {}
 
     public function __invoke(Request $request): Response
@@ -44,6 +47,8 @@ final class DashboardController extends Controller
             'proposals' => $this->metrics->openProposals($perimeter),
             'apiKeys' => $this->metrics->apiKeys($user, now()),
             'latestActivity' => $this->metrics->latestActivity($user),
+            // Owners tend the brain, so they see its health (#231).
+            'health' => $perimeter->role === RoleEnum::Owner ? $this->health->check($perimeter) : null,
         ]);
     }
 }

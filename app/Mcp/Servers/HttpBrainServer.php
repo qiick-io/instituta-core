@@ -14,6 +14,7 @@ use App\Mcp\Tools\Http\InstitutaGetSectionsTool;
 use App\Mcp\Tools\Http\InstitutaGetSectionTool;
 use App\Mcp\Tools\Http\InstitutaGetTool;
 use App\Mcp\Tools\Http\InstitutaGraphTool;
+use App\Mcp\Tools\Http\InstitutaHealthTool;
 use App\Mcp\Tools\Http\InstitutaListProposalsTool;
 use App\Mcp\Tools\Http\InstitutaListTool;
 use App\Mcp\Tools\Http\InstitutaOutlineTool;
@@ -53,6 +54,7 @@ class HttpBrainServer extends Server
         InstitutaListProposalsTool::class,
         InstitutaUpdateProposalTool::class,
         InstitutaReportGapTool::class,
+        InstitutaHealthTool::class,
     ];
 
     protected array $resources = [

@@ -573,6 +573,67 @@ paths:
                                 additionalProperties: true
                 '401':
                     $ref: '#/components/responses/Unauthorized'
+    /health/brain:
+        get:
+            tags: [Contract]
+            summary: Brain health (owner keys)
+            description: What the last syncs left wrong in the perimeter, each issue with item, path, message and a suggested fix.
+            operationId: getBrainHealth
+            security:
+                - ApiKeyBearer: []
+            responses:
+                '200':
+                    description: Issues and counts
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    issues:
+                                        type: array
+                                        items:
+                                            type: object
+                                            properties:
+                                                code:
+                                                    type: string
+                                                    enum:
+                                                        [
+                                                            reader_issue,
+                                                            skipped_file,
+                                                            broken_link,
+                                                            missing_superseded_by,
+                                                            duplicate_resolution_key,
+                                                            review_overdue,
+                                                        ]
+                                                severity:
+                                                    type: string
+                                                    enum: [error, warning]
+                                                item:
+                                                    type: ['string', 'null']
+                                                stable_key:
+                                                    type: ['string', 'null']
+                                                path:
+                                                    type: string
+                                                message:
+                                                    type: string
+                                                suggested_fix:
+                                                    type: string
+                                    counts:
+                                        type: object
+                                        additionalProperties:
+                                            type: integer
+                                    error_count:
+                                        type: integer
+                                    warning_count:
+                                        type: integer
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    description: Not an owner key
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Message'
     /gaps:
         post:
             tags: [Contract]

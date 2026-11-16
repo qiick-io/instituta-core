@@ -113,6 +113,7 @@ When a scope is frozen, every contract call for that scope answers from the pinn
 | List proposals | `instituta_list_proposals` | `GET /proposals` | — |
 | Update proposal | `instituta_update_proposal` | `PATCH /proposals/{id}` | — |
 | Report a gap | `instituta_report_gap` | `POST /gaps` | — |
+| Brain health (owners) | `instituta_health` | `GET /health/brain` | `validate` (one folder) |
 
 OpenAPI 3.1 lives at `resources/openapi/instituta-v1.yaml` and is served at `GET /api/v1/openapi.json` with a route-coverage test.
 
@@ -278,6 +279,23 @@ For an agent that finds something missing or wrong but cannot write the fix (#22
 **Behaviour:** open to any key with `brain:read`, guests included: a report changes nothing in the brain. Related items and anchors must be inside the reporter's perimeter (otherwise `not_found`, and nothing is stored), so a report never names what the reporter cannot read. The report is stored for the scope, the organisation's users are notified, and the scope's **owners** see it on the Gaps page, where they turn it into a proposal (the propose drawer, prefilled; storing the proposal closes the report as `converted`) or dismiss it. Audited like every call.
 
 **Returns:** `201` with the report's `id`, `kind`, `status` (`open`), `summary` and `related`.
+
+### 3.14 `instituta_health` / `GET /health/brain`
+
+What the last syncs left wrong in the perimeter (#231), for **owner** keys (others: `forbidden`). Read from the index the syncs wrote, so it always matches the latest sync.
+
+**Returns:** `issues`, each with `code`, `severity` (`error` or `warning`), `item` and `stable_key` (null for file-level problems), `path`, `message` and `suggested_fix`; `counts` per code; `error_count` and `warning_count`. Codes:
+
+| Code | Severity | Found when |
+|---|---|---|
+| `reader_issue` | error / warning | The reader could not parse a file (frontmatter, structure), from the source's last sync report |
+| `skipped_file` | warning | The sync skipped a file |
+| `broken_link` | warning | A link to a brain file (markdown or wiki link, not a URL or an image) resolves to no item |
+| `missing_superseded_by` | error | `superseded_by` names no entry in the organisation |
+| `duplicate_resolution_key` | error | Several active entries claim the same `resolution_key` in the same scope (one issue per entry) |
+| `review_overdue` | warning | An active entry's `review_date` is past |
+
+The web dashboard shows the same list and counts to owners.
 
 ## 4. Errors
 

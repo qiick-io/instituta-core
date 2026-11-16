@@ -1149,7 +1149,23 @@
         "activityDescription": "Die neuesten Audit-Ereignisse der Organisation.",
         "activityViewAll": "Alle Aktivitäten anzeigen",
         "noPerimeterTitle": "Noch kein Brain-Zugriff",
-        "noPerimeterDescription": "Dein Konto hat keinen Perimeter in einer Organisation. Bitte einen Owner um Zugriff."
+        "noPerimeterDescription": "Dein Konto hat keinen Perimeter in einer Organisation. Bitte einen Owner um Zugriff.",
+        "statSourcesHealth": "Gehirn-Zustand: {{errors}} Fehler, {{warnings}} Warnungen",
+        "healthTitle": "Gehirn-Zustand",
+        "healthDescription": "Was die letzten Syncs falsch hinterlassen haben, mit Lösungsvorschlag.",
+        "colSeverity": "Problem",
+        "colIssue": "Wo",
+        "colFix": "Vorgeschlagene Lösung",
+        "healthEmptyTitle": "Keine Probleme",
+        "healthEmptyDescription": "Links lösen sich auf, Schlüssel sind eindeutig, Reviews aktuell.",
+        "health": {
+            "reader_issue": "Nicht lesbar",
+            "skipped_file": "Übersprungen",
+            "broken_link": "Defekter Link",
+            "missing_superseded_by": "Falsches superseded_by",
+            "duplicate_resolution_key": "Doppelter Schlüssel",
+            "review_overdue": "Review überfällig"
+        }
     },
     "assistant": {
         "title": "Assistent",

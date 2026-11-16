@@ -1149,7 +1149,23 @@
         "activityDescription": "The newest audit events of the organisation.",
         "activityViewAll": "View all activity",
         "noPerimeterTitle": "No brain access yet",
-        "noPerimeterDescription": "Your account has no organisation perimeter. Ask an owner to grant you access."
+        "noPerimeterDescription": "Your account has no organisation perimeter. Ask an owner to grant you access.",
+        "statSourcesHealth": "Brain health: {{errors}} errors, {{warnings}} warnings",
+        "healthTitle": "Brain health",
+        "healthDescription": "What the last syncs left wrong, with how to fix it.",
+        "colSeverity": "Issue",
+        "colIssue": "Where",
+        "colFix": "Suggested fix",
+        "healthEmptyTitle": "No problems found",
+        "healthEmptyDescription": "Links resolve, keys are unique and reviews are up to date.",
+        "health": {
+            "reader_issue": "Unreadable",
+            "skipped_file": "Skipped",
+            "broken_link": "Broken link",
+            "missing_superseded_by": "Bad superseded_by",
+            "duplicate_resolution_key": "Duplicate key",
+            "review_overdue": "Review overdue"
+        }
     },
     "assistant": {
         "title": "Assistant",
