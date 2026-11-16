@@ -444,7 +444,8 @@
             "sessionReplay": "Session replay",
             "proposals": "Proposals",
             "graph": "Graph",
-            "gaps": "Gaps"
+            "gaps": "Gaps",
+            "explorer": "Explorer"
         },
         "scope": {
             "label": "Scope",
@@ -861,6 +862,14 @@
                 "converted": "Proposed",
                 "dismissed": "Dismissed"
             }
+        },
+        "explorer": {
+            "searchPlaceholder": "Find a file…",
+            "treeLabel": "Brain files",
+            "noMatches": "No files match",
+            "noMatchesDescription": "Search by title or path.",
+            "pickTitle": "Pick a file to read it",
+            "pickDescription": "Folders and files of every repository in this scope are on the left."
         }
     },
     "activity": {

@@ -201,16 +201,9 @@ it('keeps brain UI lists and reads inside the session perimeter', function (): v
         ->get(route('explorer.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('brain/tree')
+            ->component('brain/explorer')
             ->where('total', 1)
-            ->where('groups.0.items.0.title', 'Tenant A rules'));
-
-    $this->actingAs($seed['userA'])
-        ->get(route('map'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('areas.0.area', 'rules')
-            ->where('areas.0.count', 1));
+            ->where('nodes.0.children.0.children.0.name', 'Tenant A rules'));
 
     $this->actingAs($seed['userA'])
         ->get(route('repositories.index'))

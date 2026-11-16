@@ -13,20 +13,18 @@ use App\Http\Controllers\Brain\ClientExportController;
 use App\Http\Controllers\Brain\ClientProductFormController;
 use App\Http\Controllers\Brain\ClientProductsController;
 use App\Http\Controllers\Brain\ClientsController;
+use App\Http\Controllers\Brain\ExplorerController;
 use App\Http\Controllers\Brain\GapsController;
 use App\Http\Controllers\Brain\GraphController;
 use App\Http\Controllers\Brain\KeysController;
 use App\Http\Controllers\Brain\LegacyBrainRedirectController;
-use App\Http\Controllers\Brain\MapController;
 use App\Http\Controllers\Brain\ProposalsController;
-use App\Http\Controllers\Brain\ReadingController;
 use App\Http\Controllers\Brain\ResolvedController;
 use App\Http\Controllers\Brain\ScopeSwitcherController;
 use App\Http\Controllers\Brain\SessionReplayController;
 use App\Http\Controllers\Brain\SourcesController;
 use App\Http\Controllers\Brain\SourceSyncController;
 use App\Http\Controllers\Brain\TablesController;
-use App\Http\Controllers\Brain\TreeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\NotificationController;
@@ -57,10 +55,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('scope', ScopeSwitcherController::class)->name('scope.update');
 
-    // The brain (#252): explorer and graph. Map and Tree fold into the explorer in #253.
-    Route::get('map', MapController::class)->name('map');
-    Route::get('explorer', TreeController::class)->name('explorer.index');
-    Route::get('explorer/{item}', ReadingController::class)
+    // The brain as files (#253) and as a graph.
+    Route::redirect('map', 'explorer')->name('map');
+    Route::get('explorer', [ExplorerController::class, 'index'])->name('explorer.index');
+    Route::get('explorer/{item}', [ExplorerController::class, 'show'])
         ->where('item', '.*')
         ->name('explorer.show');
     Route::get('graph/{item?}', GraphController::class)

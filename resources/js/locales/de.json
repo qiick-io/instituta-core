@@ -444,7 +444,8 @@
             "sessionReplay": "Sitzungs-Replay",
             "proposals": "Vorschläge",
             "graph": "Graph",
-            "gaps": "Lücken"
+            "gaps": "Lücken",
+            "explorer": "Explorer"
         },
         "scope": {
             "label": "Bereich",
@@ -861,6 +862,14 @@
                 "converted": "Vorgeschlagen",
                 "dismissed": "Verworfen"
             }
+        },
+        "explorer": {
+            "searchPlaceholder": "Datei finden…",
+            "treeLabel": "Gehirn-Dateien",
+            "noMatches": "Keine passenden Dateien",
+            "noMatchesDescription": "Nach Titel oder Pfad suchen.",
+            "pickTitle": "Wähle eine Datei zum Lesen",
+            "pickDescription": "Links stehen Ordner und Dateien jedes Repositorys in diesem Bereich."
         }
     },
     "activity": {
