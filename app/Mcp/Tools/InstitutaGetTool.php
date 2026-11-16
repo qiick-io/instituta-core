@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mcp\Tools;
 
+use App\Enums\ContractErrorCodeEnum;
 use App\Mcp\Support\LocalBrainContext;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
@@ -35,7 +36,7 @@ class InstitutaGetTool extends Tool
         );
 
         if ($item === null) {
-            return Response::error('Item not found.');
+            return Response::error(ContractErrorCodeEnum::NotFound->mcpText('Item not found.'));
         }
 
         return Response::json(['item' => $item]);

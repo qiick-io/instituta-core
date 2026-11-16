@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mcp\Tools;
 
+use App\Enums\ContractErrorCodeEnum;
 use App\Mcp\Support\LocalBrainContext;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
@@ -40,7 +41,7 @@ class InstitutaGetSectionTool extends Tool
         );
 
         if ($section === null) {
-            return Response::error('Section not found.');
+            return Response::error(ContractErrorCodeEnum::NotFound->mcpText('Section not found.'));
         }
 
         return Response::json(['section' => $section]);

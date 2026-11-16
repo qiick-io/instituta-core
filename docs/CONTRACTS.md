@@ -229,14 +229,36 @@ A refused accept returns `422` (REST) or a tool error (MCP) with the reason, and
 
 ## 4. Errors
 
-| Situation | HTTP | MCP |
-|---|---|---|
-| Unauthenticated | 401 | tool error |
-| Authenticated but outside perimeter / unknown id | 404 | empty / not found (no cross-tenant leak) |
-| Validation | 422 | tool error with field messages |
-| Search on MySQL | 501 | tool error `"search driver not supported"` |
-| Ability missing / write refused | 403 | tool error |
-| Rate limited | 429 | tool error |
+Every error carries a stable machine **code**: REST answers `{"message": "…", "code": "…"}` (plus `errors` on validation), an MCP tool error starts with `[code]` (`[stale_base] The content changed …`), and the MCP transport's JSON-RPC auth errors carry it in `error.data.code`. Branch on the code, never on the message: messages may be reworded or translated, codes never change once released.
+
+| Code | HTTP | When | What the agent should do |
+|---|---|---|---|
+| `unauthenticated` | 401 | Missing, invalid, revoked or expired key; inactive principal | Stop and ask for a valid key. |
+| `forbidden` | 403 | Refused for another reason | Stop; report the message. |
+| `ability_missing` | 403 | The key lacks `brain:read` or `brain:write` | Ask for a key with the ability; do not retry. |
+| `write_disabled` | 403 | Brain writes are off on this install / surface | Stop writing; report it. |
+| `guest_refused` | 403 / 422 | Guest keys cannot write or decide proposals | Read only. |
+| `not_found` | 404 | Unknown id, or outside the perimeter (no cross-tenant leak) | Re-search or re-list; never guess ids. |
+| `out_of_perimeter` | 422 | The target is outside the key's perimeter | Use a key for that scope. |
+| `validation_failed` | 422 | A parameter is missing or invalid (`errors` lists the fields) | Fix the parameters and retry. |
+| `invalid_change` | 422 | The proposal mixes fields that do not go together (section on create, empty update, …) | Fix the request as the message says. |
+| `invalid_frontmatter` | 422 | A frontmatter key is not snake_case or a value does not fit | Fix the frontmatter change. |
+| `base_required` | 422 | An update sent no `base_content_hash` / `base_section_hash` | Read the item, send its hash. |
+| `stale_base` | 422 | The content changed since it was read | Re-read the item or section, redo the change, propose again. |
+| `path_mismatch` | 422 | `path` is not the item's current path | Use the path from the latest read. |
+| `item_exists` | 422 | A create for a `stable_key` that exists | Propose an update instead. |
+| `section_missing` | 422 | No section with that anchor | Re-read the outline. |
+| `section_not_synced` | 422 | The section has no stored markdown yet | Edit the whole item, or wait for a sync. |
+| `proposal_not_open` | 422 | The proposal was already decided | Re-list proposals. |
+| `self_accept_refused` | 422 | The key or principal that opened a proposal tried to accept it | Leave it to another person. |
+| `agent_accept_refused` | 422 | Agent and service keys cannot accept on this install | Leave it to a person. |
+| `quota_exceeded` | 429 | A plan quota is used up | Stop; report it. |
+| `rate_limited` | 429 | Too many requests | Wait and retry. |
+| `embeddings_disabled` | 501 | Semantic search on an install without embeddings | Use `instituta_search` / `GET /search` (keyword). |
+| `search_unsupported` | 501 | Search on a driver without full-text support | Use list / outline instead. |
+| `request_failed` | other | Any other failure | Retry once, then report. |
+
+Validation errors keep Laravel's `errors` object; an unknown id stays a plain 404 (no cross-tenant leak), and a refused accept leaves the proposal `open`.
 
 ## 5. Identity and audit
 

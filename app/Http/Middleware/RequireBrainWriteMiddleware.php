@@ -29,9 +29,9 @@ final class RequireBrainWriteMiddleware
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $reason = $this->writeGate->refusalReason($key, 'api');
-        if ($reason !== null) {
-            return response()->json(['message' => $reason], 403);
+        $refusal = $this->writeGate->refusal($key, 'api');
+        if ($refusal !== null) {
+            return response()->json(['message' => $refusal->getMessage(), 'code' => $refusal->errorCode->value], 403);
         }
 
         return $next($request);

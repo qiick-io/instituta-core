@@ -9,6 +9,7 @@ use App\Actions\UpdateProposalStatusAction;
 use App\Data\ProposeBrainChangeData;
 use App\Data\UpdateProposalStatusData;
 use App\Enums\ProposalStatusEnum;
+use App\Exceptions\ContractException;
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ListProposalsRequest;
@@ -61,7 +62,10 @@ final class ProposalController extends Controller
                 'api',
             );
         } catch (InvalidArgumentException $exception) {
-            return (new ApiMessageResource(['message' => $exception->getMessage()]))
+            return (new ApiMessageResource([
+                'message' => $exception->getMessage(),
+                'code' => ContractException::codeOf($exception)->value,
+            ]))
                 ->response()
                 ->setStatusCode(422);
         }
@@ -93,7 +97,10 @@ final class ProposalController extends Controller
                 'api',
             );
         } catch (InvalidArgumentException $exception) {
-            return (new ApiMessageResource(['message' => $exception->getMessage()]))
+            return (new ApiMessageResource([
+                'message' => $exception->getMessage(),
+                'code' => ContractException::codeOf($exception)->value,
+            ]))
                 ->response()
                 ->setStatusCode(422);
         }

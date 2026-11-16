@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mcp\Prompts;
 
+use App\Enums\ContractErrorCodeEnum;
 use App\Mcp\Support\HttpBrainContext;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -41,7 +42,7 @@ class InstitutaProposeChangePrompt extends Prompt
         $item = $this->brain->contract()->get($this->brain->perimeter(), $this->brain->apiKey(), $itemId);
 
         if ($item === null) {
-            return Response::error('Item not found in your perimeter.');
+            return Response::error(ContractErrorCodeEnum::NotFound->mcpText('Item not found in your perimeter.'));
         }
 
         $sections = array_map(static fn (array $section): array => [

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mcp\Tools\Http;
 
+use App\Enums\ContractErrorCodeEnum;
 use App\Mcp\Support\HttpBrainContext;
 use App\Services\BrainEmbeddingService;
 use App\Services\ContractAuditService;
@@ -46,12 +47,12 @@ class InstitutaSimilarTool extends Tool
     public function handle(Request $request): Response|ResponseFactory
     {
         if (! config('ai.embeddings.enabled')) {
-            return Response::error('Embeddings are disabled on this install (AI_EMBEDDINGS_ENABLED=false); use instituta_search.');
+            return Response::error(ContractErrorCodeEnum::EmbeddingsDisabled->mcpText('Embeddings are disabled on this install (AI_EMBEDDINGS_ENABLED=false); use instituta_search.'));
         }
 
         $query = trim((string) $request->get('q'));
         if ($query === '') {
-            return Response::error('q is required.');
+            return Response::error(ContractErrorCodeEnum::ValidationFailed->mcpText('q is required.'));
         }
 
         $limit = max(1, min(self::MAX_LIMIT, (int) ($request->get('limit') ?? self::DEFAULT_LIMIT)));
