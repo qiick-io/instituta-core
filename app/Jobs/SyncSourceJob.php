@@ -6,16 +6,32 @@ namespace App\Jobs;
 
 use App\Models\Source;
 use App\Services\SourceSyncService;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-final class SyncSourceJob implements ShouldQueue
+/**
+ * Syncs one source in the background. Unique per source, so a burst of push webhooks or a
+ * slow sync overlapping the scheduler queues one run, not many.
+ *
+ * `$isForced = false` (scheduler, webhook) stops after the fetch when the commit is unchanged.
+ */
+final class SyncSourceJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
+    /** Seconds the uniqueness lock lives if a run dies without releasing it. */
+    public int $uniqueFor = 600;
+
     public function __construct(
         public readonly string $sourceId,
+        public readonly bool $isForced = true,
     ) {}
+
+    public function uniqueId(): string
+    {
+        return $this->sourceId;
+    }
 
     public function handle(SourceSyncService $sync): void
     {
@@ -24,6 +40,6 @@ final class SyncSourceJob implements ShouldQueue
             return;
         }
 
-        $sync->sync($source);
+        $sync->sync($source, $this->isForced);
     }
 }

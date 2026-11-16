@@ -11,6 +11,7 @@ use App\Enums\SourceProviderEnum;
 use App\Enums\SyncStatusEnum;
 use Database\Factories\SourceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -32,6 +33,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $remote_url
  * @property string|null $local_path
  * @property string|null $ref
+ * @property int|null $sync_interval_minutes Minutes between scheduled syncs; null = only on demand or webhook.
+ * @property string|null $webhook_secret Encrypted HMAC secret for push webhooks; null = webhook off.
  * @property string|null $path
  * @property SourceAdapterEnum $adapter
  * @property VisibilityEnum $default_visibility
@@ -53,6 +56,8 @@ use Illuminate\Support\Carbon;
     'remote_url',
     'local_path',
     'ref',
+    'sync_interval_minutes',
+    'webhook_secret',
     'path',
     'adapter',
     'default_visibility',
@@ -62,6 +67,7 @@ use Illuminate\Support\Carbon;
     'last_synced_at',
     'last_sync_report',
 ])]
+#[Hidden(['webhook_secret'])]
 class Source extends Model
 {
     /** @use HasFactory<SourceFactory> */
@@ -81,6 +87,8 @@ class Source extends Model
             'sync_status' => SyncStatusEnum::class,
             'last_synced_at' => 'datetime',
             'last_sync_report' => 'array',
+            'sync_interval_minutes' => 'integer',
+            'webhook_secret' => 'encrypted',
         ];
     }
 

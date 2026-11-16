@@ -18,6 +18,8 @@ use InvalidArgumentException;
  */
 final class SourceRegistryService
 {
+    public const int DEFAULT_SYNC_INTERVAL_MINUTES = 15;
+
     public function __construct(
         private readonly DenylistGuardService $denylist = new DenylistGuardService,
     ) {}
@@ -36,7 +38,9 @@ final class SourceRegistryService
         ScopeTypeEnum $scopeType = ScopeTypeEnum::Organisation,
         ?string $companyId = null,
         ?string $productId = null,
+        ?int $syncIntervalMinutes = null,
     ): Source {
+        // $syncIntervalMinutes: null = provider default, 0 = no scheduled sync.
         $name = trim($name);
         if ($name === '') {
             throw new InvalidArgumentException('Source name is required.');
@@ -63,6 +67,11 @@ final class SourceRegistryService
             'provider' => $provider,
             'remote_url' => $remoteUrl,
             'local_path' => $localPath,
+            'sync_interval_minutes' => match (true) {
+                $syncIntervalMinutes === null => self::defaultSyncIntervalFor($provider),
+                $syncIntervalMinutes <= 0 => null,
+                default => $syncIntervalMinutes,
+            },
             'ref' => $ref,
             'path' => $path,
             'adapter' => $adapter,
@@ -99,5 +108,17 @@ final class SourceRegistryService
         $trimmed = trim($value);
 
         return $trimmed === '' ? null : $trimmed;
+    }
+
+    /**
+     * Remote sources are re-synced on a schedule by default (#199); a local folder is synced on
+     * demand, since nothing tells us when it changes.
+     */
+    public static function defaultSyncIntervalFor(SourceProviderEnum $provider): ?int
+    {
+        return match ($provider) {
+            SourceProviderEnum::Local => null,
+            SourceProviderEnum::Git, SourceProviderEnum::Github => self::DEFAULT_SYNC_INTERVAL_MINUTES,
+        };
     }
 }

@@ -30,7 +30,8 @@ class InstitutaSourceAddCommand extends Command
         {--shared : Mark as org-level shared source}
         {--scope-type=organisation : organisation|company|product}
         {--company-id= : Company ULID when scoped}
-        {--product-id= : Product ULID when scoped}';
+        {--product-id= : Product ULID when scoped}
+        {--sync-interval= : Minutes between scheduled syncs (default 15 for git/github, off for local; 0 = off)}';
 
     protected $description = 'Register a read-only ingest source (denylist enforced)';
 
@@ -65,6 +66,7 @@ class InstitutaSourceAddCommand extends Command
                 scopeType: ScopeTypeEnum::from((string) $this->option('scope-type')),
                 companyId: $this->stringOption('company-id'),
                 productId: $this->stringOption('product-id'),
+                syncIntervalMinutes: $this->syncIntervalOption(),
             );
         } catch (DenylistHitException|InvalidArgumentException|ValueError $exception) {
             $this->error($exception->getMessage());
@@ -85,5 +87,23 @@ class InstitutaSourceAddCommand extends Command
         $value = $this->option($name);
 
         return is_string($value) && $value !== '' ? $value : null;
+    }
+
+    /**
+     * Null keeps the provider default; 0 turns scheduled syncs off.
+     */
+    private function syncIntervalOption(): ?int
+    {
+        $value = $this->stringOption('sync-interval');
+
+        if ($value === null) {
+            return null;
+        }
+
+        if (! ctype_digit($value)) {
+            throw new InvalidArgumentException('--sync-interval must be a whole number of minutes.');
+        }
+
+        return (int) $value;
     }
 }

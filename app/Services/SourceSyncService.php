@@ -37,6 +37,10 @@ use Throwable;
  * Read-only ingest: mirror/read a source via the brain reader and upsert the index.
  * Re-sync prunes items (and cascaded sections / links / tables / search rows) that
  * the reader no longer returns for this source — deleted files or newly skipped paths.
+ *
+ * Scheduled and webhook syncs pass `$isForced = false`: when the source is still at the
+ * indexed commit they stop after the fetch (#199). After a successful sync, materialised
+ * proposals whose change is now in the source are marked merged.
  */
 final class SourceSyncService
 {
@@ -45,18 +49,42 @@ final class SourceSyncService
         private readonly BrainReader $reader = new BrainReader,
         private readonly QuotaEnforcementService $quotas = new QuotaEnforcementService,
         private readonly SearchIndexWriterService $searchIndex = new SearchIndexWriterService,
+        private readonly MergedProposalDetectorService $mergedProposals = new MergedProposalDetectorService,
     ) {}
 
     /**
      * @return array<string, mixed>
      */
-    public function sync(Source $source): array
+    public function sync(Source $source, bool $isForced = true): array
     {
+        $statusBeforeSync = $source->sync_status;
+
         $source->forceFill([
             'sync_status' => SyncStatusEnum::Syncing,
         ])->save();
 
         try {
+            $this->denylist->assertAllowed($source->name, $source->remote_url, $source->local_path);
+
+            if ($source->provider === SourceProviderEnum::Github && ! $this->githubToken()) {
+                return $this->fail($source, [
+                    'reason' => 'github_token_missing',
+                    'message' => 'GitHub sync refused: INSTITUTA_GITHUB_TOKEN is not configured.',
+                    'items_upserted' => 0,
+                    'sections_upserted' => 0,
+                    'links_upserted' => 0,
+                    'skipped' => [],
+                    'issues' => [],
+                    'versions_upserted' => 0,
+                ]);
+            }
+
+            [$readRoot, $commit, $versions] = $this->prepareWorkspace($source);
+
+            if (! $isForced && $this->isUnchanged($source, $commit, $statusBeforeSync)) {
+                return $this->skipUnchanged($source, $commit);
+            }
+
             try {
                 $this->quotas->consume(
                     organisationId: $source->organisation_id,
@@ -75,23 +103,6 @@ final class SourceSyncService
                     'versions_upserted' => 0,
                 ]);
             }
-
-            $this->denylist->assertAllowed($source->name, $source->remote_url, $source->local_path);
-
-            if ($source->provider === SourceProviderEnum::Github && ! $this->githubToken()) {
-                return $this->fail($source, [
-                    'reason' => 'github_token_missing',
-                    'message' => 'GitHub sync refused: INSTITUTA_GITHUB_TOKEN is not configured.',
-                    'items_upserted' => 0,
-                    'sections_upserted' => 0,
-                    'links_upserted' => 0,
-                    'skipped' => [],
-                    'issues' => [],
-                    'versions_upserted' => 0,
-                ]);
-            }
-
-            [$readRoot, $commit, $versions] = $this->prepareWorkspace($source);
 
             $repo = $this->reader->read(new ReadRequestData(
                 path: $readRoot,
@@ -129,6 +140,8 @@ final class SourceSyncService
                 'last_synced_at' => now(),
                 'last_sync_report' => $report,
             ])->save();
+
+            $this->mergedProposals->markMergedIn($source);
 
             activity('sync')
                 ->performedOn($source)
@@ -179,6 +192,33 @@ final class SourceSyncService
                 'versions_upserted' => 0,
             ]);
         }
+    }
+
+    /**
+     * A scheduled or webhook sync has nothing to do when the source is still at the commit
+     * the index was built from. Only real git commits count: a plain folder reports `HEAD`
+     * and is always re-read.
+     */
+    private function isUnchanged(Source $source, string $commit, SyncStatusEnum $statusBeforeSync): bool
+    {
+        return $statusBeforeSync === SyncStatusEnum::Ok
+            && preg_match('/\A[0-9a-f]{40}\z/', $commit) === 1
+            && $source->last_synced_commit === $commit;
+    }
+
+    /**
+     * Records the check without rebuilding the index or spending the tenant's sync quota.
+     *
+     * @return array<string, mixed>
+     */
+    private function skipUnchanged(Source $source, string $commit): array
+    {
+        $source->forceFill([
+            'sync_status' => SyncStatusEnum::Ok,
+            'last_synced_at' => now(),
+        ])->save();
+
+        return ['skipped_unchanged' => true, 'commit' => $commit, 'items_upserted' => 0];
     }
 
     /**

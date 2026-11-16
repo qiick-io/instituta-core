@@ -16,4 +16,7 @@ enum ProposalMaterialisationStatusEnum: string
 
     /** The file (or the edited section) changed after the author read it; nothing was written (#198). */
     case Conflict = 'conflict';
+
+    /** A later sync found the proposed change in the source: the branch / PR was merged (#199). */
+    case Merged = 'merged';
 }

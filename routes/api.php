@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\SourceWebhookController;
 use App\Http\Controllers\Api\V1\ItemController;
 use App\Http\Controllers\Api\V1\ItemNeighboursController;
 use App\Http\Controllers\Api\V1\ItemOutlineController;
@@ -46,3 +47,8 @@ Route::prefix('v1')
             Route::patch('proposals/{id}', [ProposalController::class, 'update']);
         });
     });
+
+// Push webhooks: signed per source, no API key (#199).
+Route::post('webhooks/sources/{source}', SourceWebhookController::class)
+    ->middleware('throttle:60,1')
+    ->name('webhooks.sources');
