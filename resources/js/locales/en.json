@@ -18,7 +18,9 @@
         "appVersion": "v{{version}}",
         "platform": "Platform",
         "repository": "Repository",
-        "users": "Users"
+        "users": "Users",
+        "openCount_one": ", {{count}} open",
+        "openCount_other": ", {{count}} open"
     },
     "ai": {
         "fabDescription": "Quick assistant drawer. Open the full page for history.",
@@ -729,7 +731,7 @@
             }
         },
         "proposals": {
-            "title": "Write proposals",
+            "title": "Proposals",
             "description": "Review proposed brain changes for the current scope before they become git pull requests.",
             "showDescription": "Inspect the proposed change, then accept or reject it.",
             "empty": "No proposals in this filter.",
@@ -1085,7 +1087,7 @@
         },
         "proposals": {
             "title": "No proposals in this filter",
-            "description": "Write proposals for the current scope show up here.",
+            "description": "Changes proposed by agents and people in this scope show up here.",
             "filteredTitle": "No matching proposals",
             "filteredDescription": "Try a different search or clear filters."
         },
@@ -1311,5 +1313,15 @@
             }
         },
         "openPanel": "Open the assistant panel"
+    },
+    "review": {
+        "title": "Review",
+        "tabs": {
+            "label": "Review views",
+            "proposals": "Proposals",
+            "gaps": "Gaps"
+        },
+        "proposalsDescription": "Changes that agents or people propose to the brain. Nothing changes until someone accepts them; accepted ones become a commit or pull request on the repository.",
+        "gapsDescription": "What agents found missing, contradictory, unclear or outdated in the brain. Turn a gap into a proposal, or dismiss it."
     }
 }

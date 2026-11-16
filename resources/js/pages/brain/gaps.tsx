@@ -20,6 +20,8 @@ import { Button } from '@/components/ui/button';
 import { Drawer } from '@/components/ui/drawer';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import AppLayout from '@/layouts/app-layout';
+import { ReviewTabs } from '@/components/brain/review-tabs';
+import { index as reviewIndex } from '@/routes/review';
 import { show as reading } from '@/routes/explorer';
 import {
     destroy as gapsDestroy,
@@ -73,7 +75,10 @@ export default function BrainGaps({
     const [isDismissing, setIsDismissing] = useState(false);
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
-        () => [{ title: t('brain.gaps.title'), href: gapsIndex.url() }],
+        () => [
+            { title: t('review.title'), href: reviewIndex.url() },
+            { title: t('brain.gaps.title'), href: gapsIndex.url() },
+        ],
         [t],
     );
 
@@ -233,7 +238,9 @@ export default function BrainGaps({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t('brain.gaps.title')} />
+            <ReviewTabs view="gaps" />
             <PageLayout
+                description={t('review.gapsDescription')}
                 filters={
                     hideListChrome ? undefined : (
                         <DataTableToolbar

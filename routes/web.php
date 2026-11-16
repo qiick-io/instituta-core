@@ -67,6 +67,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('tables/{item}/{table}', [TablesController::class, 'show'])->name('tables.show');
 
     // What waits for a person: proposed changes and reported gaps.
+    Route::redirect('review', 'review/proposals')->name('review.index');
     Route::get('review/proposals', [ProposalsController::class, 'index'])->name('review.proposals.index');
     Route::post('review/proposals', [ProposalsController::class, 'store'])->name('review.proposals.store');
     Route::get('review/proposals/{proposal}', [ProposalsController::class, 'show'])->name('review.proposals.show');

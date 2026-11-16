@@ -18,7 +18,9 @@
         "appVersion": "v{{version}}",
         "platform": "Piattaforma",
         "repository": "Repository",
-        "users": "Utenti"
+        "users": "Utenti",
+        "openCount_one": ", {{count}} da rivedere",
+        "openCount_other": ", {{count}} da rivedere"
     },
     "ai": {
         "fabDescription": "Drawer rapido dell'assistente. Apri la pagina completa per la cronologia.",
@@ -729,7 +731,7 @@
             }
         },
         "proposals": {
-            "title": "Proposte di scrittura",
+            "title": "Proposte",
             "description": "Rivedi le modifiche proposte al brain nello scope corrente prima che diventino pull request git.",
             "showDescription": "Esamina la modifica proposta, poi accettarla o rifiutarla.",
             "empty": "Nessuna proposta in questo filtro.",
@@ -1085,7 +1087,7 @@
         },
         "proposals": {
             "title": "Nessuna proposta in questo filtro",
-            "description": "Le proposte di scrittura per lo scope corrente compaiono qui.",
+            "description": "Qui compaiono le modifiche proposte da agenti e persone in questo ambito.",
             "filteredTitle": "Nessuna proposta corrispondente",
             "filteredDescription": "Prova un’altra ricerca o azzera i filtri."
         },
@@ -1311,5 +1313,15 @@
             }
         },
         "openPanel": "Apri il pannello dell'assistente"
+    },
+    "review": {
+        "title": "Revisione",
+        "tabs": {
+            "label": "Viste della revisione",
+            "proposals": "Proposte",
+            "gaps": "Lacune"
+        },
+        "proposalsDescription": "Modifiche al cervello proposte da agenti o persone. Nulla cambia finché qualcuno non le accetta; quelle accettate diventano un commit o una pull request sul repository.",
+        "gapsDescription": "Ciò che gli agenti hanno trovato mancante, contraddittorio, poco chiaro o superato nel cervello. Trasforma una lacuna in proposta, oppure archiviala."
     }
 }

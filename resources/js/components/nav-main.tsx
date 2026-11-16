@@ -7,6 +7,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { SidebarUnreadBadge } from '@/components/sidebar-unread-badge';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { toUrl } from '@/lib/utils';
 import type { NavItem } from '@/types';
@@ -43,8 +44,21 @@ export function NavMain({ items }: { items: NavItem[] }) {
                                 <Link href={item.href} prefetch>
                                     {item.icon && <item.icon />}
                                     <span>{item.title}</span>
+                                    {item.badgeCount ? (
+                                        <span className="sr-only">
+                                            {t('nav.openCount', {
+                                                count: item.badgeCount,
+                                            })}
+                                        </span>
+                                    ) : null}
                                 </Link>
                             </SidebarMenuButton>
+                            {item.badgeCount !== undefined ? (
+                                <SidebarUnreadBadge
+                                    count={item.badgeCount}
+                                    decorative
+                                />
+                            ) : null}
                         </SidebarMenuItem>
                     );
                 })}

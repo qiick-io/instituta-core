@@ -18,7 +18,9 @@
         "appVersion": "v{{version}}",
         "platform": "Plattform",
         "repository": "Repository",
-        "users": "Benutzer"
+        "users": "Benutzer",
+        "openCount_one": ", {{count}} offen",
+        "openCount_other": ", {{count}} offen"
     },
     "ai": {
         "fabDescription": "Schnelle Assistenten-Schublade. Öffnen Sie die Vollseite für den Verlauf.",
@@ -729,7 +731,7 @@
             }
         },
         "proposals": {
-            "title": "Schreibvorschläge",
+            "title": "Vorschläge",
             "description": "Prüfe vorgeschlagene Brain-Änderungen im aktuellen Umfang, bevor sie zu Git-Pull-Requests werden.",
             "showDescription": "Prüfe die vorgeschlagene Änderung und akzeptiere oder lehne sie ab.",
             "empty": "Keine Vorschläge in diesem Filter.",
@@ -1085,7 +1087,7 @@
         },
         "proposals": {
             "title": "Keine Vorschläge in diesem Filter",
-            "description": "Schreibvorschläge für den aktuellen Scope erscheinen hier.",
+            "description": "Hier erscheinen Änderungen, die Agenten und Personen in diesem Bereich vorschlagen.",
             "filteredTitle": "Keine passenden Vorschläge",
             "filteredDescription": "Andere Suche versuchen oder Filter zurücksetzen."
         },
@@ -1311,5 +1313,15 @@
             }
         },
         "openPanel": "Assistenten-Panel öffnen"
+    },
+    "review": {
+        "title": "Prüfung",
+        "tabs": {
+            "label": "Prüfansichten",
+            "proposals": "Vorschläge",
+            "gaps": "Lücken"
+        },
+        "proposalsDescription": "Änderungen am Gehirn, die Agenten oder Personen vorschlagen. Nichts ändert sich, bis jemand sie annimmt; angenommene werden ein Commit oder Pull Request im Repository.",
+        "gapsDescription": "Was Agenten im Gehirn als fehlend, widersprüchlich, unklar oder veraltet gefunden haben. Mache aus einer Lücke einen Vorschlag oder verwirf sie."
     }
 }
