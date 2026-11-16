@@ -40,7 +40,7 @@ final class IndexedContractService
     /**
      * @return array<string, mixed>
      */
-    public function scopes(PerimeterData $perimeter, ApiKey $apiKey): array
+    public function scopes(PerimeterData $perimeter, ?ApiKey $apiKey): array
     {
         $principal = Principal::query()->find($perimeter->principalId);
         $grants = $principal === null
@@ -74,7 +74,7 @@ final class IndexedContractService
      */
     public function list(
         PerimeterData $perimeter,
-        ApiKey $apiKey,
+        ?ApiKey $apiKey,
         ?string $area = null,
         ?string $type = null,
         ?string $cursor = null,
@@ -123,7 +123,7 @@ final class IndexedContractService
      */
     public function search(
         PerimeterData $perimeter,
-        ApiKey $apiKey,
+        ?ApiKey $apiKey,
         string $q,
         ?string $area = null,
         int $limit = 20,
@@ -158,7 +158,7 @@ final class IndexedContractService
     /**
      * @return array<string, mixed>|null
      */
-    public function get(PerimeterData $perimeter, ApiKey $apiKey, string $id): ?array
+    public function get(PerimeterData $perimeter, ?ApiKey $apiKey, string $id): ?array
     {
         $item = $this->findItem($perimeter, $id);
         if ($item === null) {
@@ -209,7 +209,7 @@ final class IndexedContractService
      */
     public function getSection(
         PerimeterData $perimeter,
-        ApiKey $apiKey,
+        ?ApiKey $apiKey,
         string $id,
         string $anchor,
     ): ?array {
@@ -252,7 +252,7 @@ final class IndexedContractService
      */
     public function table(
         PerimeterData $perimeter,
-        ApiKey $apiKey,
+        ?ApiKey $apiKey,
         string $id,
         string $tableKey,
         ?array $filter = null,
@@ -300,7 +300,7 @@ final class IndexedContractService
     /**
      * @return array<string, mixed>|null
      */
-    public function outline(PerimeterData $perimeter, ApiKey $apiKey, string $id): ?array
+    public function outline(PerimeterData $perimeter, ?ApiKey $apiKey, string $id): ?array
     {
         $item = $this->findItem($perimeter, $id);
         if ($item === null) {
@@ -336,7 +336,7 @@ final class IndexedContractService
      */
     public function resolve(
         PerimeterData $perimeter,
-        ApiKey $apiKey,
+        ?ApiKey $apiKey,
         string $productId,
         ?string $area = null,
     ): array {

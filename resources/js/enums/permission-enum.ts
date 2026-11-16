@@ -14,6 +14,7 @@ export enum PermissionEnum {
     CanEditPermissions = 'can-edit-permissions',
     CanShowActivityLogs = 'can-show-activity-logs',
     CanManageSettings = 'can-manage-settings',
+    CanUseAi = 'can-use-ai',
 }
 
 export const PermissionEnumValues = Object.values(
