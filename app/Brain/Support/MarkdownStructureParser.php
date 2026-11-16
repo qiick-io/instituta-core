@@ -58,6 +58,9 @@ final class MarkdownStructureParser
         $currentBlocks = [];
         /** @var list<string> $pendingText */
         $pendingText = [];
+        $currentStartLine = 1;
+        /** @var list<int> $sectionStartLines */
+        $sectionStartLines = [];
 
         foreach ($document->children() as $child) {
             if ($child instanceof Heading) {
@@ -71,6 +74,8 @@ final class MarkdownStructureParser
                     $currentBlocks,
                     $pendingText,
                 );
+                $this->recordSectionStart($sections, $sectionStartLines, $currentStartLine);
+                $currentStartLine = $child->getStartLine() ?? $currentStartLine;
 
                 $headingText = $this->plainText($child);
                 $level = $child->getLevel();
@@ -138,6 +143,8 @@ final class MarkdownStructureParser
             $currentBlocks,
             $pendingText,
         );
+        $this->recordSectionStart($sections, $sectionStartLines, $currentStartLine);
+        $sections = $this->withSourceMarkdown($sections, $sectionStartLines, $body);
 
         foreach ($this->wikiLinks($body) as $target) {
             $edges[] = new LinkEdgeData(
@@ -152,6 +159,55 @@ final class MarkdownStructureParser
             'edges' => $this->uniqueEdges($edges),
             'issues' => $issues,
         ];
+    }
+
+    /**
+     * Remembers where the section just flushed starts, keeping one start line per section.
+     *
+     * @param  list<SectionData>  $sections
+     * @param  list<int>  $sectionStartLines
+     */
+    private function recordSectionStart(array $sections, array &$sectionStartLines, int $startLine): void
+    {
+        if (count($sections) > count($sectionStartLines)) {
+            $sectionStartLines[] = $startLine;
+        }
+    }
+
+    /**
+     * Adds each section's source markdown and line span: from its heading (or line 1 for the text
+     * before the first heading) to the line before the next section. Writers edit a section by
+     * replacing exactly these lines, so the other sections stay byte for byte as they were.
+     *
+     * @param  list<SectionData>  $sections
+     * @param  list<int>  $sectionStartLines
+     * @return list<SectionData>
+     */
+    private function withSourceMarkdown(array $sections, array $sectionStartLines, string $body): array
+    {
+        $bodyLines = preg_split('/\r\n|\n|\r/', $body) ?: [];
+        $lineCount = count($bodyLines);
+        $withMarkdown = [];
+
+        foreach ($sections as $index => $section) {
+            $startLine = $sectionStartLines[$index] ?? 1;
+            $endLine = isset($sectionStartLines[$index + 1]) ? $sectionStartLines[$index + 1] - 1 : $lineCount;
+            $markdown = rtrim(implode("\n", array_slice($bodyLines, $startLine - 1, max(0, $endLine - $startLine + 1))));
+
+            $withMarkdown[] = new SectionData(
+                anchor: $section->anchor,
+                heading: $section->heading,
+                level: $section->level,
+                position: $section->position,
+                body: $section->body,
+                blocks: $section->blocks,
+                markdown: $markdown,
+                startLine: $startLine,
+                endLine: $endLine,
+            );
+        }
+
+        return $withMarkdown;
     }
 
     public function firstParagraphSummary(string $body, int $maxLength = 240): string

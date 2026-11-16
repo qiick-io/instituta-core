@@ -11,6 +11,7 @@ use App\Mcp\Support\HttpBrainContext;
 use App\Services\BrainWriteGateService;
 use App\Services\ProposalQueryService;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use InvalidArgumentException;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
@@ -19,7 +20,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tool;
 
 #[Name('instituta_propose')]
-#[Description('Open a brain write proposal (never a direct write). Requires brain:write and mcp.write_enabled.')]
+#[Description('Open a brain write proposal (never a direct write). Requires brain:write and mcp.write_enabled. Updates and deletes send the version you read (base_content_hash, or section_anchor + base_section_hash for a one-section edit); a stale base is refused.')]
 class InstitutaProposeTool extends Tool
 {
     public function __construct(
@@ -37,8 +38,11 @@ class InstitutaProposeTool extends Tool
             'title' => $schema->string()->description('Proposal title')->required(),
             'path' => $schema->string()->description('Repository-relative path')->required(),
             'area' => $schema->string()->description('Optional area')->nullable(),
-            'body' => $schema->string()->description('Proposed markdown body (not audited)')->nullable(),
+            'body' => $schema->string()->description('Proposed markdown: the whole file, or with section_anchor the new markdown of that section, heading line included (not audited)')->nullable(),
             'source_id' => $schema->string()->description('Optional source ULID')->nullable(),
+            'base_content_hash' => $schema->string()->description('origin.content_hash of the item you read; required for a whole-file update or delete')->nullable(),
+            'section_anchor' => $schema->string()->description('Edit only this section (update only); body is its new markdown')->nullable(),
+            'base_section_hash' => $schema->string()->description('section_hash of the section you read; required with section_anchor unless base_content_hash is sent')->nullable(),
         ];
     }
 
@@ -54,21 +58,17 @@ class InstitutaProposeTool extends Tool
             return Response::error('action must be create, update, or delete.');
         }
 
-        $proposal = $this->propose->execute(
-            $this->brain->perimeter(),
-            $this->brain->apiKey(),
-            new ProposeBrainChangeData(
-                action: ProposalActionEnum::from($action),
-                stableKey: (string) $request->get('stable_key'),
-                title: (string) $request->get('title'),
-                path: (string) $request->get('path'),
-                area: $request->get('area'),
-                body: $request->get('body'),
-                sourceId: $request->get('source_id'),
-            ),
-            'mcp',
-        );
+        try {
+            $proposal = $this->propose->execute(
+                $this->brain->perimeter(),
+                $this->brain->apiKey(),
+                ProposeBrainChangeData::fromInput($request->all()),
+                'mcp',
+            );
+        } catch (InvalidArgumentException $exception) {
+            return Response::error($exception->getMessage());
+        }
 
-        return Response::structured($this->queries->toSummary($proposal));
+        return Response::structured($this->queries->toProposedSummary($proposal));
     }
 }

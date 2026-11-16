@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Brain\Support\FrontmatterParser;
+use App\Brain\Support\MarkdownStructureParser;
 use App\Enums\ProposalActionEnum;
 use App\Enums\ProposalMaterialisationStatusEnum;
 use App\Enums\ProposalStatusEnum;
 use App\Enums\SourceProviderEnum;
+use App\Exceptions\ProposalConflictException;
+use App\Models\ItemSection;
 use App\Models\Proposal;
 use App\Models\Source;
 use Illuminate\Support\Facades\File;
@@ -22,11 +26,18 @@ use Throwable;
  *
  * Never updates the brain index and never mutates a local source path in place:
  * work happens under storage/app/instituta/proposals/{id}.
+ *
+ * Updates and deletes are checked against the version their author read before anything is
+ * written (#198): a whole-file change needs the file's content hash to match, a one-section
+ * edit only that section's hash (other sections may have changed). A mismatch ends in
+ * `conflict`, never in an overwrite.
  */
 final class MaterialiseProposalService
 {
     public function __construct(
         private readonly DenylistGuardService $denylist = new DenylistGuardService,
+        private readonly FrontmatterParser $frontmatter = new FrontmatterParser,
+        private readonly MarkdownStructureParser $structure = new MarkdownStructureParser,
     ) {}
 
     /**
@@ -65,6 +76,14 @@ final class MaterialiseProposalService
                 'materialised_at' => now(),
                 'materialisation_error' => null,
             ])->save();
+        } catch (ProposalConflictException $conflict) {
+            // Not retried: the author has to re-read and propose again.
+            $proposal->forceFill([
+                'materialisation_status' => ProposalMaterialisationStatusEnum::Conflict,
+                'materialisation_error' => mb_substr($conflict->getMessage(), 0, 1000),
+            ])->save();
+
+            return $proposal->refresh();
         } catch (Throwable $exception) {
             $proposal->forceFill([
                 'materialisation_status' => ProposalMaterialisationStatusEnum::Failed,
@@ -185,10 +204,25 @@ final class MaterialiseProposalService
             throw new RuntimeException('Review workspace is not readable.');
         }
 
-        if ($proposal->action === ProposalActionEnum::Delete) {
-            if (is_file($absolutePath)) {
-                unlink($absolutePath);
+        $contents = $proposal->body ?? '';
+
+        if ($proposal->action !== ProposalActionEnum::Create) {
+            $currentContents = is_file($absolutePath) ? (string) file_get_contents($absolutePath) : null;
+
+            if ($currentContents === null) {
+                throw new ProposalConflictException('The file no longer exists in the source; re-read and propose again.');
             }
+
+            if ($proposal->section_anchor !== null) {
+                $contents = $this->replaceSection($currentContents, $proposal);
+            } else {
+                $this->assertFileUnchanged($currentContents, $proposal);
+                $contents = $this->keepFrontmatter($currentContents, $contents);
+            }
+        }
+
+        if ($proposal->action === ProposalActionEnum::Delete) {
+            unlink($absolutePath);
 
             return;
         }
@@ -196,8 +230,12 @@ final class MaterialiseProposalService
         $directory = dirname($absolutePath);
         File::ensureDirectoryExists($directory);
 
-        $body = $proposal->body ?? '';
-        if (file_put_contents($absolutePath, $body) === false) {
+        // Request bodies arrive trimmed; a text file ends with exactly one newline.
+        if ($contents !== '') {
+            $contents = rtrim($contents, "\r\n")."\n";
+        }
+
+        if (file_put_contents($absolutePath, $contents) === false) {
             throw new RuntimeException('Failed to write proposal body into the review workspace.');
         }
 
@@ -206,6 +244,77 @@ final class MaterialiseProposalService
             @unlink($absolutePath);
             throw new InvalidArgumentException('Proposal path escaped the review workspace.');
         }
+    }
+
+    /**
+     * @throws ProposalConflictException When the file is not the version the author read.
+     */
+    private function assertFileUnchanged(string $currentContents, Proposal $proposal): void
+    {
+        $currentHash = hash('sha256', $proposal->path."\n".$this->frontmatter->parse($currentContents)['body']);
+
+        if ($proposal->base_content_hash === null || ! hash_equals($proposal->base_content_hash, $currentHash)) {
+            throw new ProposalConflictException('The file changed after the proposal was written; re-read and propose again.');
+        }
+    }
+
+    /**
+     * Readers see an item's body and fields, not its raw frontmatter: a whole-file update
+     * without frontmatter fences keeps the file's current frontmatter instead of dropping it.
+     */
+    private function keepFrontmatter(string $currentContents, string $proposedContents): string
+    {
+        if (str_starts_with(ltrim($proposedContents), '---')) {
+            return $proposedContents;
+        }
+
+        $currentBody = $this->frontmatter->parse($currentContents)['body'];
+        $frontmatterPrefix = substr($currentContents, 0, strlen($currentContents) - strlen($currentBody));
+
+        return $frontmatterPrefix.$proposedContents;
+    }
+
+    /**
+     * The file with only the proposal's section replaced (heading line included); frontmatter
+     * and every other section stay byte for byte as they are.
+     *
+     * @throws ProposalConflictException When the section is gone or changed since the author read it.
+     */
+    private function replaceSection(string $currentContents, Proposal $proposal): string
+    {
+        $body = $this->frontmatter->parse($currentContents)['body'];
+        $frontmatterPrefix = substr($currentContents, 0, strlen($currentContents) - strlen($body));
+
+        $section = null;
+        foreach ($this->structure->parse($body, $proposal->path)['sections'] as $candidate) {
+            if ($candidate->anchor === $proposal->section_anchor) {
+                $section = $candidate;
+
+                break;
+            }
+        }
+
+        if ($section === null || $section->startLine < 1) {
+            throw new ProposalConflictException('The section no longer exists in the file; re-read and propose again.');
+        }
+
+        $currentSectionHash = ItemSection::hashOf($section->markdown);
+        if ($proposal->base_section_hash === null || $currentSectionHash === null || ! hash_equals($proposal->base_section_hash, $currentSectionHash)) {
+            throw new ProposalConflictException('The section changed after the proposal was written; re-read and propose again.');
+        }
+
+        $bodyLines = preg_split('/\r\n|\n|\r/', $body) ?: [];
+        $linesBefore = array_slice($bodyLines, 0, $section->startLine - 1);
+        $linesAfter = array_slice($bodyLines, $section->endLine);
+        $hasFollowingSection = trim(implode('', $linesAfter)) !== '';
+
+        $newLines = [
+            ...$linesBefore,
+            rtrim($proposal->body ?? ''),
+            ...($hasFollowingSection ? ['', ...$linesAfter] : []),
+        ];
+
+        return $frontmatterPrefix.rtrim(implode("\n", $newLines))."\n";
     }
 
     private function commitChange(string $repoRoot, Proposal $proposal, ?string $sourceSubdir): string

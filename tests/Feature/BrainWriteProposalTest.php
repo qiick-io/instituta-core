@@ -191,7 +191,7 @@ it('isolates proposals across organisations', function (): void {
     $seedB = writeSeedOwnerKey();
 
     $created = $this->postJson('/api/v1/proposals', [
-        'action' => 'update',
+        'action' => 'create',
         'stable_key' => 'rules/a',
         'title' => 'A only',
         'path' => 'rules/a.md',

@@ -673,7 +673,8 @@
                 "pending": "Pending",
                 "materialised": "Materialised",
                 "local_review": "Local review",
-                "failed": "Failed"
+                "failed": "Failed",
+                "conflict": "Conflict"
             },
             "searchPlaceholder": "Search proposals…"
         },

@@ -567,6 +567,7 @@ final class SourceSyncService
                     'level' => $section->level,
                     'position' => $section->position,
                     'body' => $section->body,
+                    'markdown' => $section->markdown === '' ? null : $section->markdown,
                     'blocks' => $section->blocks === [] ? null : array_map(
                         static fn ($block): array => $block->toArray(),
                         $section->blocks,
