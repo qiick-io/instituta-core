@@ -12,7 +12,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Scoped neighbour graph for one brain item (#49).
+ * The whole brain as a graph (#254): nodes and links of the perimeter, laid out in the browser.
+ * `?focus=` (an item's stable key) selects one node, as links from an item do.
  */
 final class GraphController extends Controller
 {
@@ -21,28 +22,15 @@ final class GraphController extends Controller
         private readonly BrainGraphService $graph,
     ) {}
 
-    public function __invoke(Request $request, ?string $item = null): Response
+    public function __invoke(Request $request): Response
     {
         $perimeter = $this->sessions->optionalPerimeter($request);
-
-        $depth = (int) $request->integer('depth', 1);
-        $hasExplicitItem = is_string($item) && $item !== '';
-        $payload = $perimeter === null
-            ? ['root' => null, 'nodes' => [], 'edges' => [], 'depth' => max(1, min(2, $depth))]
-            : $this->graph->forItem($perimeter, $item, $depth);
-
-        // Match reading-view behaviour: an explicit out-of-perimeter id is not found.
-        if ($hasExplicitItem && ($payload['root']['id'] ?? null) !== $item) {
-            abort(404);
-        }
+        $focus = $request->string('focus')->toString();
 
         return Inertia::render('brain/graph', [
+            ...($perimeter === null ? ['nodes' => [], 'edges' => []] : $this->graph->whole($perimeter)),
             'hasPerimeter' => $perimeter !== null,
-            'root' => $payload['root'],
-            'nodes' => $payload['nodes'],
-            'edges' => $payload['edges'],
-            'depth' => $payload['depth'],
-            'itemId' => $payload['root']['id'] ?? $item,
+            'focus' => $focus === '' ? null : $focus,
         ]);
     }
 }

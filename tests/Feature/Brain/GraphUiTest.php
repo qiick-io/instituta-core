@@ -68,32 +68,27 @@ function graphUiSeed(): array
     return compact('user', 'org', 'item', 'neighbour');
 }
 
-it('renders the scoped graph for an item inside the perimeter', function (): void {
+it('renders every item of the perimeter and each link once, with link counts', function (): void {
     $seed = graphUiSeed();
+    // The same pair linked back is one edge, not two.
+    ItemLink::factory()->create([
+        'from_item_id' => $seed['neighbour']->id,
+        'to_item_id' => $seed['item']->id,
+        'organisation_id' => $seed['org']->id,
+        'target' => $seed['item']->stable_key,
+        'relation' => 'related',
+    ]);
 
     $this->actingAs($seed['user'])
-        ->get(route('graph', ['item' => $seed['item']->id, 'depth' => 1]))
+        ->get(route('graph', ['focus' => $seed['item']->stable_key]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/graph')
             ->where('hasPerimeter', true)
-            ->where('depth', 1)
-            ->where('root.id', $seed['item']->id)
+            ->where('focus', $seed['item']->stable_key)
             ->has('nodes', 2)
             ->has('edges', 1)
-            ->where('edges.0.to', $seed['neighbour']->id));
-});
-
-it('falls back to the first perimeter item when no id is given', function (): void {
-    $seed = graphUiSeed();
-
-    $this->actingAs($seed['user'])
-        ->get(route('graph'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('brain/graph')
-            ->where('hasPerimeter', true)
-            ->where('root.id', fn ($id): bool => in_array($id, [$seed['item']->id, $seed['neighbour']->id], true)));
+            ->where('nodes', fn ($nodes): bool => collect($nodes)->every(fn (array $node): bool => $node['degree'] === 1)));
 });
 
 it('requires authentication for the graph', function (): void {

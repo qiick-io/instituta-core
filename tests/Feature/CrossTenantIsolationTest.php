@@ -381,15 +381,12 @@ it('keeps the graph UI inside the session perimeter', function (): void {
     $seed = isolationSeed();
 
     $this->actingAs($seed['userA'])
-        ->get(route('graph', ['item' => $seed['itemA']->id, 'depth' => 1]))
+        ->get(route('graph'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('brain/graph')
-            ->where('root.id', $seed['itemA']->id));
-
-    $this->actingAs($seed['userA'])
-        ->get(route('graph', ['item' => $seed['itemB']->id, 'depth' => 1]))
-        ->assertNotFound();
+            ->where('nodes', fn ($nodes): bool => collect($nodes)->pluck('id')->contains($seed['itemA']->id)
+                && ! collect($nodes)->pluck('id')->contains($seed['itemB']->id)));
 });
 
 it('keeps proposals UI inside the organisation perimeter', function (): void {

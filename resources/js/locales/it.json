@@ -793,14 +793,21 @@
         },
         "graph": {
             "title": "Grafo nello scope",
-            "description": "Vicini di un elemento nel perimetro corrente, raggruppati per area.",
+            "description": "Ogni voce in questo ambito e i link tra loro. Clicca una voce per illuminarne i vicini; doppio clic per aprirla.",
             "rootLabel": "Partenza da {{title}}",
             "empty": "Nessun elemento in questo perimetro da mostrare nel grafo.",
             "depth1": "Profondità 1",
             "depth2": "Profondità 2",
             "openTree": "Apri albero",
             "canvasLabel": "Grafo dei vicini degli elementi del brain",
-            "depthLabel": "Profondità del grafo"
+            "depthLabel": "Profondità del grafo",
+            "searchPlaceholder": "Trova una voce…",
+            "legendLabel": "Colori delle aree",
+            "emptyDescription": "Sincronizza un repository: qui compaiono le sue voci e i link tra loro.",
+            "links_one": "{{count}} link",
+            "links_other": "{{count}} link",
+            "open": "Apri",
+            "clearSelection": "Deseleziona"
         },
         "propose": {
             "proposeChange": "Proponi modifica",

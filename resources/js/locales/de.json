@@ -793,14 +793,21 @@
         },
         "graph": {
             "title": "Eingeschränkter Graph",
-            "description": "Nachbarn eines Eintrags im aktuellen Umfang, nach Bereich gruppiert.",
+            "description": "Jeder Eintrag in diesem Bereich und die Links dazwischen. Klicke einen Eintrag, um seine Nachbarn hervorzuheben; Doppelklick öffnet ihn.",
             "rootLabel": "Ausgangspunkt {{title}}",
             "empty": "Keine Einträge in diesem Umfang für den Graphen.",
             "depth1": "Tiefe 1",
             "depth2": "Tiefe 2",
             "openTree": "Baum öffnen",
             "canvasLabel": "Nachbargraph der Brain-Einträge",
-            "depthLabel": "Graphtiefe"
+            "depthLabel": "Graphtiefe",
+            "searchPlaceholder": "Eintrag finden…",
+            "legendLabel": "Bereichsfarben",
+            "emptyDescription": "Synchronisiere ein Repository: seine Einträge und Links erscheinen hier.",
+            "links_one": "{{count}} Link",
+            "links_other": "{{count}} Links",
+            "open": "Öffnen",
+            "clearSelection": "Abwählen"
         },
         "propose": {
             "proposeChange": "Änderung vorschlagen",
