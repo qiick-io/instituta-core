@@ -9,6 +9,7 @@ import { Message, MessageContent } from '@/components/ui/message';
 import type { AiChatMessage } from '@/hooks/use-ai-chat';
 
 const BRAIN_TOOL_KEYS: Record<string, string> = {
+    BrainContextTool: 'context',
     SearchBrainTool: 'search',
     SimilarBrainSectionsTool: 'similar',
     OutlineBrainItemTool: 'outline',

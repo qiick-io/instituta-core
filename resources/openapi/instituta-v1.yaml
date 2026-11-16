@@ -278,6 +278,72 @@ paths:
                                 $ref: '#/components/schemas/GraphResponse'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
+    /context:
+        get:
+            tags: [Contract]
+            summary: Context pack for a task in one call
+            description: With product_id, the product's resolved entries first (one line each); then the most relevant sections already read, active entries first, within the token budget. omitted lists what did not fit (fetch it with POST /sections).
+            operationId: getContext
+            security:
+                - ApiKeyBearer: []
+            parameters:
+                - $ref: '#/components/parameters/Scope'
+                - name: q
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                - name: product_id
+                  in: query
+                  schema:
+                      type: string
+                - name: area
+                  in: query
+                  schema:
+                      type: string
+                - name: budget
+                  in: query
+                  description: Token budget (estimates as in CONTRACTS.md §2.3.1)
+                  schema:
+                      type: integer
+                      minimum: 500
+                      maximum: 16000
+                      default: 4000
+            responses:
+                '200':
+                    description: Resolved entries, read sections and what was left out
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    mode:
+                                        type: string
+                                    budget:
+                                        type: integer
+                                    token_estimate:
+                                        type: integer
+                                    resolved:
+                                        type: array
+                                        items:
+                                            type: object
+                                            additionalProperties: true
+                                    sections:
+                                        type: array
+                                        items:
+                                            type: object
+                                            additionalProperties: true
+                                    omitted:
+                                        type: array
+                                        items:
+                                            type: object
+                                            additionalProperties: true
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '422':
+                    $ref: '#/components/responses/ValidationError'
     /search:
         get:
             tags: [Contract]

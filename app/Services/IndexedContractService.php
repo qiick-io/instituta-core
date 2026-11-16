@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Brain\Data\PerimeterData;
 use App\Brain\Enums\ItemStatusEnum;
 use App\Brain\Enums\ScopeTypeEnum;
+use App\Brain\Support\TokenEstimator;
 use App\Contracts\SearchIndexContract;
 use App\Enums\ContractErrorCodeEnum;
 use App\Models\ApiKey;
@@ -33,6 +34,20 @@ final class IndexedContractService
      * The most sections one getSections call reads (#225).
      */
     public const int MAX_REQUESTED_SECTIONS = 20;
+
+    /**
+     * The context pack's token budget (#224): default, floor and ceiling.
+     */
+    public const int CONTEXT_DEFAULT_BUDGET = 4000;
+
+    public const int CONTEXT_MIN_BUDGET = 500;
+
+    public const int CONTEXT_MAX_BUDGET = 16000;
+
+    /**
+     * How many search hits the context pack considers before the budget decides.
+     */
+    private const int CONTEXT_CANDIDATE_HITS = 30;
 
     public function __construct(
         private readonly ContractAuditService $audit = new ContractAuditService,
@@ -126,9 +141,6 @@ final class IndexedContractService
     }
 
     /**
-     * @return array<string, mixed>
-     */
-    /**
      * Keyword, semantic or hybrid search (#217). Hybrid (the default) merges both when embeddings
      * are on and falls back to keyword otherwise; `mode` in the answer says what ran.
      *
@@ -142,38 +154,13 @@ final class IndexedContractService
         int $limit = 20,
         string $mode = HybridSearchService::MODE_HYBRID,
     ): array {
-        $limit = max(1, min(50, $limit));
-
-        /** @var list<string> $allowedIds */
-        $allowedIds = $this->itemsQuery($perimeter)->pluck('id')->all();
-
-        $isSemanticAvailable = HybridSearchService::isSemanticAvailable();
-        $modeUsed = match (true) {
-            $mode === HybridSearchService::MODE_KEYWORD, ! $isSemanticAvailable => HybridSearchService::MODE_KEYWORD,
-            $mode === HybridSearchService::MODE_SEMANTIC => HybridSearchService::MODE_SEMANTIC,
-            default => HybridSearchService::MODE_HYBRID,
-        };
-
         try {
-            $keywordHits = $modeUsed === HybridSearchService::MODE_SEMANTIC
-                ? []
-                : $this->searchDriver()->search($perimeter, $q, $allowedIds, $area, $limit);
+            ['mode' => $modeUsed, 'results' => $results] = $this->runSearch($perimeter, $q, $area, $limit, $mode);
         } catch (RuntimeException $exception) {
             $this->audit->record('instituta_search', $perimeter, $apiKey, []);
 
             throw $exception;
         }
-
-        $results = $keywordHits;
-
-        if ($modeUsed !== HybridSearchService::MODE_KEYWORD) {
-            $hybrid = app(HybridSearchService::class);
-            $results = $hybrid->fuse($keywordHits, $hybrid->semanticHits($perimeter, $q, $allowedIds, $area, $limit), $limit);
-        }
-
-        // Current entries first (#218); the sort is stable, so relevance order holds within each group.
-        usort($results, static fn (array $left, array $right): int => (int) (($right['status'] ?? 'active') === 'active')
-            <=> (int) (($left['status'] ?? 'active') === 'active'));
 
         /** @var list<string> $itemIds */
         $itemIds = array_values(array_unique(array_map(
@@ -188,6 +175,152 @@ final class IndexedContractService
             'results' => $results,
             ...$this->freezeMeta($perimeter),
         ];
+    }
+
+    /**
+     * A ready-to-use context pack for a task in one call (#224), instead of search, outline and
+     * section reads one after the other. Best first and within `$budget` tokens (#230 estimates):
+     * a product's resolved entries as one-liners, then the most relevant sections already read
+     * (hybrid search, active entries first), then what did not fit (`omitted`), so the agent can
+     * fetch more with get_sections. One audit row lists every item included.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws RuntimeException When the database driver has no full-text search.
+     */
+    public function context(
+        PerimeterData $perimeter,
+        ?ApiKey $apiKey,
+        string $q,
+        ?string $productId = null,
+        ?string $area = null,
+        int $budget = self::CONTEXT_DEFAULT_BUDGET,
+    ): array {
+        $budget = max(self::CONTEXT_MIN_BUDGET, min(self::CONTEXT_MAX_BUDGET, $budget));
+        $tokensUsed = 0;
+        $includedItemIds = [];
+        $resolvedEntries = [];
+        $sections = [];
+        $omitted = [];
+
+        $productEntries = $productId !== null && $productId !== ''
+            ? ($this->resolvedEntries($perimeter, $productId, $area, false) ?? [])
+            : [];
+
+        foreach ($productEntries as $productEntry) {
+            $oneLiner = [
+                'resolution_key' => $productEntry['resolution_key'],
+                'title' => $productEntry['title'],
+                'summary' => $productEntry['summary'],
+                'status' => $productEntry['status'],
+                'citation' => $productEntry['citation'],
+            ];
+            $cost = TokenEstimator::forText((string) json_encode($oneLiner));
+
+            if ($tokensUsed + $cost > $budget) {
+                $omitted[] = ['kind' => 'resolved_entry', 'resolution_key' => $productEntry['resolution_key'], 'path' => $productEntry['origin']['path'], 'token_estimate' => $cost];
+
+                continue;
+            }
+
+            $tokensUsed += $cost;
+            $resolvedEntries[] = $oneLiner;
+        }
+
+        ['mode' => $modeUsed, 'results' => $hits] = $this->runSearch($perimeter, $q, $area, self::CONTEXT_CANDIDATE_HITS, HybridSearchService::MODE_HYBRID);
+
+        $hitItems = $this->itemsQuery($perimeter)->whereIn('id', array_column($hits, 'id'))->get()->keyBy('id');
+
+        foreach ($hits as $hit) {
+            /** @var Item|null $item */
+            $item = $hitItems->get($hit['id']);
+            $anchor = $hit['anchor'] ?? null;
+
+            if ($item === null || ! is_string($anchor)) {
+                continue;
+            }
+
+            /** @var ItemSection|null $section */
+            $section = $item->sections()->where('anchor', $anchor)->first();
+
+            if ($section === null) {
+                continue;
+            }
+
+            if ($tokensUsed + $section->token_estimate > $budget) {
+                $omitted[] = ['kind' => 'section', 'item' => $item->id, 'anchor' => $anchor, 'title' => $item->title, 'token_estimate' => $section->token_estimate];
+
+                continue;
+            }
+
+            $tokensUsed += $section->token_estimate;
+            $includedItemIds[] = $item->id;
+            $sections[] = [
+                'item' => $item->id,
+                'stable_key' => $item->stable_key,
+                'title' => $item->title,
+                'anchor' => $section->anchor,
+                'heading' => $section->heading,
+                'markdown' => $section->markdown ?? $section->body,
+                'status' => $item->status->value,
+                'superseded_by' => $item->superseded_by,
+                'token_estimate' => $section->token_estimate,
+                'citation' => [...$this->citation($item), 'section' => $section->anchor],
+            ];
+        }
+
+        $this->audit->record('instituta_context', $perimeter, $apiKey, array_values(array_unique($includedItemIds)), $tokensUsed);
+
+        return [
+            'q' => $q,
+            'product_id' => $productId,
+            'mode' => $modeUsed,
+            'budget' => $budget,
+            'token_estimate' => $tokensUsed,
+            'resolved' => $resolvedEntries,
+            'sections' => $sections,
+            'omitted' => $omitted,
+            ...$this->freezeMeta($perimeter),
+        ];
+    }
+
+    /**
+     * The search itself, without the audit row, so the context pack (#224) can reuse it.
+     *
+     * @return array{mode: string, results: list<array<string, mixed>>}
+     *
+     * @throws RuntimeException When the database driver has no full-text search.
+     */
+    private function runSearch(PerimeterData $perimeter, string $q, ?string $area, int $limit, string $mode): array
+    {
+        $limit = max(1, min(50, $limit));
+
+        /** @var list<string> $allowedIds */
+        $allowedIds = $this->itemsQuery($perimeter)->pluck('id')->all();
+
+        $isSemanticAvailable = HybridSearchService::isSemanticAvailable();
+        $modeUsed = match (true) {
+            $mode === HybridSearchService::MODE_KEYWORD, ! $isSemanticAvailable => HybridSearchService::MODE_KEYWORD,
+            $mode === HybridSearchService::MODE_SEMANTIC => HybridSearchService::MODE_SEMANTIC,
+            default => HybridSearchService::MODE_HYBRID,
+        };
+
+        $keywordHits = $modeUsed === HybridSearchService::MODE_SEMANTIC
+            ? []
+            : $this->searchDriver()->search($perimeter, $q, $allowedIds, $area, $limit);
+
+        $results = $keywordHits;
+
+        if ($modeUsed !== HybridSearchService::MODE_KEYWORD) {
+            $hybrid = app(HybridSearchService::class);
+            $results = $hybrid->fuse($keywordHits, $hybrid->semanticHits($perimeter, $q, $allowedIds, $area, $limit), $limit);
+        }
+
+        // Current entries first (#218); the sort is stable, so relevance order holds within each group.
+        usort($results, static fn (array $left, array $right): int => (int) (($right['status'] ?? 'active') === 'active')
+            <=> (int) (($left['status'] ?? 'active') === 'active'));
+
+        return ['mode' => $modeUsed, 'results' => $results];
     }
 
     /**
@@ -415,9 +548,6 @@ final class IndexedContractService
     }
 
     /**
-     * @return array<string, mixed>
-     */
-    /**
      * The entry that applies per resolution key, most specific scope first (product over company
      * over organisation). An active entry always wins over a draft, deprecated or superseded one
      * (#218); an inactive entry shows only when no active one exists for its key, or with
@@ -432,23 +562,39 @@ final class IndexedContractService
         ?string $area = null,
         bool $includeInactive = false,
     ): array {
-        $product = Product::query()->find($productId);
-        if ($product === null) {
+        $entries = $this->resolvedEntries($perimeter, $productId, $area, $includeInactive);
+
+        if ($entries === null) {
             $this->audit->record('instituta_resolve', $perimeter, $apiKey, []);
 
             return ['entries' => [], ...$this->freezeMeta($perimeter)];
         }
 
-        $company = $product->company;
-        if ($company === null) {
-            return ['entries' => [], ...$this->freezeMeta($perimeter)];
-        }
+        $this->audit->record('instituta_resolve', $perimeter, $apiKey);
+
+        return [
+            'product_id' => $productId,
+            'entries' => $entries,
+            // What reading every resolved entry in full costs (#230).
+            'token_estimate' => array_sum(array_column($entries, 'token_estimate')),
+            ...$this->freezeMeta($perimeter),
+        ];
+    }
+
+    /**
+     * The resolved entries of a product without the audit row, so the context pack (#224) can
+     * reuse them; null when the product is unknown or outside the perimeter.
+     *
+     * @return list<array<string, mixed>>|null
+     */
+    private function resolvedEntries(PerimeterData $perimeter, string $productId, ?string $area, bool $includeInactive): ?array
+    {
+        $product = Product::query()->find($productId);
+        $company = $product?->company;
 
         // Caller must be able to see the product scope (or a wider covering grant).
-        if (! $this->productVisibleInPerimeter($perimeter, $product, $company)) {
-            $this->audit->record('instituta_resolve', $perimeter, $apiKey, []);
-
-            return ['entries' => [], ...$this->freezeMeta($perimeter)];
+        if ($product === null || $company === null || ! $this->productVisibleInPerimeter($perimeter, $product, $company)) {
+            return null;
         }
 
         $layers = $this->resolutionLayers($product, $company);
@@ -505,17 +651,8 @@ final class IndexedContractService
         }
 
         ksort($resolved);
-        $entries = array_values($resolved);
 
-        $this->audit->record('instituta_resolve', $perimeter, $apiKey);
-
-        return [
-            'product_id' => $product->id,
-            'entries' => $entries,
-            // What reading every resolved entry in full costs (#230).
-            'token_estimate' => array_sum(array_column($entries, 'token_estimate')),
-            ...$this->freezeMeta($perimeter),
-        ];
+        return array_values($resolved);
     }
 
     /**

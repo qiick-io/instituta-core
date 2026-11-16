@@ -97,6 +97,7 @@ When a scope is frozen, every contract call for that scope answers from the pinn
 |---|---|---|---|
 | Who am I / scopes | `instituta_scopes` | `GET /scopes` | (N/A locally; implied single owner) |
 | List | `instituta_list` | `GET /items` | `list` |
+| Context pack | `instituta_context` | `GET /context` | — |
 | Search | `instituta_search` | `GET /search` | `search` |
 | Outline | `instituta_outline` | `GET /items/{id}/outline` | `outline` |
 | Get by id | `instituta_get` | `GET /items/{id}` | `get` |
@@ -133,6 +134,21 @@ The local stdio server (`instituta:mcp`) offers the same reads as HTTP for one f
 **Query:** `scope` (required), `area`, `type`, `cursor`, `limit` (default 25, max 100).
 
 **Returns:** cursor-paginated item summaries. **No bodies.**
+
+### 3.2.1 `instituta_context` / `GET /context`
+
+The first call for a task (#224): the context to work from, in one call instead of a round of search, outline and section reads.
+
+**Query:** `scope` (required), `q` (required: the task in words), `product_id`, `area`, `budget` (tokens, default 4000, 500 to 16000).
+
+**Returns**, best first and within the budget (estimates as §2.3.1):
+
+- `resolved`: with `product_id`, the product's resolved active entries as one-liners (`resolution_key`, `title`, `summary`, `status`, citation);
+- `sections`: the most relevant sections (hybrid search as §3.3, active entries first), already read: `markdown`, `anchor`, `heading`, `status`, `superseded_by`, `token_estimate`, citation;
+- `omitted`: what did not fit (`kind` `section` with `item` and `anchor`, or `resolved_entry` with its key and path, each with its `token_estimate`), to fetch with `get_sections` when needed;
+- `token_estimate` (what the pack holds), `budget` and `mode`.
+
+Perimeter, freeze and audit rules as for every read (one audit row with the items included and the tokens returned). HTTP MCP, REST and the assistant (its first tool); not on the local stdio server, which has no hybrid search.
 
 ### 3.3 `instituta_search` / `GET /search`
 
