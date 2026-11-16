@@ -1158,7 +1158,7 @@
         "activityViewAll": "Alle Aktivitäten anzeigen",
         "noPerimeterTitle": "Noch kein Brain-Zugriff",
         "noPerimeterDescription": "Dein Konto hat keinen Perimeter in einer Organisation. Bitte einen Owner um Zugriff.",
-        "statSourcesHealth": "Gehirn-Zustand: {{errors}} Fehler, {{warnings}} Warnungen",
+        "statSourcesHealth": "Gehirn-Zustand: {{errors}}, {{warnings}}",
         "healthTitle": "Gehirn-Zustand",
         "healthDescription": "Was die letzten Syncs falsch hinterlassen haben, mit Lösungsvorschlag.",
         "colSeverity": "Problem",
@@ -1173,7 +1173,11 @@
             "missing_superseded_by": "Falsches superseded_by",
             "duplicate_resolution_key": "Doppelter Schlüssel",
             "review_overdue": "Review überfällig"
-        }
+        },
+        "healthErrors_one": "{{count}} Fehler",
+        "healthErrors_other": "{{count}} Fehler",
+        "healthWarnings_one": "{{count}} Warnung",
+        "healthWarnings_other": "{{count}} Warnungen"
     },
     "assistant": {
         "title": "Assistent",

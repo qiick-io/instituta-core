@@ -548,7 +548,7 @@ final class SourceSyncService
             $this->upsertTables($source, $item, $itemData->tables);
         }
 
-        $links = $this->upsertLinks($source, $repo->edges, $pathToItemId);
+        $links = $this->upsertLinks($source, $repo->edges, $pathToItemId, $this->linkKeysToItemId($repo, $pathToItemId));
         $this->pruneStaleItems($source, array_keys($pathToItemId));
 
         return [
@@ -755,10 +755,42 @@ final class SourceSyncService
     }
 
     /**
+     * Lower-cased names a link may use for an item (#242): its title, stable key and file name
+     * without `.md`. Wiki links usually name the title (`[[Knowledge Base]]`), which the file name
+     * alone does not match. On a clash the first item read keeps the name.
+     *
+     * @param  array<string, string>  $pathToItemId
+     * @return array<string, string>
+     */
+    private function linkKeysToItemId(BrainRepositoryData $repo, array $pathToItemId): array
+    {
+        $keysToItemId = [];
+
+        foreach ($repo->items as $itemData) {
+            $itemId = $pathToItemId[$itemData->path] ?? null;
+
+            if ($itemId === null) {
+                continue;
+            }
+
+            foreach ([$itemData->title, $itemData->stableKey, basename($itemData->path, '.md')] as $name) {
+                $key = mb_strtolower(trim($name));
+
+                if ($key !== '' && ! isset($keysToItemId[$key])) {
+                    $keysToItemId[$key] = $itemId;
+                }
+            }
+        }
+
+        return $keysToItemId;
+    }
+
+    /**
      * @param  list<LinkEdgeData>  $edges
      * @param  array<string, string>  $pathToItemId
+     * @param  array<string, string>  $keysToItemId  From {@see self::linkKeysToItemId()}.
      */
-    private function upsertLinks(Source $source, array $edges, array $pathToItemId): int
+    private function upsertLinks(Source $source, array $edges, array $pathToItemId, array $keysToItemId): int
     {
         $fromIds = array_values($pathToItemId);
         if ($fromIds !== []) {
@@ -772,7 +804,7 @@ final class SourceSyncService
                 continue;
             }
 
-            $toId = $this->resolveLinkTarget($edge->target, $pathToItemId);
+            $toId = $this->resolveLinkTarget($edge->target, $pathToItemId, $keysToItemId);
 
             ItemLink::query()->create([
                 'from_item_id' => $fromId,
@@ -790,24 +822,35 @@ final class SourceSyncService
     }
 
     /**
+     * Resolves a link target by path, file name, title or stable key (case-insensitive), with
+     * any `#heading` or `|label` left out.
+     *
      * @param  array<string, string>  $pathToItemId
+     * @param  array<string, string>  $keysToItemId
      */
-    private function resolveLinkTarget(string $target, array $pathToItemId): ?string
+    private function resolveLinkTarget(string $target, array $pathToItemId, array $keysToItemId): ?string
     {
         $normalized = trim($target);
         $normalized = preg_replace('/^\[\[|\]\]$/', '', $normalized) ?? $normalized;
-        $normalized = ltrim($normalized, './');
+        $normalized = trim(explode('|', explode('#', $normalized)[0])[0]);
+        $normalized = rawurldecode(ltrim($normalized, './'));
+
+        if ($normalized === '') {
+            return null;
+        }
 
         if (isset($pathToItemId[$normalized])) {
             return $pathToItemId[$normalized];
         }
 
         foreach ($pathToItemId as $path => $id) {
-            if (basename($path, '.md') === $normalized || $path === $normalized.'.md') {
+            if ($path === $normalized.'.md' || str_ends_with($path, '/'.$normalized)) {
                 return $id;
             }
         }
 
-        return null;
+        $key = mb_strtolower(preg_replace('/\.md$/i', '', $normalized) ?? $normalized);
+
+        return $keysToItemId[$key] ?? $keysToItemId[mb_strtolower(basename($key))] ?? null;
     }
 }

@@ -1158,7 +1158,7 @@
         "activityViewAll": "View all activity",
         "noPerimeterTitle": "No brain access yet",
         "noPerimeterDescription": "Your account has no organisation perimeter. Ask an owner to grant you access.",
-        "statSourcesHealth": "Brain health: {{errors}} errors, {{warnings}} warnings",
+        "statSourcesHealth": "Brain health: {{errors}}, {{warnings}}",
         "healthTitle": "Brain health",
         "healthDescription": "What the last syncs left wrong, with how to fix it.",
         "colSeverity": "Issue",
@@ -1173,7 +1173,11 @@
             "missing_superseded_by": "Bad superseded_by",
             "duplicate_resolution_key": "Duplicate key",
             "review_overdue": "Review overdue"
-        }
+        },
+        "healthErrors_one": "{{count}} error",
+        "healthErrors_other": "{{count}} errors",
+        "healthWarnings_one": "{{count}} warning",
+        "healthWarnings_other": "{{count}} warnings"
     },
     "assistant": {
         "title": "Assistant",
