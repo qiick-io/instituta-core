@@ -1139,6 +1139,11 @@
             "streamInterrupted": "The connection dropped while the answer was streaming."
         },
         "tools": {
+            "context": {
+                "running": "Gathering context for “{{subject}}”",
+                "done": "Gathered context for “{{subject}}”",
+                "error": "Could not gather context"
+            },
             "search": {
                 "running": "Searching the brain for “{{subject}}”",
                 "done": "Searched the brain for “{{subject}}”",

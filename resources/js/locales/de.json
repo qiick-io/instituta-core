@@ -1139,6 +1139,11 @@
             "streamInterrupted": "Die Verbindung ist während der Antwort abgebrochen."
         },
         "tools": {
+            "context": {
+                "running": "Sammle Kontext zu „{{subject}}“",
+                "done": "Kontext zu „{{subject}}“ gesammelt",
+                "error": "Kontext konnte nicht gesammelt werden"
+            },
             "search": {
                 "running": "Durchsuche das Brain nach „{{subject}}“",
                 "done": "Das Brain nach „{{subject}}“ durchsucht",

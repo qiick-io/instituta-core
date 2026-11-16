@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\SourceWebhookController;
+use App\Http\Controllers\Api\V1\ContextController;
 use App\Http\Controllers\Api\V1\ItemController;
 use App\Http\Controllers\Api\V1\ItemNeighboursController;
 use App\Http\Controllers\Api\V1\ItemOutlineController;
@@ -39,6 +40,7 @@ Route::prefix('v1')
         Route::post('sections', SectionBatchController::class);
         Route::get('items/{id}/neighbours', ItemNeighboursController::class);
         Route::get('items/{id}', [ItemController::class, 'show']);
+        Route::get('context', ContextController::class);
         Route::get('search', SearchController::class);
         Route::get('similar', SimilarSearchController::class);
         Route::get('products/{id}/resolved', ProductResolveController::class);

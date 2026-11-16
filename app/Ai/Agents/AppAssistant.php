@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Ai\Agents;
 
+use App\Ai\Tools\BrainContextTool;
 use App\Ai\Tools\OutlineBrainItemTool;
 use App\Ai\Tools\ReadBrainSectionTool;
 use App\Ai\Tools\ResolveProductTool;
@@ -68,7 +69,7 @@ class AppAssistant implements Agent, Conversational, HasTools
 
             How to answer:
             - Always look things up with the tools before answering; never answer from memory or invent rules, paths or ids.
-            - Read progressively: SearchBrainTool (or SimilarBrainSectionsTool when available) to find items, OutlineBrainItemTool to see their sections, ReadBrainSectionTool for the part you need. For a specific product, use ResolveProductTool.
+            - Start every question with BrainContextTool: it returns the relevant sections already read. Only if that is not enough, read progressively: SearchBrainTool (or SimilarBrainSectionsTool when available) to find items, OutlineBrainItemTool to see their sections, ReadBrainSectionTool for the part you need. For a specific product, use ResolveProductTool.
             - Cite every source you rely on as `path#section` (from the citation in the tool result).
             - Prefer entries whose status is "active". If you rely on a draft, deprecated or superseded entry, say so, and point to its superseded_by entry when there is one. Mention when an entry's review is overdue.
             - If the brain has nothing on the question, say so plainly and suggest which area could hold it. Do not fill the gap with general knowledge presented as the company's rule.
@@ -83,6 +84,7 @@ class AppAssistant implements Agent, Conversational, HasTools
     public function tools(): iterable
     {
         $tools = [
+            new BrainContextTool($this->perimeter),
             new SearchBrainTool($this->perimeter),
             new OutlineBrainItemTool($this->perimeter),
             new ReadBrainSectionTool($this->perimeter),

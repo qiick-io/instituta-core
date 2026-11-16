@@ -1139,6 +1139,11 @@
             "streamInterrupted": "La connessione si è interrotta durante la risposta."
         },
         "tools": {
+            "context": {
+                "running": "Raccolgo il contesto per “{{subject}}”",
+                "done": "Contesto raccolto per “{{subject}}”",
+                "error": "Impossibile raccogliere il contesto"
+            },
             "search": {
                 "running": "Cerco nel brain “{{subject}}”",
                 "done": "Cercato nel brain “{{subject}}”",
