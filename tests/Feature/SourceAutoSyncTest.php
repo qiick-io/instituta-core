@@ -55,7 +55,9 @@ function gitLikeLocalSource(Organisation $organisation): Source
 }
 
 afterEach(function (): void {
-    File::deleteDirectory(storage_path('framework/testing'), preserve: true);
+    foreach (File::glob(storage_path('framework/testing/autosync-*')) as $directory) {
+        File::deleteDirectory($directory);
+    }
 });
 
 it('gives remote sources the default sync interval and local ones none, unless told otherwise', function (): void {
