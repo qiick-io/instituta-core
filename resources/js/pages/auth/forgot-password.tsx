@@ -1,4 +1,4 @@
-import { Form, Head, setLayoutProps } from '@inertiajs/react';
+import { Form, Head } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import TextLink from '@/components/text-link';
@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { login } from '@/routes';
 import { email } from '@/routes/password';
+import AuthLayout from '@/layouts/auth-layout';
 
 /**
  * Request a password reset link.
@@ -20,13 +21,13 @@ import { email } from '@/routes/password';
 export default function ForgotPassword({ status }: { status?: string }) {
     const { t } = useTranslation();
 
-    setLayoutProps({
+    const layoutProps = {
         title: t('auth.forgotPassword.title'),
         description: t('auth.forgotPassword.description'),
-    });
+    };
 
     return (
-        <>
+        <AuthLayout {...layoutProps}>
             <Head title={t('auth.forgotPassword.head')} />
 
             {status && (
@@ -87,6 +88,6 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     </TextLink>
                 </div>
             </div>
-        </>
+        </AuthLayout>
     );
 }

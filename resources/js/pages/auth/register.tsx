@@ -1,4 +1,4 @@
-import { Form, Head, setLayoutProps } from '@inertiajs/react';
+import { Form, Head } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
+import AuthLayout from '@/layouts/auth-layout';
 
 /**
  * User registration form.
@@ -21,13 +22,13 @@ import { store } from '@/routes/register';
 export default function Register() {
     const { t } = useTranslation();
 
-    setLayoutProps({
+    const layoutProps = {
         title: t('auth.register.title'),
         description: t('auth.register.description'),
-    });
+    };
 
     return (
-        <>
+        <AuthLayout {...layoutProps}>
             <Head title={t('auth.register.head')} />
             <Form
                 {...store.form()}
@@ -203,6 +204,6 @@ export default function Register() {
                     </>
                 )}
             </Form>
-        </>
+        </AuthLayout>
     );
 }

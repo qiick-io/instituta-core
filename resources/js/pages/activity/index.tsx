@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { Head, router, setLayoutProps } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { ClipboardList, SearchX } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +22,7 @@ import { normalizePaginated } from '@/lib/pagination';
 import type { LaravelPaginated } from '@/lib/pagination';
 import type { BreadcrumbItem, Paginated } from '@/types';
 import { index as activityIndex } from '@/routes/activity';
+import AppLayout from '@/layouts/app-layout';
 
 type CauserOption = {
     id: number;
@@ -101,7 +102,7 @@ export default function ActivityIndex({
         [t],
     );
 
-    setLayoutProps({ breadcrumbs });
+    const layoutProps = { breadcrumbs };
 
     const visit = useCallback(
         (overrides: Partial<Filters> = {}) => {
@@ -280,7 +281,7 @@ export default function ActivityIndex({
     ];
 
     return (
-        <>
+        <AppLayout {...layoutProps}>
             <Head title={t('activity.title')} />
             <PageLayout
                 description={t('activity.description', {
@@ -461,6 +462,6 @@ export default function ActivityIndex({
                     />
                 )}
             </PageLayout>
-        </>
+        </AppLayout>
     );
 }

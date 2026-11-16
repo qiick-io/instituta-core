@@ -1,4 +1,4 @@
-import { Head, setLayoutProps } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { Brain } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { PageEmptyState } from '@/components/admin/page-empty-state';
@@ -6,6 +6,7 @@ import { DashboardOverviewPanel } from '@/components/dashboard/dashboard-overvie
 import type { DashboardOverviewMetrics } from '@/components/dashboard/dashboard-types';
 import { PageLayout } from '@/components/layout/page-layout';
 import { dashboard } from '@/routes';
+import AppLayout from '@/layouts/app-layout';
 
 type DashboardProps =
     | ({ hasPerimeter: true } & DashboardOverviewMetrics)
@@ -19,12 +20,12 @@ type DashboardProps =
 export default function Dashboard(props: DashboardProps) {
     const { t } = useTranslation();
 
-    setLayoutProps({
+    const layoutProps = {
         breadcrumbs: [{ title: t('dashboard.title'), href: dashboard() }],
-    });
+    };
 
     return (
-        <>
+        <AppLayout {...layoutProps}>
             <Head title={t('dashboard.title')} />
             <PageLayout scrollContent>
                 {props.hasPerimeter ? (
@@ -44,6 +45,6 @@ export default function Dashboard(props: DashboardProps) {
                     />
                 )}
             </PageLayout>
-        </>
+        </AppLayout>
     );
 }

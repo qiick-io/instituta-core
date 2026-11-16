@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { Head, Link, router, setLayoutProps } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowRightLeft,
     Building2,
@@ -40,6 +40,7 @@ import { useDrawerDeepLink } from '@/hooks/use-drawer-deep-link';
 import { scope } from '@/routes/brain';
 import clientsRoutes from '@/routes/brain/clients';
 import type { BreadcrumbItem } from '@/types';
+import AppLayout from '@/layouts/app-layout';
 
 type ClientProduct = {
     id: string;
@@ -165,7 +166,7 @@ export default function BrainClients({ is_owner, clients }: Props) {
     const hideListChrome =
         !is_owner || (clients.length === 0 && !hasActiveFilters);
 
-    setLayoutProps({
+    const layoutProps = {
         breadcrumbs,
         headerActions:
             is_owner && !hideListChrome ? (
@@ -174,7 +175,7 @@ export default function BrainClients({ is_owner, clients }: Props) {
                     {t('brain.clients.create')}
                 </Button>
             ) : undefined,
-    });
+    };
 
     const columns: ColumnDef<ClientRow>[] = [
         {
@@ -326,7 +327,7 @@ export default function BrainClients({ is_owner, clients }: Props) {
     ];
 
     return (
-        <>
+        <AppLayout {...layoutProps}>
             <Head title={t('brain.clients.title')} />
 
             <Drawer
@@ -448,6 +449,6 @@ export default function BrainClients({ is_owner, clients }: Props) {
                     );
                 }}
             />
-        </>
+        </AppLayout>
     );
 }

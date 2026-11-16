@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/field';
 import { Separator } from '@/components/ui/separator';
 import { edit } from '@/routes/security';
+import AppLayout from '@/layouts/app-layout';
+import SettingsLayout from '@/layouts/settings/layout';
 
 // oxfmt-ignore
 type Props = {
@@ -29,208 +31,221 @@ type Props = {
  */
 export default function Security(props: Props) {
     const { t } = useTranslation();
+    const layoutProps = {
+        breadcrumbs: [
+            {
+                title: t('settings.layout.security'),
+                href: edit(),
+            },
+        ],
+    };
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
 
     return (
-        <>
-            <Head title={t('settings.security.head')} />
+        <AppLayout {...layoutProps}>
+            <SettingsLayout>
+                <Head title={t('settings.security.head')} />
 
-            <h1 className="sr-only">{t('settings.security.head')}</h1>
+                <h1 className="sr-only">{t('settings.security.head')}</h1>
 
-            <div className="space-y-12">
-                <div className="space-y-6">
-                    <Heading
-                        variant="small"
-                        title={t('settings.security.passwordTitle')}
-                        description={t('settings.security.passwordDescription')}
-                    />
+                <div className="space-y-12">
+                    <div className="space-y-6">
+                        <Heading
+                            variant="small"
+                            title={t('settings.security.passwordTitle')}
+                            description={t(
+                                'settings.security.passwordDescription',
+                            )}
+                        />
 
-                    <Form
-                        {...SecurityController.update.form()}
-                        options={{
-                            preserveScroll: true,
-                        }}
-                        resetOnError={[
-                            'password',
-                            'password_confirmation',
-                            'current_password',
-                        ]}
-                        resetOnSuccess
-                        onError={(formErrors) => {
-                            if (formErrors.password) {
-                                passwordInput.current?.focus();
-                            }
+                        <Form
+                            {...SecurityController.update.form()}
+                            options={{
+                                preserveScroll: true,
+                            }}
+                            resetOnError={[
+                                'password',
+                                'password_confirmation',
+                                'current_password',
+                            ]}
+                            resetOnSuccess
+                            onError={(formErrors) => {
+                                if (formErrors.password) {
+                                    passwordInput.current?.focus();
+                                }
 
-                            if (formErrors.current_password) {
-                                currentPasswordInput.current?.focus();
-                            }
-                        }}
-                        className="space-y-6"
-                        noValidate
-                    >
-                        {({
-                            errors: formErrors,
-                            processing,
-                            recentlySuccessful,
-                        }) => (
-                            <>
-                                <FieldGroup className="gap-6">
-                                    <Field
-                                        data-invalid={
-                                            formErrors.current_password
-                                                ? true
-                                                : undefined
-                                        }
-                                    >
-                                        <FieldLabel htmlFor="current_password">
-                                            {t(
-                                                'settings.security.currentPassword',
-                                            )}
-                                        </FieldLabel>
-
-                                        <PasswordInput
-                                            id="current_password"
-                                            ref={currentPasswordInput}
-                                            name="current_password"
-                                            className="mt-1"
-                                            autoComplete="current-password"
-                                            placeholder={t(
-                                                'settings.security.currentPassword',
-                                            )}
-                                            aria-invalid={
+                                if (formErrors.current_password) {
+                                    currentPasswordInput.current?.focus();
+                                }
+                            }}
+                            className="space-y-6"
+                            noValidate
+                        >
+                            {({
+                                errors: formErrors,
+                                processing,
+                                recentlySuccessful,
+                            }) => (
+                                <>
+                                    <FieldGroup className="gap-6">
+                                        <Field
+                                            data-invalid={
                                                 formErrors.current_password
                                                     ? true
                                                     : undefined
                                             }
-                                            aria-describedby={
-                                                formErrors.current_password
-                                                    ? 'current-password-error'
-                                                    : undefined
-                                            }
-                                        />
+                                        >
+                                            <FieldLabel htmlFor="current_password">
+                                                {t(
+                                                    'settings.security.currentPassword',
+                                                )}
+                                            </FieldLabel>
 
-                                        <FieldError id="current-password-error">
-                                            {formErrors.current_password}
-                                        </FieldError>
-                                    </Field>
+                                            <PasswordInput
+                                                id="current_password"
+                                                ref={currentPasswordInput}
+                                                name="current_password"
+                                                className="mt-1"
+                                                autoComplete="current-password"
+                                                placeholder={t(
+                                                    'settings.security.currentPassword',
+                                                )}
+                                                aria-invalid={
+                                                    formErrors.current_password
+                                                        ? true
+                                                        : undefined
+                                                }
+                                                aria-describedby={
+                                                    formErrors.current_password
+                                                        ? 'current-password-error'
+                                                        : undefined
+                                                }
+                                            />
 
-                                    <Field
-                                        data-invalid={
-                                            formErrors.password
-                                                ? true
-                                                : undefined
-                                        }
-                                    >
-                                        <FieldLabel htmlFor="password">
-                                            {t('settings.security.newPassword')}
-                                        </FieldLabel>
+                                            <FieldError id="current-password-error">
+                                                {formErrors.current_password}
+                                            </FieldError>
+                                        </Field>
 
-                                        <PasswordInput
-                                            id="password"
-                                            ref={passwordInput}
-                                            name="password"
-                                            className="mt-1"
-                                            autoComplete="new-password"
-                                            placeholder={t(
-                                                'settings.security.newPassword',
-                                            )}
-                                            passwordrules={props.passwordRules}
-                                            aria-invalid={
+                                        <Field
+                                            data-invalid={
                                                 formErrors.password
                                                     ? true
                                                     : undefined
                                             }
-                                            aria-describedby={
-                                                formErrors.password
-                                                    ? 'password-error'
-                                                    : undefined
-                                            }
-                                        />
+                                        >
+                                            <FieldLabel htmlFor="password">
+                                                {t(
+                                                    'settings.security.newPassword',
+                                                )}
+                                            </FieldLabel>
 
-                                        <FieldError id="password-error">
-                                            {formErrors.password}
-                                        </FieldError>
-                                    </Field>
+                                            <PasswordInput
+                                                id="password"
+                                                ref={passwordInput}
+                                                name="password"
+                                                className="mt-1"
+                                                autoComplete="new-password"
+                                                placeholder={t(
+                                                    'settings.security.newPassword',
+                                                )}
+                                                passwordrules={
+                                                    props.passwordRules
+                                                }
+                                                aria-invalid={
+                                                    formErrors.password
+                                                        ? true
+                                                        : undefined
+                                                }
+                                                aria-describedby={
+                                                    formErrors.password
+                                                        ? 'password-error'
+                                                        : undefined
+                                                }
+                                            />
 
-                                    <Field
-                                        data-invalid={
-                                            formErrors.password_confirmation
-                                                ? true
-                                                : undefined
-                                        }
-                                    >
-                                        <FieldLabel htmlFor="password_confirmation">
-                                            {t('common.confirmPassword')}
-                                        </FieldLabel>
+                                            <FieldError id="password-error">
+                                                {formErrors.password}
+                                            </FieldError>
+                                        </Field>
 
-                                        <PasswordInput
-                                            id="password_confirmation"
-                                            name="password_confirmation"
-                                            className="mt-1"
-                                            autoComplete="new-password"
-                                            placeholder={t(
-                                                'common.confirmPassword',
-                                            )}
-                                            passwordrules={props.passwordRules}
-                                            aria-invalid={
+                                        <Field
+                                            data-invalid={
                                                 formErrors.password_confirmation
                                                     ? true
                                                     : undefined
                                             }
-                                            aria-describedby={
-                                                formErrors.password_confirmation
-                                                    ? 'password-confirmation-error'
-                                                    : undefined
-                                            }
-                                        />
+                                        >
+                                            <FieldLabel htmlFor="password_confirmation">
+                                                {t('common.confirmPassword')}
+                                            </FieldLabel>
 
-                                        <FieldError id="password-confirmation-error">
-                                            {formErrors.password_confirmation}
-                                        </FieldError>
-                                    </Field>
-                                </FieldGroup>
+                                            <PasswordInput
+                                                id="password_confirmation"
+                                                name="password_confirmation"
+                                                className="mt-1"
+                                                autoComplete="new-password"
+                                                placeholder={t(
+                                                    'common.confirmPassword',
+                                                )}
+                                                passwordrules={
+                                                    props.passwordRules
+                                                }
+                                                aria-invalid={
+                                                    formErrors.password_confirmation
+                                                        ? true
+                                                        : undefined
+                                                }
+                                                aria-describedby={
+                                                    formErrors.password_confirmation
+                                                        ? 'password-confirmation-error'
+                                                        : undefined
+                                                }
+                                            />
 
-                                <SettingsFormActions
-                                    processing={processing}
-                                    recentlySuccessful={recentlySuccessful}
-                                    data-test="update-password-button"
-                                />
-                            </>
-                        )}
-                    </Form>
+                                            <FieldError id="password-confirmation-error">
+                                                {
+                                                    formErrors.password_confirmation
+                                                }
+                                            </FieldError>
+                                        </Field>
+                                    </FieldGroup>
+
+                                    <SettingsFormActions
+                                        processing={processing}
+                                        recentlySuccessful={recentlySuccessful}
+                                        data-test="update-password-button"
+                                    />
+                                </>
+                            )}
+                        </Form>
+                    </div>
+
+                    {(props.canManageTwoFactor ?? false) ? (
+                        <>
+                            <Separator />
+                            <ManageTwoFactor
+                                canManageTwoFactor={props.canManageTwoFactor}
+                                requiresConfirmation={
+                                    props.requiresConfirmation
+                                }
+                                twoFactorEnabled={props.twoFactorEnabled}
+                            />
+                        </>
+                    ) : null}
+
+                    {(props.canManagePasskeys ?? false) ? (
+                        <>
+                            <Separator />
+                            <ManagePasskeys
+                                canManagePasskeys={props.canManagePasskeys}
+                                passkeys={props.passkeys}
+                            />
+                        </>
+                    ) : null}
                 </div>
-
-                {(props.canManageTwoFactor ?? false) ? (
-                    <>
-                        <Separator />
-                        <ManageTwoFactor
-                            canManageTwoFactor={props.canManageTwoFactor}
-                            requiresConfirmation={props.requiresConfirmation}
-                            twoFactorEnabled={props.twoFactorEnabled}
-                        />
-                    </>
-                ) : null}
-
-                {(props.canManagePasskeys ?? false) ? (
-                    <>
-                        <Separator />
-                        <ManagePasskeys
-                            canManagePasskeys={props.canManagePasskeys}
-                            passkeys={props.passkeys}
-                        />
-                    </>
-                ) : null}
-            </div>
-        </>
+            </SettingsLayout>
+        </AppLayout>
     );
 }
-
-Security.layout = {
-    breadcrumbs: [
-        {
-            title: 'Security settings',
-            href: edit(),
-        },
-    ],
-};

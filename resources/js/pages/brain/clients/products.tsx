@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { Head, Link, router, setLayoutProps } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowLeft,
     ArrowRightLeft,
@@ -28,6 +28,7 @@ import { useDrawerDeepLink } from '@/hooks/use-drawer-deep-link';
 import { scope } from '@/routes/brain';
 import clientsRoutes from '@/routes/brain/clients';
 import type { BreadcrumbItem } from '@/types';
+import AppLayout from '@/layouts/app-layout';
 
 type ClientSummary = {
     id: string;
@@ -140,7 +141,7 @@ export default function BrainClientProducts({ client, products }: Props) {
     const isListEmpty = filteredProducts.length === 0;
     const hideListChrome = products.length === 0 && !hasActiveFilters;
 
-    setLayoutProps({
+    const layoutProps = {
         breadcrumbs,
         headerActions: (
             <div className="flex flex-wrap items-center gap-2">
@@ -158,7 +159,7 @@ export default function BrainClientProducts({ client, products }: Props) {
                 ) : null}
             </div>
         ),
-    });
+    };
 
     const columns: ColumnDef<ProductRow>[] = [
         {
@@ -219,7 +220,7 @@ export default function BrainClientProducts({ client, products }: Props) {
     ];
 
     return (
-        <>
+        <AppLayout {...layoutProps}>
             <Head title={t('brain.products.title', { client: client.name })} />
 
             <Drawer
@@ -299,6 +300,6 @@ export default function BrainClientProducts({ client, products }: Props) {
                     }}
                 />
             </Drawer>
-        </>
+        </AppLayout>
     );
 }

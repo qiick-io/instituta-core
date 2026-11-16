@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { Head, router, setLayoutProps } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
     Database,
     Pencil,
@@ -33,6 +33,7 @@ import { ButtonGroup } from '@/components/ui/button-group';
 import { Drawer } from '@/components/ui/drawer';
 import brainRoutes from '@/routes/brain';
 import type { BreadcrumbItem } from '@/types';
+import AppLayout from '@/layouts/app-layout';
 
 type SourceRow = SourceFormRow & {
     id: string;
@@ -91,9 +92,8 @@ export default function BrainSources({
         [t],
     );
 
-    // The primary action sits at the right of the toolbar row, or in the empty state when the
-    // list is empty (as in externa-core). Passing it to setLayoutProps as headerActions
-    // re-rendered the page in a loop (React error #185).
+    // The primary action sits in the header, or in the empty state when the list is empty,
+    // as in externa-core.
     const primaryAction = useMemo(
         () =>
             canManage ? (
@@ -111,7 +111,7 @@ export default function BrainSources({
         [canManage, t],
     );
 
-    setLayoutProps({ breadcrumbs });
+    const layoutProps = { breadcrumbs };
 
     const filteredSources = useMemo(() => {
         const needle = search.trim().toLowerCase();
@@ -252,10 +252,12 @@ export default function BrainSources({
     ];
 
     return (
-        <>
+        <AppLayout
+            {...layoutProps}
+            headerActions={hideListChrome ? undefined : primaryAction}
+        >
             <Head title={t('brain.sources.title')} />
             <PageLayout
-                filtersRight={hideListChrome ? undefined : primaryAction}
                 filters={
                     hideListChrome ? undefined : (
                         <DataTableToolbar
@@ -371,6 +373,6 @@ export default function BrainSources({
                     );
                 }}
             />
-        </>
+        </AppLayout>
     );
 }

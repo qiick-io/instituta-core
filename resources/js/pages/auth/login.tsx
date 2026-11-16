@@ -1,4 +1,4 @@
-import { Form, Head, router, setLayoutProps } from '@inertiajs/react';
+import { Form, Head, router } from '@inertiajs/react';
 import { UserCancelledError } from '@laravel/passkeys';
 import { usePasskeyVerify } from '@laravel/passkeys/react';
 import { KeyRound } from 'lucide-react';
@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/tooltip';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
+import AuthLayout from '@/layouts/auth-layout';
 
 type Props = {
     status?: string;
@@ -42,10 +43,10 @@ export default function Login({
 }: Props) {
     const { t } = useTranslation();
 
-    setLayoutProps({
+    const layoutProps = {
         title: t('auth.login.title'),
         description: t('auth.login.description'),
-    });
+    };
 
     const {
         verify,
@@ -98,7 +99,7 @@ export default function Login({
     );
 
     return (
-        <>
+        <AuthLayout {...layoutProps}>
             <Head title={t('auth.login.head')} />
 
             {canManagePasskeys && (
@@ -244,6 +245,6 @@ export default function Login({
                     {status}
                 </div>
             )}
-        </>
+        </AuthLayout>
     );
 }

@@ -35,6 +35,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { sessionReplay } from '@/routes/brain';
+import AppLayout from '@/layouts/app-layout';
 type PrincipalOption = {
     id: string;
     name: string;
@@ -138,6 +139,14 @@ export default function BrainSessionReplay({
     filters,
 }: Props) {
     const { t } = useTranslation();
+    const layoutProps = {
+        breadcrumbs: [
+            {
+                title: t('brain.nav.sessionReplay'),
+                href: sessionReplay.url(),
+            },
+        ],
+    };
     const [search, setSearch] = useState(filters.search ?? '');
     const [apiKeyId, setApiKeyId] = useState(filters.api_key_id ?? '');
     const [agentSessionId, setAgentSessionId] = useState(
@@ -168,7 +177,7 @@ export default function BrainSessionReplay({
     };
 
     return (
-        <>
+        <AppLayout {...layoutProps}>
             <Head title={t('brain.sessionReplay.title')} />
             <PageLayout
                 description={t('brain.sessionReplay.description')}
@@ -511,15 +520,6 @@ export default function BrainSessionReplay({
                     ) : null}
                 </SheetContent>
             </Sheet>
-        </>
+        </AppLayout>
     );
 }
-
-BrainSessionReplay.layout = {
-    breadcrumbs: [
-        {
-            title: 'Session replay',
-            href: sessionReplay.url(),
-        },
-    ],
-};
