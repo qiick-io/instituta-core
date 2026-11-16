@@ -21,12 +21,13 @@ use Illuminate\Support\Carbon;
  * @property string $id
  * @property string $company_id
  * @property string $slug
+ * @property string|null $logo_path
  * @property string $name
  * @property bool $inherits_from_parent
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['company_id', 'slug', 'name', 'inherits_from_parent'])]
+#[Fillable(['company_id', 'slug', 'name', 'inherits_from_parent', 'logo_path'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */

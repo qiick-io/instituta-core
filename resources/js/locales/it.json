@@ -698,7 +698,8 @@
             "saveEdit": "Salva modifiche",
             "cancel": "Annulla",
             "searchPlaceholder": "Cerca prodotti…",
-            "requiredHint": "I campi contrassegnati con * sono obbligatori."
+            "requiredHint": "I campi contrassegnati con * sono obbligatori.",
+            "resolvedRules": "Regole che si applicano"
         },
         "sessionReplay": {
             "title": "Chiamate agent",
@@ -878,6 +879,13 @@
             "noMatchesDescription": "Cerca per titolo o percorso.",
             "pickTitle": "Scegli un file da leggere",
             "pickDescription": "A sinistra ci sono cartelle e file di ogni repository in questo ambito."
+        },
+        "logo": {
+            "label": "Logo",
+            "upload": "Carica immagine",
+            "replace": "Sostituisci immagine",
+            "remove": "Rimuovi",
+            "hint": "PNG, JPEG o WebP, fino a 1 MB. Senza, compaiono le iniziali."
         }
     },
     "activity": {

@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowLeft,
     ArrowRightLeft,
+    ListChecks,
     Package,
     Plus,
     SearchX,
@@ -29,6 +30,8 @@ import { update as scope } from '@/routes/scope';
 import clientsRoutes from '@/routes/clients';
 import type { BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
+import { UserAvatar } from '@/components/admin/user-avatar';
+import { resolved } from '@/routes';
 
 type ClientSummary = {
     id: string;
@@ -40,6 +43,7 @@ type ProductRow = {
     id: string;
     name: string;
     slug: string;
+    logo_url: string | null;
     inherits_from_parent: boolean;
 };
 
@@ -167,10 +171,18 @@ export default function BrainClientProducts({ client, products }: Props) {
             header: t('brain.products.colProduct'),
             meta: { cellClassName: 'max-w-[16rem] font-medium' },
             cell: ({ row }) => (
-                <span className="flex min-w-0 flex-col gap-0.5">
-                    <TruncatedText text={row.original.name} />
-                    <span className="font-mono text-xs text-muted-foreground">
-                        {row.original.slug}
+                <span className="flex min-w-0 items-center gap-2">
+                    <UserAvatar
+                        userId={row.original.id}
+                        name={row.original.name}
+                        imageUrl={row.original.logo_url}
+                        size="sm"
+                    />
+                    <span className="flex min-w-0 flex-col gap-0.5">
+                        <TruncatedText text={row.original.name} />
+                        <span className="font-mono text-xs text-muted-foreground">
+                            {row.original.slug}
+                        </span>
                     </span>
                 </span>
             ),
@@ -205,6 +217,20 @@ export default function BrainClientProducts({ client, products }: Props) {
                     aria-label={t('brain.products.colActions')}
                     className="ml-auto"
                 >
+                    <HeaderIconButton
+                        variant="outline"
+                        size="icon-sm"
+                        label={t('brain.products.resolvedRules')}
+                        asChild
+                    >
+                        <Link
+                            href={resolved.url({
+                                query: { product: row.original.id },
+                            })}
+                        >
+                            <ListChecks className="size-3.5" />
+                        </Link>
+                    </HeaderIconButton>
                     <HeaderIconButton
                         type="button"
                         variant="outline"

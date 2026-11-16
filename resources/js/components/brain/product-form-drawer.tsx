@@ -20,18 +20,28 @@ import {
     FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { LogoField } from '@/components/brain/logo-field';
 import { STRING_LIMITS } from '@/lib/string-limits';
 
-const EMPTY_PRODUCT_FORM = {
+const EMPTY_PRODUCT_FORM: {
+    name: string;
+    slug: string;
+    inherits_from_parent: boolean;
+    logo: File | null;
+    remove_logo: boolean;
+} = {
     name: '',
     slug: '',
     inherits_from_parent: true,
+    logo: null,
+    remove_logo: false,
 };
 
 export type ProductFormRow = {
     id: string;
     name: string;
     slug: string;
+    logo_url: string | null;
     inherits_from_parent: boolean;
 };
 
@@ -74,6 +84,8 @@ export function ProductFormDrawer({
                 name: editing.name,
                 slug: editing.slug,
                 inherits_from_parent: editing.inherits_from_parent,
+                logo: null,
+                remove_logo: false,
             });
         } else {
             setForm({ ...EMPTY_PRODUCT_FORM });
@@ -241,6 +253,31 @@ export function ProductFormDrawer({
                                         {errors.inherits_from_parent}
                                     </FieldError>
                                 </Field>
+
+                                <LogoField
+                                    id="product_logo"
+                                    inputName="logo"
+                                    avatarId={editing?.id ?? 'new-product'}
+                                    name={form.name}
+                                    currentUrl={editing?.logo_url ?? null}
+                                    file={form.logo}
+                                    isRemoved={form.remove_logo}
+                                    error={errors.logo}
+                                    onFileChange={(file) =>
+                                        setForm((current) => ({
+                                            ...current,
+                                            logo: file,
+                                            remove_logo: false,
+                                        }))
+                                    }
+                                    onRemove={() =>
+                                        setForm((current) => ({
+                                            ...current,
+                                            logo: null,
+                                            remove_logo: true,
+                                        }))
+                                    }
+                                />
                             </FieldGroup>
                         </DrawerBody>
 

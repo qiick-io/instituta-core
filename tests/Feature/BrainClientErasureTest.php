@@ -23,6 +23,7 @@ use App\Models\VaultVersion;
 use App\Services\ClientErasureService;
 use App\Services\ClientExportService;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
     $this->withoutVite();
@@ -67,7 +68,14 @@ it('erases client A content and keys without touching client B or own company', 
         'slug' => 'erase-own',
     ]);
 
-    $productA = Product::factory()->create(['company_id' => $clientA->id]);
+    Storage::fake('public');
+    Storage::disk('public')->put('logos/companies/a.png', 'logo');
+    Storage::disk('public')->put('logos/products/a.png', 'logo');
+    Storage::disk('public')->put('logos/companies/b.png', 'logo');
+    $clientA->forceFill(['logo_path' => 'logos/companies/a.png'])->save();
+    $clientB->forceFill(['logo_path' => 'logos/companies/b.png'])->save();
+
+    $productA = Product::factory()->create(['company_id' => $clientA->id, 'logo_path' => 'logos/products/a.png']);
     $productB = Product::factory()->create(['company_id' => $clientB->id]);
     $productOwn = Product::factory()->create(['company_id' => $own->id]);
 
@@ -185,7 +193,14 @@ it('erases client A content and keys without touching client B or own company', 
         ->and(Source::query()->whereKey($sourceA->id)->exists())->toBeFalse()
         ->and(Source::query()->whereKey($sourceB->id)->exists())->toBeTrue()
         ->and(ContractCall::query()->where('company_id', $clientA->id)->exists())->toBeFalse()
-        ->and(ContractCall::query()->where('company_id', $clientB->id)->exists())->toBeTrue();
+        ->and(ContractCall::query()->where('company_id', $clientB->id)->exists())->toBeTrue()
+        ->and($clientA->fresh()?->logo_path)->toBeNull()
+        ->and($productA->fresh()?->logo_path)->toBeNull()
+        ->and($clientB->fresh()?->logo_path)->toBe('logos/companies/b.png');
+
+    Storage::disk('public')->assertMissing('logos/companies/a.png');
+    Storage::disk('public')->assertMissing('logos/products/a.png');
+    Storage::disk('public')->assertExists('logos/companies/b.png');
 
     $keyA->refresh();
     $keyB->refresh();

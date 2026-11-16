@@ -33,6 +33,9 @@ final class StoreClientCompanyRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255'],
+            // Raster images only: an SVG can carry script (#257).
+            'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:1024'],
+            'remove_logo' => ['nullable', 'boolean'],
             'slug' => [
                 'required',
                 'string',

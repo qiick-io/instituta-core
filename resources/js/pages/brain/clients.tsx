@@ -41,6 +41,7 @@ import { update as scope } from '@/routes/scope';
 import clientsRoutes from '@/routes/clients';
 import type { BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
+import { UserAvatar } from '@/components/admin/user-avatar';
 
 type ClientProduct = {
     id: string;
@@ -52,6 +53,7 @@ type ClientRow = {
     id: string;
     name: string;
     slug: string;
+    logo_url: string | null;
     latest_export_id: string | null;
     latest_export_status: string | null;
     products: ClientProduct[];
@@ -96,7 +98,12 @@ export default function BrainClients({ is_owner, clients }: Props) {
                 return;
             }
 
-            setEditing({ id: row.id, name: row.name, slug: row.slug });
+            setEditing({
+                id: row.id,
+                name: row.name,
+                slug: row.slug,
+                logo_url: row.logo_url,
+            });
             setDrawerOpen(true);
         },
         onNew: () => {
@@ -130,7 +137,12 @@ export default function BrainClients({ is_owner, clients }: Props) {
             return;
         }
 
-        setEditing({ id: client.id, name: client.name, slug: client.slug });
+        setEditing({
+            id: client.id,
+            name: client.name,
+            slug: client.slug,
+            logo_url: client.logo_url,
+        });
         setDrawerOpen(true);
         deepLink.syncEdit(client.id);
     };
@@ -183,10 +195,18 @@ export default function BrainClients({ is_owner, clients }: Props) {
             header: t('brain.clients.colClient'),
             meta: { cellClassName: 'max-w-[16rem] font-medium' },
             cell: ({ row }) => (
-                <span className="flex min-w-0 flex-col gap-0.5">
-                    <TruncatedText text={row.original.name} />
-                    <span className="font-mono text-xs text-muted-foreground">
-                        {row.original.slug}
+                <span className="flex min-w-0 items-center gap-2">
+                    <UserAvatar
+                        userId={row.original.id}
+                        name={row.original.name}
+                        imageUrl={row.original.logo_url}
+                        size="sm"
+                    />
+                    <span className="flex min-w-0 flex-col gap-0.5">
+                        <TruncatedText text={row.original.name} />
+                        <span className="font-mono text-xs text-muted-foreground">
+                            {row.original.slug}
+                        </span>
                     </span>
                 </span>
             ),

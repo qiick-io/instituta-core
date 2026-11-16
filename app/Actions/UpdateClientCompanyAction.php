@@ -8,6 +8,7 @@ use App\Data\ClientCompanyData;
 use App\Models\Company;
 use App\Models\User;
 use App\Services\ActivityEventLoggerService;
+use App\Services\LogoStorageService;
 use Illuminate\Support\Facades\Gate;
 
 /**
@@ -17,6 +18,7 @@ final class UpdateClientCompanyAction
 {
     public function __construct(
         private readonly ActivityEventLoggerService $activity,
+        private readonly LogoStorageService $logos,
     ) {}
 
     public function execute(User $user, Company $company, ClientCompanyData $data): Company
@@ -26,6 +28,7 @@ final class UpdateClientCompanyAction
         $company->fill([
             'name' => $data->name,
             'slug' => $data->slug,
+            'logo_path' => $this->logos->update($company->logo_path, $data->logo, $data->removeLogo, 'companies'),
         ]);
 
         $changedKeys = array_keys($company->getDirty());

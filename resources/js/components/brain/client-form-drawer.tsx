@@ -19,17 +19,26 @@ import {
     FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { LogoField } from '@/components/brain/logo-field';
 import { STRING_LIMITS } from '@/lib/string-limits';
 
-const EMPTY_CLIENT_FORM = {
+const EMPTY_CLIENT_FORM: {
+    name: string;
+    slug: string;
+    logo: File | null;
+    remove_logo: boolean;
+} = {
     name: '',
     slug: '',
+    logo: null,
+    remove_logo: false,
 };
 
 export type ClientFormRow = {
     id: string;
     name: string;
     slug: string;
+    logo_url: string | null;
 };
 
 export type ClientFormDrawerProps = {
@@ -61,6 +70,8 @@ export function ClientFormDrawer({
             const payload = {
                 name: editing.name,
                 slug: editing.slug,
+                logo: null,
+                remove_logo: false,
             };
             form.setData(payload);
             form.setDefaults({ ...payload });
@@ -81,10 +92,19 @@ export function ClientFormDrawer({
             },
         };
 
+        // A file goes as multipart, which PHP reads on POST only: updates spoof PUT (#257).
         if (editing) {
-            form.put(ClientsController.update.url(editing.id), opts);
+            form.transform((data) => ({ ...data, _method: 'put' }));
+            form.post(ClientsController.update.url(editing.id), {
+                ...opts,
+                forceFormData: true,
+            });
         } else {
-            form.post(ClientsController.store.url(), opts);
+            form.transform((data) => data);
+            form.post(ClientsController.store.url(), {
+                ...opts,
+                forceFormData: true,
+            });
         }
     };
 
@@ -178,6 +198,30 @@ export function ClientFormDrawer({
                                 {form.errors.slug}
                             </FieldError>
                         </Field>
+
+                        <LogoField
+                            id="client_logo"
+                            avatarId={editing?.id ?? 'new-client'}
+                            name={form.data.name}
+                            currentUrl={editing?.logo_url ?? null}
+                            file={form.data.logo}
+                            isRemoved={form.data.remove_logo}
+                            error={form.errors.logo}
+                            onFileChange={(file) => {
+                                form.setData((data) => ({
+                                    ...data,
+                                    logo: file,
+                                    remove_logo: false,
+                                }));
+                            }}
+                            onRemove={() =>
+                                form.setData((data) => ({
+                                    ...data,
+                                    logo: null,
+                                    remove_logo: true,
+                                }))
+                            }
+                        />
                     </FieldGroup>
                 </DrawerBody>
 

@@ -23,10 +23,11 @@ use Illuminate\Support\Carbon;
  * @property string $slug
  * @property string $name
  * @property CompanyKindEnum $kind
+ * @property string|null $logo_path
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['organisation_id', 'slug', 'name', 'kind'])]
+#[Fillable(['organisation_id', 'slug', 'name', 'kind', 'logo_path'])]
 class Company extends Model
 {
     /** @use HasFactory<CompanyFactory> */

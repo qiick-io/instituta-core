@@ -113,6 +113,16 @@ final class ClientErasureService
                 })
                 ->delete();
 
+            // Logos (#257) are the client's data too.
+            $logos = app(LogoStorageService::class);
+            $logos->delete($company->logo_path);
+            $company->forceFill(['logo_path' => null])->save();
+
+            foreach (Product::query()->whereIn('id', $productIds)->whereNotNull('logo_path')->get() as $product) {
+                $logos->delete($product->logo_path);
+                $product->forceFill(['logo_path' => null])->save();
+            }
+
             $request->forceFill([
                 'status' => OffboardingStatusEnum::Erased,
                 'erased_at' => now(),

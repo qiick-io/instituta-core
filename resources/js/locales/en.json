@@ -698,7 +698,8 @@
             "saveEdit": "Save changes",
             "cancel": "Cancel",
             "searchPlaceholder": "Search products…",
-            "requiredHint": "Fields marked with * are required."
+            "requiredHint": "Fields marked with * are required.",
+            "resolvedRules": "Rules that apply"
         },
         "sessionReplay": {
             "title": "Agent calls",
@@ -878,6 +879,13 @@
             "noMatchesDescription": "Search by title or path.",
             "pickTitle": "Pick a file to read it",
             "pickDescription": "Folders and files of every repository in this scope are on the left."
+        },
+        "logo": {
+            "label": "Logo",
+            "upload": "Upload image",
+            "replace": "Replace image",
+            "remove": "Remove",
+            "hint": "PNG, JPEG or WebP, up to 1 MB. Without one, the initials show."
         }
     },
     "activity": {

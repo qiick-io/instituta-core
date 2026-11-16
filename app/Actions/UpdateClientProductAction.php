@@ -9,6 +9,7 @@ use App\Models\Company;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\ActivityEventLoggerService;
+use App\Services\LogoStorageService;
 use Illuminate\Support\Facades\Gate;
 
 /**
@@ -18,6 +19,7 @@ final class UpdateClientProductAction
 {
     public function __construct(
         private readonly ActivityEventLoggerService $activity,
+        private readonly LogoStorageService $logos,
     ) {}
 
     public function execute(
@@ -36,6 +38,7 @@ final class UpdateClientProductAction
             'name' => $data->name,
             'slug' => $data->slug,
             'inherits_from_parent' => $data->inheritsFromParent,
+            'logo_path' => $this->logos->update($product->logo_path, $data->logo, $data->removeLogo, 'products'),
         ]);
 
         $changedKeys = array_keys($product->getDirty());
