@@ -3,6 +3,5 @@
     "resources/js/components/passkey-item.tsx": 7,
     "resources/js/components/passkey-register.tsx": 5,
     "resources/js/components/two-factor-recovery-codes.tsx": 7,
-    "resources/js/components/two-factor-setup-modal.tsx": 3,
-    "resources/js/pages/welcome.tsx": 10
+    "resources/js/components/two-factor-setup-modal.tsx": 3
 }
