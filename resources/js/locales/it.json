@@ -1235,6 +1235,7 @@
                 "done": "Risolte le regole del prodotto",
                 "error": "Non sono riuscito a risolvere il prodotto"
             }
-        }
+        },
+        "openPanel": "Apri il pannello dell'assistente"
     }
 }

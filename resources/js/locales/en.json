@@ -1235,6 +1235,7 @@
                 "done": "Resolved the rules for the product",
                 "error": "Could not resolve the product"
             }
-        }
+        },
+        "openPanel": "Open the assistant panel"
     }
 }

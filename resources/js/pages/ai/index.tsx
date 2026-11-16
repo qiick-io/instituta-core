@@ -3,7 +3,6 @@ import { Plus, Sparkles, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HeaderIconButton } from '@/components/admin/header-icon-button';
-import { PageEmptyState } from '@/components/admin/page-empty-state';
 import { AiChatMessages } from '@/components/ai/ai-chat-messages';
 import { ConfirmDestructiveDialog } from '@/components/confirm-destructive-dialog';
 import {
@@ -15,6 +14,13 @@ import {
 } from '@/components/layout/chat-layout';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Button } from '@/components/ui/button';
+import {
+    Empty,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from '@/components/ui/empty';
 import { useAiChat } from '@/hooks/use-ai-chat';
 import AppLayout from '@/layouts/app-layout';
 import { deleteAiConversation, fetchAiConversations } from '@/lib/ai-chat';
@@ -141,24 +147,18 @@ export default function AssistantPage({
                         }
                     >
                         {!isUsable ? (
-                            <PageEmptyState
-                                icon={Sparkles}
+                            <AssistantEmptyState
                                 title={t('assistant.offTitle')}
                                 description={t('assistant.offDescription')}
-                                compact
-                                className="border-0"
                             />
                         ) : chat.messages.length === 0 ? (
-                            <PageEmptyState
-                                icon={Sparkles}
+                            <AssistantEmptyState
                                 title={t('assistant.emptyTitle')}
                                 description={t(
                                     status.online
                                         ? 'assistant.emptyDescription'
                                         : 'assistant.offlineDescription',
                                 )}
-                                compact
-                                className="border-0"
                             />
                         ) : (
                             <AiChatMessages
@@ -204,5 +204,29 @@ export default function AssistantPage({
                 }}
             />
         </AppLayout>
+    );
+}
+
+/**
+ * The Assistant's empty and "off" states with the violet AI tile (app-ui
+ * `docs/chat-and-assistant.md`: AI surfaces use the `ai` tokens, never the brand primary).
+ */
+function AssistantEmptyState({
+    title,
+    description,
+}: {
+    title: string;
+    description: string;
+}) {
+    return (
+        <Empty className="m-auto">
+            <EmptyHeader>
+                <EmptyMedia variant="icon" className="bg-ai/10 text-ai">
+                    <Sparkles />
+                </EmptyMedia>
+                <EmptyTitle>{title}</EmptyTitle>
+                <EmptyDescription>{description}</EmptyDescription>
+            </EmptyHeader>
+        </Empty>
     );
 }
