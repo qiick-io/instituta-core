@@ -72,6 +72,15 @@ final class MergedProposalDetectorService
             return false;
         }
 
+        if (! $this->hasFrontmatterChanges($item, $proposal)) {
+            return false;
+        }
+
+        // A frontmatter-only proposal changes no body (#219).
+        if ($proposal->body === null || $proposal->body === '') {
+            return true;
+        }
+
         if ($proposal->section_anchor !== null) {
             /** @var ItemSection|null $section */
             $section = $item->sections()->where('anchor', $proposal->section_anchor)->first();
@@ -84,5 +93,22 @@ final class MergedProposalDetectorService
         $proposedBody = $this->frontmatter->parse(rtrim($proposal->body ?? '', "\r\n")."\n")['body'];
 
         return hash_equals($item->content_hash, hash('sha256', $proposal->path."\n".$proposedBody));
+    }
+
+    /**
+     * The item's indexed frontmatter carries every change of the proposal (#219): set keys equal,
+     * removed keys absent.
+     */
+    private function hasFrontmatterChanges(Item $item, Proposal $proposal): bool
+    {
+        $frontmatter = $item->frontmatter ?? [];
+
+        foreach ($proposal->frontmatter_changes ?? [] as $key => $value) {
+            if ($value === null ? array_key_exists($key, $frontmatter) : ($frontmatter[$key] ?? null) != $value) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

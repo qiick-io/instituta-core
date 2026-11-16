@@ -125,6 +125,7 @@ final class ProposalQueryService
             'area' => $proposal->area,
             'section_anchor' => $proposal->section_anchor,
             'base_content_hash' => $proposal->base_content_hash,
+            'frontmatter_changes' => $proposal->frontmatter_changes,
             'scope_type' => $proposal->scope_type->value,
             'scope_id' => $proposal->scope_id,
             'source_id' => $proposal->source_id,
@@ -200,6 +201,7 @@ final class ProposalQueryService
             $proposal->loadMissing(['proposedByPrincipal', 'apiKey']);
             $row['body'] = $proposal->body;
             $row['decision_note'] = $proposal->decision_note;
+            $row['frontmatter_changes'] = $proposal->frontmatter_changes;
             $row['base_content_hash'] = $proposal->base_content_hash;
             $row['base_commit'] = $proposal->base_commit;
             $row['merged_at'] = $proposal->merged_at?->toIso8601String();

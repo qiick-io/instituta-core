@@ -37,6 +37,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $area
  * @property string $proposed_by_principal_id
  * @property string|null $api_key_id
+ * @property array<string, mixed>|null $frontmatter_changes Frontmatter keys to set (null removes) (#219).
  * @property string|null $base_content_hash
  * @property string|null $base_commit
  * @property string|null $section_anchor
@@ -69,6 +70,7 @@ use Illuminate\Support\Carbon;
     'proposed_by_principal_id',
     'api_key_id',
     'body',
+    'frontmatter_changes',
     'base_content_hash',
     'base_commit',
     'section_anchor',
@@ -100,6 +102,7 @@ class Proposal extends Model
             'materialisation_status' => ProposalMaterialisationStatusEnum::class,
             'materialised_at' => 'datetime',
             'merged_at' => 'datetime',
+            'frontmatter_changes' => 'array',
         ];
     }
 

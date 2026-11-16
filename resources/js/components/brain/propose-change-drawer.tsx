@@ -19,6 +19,10 @@ import {
     FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import {
+    NativeSelect,
+    NativeSelectOption,
+} from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import { PermissionEnum } from '@/enums/permission-enum';
 import { useCan } from '@/hooks/use-can';
@@ -66,6 +70,9 @@ type ProposeChangeForm = {
     base_content_hash: string;
     section_anchor: string;
     base_section_hash: string;
+    /** '' keeps the current status (#219). */
+    status: string;
+    superseded_by: string;
 };
 
 function initialForm(
@@ -83,6 +90,8 @@ function initialForm(
             base_content_hash: '',
             section_anchor: '',
             base_section_hash: '',
+            status: '',
+            superseded_by: '',
         };
     }
 
@@ -97,6 +106,8 @@ function initialForm(
         section_anchor: target.mode === 'section' ? target.sectionAnchor : '',
         base_section_hash:
             target.mode === 'section' ? target.baseSectionHash : '',
+        status: '',
+        superseded_by: '',
     };
 }
 
@@ -188,6 +199,23 @@ export function ProposeChangeDrawer({
                 noValidate
                 onSubmit={(event) => {
                     event.preventDefault();
+                    // Metadata changes travel as `frontmatter` (#219).
+                    form.transform((data) => {
+                        const frontmatter: Record<string, string> = {};
+
+                        if (data.status !== '') {
+                            frontmatter.status = data.status;
+                        }
+
+                        if (data.superseded_by.trim() !== '') {
+                            frontmatter.superseded_by =
+                                data.superseded_by.trim();
+                        }
+
+                        return Object.keys(frontmatter).length > 0
+                            ? { ...data, frontmatter }
+                            : data;
+                    });
                     form.post(proposalsStore.url(), { preserveScroll: true });
                 }}
             >
@@ -298,6 +326,67 @@ export function ProposeChangeDrawer({
                                     : ''}
                             </p>
                         )}
+
+                        {target?.mode === 'item' ? (
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <Field>
+                                    <FieldLabel htmlFor="proposal_status">
+                                        {t('brain.propose.fieldStatus')}
+                                    </FieldLabel>
+                                    <NativeSelect
+                                        id="proposal_status"
+                                        value={form.data.status}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'status',
+                                                event.target.value,
+                                            )
+                                        }
+                                    >
+                                        <NativeSelectOption value="">
+                                            {t('brain.propose.statusUnchanged')}
+                                        </NativeSelectOption>
+                                        {(
+                                            [
+                                                'active',
+                                                'draft',
+                                                'deprecated',
+                                                'superseded',
+                                            ] as const
+                                        ).map((status) => (
+                                            <NativeSelectOption
+                                                key={status}
+                                                value={status}
+                                            >
+                                                {t(
+                                                    `brain.itemStatus.${status}`,
+                                                )}
+                                            </NativeSelectOption>
+                                        ))}
+                                    </NativeSelect>
+                                </Field>
+                                <Field>
+                                    <FieldLabel htmlFor="proposal_superseded_by">
+                                        {t('brain.propose.fieldSupersededBy')}
+                                    </FieldLabel>
+                                    <Input
+                                        id="proposal_superseded_by"
+                                        value={form.data.superseded_by}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'superseded_by',
+                                                event.target.value,
+                                            )
+                                        }
+                                        className="font-mono text-sm"
+                                        aria-describedby="proposal-superseded-by-hint"
+                                    />
+                                    <FieldDescription id="proposal-superseded-by-hint">
+                                        {t('brain.propose.supersededByHint')}
+                                    </FieldDescription>
+                                </Field>
+                            </div>
+                        ) : null}
 
                         {canDraftWithAi ? (
                             <Field

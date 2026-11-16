@@ -661,6 +661,10 @@ components:
                 base_section_hash:
                     type: ['string', 'null']
                     description: section_hash of the section you read. Required with section_anchor unless base_content_hash is sent.
+                frontmatter:
+                    type: ['object', 'null']
+                    additionalProperties: true
+                    description: Update only. Frontmatter keys to set (null removes one), alone or with a body or section edit.
         ProposalSummary:
             type: object
             properties:

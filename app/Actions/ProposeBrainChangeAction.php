@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Notifications\ProposalOpenedNotification;
 use App\Services\ActivityEventLoggerService;
 use App\Services\ContractAuditService;
+use App\Services\FrontmatterEditorService;
 use App\Services\NotifyOrganisationUsersService;
 use App\Services\PerimeterScopeColumnsService;
 use InvalidArgumentException;
@@ -36,6 +37,7 @@ final class ProposeBrainChangeAction
         private readonly ContractAuditService $audit = new ContractAuditService,
         private readonly ActivityEventLoggerService $activity = new ActivityEventLoggerService,
         private readonly PerimeterScopeColumnsService $scopeColumns = new PerimeterScopeColumnsService,
+        private readonly FrontmatterEditorService $frontmatter = new FrontmatterEditorService,
     ) {}
 
     /**
@@ -59,7 +61,9 @@ final class ProposeBrainChangeAction
             throw new InvalidArgumentException('Proposal requires a resolvable organisation scope.');
         }
 
+        $this->assertFrontmatterChanges($payload);
         $base = $this->resolveBase($perimeter, $payload);
+        $this->assertHasContent($payload);
 
         $proposal = Proposal::query()->create([
             'organisation_id' => $organisationId,
@@ -77,6 +81,7 @@ final class ProposeBrainChangeAction
             'proposed_by_principal_id' => $perimeter->principalId,
             'api_key_id' => $apiKey?->id,
             'body' => $payload->body,
+            'frontmatter_changes' => $payload->frontmatterChanges,
             'base_content_hash' => $base['base_content_hash'],
             'base_commit' => $base['base_commit'],
             'section_anchor' => $payload->sectionAnchor,
@@ -109,6 +114,42 @@ final class ProposeBrainChangeAction
         );
 
         return $proposal;
+    }
+
+    /**
+     * Frontmatter changes (#219) are allowed on update only, with values that fit the format.
+     *
+     * @throws InvalidArgumentException When they are not.
+     */
+    private function assertFrontmatterChanges(ProposeBrainChangeData $payload): void
+    {
+        if ($payload->frontmatterChanges === null) {
+            return;
+        }
+
+        if ($payload->action !== ProposalActionEnum::Update) {
+            throw new InvalidArgumentException('frontmatter is only allowed on update.');
+        }
+
+        $this->frontmatter->assertValid($payload->frontmatterChanges);
+    }
+
+    /**
+     * An update carries a body (whole file or one section), frontmatter changes, or both.
+     *
+     * @throws InvalidArgumentException When it carries nothing to change.
+     */
+    private function assertHasContent(ProposeBrainChangeData $payload): void
+    {
+        $hasBody = $payload->body !== null && $payload->body !== '';
+
+        if ($payload->sectionAnchor !== null && ! $hasBody) {
+            throw new InvalidArgumentException('A section edit needs the section\'s new markdown as body.');
+        }
+
+        if ($payload->action === ProposalActionEnum::Update && ! $hasBody && $payload->frontmatterChanges === null) {
+            throw new InvalidArgumentException('An update needs a body, frontmatter changes, or both.');
+        }
     }
 
     /**

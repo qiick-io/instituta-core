@@ -26,6 +26,8 @@ readonly class ProposeBrainChangeData
         public ?string $baseContentHash = null,
         public ?string $sectionAnchor = null,
         public ?string $baseSectionHash = null,
+        /** @var array<string, mixed>|null Frontmatter keys to set (null removes) on update (#219). */
+        public ?array $frontmatterChanges = null,
     ) {}
 
     /**
@@ -50,6 +52,7 @@ readonly class ProposeBrainChangeData
             baseContentHash: $optionalString('base_content_hash'),
             sectionAnchor: $optionalString('section_anchor'),
             baseSectionHash: $optionalString('base_section_hash'),
+            frontmatterChanges: isset($input['frontmatter']) && is_array($input['frontmatter']) ? $input['frontmatter'] : null,
         );
     }
 }

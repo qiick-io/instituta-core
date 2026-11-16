@@ -463,38 +463,36 @@ final class SourceSyncService
         return $count;
     }
 
+    /**
+     * Records the organisation's new vault version: the latest commit of every source.
+     *
+     * The latest version is the one with the highest sequence, not the newest `created_at`:
+     * syncs in the same second (scheduler, webhooks) tied on the timestamp and reused a label,
+     * failing the unique (organisation, label) index.
+     */
     private function recordVaultVersion(Source $source, string $commit): void
     {
-        /** @var VaultVersion|null $latest */
-        $latest = VaultVersion::query()
-            ->where('organisation_id', $source->organisation_id)
-            ->orderByDesc('created_at')
-            ->first();
+        $latest = null;
+        $latestSequence = 0;
+
+        foreach (VaultVersion::query()->where('organisation_id', $source->organisation_id)->get() as $version) {
+            $sequence = preg_match('/^instituta@v(\d+)$/', $version->label, $matches) === 1 ? (int) $matches[1] : 0;
+
+            if ($sequence > $latestSequence) {
+                $latest = $version;
+                $latestSequence = $sequence;
+            }
+        }
 
         $sourceCommits = is_array($latest?->source_commits) ? $latest->source_commits : [];
         $sourceCommits[$source->id] = $commit;
 
-        $next = $this->nextVaultSequence($source->organisation_id, $latest);
-
         VaultVersion::query()->create([
             'organisation_id' => $source->organisation_id,
-            'label' => 'instituta@v'.$next,
+            'label' => 'instituta@v'.($latestSequence + 1),
             'source_commits' => $sourceCommits,
             'signature' => null,
         ]);
-    }
-
-    private function nextVaultSequence(string $organisationId, ?VaultVersion $latest): int
-    {
-        if ($latest !== null && preg_match('/^instituta@v(\d+)$/', $latest->label, $matches) === 1) {
-            return ((int) $matches[1]) + 1;
-        }
-
-        $count = VaultVersion::query()
-            ->where('organisation_id', $organisationId)
-            ->count();
-
-        return $count + 1;
     }
 
     /**

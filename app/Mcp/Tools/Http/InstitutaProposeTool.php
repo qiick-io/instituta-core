@@ -42,6 +42,7 @@ class InstitutaProposeTool extends Tool
             'source_id' => $schema->string()->description('Optional source ULID')->nullable(),
             'base_content_hash' => $schema->string()->description('origin.content_hash of the item you read; required for a whole-file update or delete')->nullable(),
             'section_anchor' => $schema->string()->description('Edit only this section (update only); body is its new markdown')->nullable(),
+            'frontmatter' => $schema->object()->description('Update only: frontmatter keys to set, null removes one (status, superseded_by, review_date, title, visibility, tags, …). Alone or with a body / section edit.')->nullable(),
             'base_section_hash' => $schema->string()->description('section_hash of the section you read; required with section_anchor unless base_content_hash is sent')->nullable(),
         ];
     }

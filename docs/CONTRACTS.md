@@ -187,9 +187,12 @@ Requires `brain:write` and the surface write kill switch. Opens a proposal; neve
   "source_id": "ulid|null",
   "base_content_hash": "sha256 hex|null",
   "section_anchor": "string|null",
-  "base_section_hash": "sha256 hex|null"
+  "base_section_hash": "sha256 hex|null",
+  "frontmatter": "object|null"
 }
 ```
+
+**Metadata (#219).** On `update`, `frontmatter` sets frontmatter keys (`null` removes one): `status`, `superseded_by`, `decision_date` / `effective_date` / `review_date` (`YYYY-MM-DD`), `title`, `summary`, `visibility`, `tags`, and other snake_case keys with scalar or list-of-string values. It may come alone (the body is kept byte for byte), with a whole-file body, or with a section edit; the base-version rules below apply as usual. Invalid keys or values are refused (422 / tool error).
 
 **Base version.** A proposal names the version its author read, so it never overwrites newer content:
 

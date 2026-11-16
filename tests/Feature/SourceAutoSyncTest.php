@@ -12,6 +12,7 @@ use App\Models\Item;
 use App\Models\Organisation;
 use App\Models\Proposal;
 use App\Models\Source;
+use App\Models\VaultVersion;
 use App\Services\SourceRegistryService;
 use App\Services\SourceSyncScheduleService;
 use App\Services\SourceSyncService;
@@ -192,4 +193,48 @@ it('marks a materialised proposal merged once a sync finds its change in the sou
     expect($applied->fresh()->materialisation_status)->toBe(ProposalMaterialisationStatusEnum::Merged)
         ->and($applied->fresh()->merged_at)->not->toBeNull()
         ->and($notApplied->fresh()->materialisation_status)->toBe(ProposalMaterialisationStatusEnum::LocalReview);
+});
+
+it('marks a frontmatter-only proposal merged once the source carries its metadata (#219)', function (): void {
+    $source = gitLikeLocalSource(Organisation::factory()->create());
+    fakeLocalCommit(str_repeat('e', 40));
+    app(SourceSyncService::class)->sync($source->fresh());
+
+    $proposal = Proposal::factory()->create([
+        'organisation_id' => $source->organisation_id,
+        'scope_id' => $source->organisation_id,
+        'source_id' => $source->id,
+        'status' => ProposalStatusEnum::Accepted,
+        'action' => ProposalActionEnum::Update,
+        'path' => 'rules/coding.md',
+        'stable_key' => 'rules/coding',
+        'body' => null,
+        'frontmatter_changes' => ['status' => 'deprecated'],
+        'materialisation_status' => ProposalMaterialisationStatusEnum::LocalReview,
+    ]);
+
+    fakeLocalCommit(str_repeat('f', 40));
+    app(SourceSyncService::class)->sync($source->fresh(), isForced: false);
+    expect($proposal->fresh()->materialisation_status)->toBe(ProposalMaterialisationStatusEnum::LocalReview);
+
+    $file = $source->local_path.'/rules/coding.md';
+    File::put($file, str_replace("title: Coding rules\n", "title: Coding rules\nstatus: deprecated\n", File::get($file)));
+    fakeLocalCommit(str_repeat('0', 40));
+    app(SourceSyncService::class)->sync($source->fresh(), isForced: false);
+
+    expect($proposal->fresh()->materialisation_status)->toBe(ProposalMaterialisationStatusEnum::Merged);
+});
+
+it('numbers vault versions by sequence even when syncs land in the same second', function (): void {
+    $this->freezeTime();
+    $source = gitLikeLocalSource(Organisation::factory()->create());
+
+    foreach (['1', '2', '3'] as $digit) {
+        fakeLocalCommit(str_repeat($digit, 40));
+        app(SourceSyncService::class)->sync($source->fresh());
+    }
+
+    expect(VaultVersion::query()->where('organisation_id', $source->organisation_id)->pluck('label')->sort()->values()->all())
+        ->toBe(['instituta@v1', 'instituta@v2', 'instituta@v3'])
+        ->and($source->fresh()->sync_status)->toBe(SyncStatusEnum::Ok);
 });
