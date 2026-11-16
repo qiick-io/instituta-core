@@ -12,7 +12,10 @@
         "search": "Search",
         "skipToContent": "Skip to content",
         "toggleSidebar": "Toggle sidebar",
-        "unreadCount": "{{count}} unread"
+        "unreadCount": "{{count}} unread",
+        "selectAll": "Select all",
+        "selectRow": "Select {{name}}",
+        "trashList": "Trash"
     },
     "nav": {
         "appVersion": "v{{version}}",
@@ -20,7 +23,8 @@
         "repository": "Repository",
         "users": "Users",
         "openCount_one": ", {{count}} open",
-        "openCount_other": ", {{count}} open"
+        "openCount_other": ", {{count}} open",
+        "groups": "Groups"
     },
     "ai": {
         "fabDescription": "Quick assistant drawer. Open the full page for history.",
@@ -129,7 +133,9 @@
         "generateSecurePassword": "Generate secure password",
         "passwordStrength": "Password strength",
         "copy": "Copy",
-        "copied": "Copied"
+        "copied": "Copied",
+        "restore": "Restore",
+        "deletePermanently": "Delete permanently"
     },
     "confirmDestructive": {
         "typeToConfirm": "Type \"{{name}}\" to confirm"
@@ -1028,7 +1034,9 @@
             "passwordRequired": "Password *",
             "rolesRequired": "Roles *",
             "rolesPlaceholder": "Select at least one role",
-            "rolesLocked": "You cannot change your own roles."
+            "rolesLocked": "You cannot change your own roles.",
+            "groupsHint": "Group roles are added to the direct roles for admin permissions.",
+            "groupsPlaceholder": "Select groups"
         }
     },
     "roles": {
@@ -1114,6 +1122,16 @@
             "description": "Agents report here what is missing or contradictory in the brain.",
             "filteredTitle": "No gaps match",
             "filteredDescription": "Try another search."
+        },
+        "groups": {
+            "title": "No groups yet",
+            "description": "Create a group to give many users the same roles at once.",
+            "cta": "Create your first group",
+            "filteredTitle": "No groups found",
+            "filteredDescription": "Try a different search or clear filters to see all groups.",
+            "trashTitle": "Trash is empty",
+            "trashDescription": "Deleted groups appear here until you restore or permanently remove them.",
+            "backToList": "Back to groups"
         }
     },
     "errors": {
@@ -1335,5 +1353,41 @@
         },
         "proposalsDescription": "Changes that agents or people propose to the brain. Nothing changes until someone accepts them; accepted ones become a commit or pull request on the repository.",
         "gapsDescription": "What agents found missing, contradictory, unclear or outdated in the brain. Turn a gap into a proposal, or dismiss it."
+    },
+    "groups": {
+        "confirm": {
+            "deleteTitle": "Delete group “{{name}}”?",
+            "deleteDescription": "The group moves to the trash and its members lose its roles until it is restored.",
+            "bulkDeleteTitle": "Delete {{count}} selected groups?",
+            "bulkDeleteDescription": "Selected groups will be soft-deleted.",
+            "bulkForceDeleteTitle": "Delete {{count}} selected groups permanently?",
+            "bulkForceDeleteDescription": "Selected groups will be permanently removed. This cannot be undone.",
+            "forceDeleteTitle": "Delete group “{{name}}” permanently?",
+            "forceDeleteDescription": "This group will be permanently removed. This cannot be undone."
+        },
+        "title": "Groups",
+        "newGroup": "New group",
+        "searchPlaceholder": "Search groups…",
+        "searchTrashPlaceholder": "Search trash…",
+        "sortBy": "Sort by",
+        "columns": {
+            "name": "Name",
+            "slug": "Slug",
+            "roles": "Roles",
+            "members": "Members",
+            "actions": "Actions"
+        },
+        "membersCount_one": "{{count}} member",
+        "membersCount_other": "{{count}} members",
+        "form": {
+            "editTitle": "Edit group",
+            "description": "Attach roles to this group so its members inherit their permissions. Prefer groups for large memberships instead of assigning roles user by user.",
+            "nameRequired": "Name *",
+            "descriptionLabel": "Description",
+            "rolesPlaceholder": "Select roles",
+            "rolesHint": "Members inherit these roles’ permissions.",
+            "users": "Users",
+            "usersPlaceholder": "Select users"
+        }
     }
 }

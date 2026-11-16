@@ -5,6 +5,7 @@ import {
     RoleMultiSelect,
     withSelectedRoles,
 } from '@/components/admin/role-multi-select';
+import { UserGroupMultiSelect } from '@/components/admin/user-group-multi-select';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,6 +24,8 @@ import {
     FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { PermissionEnum } from '@/enums/permission-enum';
+import { useCan } from '@/hooks/use-can';
 import { STRING_LIMITS } from '@/lib/string-limits';
 import users from '@/routes/users';
 import type { AdminRoleRef, AdminUserRow } from '@/types/admin';
@@ -34,6 +37,7 @@ const EMPTY_USER_FORM = {
     password: '',
     is_active: true,
     roles: [] as string[],
+    group_ids: [] as number[],
 };
 
 export type UserFormDrawerProps = {
@@ -60,6 +64,9 @@ export function UserFormDrawer({
     onSuccess,
 }: UserFormDrawerProps) {
     const { t } = useTranslation();
+    const { can } = useCan();
+    // The group picker searches `groups.index`, which needs `can-show-groups`.
+    const canPickGroups = can(PermissionEnum.CanShowGroups);
     const form = useForm({ ...EMPTY_USER_FORM });
     const isCreate = editing === null;
     // Only a super-admin changes their own access (#151); the server enforces it too.
@@ -80,6 +87,7 @@ export function UserFormDrawer({
                 password: '',
                 is_active: editing.is_active,
                 roles: editing.roles.map((role) => role.name),
+                group_ids: (editing.groups ?? []).map((group) => group.id),
             };
             form.setData(payload);
             form.setDefaults({ ...payload });
@@ -104,9 +112,14 @@ export function UserFormDrawer({
             form.transform((data) => ({
                 ...data,
                 password: data.password || undefined,
+                group_ids: canPickGroups ? data.group_ids : undefined,
             }));
             form.put(users.update.url(editing.id), opts);
         } else {
+            form.transform((data) => ({
+                ...data,
+                group_ids: canPickGroups ? data.group_ids : undefined,
+            }));
             form.post(users.store.url(), opts);
         }
     };
@@ -340,6 +353,36 @@ export function UserFormDrawer({
                                 {form.errors.roles ?? form.errors['roles.0']}
                             </FieldError>
                         </Field>
+
+                        {canPickGroups && (
+                            <Field
+                                data-invalid={
+                                    form.errors.group_ids ? true : undefined
+                                }
+                            >
+                                <FieldLabel>
+                                    {t('users.columns.groups')}
+                                </FieldLabel>
+                                <UserGroupMultiSelect
+                                    value={form.data.group_ids}
+                                    onChange={(groupIds) =>
+                                        form.setData('group_ids', groupIds)
+                                    }
+                                    initialGroups={editing?.groups}
+                                    disabled={readOnly || isRolesLocked}
+                                    placeholder={t(
+                                        'users.form.groupsPlaceholder',
+                                    )}
+                                    aria-label={t('users.columns.groups')}
+                                />
+                                <FieldDescription id="user-group-ids-hint">
+                                    {t('users.form.groupsHint')}
+                                </FieldDescription>
+                                <FieldError id="user-group-ids-error">
+                                    {form.errors.group_ids}
+                                </FieldError>
+                            </Field>
+                        )}
                     </FieldGroup>
                 </DrawerBody>
 

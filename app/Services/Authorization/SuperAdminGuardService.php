@@ -12,9 +12,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Keeps at least one active super-admin (direct role), so the instance never locks itself out.
+ * Keeps at least one active super-admin, so the instance never locks itself out. A user counts
+ * as super-admin through a direct role or through a user group that carries the role, so group
+ * changes (members, roles, deletion) run through {@see preventLosingLastSuperAdmin()} too.
  *
- * Copied from excubia-app without group inheritance (Instituta has no user groups yet).
+ * Copied from excubia-app; group inheritance as in externa-core.
  */
 class SuperAdminGuardService
 {
@@ -64,8 +66,13 @@ class SuperAdminGuardService
      */
     private function activeSuperAdmins(): Builder
     {
+        $isSuperAdminRole = fn (Builder $roles) => $roles->where('name', RoleEnum::SuperAdmin->value);
+
+        // Same sources as EffectivePermissionResolverService; `groups` skips soft-deleted groups.
         return User::query()
             ->where('is_active', true)
-            ->whereHas('roles', fn (Builder $roles) => $roles->where('name', RoleEnum::SuperAdmin->value));
+            ->where(fn (Builder $users) => $users
+                ->whereHas('roles', $isSuperAdminRole)
+                ->orWhereHas('groups.roles', $isSuperAdminRole));
     }
 }

@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 /**
- * Admin routes for users, roles and permissions.
+ * Admin routes for users, user groups, roles and permissions.
  *
  * All routes require `auth` and `verified`. Each action is gated by a Spatie `permission:*`
  * middleware alias; policies enforce record-level invariants.
  *
- * Structure from externa-core / excubia-app: users at `/users`, roles and permissions under
+ * Structure from externa-core / excubia-app: users at `/users`, groups at `/groups`, roles and permissions under
  * `/settings/*`.
  */
 
@@ -17,6 +17,8 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RoleFormController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\UserGroupController;
+use App\Http\Controllers\Admin\UserGroupTrashController;
 use App\Http\Controllers\Admin\UserPasswordResetController;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +49,34 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             'throttle:6,1',
         ])
         ->name('users.password-reset');
+
+    Route::get('groups', [UserGroupController::class, 'index'])
+        ->middleware('permission:'.PermissionEnum::CanShowGroups->value)
+        ->name('groups.index');
+
+    Route::post('groups', [UserGroupController::class, 'store'])
+        ->middleware('permission:'.PermissionEnum::CanCreateGroups->value)
+        ->name('groups.store');
+
+    Route::put('groups/{group}', [UserGroupController::class, 'update'])
+        ->middleware('permission:'.PermissionEnum::CanEditGroups->value)
+        ->name('groups.update');
+
+    Route::delete('groups/{group}', [UserGroupController::class, 'destroy'])
+        ->middleware('permission:'.PermissionEnum::CanDeleteGroups->value)
+        ->name('groups.destroy');
+
+    Route::post('groups/{group}/restore', [UserGroupTrashController::class, 'restore'])
+        ->middleware('permission:'.PermissionEnum::CanRestoreGroups->value)
+        ->name('groups.restore');
+
+    Route::delete('groups/{group}/force', [UserGroupTrashController::class, 'forceDelete'])
+        ->middleware('permission:'.PermissionEnum::CanForceDeleteGroups->value)
+        ->name('groups.force-delete');
+
+    // The permission depends on the action: BulkUserGroupActionRequest checks it.
+    Route::post('groups/bulk-actions', [UserGroupTrashController::class, 'bulkActions'])
+        ->name('groups.bulk-actions');
 
     Route::prefix('settings')->group(function (): void {
         Route::get('roles', [RoleController::class, 'index'])

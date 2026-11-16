@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\Admin;
 
 use App\Models\User;
+use App\Models\UserGroup;
 use App\Services\Authorization\EffectivePermissionResolverService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Gate;
 /**
  * A dashboard user for the admin list and the user drawer.
  *
- * Copied from excubia-app without groups / SSO fields (not in Instituta yet).
+ * Copied from excubia-app without SSO fields (not in Instituta yet); `groups` as in externa-core.
  *
  * @mixin User
  */
@@ -42,6 +43,10 @@ class UserResource extends JsonResource
             'updated_at' => $user->updated_at?->toIso8601String(),
             'roles' => $this->whenLoaded('roles', fn (): array => $user->roles
                 ->map(fn (Model $role): array => $role->only(['id', 'name']))
+                ->values()
+                ->all()),
+            'groups' => $this->whenLoaded('groups', fn (): array => $user->groups
+                ->map(fn (UserGroup $group): array => ['id' => $group->id, 'name' => $group->name])
                 ->values()
                 ->all()),
             'can_update' => $canUpdate,

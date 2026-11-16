@@ -12,7 +12,10 @@
         "search": "Suchen",
         "skipToContent": "Zum Inhalt springen",
         "toggleSidebar": "Seitenleiste umschalten",
-        "unreadCount": "{{count}} ungelesen"
+        "unreadCount": "{{count}} ungelesen",
+        "selectAll": "Alle auswählen",
+        "selectRow": "{{name}} auswählen",
+        "trashList": "Papierkorb"
     },
     "nav": {
         "appVersion": "v{{version}}",
@@ -20,7 +23,8 @@
         "repository": "Repository",
         "users": "Benutzer",
         "openCount_one": ", {{count}} offen",
-        "openCount_other": ", {{count}} offen"
+        "openCount_other": ", {{count}} offen",
+        "groups": "Gruppen"
     },
     "ai": {
         "fabDescription": "Schnelle Assistenten-Schublade. Öffnen Sie die Vollseite für den Verlauf.",
@@ -129,7 +133,9 @@
         "generateSecurePassword": "Sicheres Passwort erzeugen",
         "passwordStrength": "Passwortstärke",
         "copy": "Kopieren",
-        "copied": "Kopiert"
+        "copied": "Kopiert",
+        "restore": "Wiederherstellen",
+        "deletePermanently": "Dauerhaft löschen"
     },
     "confirmDestructive": {
         "typeToConfirm": "Tippe „{{name}}“ zur Bestätigung"
@@ -1028,7 +1034,9 @@
             "passwordRequired": "Passwort *",
             "rolesRequired": "Rollen *",
             "rolesPlaceholder": "Mindestens eine Rolle auswählen",
-            "rolesLocked": "Sie können Ihre eigenen Rollen nicht ändern."
+            "rolesLocked": "Sie können Ihre eigenen Rollen nicht ändern.",
+            "groupsHint": "Gruppenrollen werden für Admin-Berechtigungen mit den direkten Rollen vereint.",
+            "groupsPlaceholder": "Gruppen auswählen"
         }
     },
     "roles": {
@@ -1114,6 +1122,16 @@
             "description": "Hier melden Agenten, was im Gehirn fehlt oder sich widerspricht.",
             "filteredTitle": "Keine passenden Lücken",
             "filteredDescription": "Versuche eine andere Suche."
+        },
+        "groups": {
+            "title": "Noch keine Gruppen",
+            "description": "Erstelle eine Gruppe, um vielen Benutzern auf einmal dieselben Rollen zu geben.",
+            "cta": "Erste Gruppe erstellen",
+            "filteredTitle": "Keine Gruppen gefunden",
+            "filteredDescription": "Andere Suche versuchen oder Filter zurücksetzen, um alle Gruppen zu sehen.",
+            "trashTitle": "Papierkorb ist leer",
+            "trashDescription": "Gelöschte Gruppen erscheinen hier, bis du sie wiederherstellst oder endgültig entfernst.",
+            "backToList": "Zurück zu den Gruppen"
         }
     },
     "errors": {
@@ -1335,5 +1353,41 @@
         },
         "proposalsDescription": "Änderungen am Gehirn, die Agenten oder Personen vorschlagen. Nichts ändert sich, bis jemand sie annimmt; angenommene werden ein Commit oder Pull Request im Repository.",
         "gapsDescription": "Was Agenten im Gehirn als fehlend, widersprüchlich, unklar oder veraltet gefunden haben. Mache aus einer Lücke einen Vorschlag oder verwirf sie."
+    },
+    "groups": {
+        "confirm": {
+            "deleteTitle": "Gruppe „{{name}}“ löschen?",
+            "deleteDescription": "Die Gruppe kommt in den Papierkorb und ihre Mitglieder verlieren ihre Rollen, bis sie wiederhergestellt wird.",
+            "bulkDeleteTitle": "{{count}} ausgewählte Gruppen löschen?",
+            "bulkDeleteDescription": "Ausgewählte Gruppen kommen in den Papierkorb.",
+            "bulkForceDeleteTitle": "{{count}} ausgewählte Gruppen endgültig löschen?",
+            "bulkForceDeleteDescription": "Ausgewählte Gruppen werden dauerhaft entfernt. Das kann nicht rückgängig gemacht werden.",
+            "forceDeleteTitle": "Gruppe „{{name}}“ endgültig löschen?",
+            "forceDeleteDescription": "Diese Gruppe wird dauerhaft entfernt. Das kann nicht rückgängig gemacht werden."
+        },
+        "title": "Gruppen",
+        "newGroup": "Neue Gruppe",
+        "searchPlaceholder": "Gruppen suchen…",
+        "searchTrashPlaceholder": "Papierkorb durchsuchen…",
+        "sortBy": "Sortieren nach",
+        "columns": {
+            "name": "Name",
+            "slug": "Slug",
+            "roles": "Rollen",
+            "members": "Mitglieder",
+            "actions": "Aktionen"
+        },
+        "membersCount_one": "{{count}} Mitglied",
+        "membersCount_other": "{{count}} Mitglieder",
+        "form": {
+            "editTitle": "Gruppe bearbeiten",
+            "description": "Weise dieser Gruppe Rollen zu, damit ihre Mitglieder deren Berechtigungen erben. Bei vielen Benutzern lieber Gruppen verwenden, statt Rollen einzeln zuzuweisen.",
+            "nameRequired": "Name *",
+            "descriptionLabel": "Beschreibung",
+            "rolesPlaceholder": "Rollen auswählen",
+            "rolesHint": "Mitglieder erben die Berechtigungen dieser Rollen.",
+            "users": "Benutzer",
+            "usersPlaceholder": "Benutzer auswählen"
+        }
     }
 }

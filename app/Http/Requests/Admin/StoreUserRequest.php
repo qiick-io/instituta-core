@@ -7,13 +7,15 @@ namespace App\Http\Requests\Admin;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Authorization\RoleGrantService;
+use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 /**
- * Validates a new dashboard user. The actor may only grant roles they hold.
+ * Validates a new dashboard user. The actor may only grant roles they hold, directly or
+ * through user groups.
  *
  * Copied from excubia-app.
  */
@@ -69,6 +71,19 @@ class StoreUserRequest extends FormRequest
     }
 
     /**
+     * User group ids when the payload has them; null keeps the current groups.
+     *
+     * @return list<int>|null
+     */
+    public function groupIds(): ?array
+    {
+        return $this->has('group_ids') ? array_values(array_map(intval(...), $this->array('group_ids'))) : null;
+    }
+
+    /**
+     * Direct roles, plus user groups: joining a group grants its roles, so the actor may only
+     * pick groups whose roles they could grant directly.
+     *
      * @return array<string, array<mixed>>
      */
     protected function roleRules(): array
@@ -76,6 +91,14 @@ class StoreUserRequest extends FormRequest
         return [
             'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['string', 'distinct', Rule::in(self::assignableRolesFor($this->user()))],
+            'group_ids' => ['sometimes', 'array', function (string $attribute, mixed $groupIds, Closure $fail): void {
+                $actor = $this->user();
+
+                if (is_array($groupIds) && (! $actor instanceof User || ! app(RoleGrantService::class)->canGrantGroups($actor, $groupIds))) {
+                    $fail(__('You cannot assign groups that carry roles you cannot grant.'));
+                }
+            }],
+            'group_ids.*' => ['integer', 'distinct', Rule::exists('user_groups', 'id')->whereNull('deleted_at')],
         ];
     }
 }

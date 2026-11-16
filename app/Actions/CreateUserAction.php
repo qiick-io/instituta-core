@@ -23,10 +23,12 @@ class CreateUserAction
     public function __construct(
         private SyncUserRolesAction $syncRoles,
         private GrantOrganisationAccessAction $grantOrganisationAccess,
+        private SyncUserGroupsAction $syncGroups,
     ) {}
 
     /**
      * @param  list<string>  $roles  Application (Spatie) roles.
+     * @param  list<int>|null  $groupIds  User groups to join; null joins none.
      */
     public function execute(
         string $firstName,
@@ -37,8 +39,9 @@ class CreateUserAction
         bool $isActive = true,
         ?Organisation $organisation = null,
         BrainRoleEnum $brainRole = BrainRoleEnum::Member,
+        ?array $groupIds = null,
     ): User {
-        return DB::transaction(function () use ($firstName, $lastName, $email, $password, $roles, $isActive, $organisation, $brainRole): User {
+        return DB::transaction(function () use ($firstName, $lastName, $email, $password, $roles, $isActive, $organisation, $brainRole, $groupIds): User {
             $user = (new User)->forceFill([
                 'first_name' => $firstName,
                 'last_name' => $lastName,
@@ -49,6 +52,10 @@ class CreateUserAction
             ]);
             $user->save();
             $this->syncRoles->execute($user, $roles);
+
+            if ($groupIds !== null) {
+                $this->syncGroups->execute($user, $groupIds);
+            }
 
             if ($organisation instanceof Organisation) {
                 $this->grantOrganisationAccess->execute($user, $organisation, $brainRole);

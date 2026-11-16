@@ -12,7 +12,10 @@
         "search": "Cerca",
         "skipToContent": "Vai al contenuto",
         "toggleSidebar": "Attiva/disattiva barra laterale",
-        "unreadCount": "{{count}} non lette"
+        "unreadCount": "{{count}} non lette",
+        "selectAll": "Seleziona tutto",
+        "selectRow": "Seleziona {{name}}",
+        "trashList": "Cestino"
     },
     "nav": {
         "appVersion": "v{{version}}",
@@ -20,7 +23,8 @@
         "repository": "Repository",
         "users": "Utenti",
         "openCount_one": ", {{count}} da rivedere",
-        "openCount_other": ", {{count}} da rivedere"
+        "openCount_other": ", {{count}} da rivedere",
+        "groups": "Gruppi"
     },
     "ai": {
         "fabDescription": "Drawer rapido dell'assistente. Apri la pagina completa per la cronologia.",
@@ -129,7 +133,9 @@
         "generateSecurePassword": "Genera password sicura",
         "passwordStrength": "Robustezza della password",
         "copy": "Copia",
-        "copied": "Copiato"
+        "copied": "Copiato",
+        "restore": "Ripristina",
+        "deletePermanently": "Elimina definitivamente"
     },
     "confirmDestructive": {
         "typeToConfirm": "Digita \"{{name}}\" per confermare"
@@ -1028,7 +1034,9 @@
             "passwordRequired": "Password *",
             "rolesRequired": "Ruoli *",
             "rolesPlaceholder": "Seleziona almeno un ruolo",
-            "rolesLocked": "Non puoi cambiare i tuoi ruoli."
+            "rolesLocked": "Non puoi cambiare i tuoi ruoli.",
+            "groupsHint": "I ruoli dei gruppi si sommano ai ruoli diretti per i permessi di amministrazione.",
+            "groupsPlaceholder": "Seleziona gruppi"
         }
     },
     "roles": {
@@ -1114,6 +1122,16 @@
             "description": "Qui gli agenti segnalano cosa manca o si contraddice nel cervello.",
             "filteredTitle": "Nessuna lacuna corrisponde",
             "filteredDescription": "Prova un'altra ricerca."
+        },
+        "groups": {
+            "title": "Nessun gruppo ancora",
+            "description": "Crea un gruppo per dare gli stessi ruoli a molti utenti in una volta.",
+            "cta": "Crea il tuo primo gruppo",
+            "filteredTitle": "Nessun gruppo trovato",
+            "filteredDescription": "Prova un'altra ricerca o cancella i filtri per vedere tutti i gruppi.",
+            "trashTitle": "Il cestino è vuoto",
+            "trashDescription": "I gruppi eliminati compaiono qui finché non li ripristini o li rimuovi definitivamente.",
+            "backToList": "Torna ai gruppi"
         }
     },
     "errors": {
@@ -1335,5 +1353,41 @@
         },
         "proposalsDescription": "Modifiche al cervello proposte da agenti o persone. Nulla cambia finché qualcuno non le accetta; quelle accettate diventano un commit o una pull request sul repository.",
         "gapsDescription": "Ciò che gli agenti hanno trovato mancante, contraddittorio, poco chiaro o superato nel cervello. Trasforma una lacuna in proposta, oppure archiviala."
+    },
+    "groups": {
+        "confirm": {
+            "deleteTitle": "Eliminare il gruppo “{{name}}”?",
+            "deleteDescription": "Il gruppo va nel cestino e i suoi membri perdono i suoi ruoli finché non viene ripristinato.",
+            "bulkDeleteTitle": "Eliminare {{count}} gruppi selezionati?",
+            "bulkDeleteDescription": "I gruppi selezionati verranno spostati nel cestino.",
+            "bulkForceDeleteTitle": "Eliminare definitivamente {{count}} gruppi selezionati?",
+            "bulkForceDeleteDescription": "I gruppi selezionati verranno rimossi definitivamente. L’operazione non può essere annullata.",
+            "forceDeleteTitle": "Eliminare definitivamente il gruppo “{{name}}”?",
+            "forceDeleteDescription": "Il gruppo verrà rimosso definitivamente. L’operazione non può essere annullata."
+        },
+        "title": "Gruppi",
+        "newGroup": "Nuovo gruppo",
+        "searchPlaceholder": "Cerca gruppi…",
+        "searchTrashPlaceholder": "Cerca nel cestino…",
+        "sortBy": "Ordina per",
+        "columns": {
+            "name": "Nome",
+            "slug": "Slug",
+            "roles": "Ruoli",
+            "members": "Membri",
+            "actions": "Azioni"
+        },
+        "membersCount_one": "{{count}} membro",
+        "membersCount_other": "{{count}} membri",
+        "form": {
+            "editTitle": "Modifica gruppo",
+            "description": "Associa dei ruoli a questo gruppo perché i membri ne ereditino i permessi. Per molti utenti preferisci i gruppi invece di assegnare i ruoli utente per utente.",
+            "nameRequired": "Nome *",
+            "descriptionLabel": "Descrizione",
+            "rolesPlaceholder": "Seleziona ruoli",
+            "rolesHint": "I membri ereditano i permessi di questi ruoli.",
+            "users": "Utenti",
+            "usersPlaceholder": "Seleziona utenti"
+        }
     }
 }

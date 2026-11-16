@@ -10,6 +10,7 @@ import {
     ScrollText,
     Sparkles,
     Users,
+    UsersRound,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { index as assistantIndex } from '@/routes/ai';
@@ -47,12 +48,13 @@ import { graph } from '@/routes';
 import { index as explorerIndex } from '@/routes/explorer';
 import { index as clientsIndex } from '@/routes/clients';
 import { index as reviewIndex } from '@/routes/review';
+import groups from '@/routes/groups';
 import users from '@/routes/users';
 import type { NavItem } from '@/types';
 
 /**
  * Primary application sidebar: logo, Platform nav, footer links, user menu, version.
- * Users appears when the actor can show users (Access), as in externa-core.
+ * Users and Groups appear when the actor can show them (Access), as in externa-core.
  */
 export function AppSidebar() {
     const { t } = useTranslation();
@@ -99,6 +101,15 @@ export function AppSidebar() {
                       title: t('nav.users'),
                       href: users.index.url(),
                       icon: Users,
+                  },
+              ]
+            : []),
+        ...(can(PermissionEnum.CanShowGroups)
+            ? [
+                  {
+                      title: t('nav.groups'),
+                      href: groups.index.url(),
+                      icon: UsersRound,
                   },
               ]
             : []),

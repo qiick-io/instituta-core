@@ -24,7 +24,7 @@ use Inertia\Response;
  * Admin pages for dashboard users, behind `can-*-users` (UserPolicy). Create and edit happen
  * in a drawer on the list page.
  *
- * Copied from excubia-app (adapted to Admin namespace; no groups).
+ * Copied from excubia-app (adapted to Admin namespace); user groups as in externa-core.
  */
 class UserController extends Controller
 {
@@ -46,7 +46,7 @@ class UserController extends Controller
         $direction = $request->sortDirection('desc');
 
         $query = $request->applySearch(User::query(), ['first_name', 'last_name', 'email']);
-        $query->with(['roles:id,name']);
+        $query->with(['roles:id,name', 'groups:id,name']);
 
         if ($sort === 'name') {
             $query->orderBy('first_name', $direction)->orderBy('last_name', $direction);
@@ -104,6 +104,7 @@ class UserController extends Controller
             $request->roles(),
             $request->boolean('is_active', true),
             organisation: $actorPrincipal?->organisation,
+            groupIds: $request->groupIds(),
         );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('User created.')]);
@@ -121,6 +122,7 @@ class UserController extends Controller
             $request->filled('password') ? $request->string('password')->toString() : null,
             $request->roles(),
             $request->boolean('is_active'),
+            $request->groupIds(),
         );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('User updated.')]);

@@ -10,7 +10,7 @@ use App\Brain\Enums\RoleEnum;
  * App-level permission names synced to the database and frontend enum.
  *
  * Trimmed from externa-core / excubia-app to Instituta admin surfaces for beta:
- * users, roles, permissions, activity logs, and settings. Brain tenancy ACL stays
+ * users, user groups, roles, permissions, activity logs, and settings. Brain tenancy ACL stays
  * on {@see RoleEnum} grants and keys.
  */
 enum PermissionEnum: string
@@ -19,6 +19,13 @@ enum PermissionEnum: string
     case CanCreateUsers = 'can-create-users';
     case CanEditUsers = 'can-edit-users';
     case CanDeleteUsers = 'can-delete-users';
+
+    case CanShowGroups = 'can-show-groups';
+    case CanCreateGroups = 'can-create-groups';
+    case CanEditGroups = 'can-edit-groups';
+    case CanDeleteGroups = 'can-delete-groups';
+    case CanRestoreGroups = 'can-restore-groups';
+    case CanForceDeleteGroups = 'can-force-delete-groups';
 
     case CanShowRoles = 'can-show-roles';
     case CanCreateRoles = 'can-create-roles';

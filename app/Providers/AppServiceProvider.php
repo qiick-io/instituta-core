@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Contracts\SearchIndexContract;
+use App\Enums\PermissionEnum;
 use App\Models\Activity;
 use App\Models\ApiKey;
 use App\Models\Item;
@@ -12,11 +13,13 @@ use App\Models\ItemSection;
 use App\Models\Role;
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\UserGroup;
 use App\Observers\ItemObserver;
 use App\Observers\ItemSectionObserver;
 use App\Policies\PermissionPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\SettingPolicy;
+use App\Policies\UserGroupPolicy;
 use App\Services\ActivityEventLoggerService;
 use App\Services\ActivityOrganisationResolverService;
 use App\Services\Authorization\EffectivePermissionResolverService;
@@ -90,6 +93,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Role::class, RolePolicy::class);
         Gate::policy(Permission::class, PermissionPolicy::class);
         Gate::policy(Setting::class, SettingPolicy::class);
+        Gate::policy(UserGroup::class, UserGroupPolicy::class);
 
         Gate::before(function (?User $user, string $ability, array $arguments): ?bool {
             if ($user === null) {
@@ -100,7 +104,15 @@ class AppServiceProvider extends ServiceProvider
                 return null;
             }
 
-            if (app(EffectivePermissionResolverService::class)->isSuperAdmin($user)) {
+            $permissionResolver = app(EffectivePermissionResolverService::class);
+
+            if ($permissionResolver->isSuperAdmin($user)) {
+                return true;
+            }
+
+            // Spatie's own check sees direct roles only; permissions inherited through a user
+            // group pass here, so `$user->can('can-…')` in policies matches the route middleware.
+            if ($arguments === [] && PermissionEnum::tryFrom($ability) !== null && $permissionResolver->hasPermission($user, $ability)) {
                 return true;
             }
 

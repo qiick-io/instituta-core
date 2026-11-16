@@ -6,13 +6,21 @@ namespace App\Services\Authorization;
 
 use App\Enums\PermissionEnum;
 use App\Enums\RoleEnum;
+use App\Models\Role;
 use App\Models\User;
+use App\Models\UserGroup;
+use Illuminate\Support\Collection;
+use Spatie\Permission\Models\Permission;
 
 /**
- * Resolves effective permissions and roles from direct Spatie assignment.
+ * Resolves effective permissions and roles: the user's direct Spatie roles and permissions
+ * united with the roles of every group the user belongs to (soft-deleted groups grant nothing).
+ * Super-admin, directly or through a group, holds every permission for shared Inertia props
+ * and Gate checks.
  *
- * Instituta has no user-group role inheritance yet (unlike externa-core). Super-admin
- * holds every permission for shared Inertia props and Gate checks.
+ * Group inheritance ported from externa-core. Relations are eager loaded once per user
+ * instance (strict models forbid lazy loads); callers that change memberships in the same
+ * process call {@see forget()}.
  */
 class EffectivePermissionResolverService
 {
@@ -28,10 +36,17 @@ class EffectivePermissionResolverService
         }
 
         // Spatie reads both relations; load them once (strict models forbid lazy loads).
-        $user->loadMissing(['permissions', 'roles.permissions']);
+        $user->loadMissing(['permissions', 'roles.permissions', 'groups.roles.permissions']);
+
+        $groupPermissionNames = $this->groupRoles($user)
+            ->toBase()
+            ->flatMap(static fn (Role $role) => $role->permissions)
+            ->map(static fn (Permission $permission): string => (string) $permission->name);
 
         $permissionNames = $user->getAllPermissions()
+            ->toBase()
             ->map(static fn ($permission): string => (string) $permission->name)
+            ->merge($groupPermissionNames)
             ->unique()
             ->sort()
             ->values()
@@ -53,26 +68,81 @@ class EffectivePermissionResolverService
     }
 
     /**
+     * Role names from direct assignment and from the user's groups.
+     *
      * @return list<string>
      */
     public function roleNamesFor(User $user): array
     {
-        $user->loadMissing('roles');
-
-        $roleNames = $user->getRoleNames()
-            ->map(static fn (mixed $roleName): string => (string) $roleName)
-            ->sort()
-            ->values()
-            ->all();
-
-        return array_values($roleNames);
+        return array_values(array_unique(array_map(
+            static fn (Role $role): string => $role->name,
+            $this->effectiveRoles($user),
+        )));
     }
 
     /**
-     * Whether the user holds the super-admin role.
+     * Role ids from direct assignment and from the user's groups.
+     *
+     * @return list<int>
+     */
+    public function effectiveRoleIds(User $user): array
+    {
+        $roleIds = array_unique(array_map(
+            static fn (Role $role): int => (int) $role->id,
+            $this->effectiveRoles($user),
+        ));
+        sort($roleIds);
+
+        return $roleIds;
+    }
+
+    /**
+     * Whether the user holds the super-admin role, directly or through a group.
      */
     public function isSuperAdmin(User $user): bool
     {
         return in_array(RoleEnum::SuperAdmin->value, $this->roleNamesFor($user), true);
+    }
+
+    /**
+     * Drop the loaded role and group relations so the next check reads memberships again.
+     */
+    public function forget(User $user): void
+    {
+        $user->unsetRelation('roles');
+        $user->unsetRelation('permissions');
+        $user->unsetRelation('groups');
+    }
+
+    /**
+     * Direct roles and group roles, sorted by name.
+     *
+     * @return list<Role>
+     */
+    private function effectiveRoles(User $user): array
+    {
+        $user->loadMissing(['roles', 'groups.roles']);
+
+        /** @var Collection<int, Role> $directRoles */
+        $directRoles = $user->roles;
+
+        return array_values($directRoles
+            ->concat($this->groupRoles($user))
+            ->unique('id')
+            ->sortBy('name')
+            ->values()
+            ->all());
+    }
+
+    /**
+     * Roles attached to the user's (non-trashed) groups. Expects `groups.roles` to be loaded.
+     *
+     * @return Collection<int, Role>
+     */
+    private function groupRoles(User $user): Collection
+    {
+        return $user->groups
+            ->flatMap(static fn (UserGroup $group) => $group->roles)
+            ->values();
     }
 }

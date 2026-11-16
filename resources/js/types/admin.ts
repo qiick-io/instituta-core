@@ -32,12 +32,44 @@ export type AdminUserRow = {
     is_active: boolean;
     email_verified_at: string | null;
     roles: AdminRoleRef[];
+    /** User groups (`{ id, name }`); their roles add to the direct roles. */
+    groups: AdminRoleRef[];
     can_update: boolean;
     /** False on your own account unless you are a super-admin. */
     can_change_roles: boolean;
     can_delete: boolean;
     created_at: string;
     updated_at: string;
+};
+
+/** A group member as `App\Http\Resources\Admin\UserGroupResource` lists it. */
+export type AdminGroupMember = {
+    id: number;
+    first_name: string;
+    last_name: string | null;
+    name: string;
+    email: string;
+};
+
+/** One row of `App\Http\Resources\Admin\UserGroupResource`. */
+export type AdminGroupRow = {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    users_count: number | null;
+    roles_count: number | null;
+    deleted_at: string | null;
+    roles: AdminRoleRef[];
+    users: AdminGroupMember[];
+    user_ids: number[];
+    role_ids: number[];
+    can_update: boolean;
+    can_delete: boolean;
+    can_restore: boolean;
+    can_force_delete: boolean;
+    created_at: string | null;
+    updated_at: string | null;
 };
 
 /** One row of `App\Http\Resources\Admin\RoleResource`. */
