@@ -5,6 +5,10 @@ import { PageLayout } from '@/components/layout/page-layout';
 import { Button } from '@/components/ui/button';
 import { graph, tree } from '@/routes/brain';
 import AppLayout from '@/layouts/app-layout';
+import { GitFork, ListTree } from 'lucide-react';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { EmptyStatus } from '@/components/empty-status';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 type GraphNode = {
     id: string;
@@ -38,10 +42,8 @@ export default function BrainGraph({
     const { t } = useTranslation();
     const layoutProps = {
         breadcrumbs: [
-            {
-                title: t('brain.nav.graph'),
-                href: graph.url(),
-            },
+            { title: t('brain.nav.graph'), href: graph.url() },
+            ...(root ? [{ title: root.title, href: graph.url(root.id) }] : []),
         ],
     };
 
@@ -54,60 +56,59 @@ export default function BrainGraph({
     };
 
     return (
-        <AppLayout {...layoutProps}>
+        <AppLayout
+            {...layoutProps}
+            headerActions={
+                <Button type="button" variant="outline" asChild>
+                    <Link href={tree.url()}>
+                        <ListTree />
+                        {t('brain.graph.openTree')}
+                    </Link>
+                </Button>
+            }
+        >
             <Head title={t('brain.graph.title')} />
-            <PageLayout description={t('brain.graph.description')}>
-                <div className="flex flex-wrap items-end justify-between gap-3 pb-2">
-                    <div className="space-y-1">
-                        <h1 className="text-xl font-semibold tracking-tight">
-                            {t('brain.graph.title')}
-                        </h1>
-                        {root ? (
-                            <p className="text-sm text-muted-foreground">
-                                {t('brain.graph.rootLabel', {
-                                    title: root.title,
-                                })}
-                            </p>
-                        ) : null}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant={depth === 1 ? 'default' : 'outline'}
-                            onClick={() => setDepth(1)}
-                        >
-                            {t('brain.graph.depth1')}
-                        </Button>
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant={depth === 2 ? 'default' : 'outline'}
-                            onClick={() => setDepth(2)}
-                        >
-                            {t('brain.graph.depth2')}
-                        </Button>
-                        <Button
-                            type="button"
-                            size="sm"
+            <PageLayout
+                description={
+                    root
+                        ? t('brain.graph.rootLabel', { title: root.title })
+                        : t('brain.graph.description')
+                }
+                filtersRight={
+                    root ? (
+                        <ToggleGroup
+                            type="single"
+                            value={String(depth)}
+                            onValueChange={(value) => {
+                                if (value !== '') {
+                                    setDepth(Number(value));
+                                }
+                            }}
                             variant="outline"
-                            asChild
+                            aria-label={t('brain.graph.depthLabel')}
                         >
-                            <Link href={tree.url()}>
-                                {t('brain.graph.openTree')}
-                            </Link>
-                        </Button>
-                    </div>
-                </div>
-
+                            <ToggleGroupItem value="1">
+                                {t('brain.graph.depth1')}
+                            </ToggleGroupItem>
+                            <ToggleGroupItem value="2">
+                                {t('brain.graph.depth2')}
+                            </ToggleGroupItem>
+                        </ToggleGroup>
+                    ) : undefined
+                }
+            >
                 {!hasPerimeter ? (
                     <p className="text-sm text-muted-foreground">
                         {t('brain.scope.none')}
                     </p>
                 ) : root === null ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.graph.empty')}
-                    </p>
+                    <PageEmptyState
+                        icon={GitFork}
+                        title={
+                            <EmptyStatus>{t('brain.graph.empty')}</EmptyStatus>
+                        }
+                        description={t('brain.graph.description')}
+                    />
                 ) : (
                     <BrainGraphCanvas
                         rootId={root.id}

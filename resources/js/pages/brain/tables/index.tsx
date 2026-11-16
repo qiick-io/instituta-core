@@ -15,6 +15,9 @@ import {
     show as tablesShow,
 } from '@/routes/brain/tables';
 import AppLayout from '@/layouts/app-layout';
+import { Sheet } from 'lucide-react';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { EmptyStatus } from '@/components/empty-status';
 
 type TablesListRow = {
     id: string;
@@ -46,20 +49,18 @@ export default function BrainTablesIndex({ tables, hasPerimeter }: Props) {
         <AppLayout {...layoutProps}>
             <Head title={t('brain.tables.title')} />
             <PageLayout description={t('brain.tables.description')}>
-                <div className="space-y-1 pb-2">
-                    <h1 className="text-xl font-semibold tracking-tight">
-                        {t('brain.tables.title')}
-                    </h1>
-                </div>
-
                 {!hasPerimeter ? (
                     <p className="text-sm text-muted-foreground">
                         {t('brain.scope.none')}
                     </p>
                 ) : tables.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.tables.empty')}
-                    </p>
+                    <PageEmptyState
+                        icon={Sheet}
+                        title={
+                            <EmptyStatus>{t('brain.tables.empty')}</EmptyStatus>
+                        }
+                        description={t('brain.tables.emptyDescription')}
+                    />
                 ) : (
                     <Table>
                         <TableHeader>

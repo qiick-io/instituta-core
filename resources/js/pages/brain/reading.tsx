@@ -32,7 +32,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { tree } from '@/routes/brain';
+import { reading, tree } from '@/routes/brain';
 import { show as tablesShow } from '@/routes/brain/tables';
 import AppLayout from '@/layouts/app-layout';
 
@@ -189,7 +189,7 @@ export default function BrainReading({ item, canPropose }: Props) {
             },
             {
                 title: item.title,
-                href: '#',
+                href: reading.url(item.id),
             },
         ],
     };
@@ -234,51 +234,46 @@ export default function BrainReading({ item, canPropose }: Props) {
     };
 
     return (
-        <AppLayout {...layoutProps}>
+        <AppLayout
+            {...layoutProps}
+            headerActions={
+                isEditable ? (
+                    <Button type="button" onClick={proposeItemChange}>
+                        <Pencil />
+                        {t('brain.propose.proposeChange')}
+                    </Button>
+                ) : undefined
+            }
+        >
             <Head title={item.title} />
             <PageLayout
                 description={item.summary ?? t('brain.reading.description')}
                 subheader={
-                    <div className="flex flex-wrap items-center gap-2">
-                        <h1 className="text-xl font-semibold tracking-tight">
-                            {item.title}
-                        </h1>
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                         <Badge variant="secondary">{item.type}</Badge>
                         <Badge variant="outline">
                             {t(`brain.areas.${item.area}`, {
                                 defaultValue: item.area,
                             })}
                         </Badge>
-                    </div>
-                }
-                filters={
-                    <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline">
+                        <span>
                             {t('brain.reading.citationSource', {
                                 source: item.citation.source,
                             })}
-                        </Badge>
-                        <Badge variant="outline">
-                            {t('brain.reading.citationPath', {
-                                path: item.citation.path,
-                            })}
-                        </Badge>
+                        </span>
+                        <span aria-hidden="true">·</span>
+                        <span className="font-mono text-xs">
+                            {item.citation.path}
+                        </span>
                         {item.citation.commit ? (
-                            <Badge variant="outline">
-                                {t('brain.reading.citationCommit', {
-                                    commit: item.citation.commit.slice(0, 7),
-                                })}
-                            </Badge>
+                            <>
+                                <span aria-hidden="true">·</span>
+                                <span className="font-mono text-xs">
+                                    {item.citation.commit.slice(0, 7)}
+                                </span>
+                            </>
                         ) : null}
                     </div>
-                }
-                filtersRight={
-                    isEditable ? (
-                        <Button type="button" onClick={proposeItemChange}>
-                            <Pencil />
-                            {t('brain.propose.proposeChange')}
-                        </Button>
-                    ) : null
                 }
                 scrollContent
             >

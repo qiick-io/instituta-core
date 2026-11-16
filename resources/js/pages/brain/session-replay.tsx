@@ -11,7 +11,6 @@ import {
 } from '@/components/layout/page-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -36,6 +35,9 @@ import {
 } from '@/components/ui/table';
 import { sessionReplay } from '@/routes/brain';
 import AppLayout from '@/layouts/app-layout';
+import { History } from 'lucide-react';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { EmptyStatus } from '@/components/empty-status';
 type PrincipalOption = {
     id: string;
     name: string;
@@ -183,7 +185,7 @@ export default function BrainSessionReplay({
                 description={t('brain.sessionReplay.description')}
                 filters={
                     is_owner ? (
-                        <div className="flex flex-wrap items-end gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             <form
                                 className="contents"
                                 onSubmit={(submitEvent) => {
@@ -203,169 +205,154 @@ export default function BrainSessionReplay({
                                     )}
                                 />
                             </form>
-                            <div className="space-y-1">
-                                <Label htmlFor="principal_id">
-                                    {t('brain.sessionReplay.filters.principal')}
-                                </Label>
-                                <Select
-                                    value={filters.principal_id || '__all__'}
-                                    onValueChange={(value) =>
-                                        visit({
-                                            principal_id:
-                                                value === '__all__'
-                                                    ? ''
-                                                    : value,
-                                        })
-                                    }
+                            <Select
+                                value={filters.principal_id || '__all__'}
+                                onValueChange={(value) =>
+                                    visit({
+                                        principal_id:
+                                            value === '__all__' ? '' : value,
+                                    })
+                                }
+                            >
+                                <SelectTrigger
+                                    id="principal_id"
+                                    aria-label={t(
+                                        'brain.sessionReplay.filters.principal',
+                                    )}
+                                    className="w-40"
                                 >
-                                    <SelectTrigger
-                                        id="principal_id"
-                                        className="w-48"
-                                    >
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="__all__">
-                                            {t(
-                                                'brain.sessionReplay.filters.all',
-                                            )}
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="__all__">
+                                        {t(
+                                            'brain.sessionReplay.filters.allPrincipals',
+                                        )}
+                                    </SelectItem>
+                                    {principals.map((principal) => (
+                                        <SelectItem
+                                            key={principal.id}
+                                            value={principal.id}
+                                        >
+                                            {principal.name}
                                         </SelectItem>
-                                        {principals.map((principal) => (
-                                            <SelectItem
-                                                key={principal.id}
-                                                value={principal.id}
-                                            >
-                                                {principal.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="tool_or_endpoint">
-                                    {t('brain.sessionReplay.filters.tool')}
-                                </Label>
-                                <Select
-                                    value={
-                                        filters.tool_or_endpoint || '__all__'
-                                    }
-                                    onValueChange={(value) =>
-                                        visit({
-                                            tool_or_endpoint:
-                                                value === '__all__'
-                                                    ? ''
-                                                    : value,
-                                        })
-                                    }
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select
+                                value={filters.tool_or_endpoint || '__all__'}
+                                onValueChange={(value) =>
+                                    visit({
+                                        tool_or_endpoint:
+                                            value === '__all__' ? '' : value,
+                                    })
+                                }
+                            >
+                                <SelectTrigger
+                                    id="tool_or_endpoint"
+                                    aria-label={t(
+                                        'brain.sessionReplay.filters.tool',
+                                    )}
+                                    className="w-40"
                                 >
-                                    <SelectTrigger
-                                        id="tool_or_endpoint"
-                                        className="w-48"
-                                    >
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="__all__">
-                                            {t(
-                                                'brain.sessionReplay.filters.all',
-                                            )}
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="__all__">
+                                        {t(
+                                            'brain.sessionReplay.filters.allTools',
+                                        )}
+                                    </SelectItem>
+                                    {tools.map((tool) => (
+                                        <SelectItem key={tool} value={tool}>
+                                            {tool}
                                         </SelectItem>
-                                        {tools.map((tool) => (
-                                            <SelectItem key={tool} value={tool}>
-                                                {tool}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="api_key_id">
-                                    {t('brain.sessionReplay.fieldKey')}
-                                </Label>
-                                <Input
-                                    id="api_key_id"
-                                    value={apiKeyId}
-                                    onChange={(event) =>
-                                        setApiKeyId(event.target.value)
-                                    }
-                                    onBlur={() =>
-                                        visit({ api_key_id: apiKeyId })
-                                    }
-                                    className="w-40 font-mono text-xs"
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="agent_session_id">
-                                    {t('brain.sessionReplay.fieldSession')}
-                                </Label>
-                                <Input
-                                    id="agent_session_id"
-                                    value={agentSessionId}
-                                    onChange={(event) =>
-                                        setAgentSessionId(event.target.value)
-                                    }
-                                    onBlur={() =>
-                                        visit({
-                                            agent_session_id: agentSessionId,
-                                        })
-                                    }
-                                    className="w-40 font-mono text-xs"
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="date_from">
-                                    {t('brain.sessionReplay.filters.dateFrom')}
-                                </Label>
-                                <Input
-                                    id="date_from"
-                                    type="date"
-                                    value={filters.date_from}
-                                    onChange={(event) =>
-                                        visit({
-                                            date_from: event.target.value,
-                                        })
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="date_to">
-                                    {t('brain.sessionReplay.filters.dateTo')}
-                                </Label>
-                                <Input
-                                    id="date_to"
-                                    type="date"
-                                    value={filters.date_to}
-                                    onChange={(event) =>
-                                        visit({
-                                            date_to: event.target.value,
-                                        })
-                                    }
-                                />
-                            </div>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Input
+                                id="api_key_id"
+                                aria-label={t('brain.sessionReplay.fieldKey')}
+                                placeholder={t('brain.sessionReplay.fieldKey')}
+                                value={apiKeyId}
+                                onChange={(event) =>
+                                    setApiKeyId(event.target.value)
+                                }
+                                onBlur={() => visit({ api_key_id: apiKeyId })}
+                                className="w-36 font-mono text-xs"
+                            />
+                            <Input
+                                id="agent_session_id"
+                                aria-label={t(
+                                    'brain.sessionReplay.fieldSession',
+                                )}
+                                placeholder={t(
+                                    'brain.sessionReplay.fieldSession',
+                                )}
+                                value={agentSessionId}
+                                onChange={(event) =>
+                                    setAgentSessionId(event.target.value)
+                                }
+                                onBlur={() =>
+                                    visit({
+                                        agent_session_id: agentSessionId,
+                                    })
+                                }
+                                className="w-36 font-mono text-xs"
+                            />
+                            <Input
+                                id="date_from"
+                                aria-label={t(
+                                    'brain.sessionReplay.filters.dateFrom',
+                                )}
+                                type="date"
+                                className="w-36"
+                                value={filters.date_from}
+                                onChange={(event) =>
+                                    visit({
+                                        date_from: event.target.value,
+                                    })
+                                }
+                            />
+                            <Input
+                                id="date_to"
+                                aria-label={t(
+                                    'brain.sessionReplay.filters.dateTo',
+                                )}
+                                type="date"
+                                className="w-36"
+                                value={filters.date_to}
+                                onChange={(event) =>
+                                    visit({
+                                        date_to: event.target.value,
+                                    })
+                                }
+                            />
                         </div>
                     ) : undefined
                 }
             >
-                <div className="space-y-1 pb-2">
-                    <h1 className="text-xl font-semibold tracking-tight">
-                        {t('brain.sessionReplay.title')}
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.sessionReplay.hint')}
-                    </p>
-                </div>
-
                 {!is_owner ? (
-                    <p className="text-sm text-muted-foreground">
-                        {t('brain.sessionReplay.ownerOnly')}
-                    </p>
+                    <PageEmptyState
+                        icon={History}
+                        title={t('brain.sessionReplay.ownerOnly')}
+                        description={t('brain.sessionReplay.description')}
+                    />
                 ) : (
                     <div className="space-y-4">
                         <TablePanel>
                             {calls.data.length === 0 ? (
-                                <p className="p-4 text-sm text-muted-foreground">
-                                    {t('brain.sessionReplay.empty')}
-                                </p>
+                                <PageEmptyState
+                                    icon={History}
+                                    title={
+                                        <EmptyStatus>
+                                            {t('brain.sessionReplay.empty')}
+                                        </EmptyStatus>
+                                    }
+                                    description={t('brain.sessionReplay.hint')}
+                                    compact
+                                    className="border-0"
+                                />
                             ) : (
                                 <Table>
                                     <TableHeader>
