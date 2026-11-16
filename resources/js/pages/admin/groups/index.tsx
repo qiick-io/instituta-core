@@ -55,6 +55,7 @@ import type { LaravelPaginated } from '@/lib/pagination';
 import { cn } from '@/lib/utils';
 import groupsRoutes from '@/routes/groups';
 import type {
+    AdminBrainScopeOption,
     AdminGroupRow,
     AdminRoleRef,
     BreadcrumbItem,
@@ -98,10 +99,12 @@ export default function AdminGroupsIndex({
     groups: groupsProp,
     filters = {},
     roles,
+    brainScopes = [],
 }: {
     groups: LaravelPaginated<AdminGroupRow> | Paginated<AdminGroupRow>;
     filters?: Filters;
     roles: AdminRoleRef[];
+    brainScopes?: AdminBrainScopeOption[];
 }) {
     const groups = normalizePaginated(groupsProp);
     const { t } = useTranslation();
@@ -680,6 +683,7 @@ export default function AdminGroupsIndex({
 
                 <GroupFormDrawer
                     editing={editing}
+                    brainScopes={brainScopes}
                     roles={roles}
                     open={drawerOpen}
                     readOnly={

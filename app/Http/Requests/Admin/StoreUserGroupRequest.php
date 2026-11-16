@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Brain\Enums\RoleEnum as BrainRoleEnum;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserGroup;
 use App\Services\Authorization\RoleGrantService;
+use App\Services\GroupBrainScopesService;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
@@ -43,6 +45,9 @@ class StoreUserGroupRequest extends FormRequest
             'user_ids.*' => ['integer', 'distinct', Rule::exists('users', 'id')],
             'role_ids' => ['sometimes', 'array'],
             'role_ids.*' => ['integer', 'distinct', Rule::in($this->grantableRoleIds())],
+            // Brain access (#258): '' removes it; otherwise a scope the actor owns, with a role.
+            'brain_scope' => ['sometimes', 'nullable', 'string', Rule::in(array_column($this->brainScopeOptions(), 'value'))],
+            'brain_role' => ['required_with_all:brain_scope', 'nullable', Rule::enum(BrainRoleEnum::class)],
         ];
     }
 
@@ -66,9 +71,46 @@ class StoreUserGroupRequest extends FormRequest
         return $this->has('role_ids') ? array_values(array_map(intval(...), $this->array('role_ids'))) : null;
     }
 
+    /**
+     * The group's brain access when the payload has it: an empty list removes it, null keeps it.
+     *
+     * @return list<array{organisation_id: string, scope_type: string, scope_id: string, role: string}>|null
+     */
+    public function brainAccess(): ?array
+    {
+        if (! $this->has('brain_scope')) {
+            return null;
+        }
+
+        $scope = $this->string('brain_scope')->toString();
+        $user = $this->user();
+        $option = $scope === '' || ! $user instanceof User ? null : app(GroupBrainScopesService::class)->find($user, $scope);
+
+        if ($option === null) {
+            return [];
+        }
+
+        return [[
+            'organisation_id' => $option['organisation_id'],
+            'scope_type' => $option['scope_type'],
+            'scope_id' => $option['scope_id'],
+            'role' => $this->string('brain_role')->toString(),
+        ]];
+    }
+
     protected function uniqueNameRule(): Unique
     {
         return Rule::unique('user_groups', 'name');
+    }
+
+    /**
+     * @return list<array{value: string, label: string, organisation_id: string, scope_type: string, scope_id: string}>
+     */
+    private function brainScopeOptions(): array
+    {
+        $user = $this->user();
+
+        return $user instanceof User ? app(GroupBrainScopesService::class)->optionsFor($user) : [];
     }
 
     /**

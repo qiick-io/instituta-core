@@ -18,7 +18,10 @@ use Illuminate\Validation\ValidationException;
  */
 class ChangeUserGroupsStateAction
 {
-    public function __construct(private SuperAdminGuardService $superAdminGuard) {}
+    public function __construct(
+        private SuperAdminGuardService $superAdminGuard,
+        private ReconcileGroupBrainAccessAction $reconcileBrainAccess,
+    ) {}
 
     /**
      * @param  'delete'|'restore'|'force_delete'  $action
@@ -34,6 +37,9 @@ class ChangeUserGroupsStateAction
                 'restore', 'force_delete' => UserGroup::onlyTrashed()->whereIn('id', $groupIds)->get(),
             };
 
+            // Their members' group grants follow the groups (#258).
+            $members = $groups->flatMap(fn ($group) => $group->users()->get())->unique('id');
+
             foreach ($groups as $group) {
                 match ($action) {
                     'delete' => $group->delete(),
@@ -41,6 +47,8 @@ class ChangeUserGroupsStateAction
                     'force_delete' => $group->forceDelete(),
                 };
             }
+
+            $this->reconcileBrainAccess->execute($members);
         }, 'ids');
     }
 }

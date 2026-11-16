@@ -14,6 +14,10 @@ use App\Models\User;
  */
 class SyncUserGroupsAction
 {
+    public function __construct(
+        private ReconcileGroupBrainAccessAction $reconcileBrainAccess,
+    ) {}
+
     /**
      * @param  list<int>  $groupIds
      */
@@ -22,6 +26,8 @@ class SyncUserGroupsAction
         $user->groups()->sync($groupIds);
         // Group roles count for the user's permissions: drop the stale loaded relation.
         $user->unsetRelation('groups');
+        // The user's group-given brain grants follow their groups (#258).
+        $this->reconcileBrainAccess->execute([$user]);
 
         activity()
             ->performedOn($user)

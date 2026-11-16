@@ -1387,7 +1387,11 @@
             "rolesPlaceholder": "Rollen auswählen",
             "rolesHint": "Mitglieder erben die Berechtigungen dieser Rollen.",
             "users": "Benutzer",
-            "usersPlaceholder": "Benutzer auswählen"
+            "usersPlaceholder": "Benutzer auswählen",
+            "brainAccess": "Gehirn-Zugriff",
+            "noBrainAccess": "Kein Gehirn-Zugriff",
+            "brainRole": "Rolle im Gehirn",
+            "brainAccessHint": "Jedes Mitglied erhält diesen Zugriff auf die Organisation oder den Kunden. Ein eigener Zugriff der Person bleibt erhalten."
         }
     }
 }

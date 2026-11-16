@@ -23,24 +23,37 @@ import {
     FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import {
+    NativeSelect,
+    NativeSelectOption,
+} from '@/components/ui/native-select';
 import { PermissionEnum } from '@/enums/permission-enum';
 import { useCan } from '@/hooks/use-can';
 import { STRING_LIMITS } from '@/lib/string-limits';
 import groups from '@/routes/groups';
 import users from '@/routes/users';
-import type { AdminGroupRow, AdminRoleRef } from '@/types/admin';
+import type {
+    AdminBrainScopeOption,
+    AdminGroupRow,
+    AdminRoleRef,
+} from '@/types/admin';
 
 const EMPTY_GROUP_FORM = {
     name: '',
     description: '',
     role_ids: [] as number[],
     user_ids: [] as number[],
+    /** '' gives no brain access (#258). */
+    brain_scope: '',
+    brain_role: 'member',
 };
 
 export type GroupFormDrawerProps = {
     editing: AdminGroupRow | null;
     /** Roles the current user may grant (and so attach to a group). */
     roles: AdminRoleRef[];
+    /** Scopes the current user may give the group brain access to (#258). */
+    brainScopes: AdminBrainScopeOption[];
     readOnly?: boolean;
     open?: boolean;
     onCancel?: () => void;
@@ -57,6 +70,7 @@ export type GroupFormDrawerProps = {
 export function GroupFormDrawer({
     editing,
     roles,
+    brainScopes,
     readOnly = false,
     open = true,
     onCancel,
@@ -92,6 +106,8 @@ export function GroupFormDrawer({
                 description: editing.description ?? '',
                 role_ids: editing.role_ids,
                 user_ids: editing.user_ids,
+                brain_scope: editing.brain_access[0]?.scope ?? '',
+                brain_role: editing.brain_access[0]?.role ?? 'member',
             };
             form.setData(payload);
             form.setDefaults({ ...payload });
@@ -274,6 +290,77 @@ export function GroupFormDrawer({
                                 </FieldError>
                             </Field>
                         )}
+
+                        {brainScopes.length > 0 ? (
+                            <Field>
+                                <FieldLabel htmlFor="group_brain_scope">
+                                    {t('groups.form.brainAccess')}
+                                </FieldLabel>
+                                <div className="flex flex-wrap gap-2">
+                                    <NativeSelect
+                                        id="group_brain_scope"
+                                        className="min-w-48 flex-1"
+                                        value={form.data.brain_scope}
+                                        disabled={readOnly}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'brain_scope',
+                                                event.target.value,
+                                            )
+                                        }
+                                        aria-describedby="group-brain-access-hint"
+                                    >
+                                        <NativeSelectOption value="">
+                                            {t('groups.form.noBrainAccess')}
+                                        </NativeSelectOption>
+                                        {brainScopes.map((scope) => (
+                                            <NativeSelectOption
+                                                key={scope.value}
+                                                value={scope.value}
+                                            >
+                                                {scope.scope_type === 'company'
+                                                    ? t('brain.scope.clientLabel', {
+                                                          name: scope.label,
+                                                      })
+                                                    : scope.label}
+                                            </NativeSelectOption>
+                                        ))}
+                                    </NativeSelect>
+                                    <NativeSelect
+                                        aria-label={t('groups.form.brainRole')}
+                                        className="w-36"
+                                        value={form.data.brain_role}
+                                        disabled={
+                                            readOnly || form.data.brain_scope === ''
+                                        }
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'brain_role',
+                                                event.target.value,
+                                            )
+                                        }
+                                    >
+                                        {(['owner', 'member', 'guest'] as const).map(
+                                            (role) => (
+                                                <NativeSelectOption
+                                                    key={role}
+                                                    value={role}
+                                                >
+                                                    {t(`brain.keys.roles.${role}`)}
+                                                </NativeSelectOption>
+                                            ),
+                                        )}
+                                    </NativeSelect>
+                                </div>
+                                <FieldDescription id="group-brain-access-hint">
+                                    {t('groups.form.brainAccessHint')}
+                                </FieldDescription>
+                                <FieldError>
+                                    {form.errors.brain_scope ??
+                                        form.errors.brain_role}
+                                </FieldError>
+                            </Field>
+                        ) : null}
                     </FieldGroup>
                 </DrawerBody>
 
