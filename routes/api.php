@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\ProductResolveController;
 use App\Http\Controllers\Api\V1\ProposalController;
 use App\Http\Controllers\Api\V1\ScopeController;
 use App\Http\Controllers\Api\V1\SearchController;
+use App\Http\Controllers\Api\V1\SectionBatchController;
 use App\Http\Controllers\Api\V1\SimilarSearchController;
 use App\Http\Middleware\AuthenticateApiKeyMiddleware;
 use App\Http\Middleware\RequireBrainWriteMiddleware;
@@ -35,6 +36,7 @@ Route::prefix('v1')
         Route::get('items/{id}/outline', ItemOutlineController::class);
         Route::get('items/{id}/sections/{anchor}', ItemSectionController::class);
         Route::get('items/{id}/tables/{key}', ItemTableController::class);
+        Route::post('sections', SectionBatchController::class);
         Route::get('items/{id}/neighbours', ItemNeighboursController::class);
         Route::get('items/{id}', [ItemController::class, 'show']);
         Route::get('search', SearchController::class);
