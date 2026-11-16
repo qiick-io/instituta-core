@@ -6,7 +6,7 @@ namespace App\Services\Search;
 
 use App\Brain\Data\PerimeterData;
 use App\Contracts\SearchIndexContract;
-use App\Models\Item;
+use App\Services\SearchHitHydratorService;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\DB;
  */
 final class PgsqlFullTextSearchDriver implements SearchIndexContract
 {
+    public function __construct(
+        private readonly SearchHitHydratorService $hits = new SearchHitHydratorService,
+    ) {}
+
     public function search(
         PerimeterData $perimeter,
         string $query,
@@ -37,12 +41,14 @@ final class PgsqlFullTextSearchDriver implements SearchIndexContract
             $areaSql = ' AND i.area = ?';
             $bindings[] = $area;
         }
-        $bindings[] = $limit;
+        // Fetch more than asked: several sections of one item may match (#216).
+        $bindings[] = $limit * SearchHitHydratorService::MAX_SECTIONS_PER_ITEM * 2;
 
-        /** @var list<object{item_id: string, snippet: string, score: float|int|string}> $rows */
+        /** @var list<object{section_id: string, item_id: string, snippet: string, score: float|int|string}> $rows */
         $rows = DB::select(
             <<<SQL
             SELECT
+                s.id AS section_id,
                 s.item_id AS item_id,
                 ts_headline(
                     'english',
@@ -62,66 +68,11 @@ final class PgsqlFullTextSearchDriver implements SearchIndexContract
             $bindings,
         );
 
-        return $this->hydrateHits($rows);
-    }
-
-    /**
-     * @param  list<object{item_id: string, snippet: string, score: float|int|string}>  $rows
-     * @return list<array{
-     *     id: string,
-     *     title: string,
-     *     summary: string,
-     *     snippet: string,
-     *     score: float,
-     *     citation: array{source: string, path: string, section: string|null, commit: string|null}
-     * }>
-     */
-    private function hydrateHits(array $rows): array
-    {
-        $best = [];
-        foreach ($rows as $row) {
-            $itemId = (string) $row->item_id;
-            if (isset($best[$itemId])) {
-                continue;
-            }
-            $best[$itemId] = [
-                'snippet' => (string) $row->snippet,
-                'score' => round((float) $row->score, 6),
-            ];
-        }
-
-        if ($best === []) {
-            return [];
-        }
-
-        $items = Item::query()
-            ->whereIn('id', array_keys($best))
-            ->get()
-            ->keyBy('id');
-
-        $hits = [];
-        foreach ($best as $itemId => $meta) {
-            /** @var Item|null $item */
-            $item = $items->get($itemId);
-            if ($item === null) {
-                continue;
-            }
-
-            $hits[] = [
-                'id' => $item->id,
-                'title' => $item->title,
-                'summary' => $item->summary ?? '',
-                'snippet' => $meta['snippet'],
-                'score' => $meta['score'],
-                'citation' => [
-                    'source' => $item->source_id,
-                    'path' => $item->path,
-                    'section' => null,
-                    'commit' => $item->commit,
-                ],
-            ];
-        }
-
-        return $hits;
+        return $this->hits->hydrate(array_map(static fn (object $row): array => [
+            'section_id' => (string) $row->section_id,
+            'item_id' => (string) $row->item_id,
+            'snippet' => (string) $row->snippet,
+            'score' => (float) $row->score,
+        ], $rows), $limit);
     }
 }

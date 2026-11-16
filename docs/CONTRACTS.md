@@ -126,7 +126,7 @@ The local stdio server (`instituta:mcp`) offers the same reads as HTTP for one f
 
 **Behaviour:** apply perimeter first, then rank. Drivers: `pgsql` (reference), `sqlite` (FTS5). MySQL: not supported in v0.1.0 → clear error (`501` on REST, tool error on MCP).
 
-**Returns:** ids, titles, summaries, short snippets, score, citation. **No full bodies.**
+**Returns:** one hit per matching **section** (at most two per item, best first): item id, title, summary, the section's `anchor` and `heading`, a short snippet from that section, score, and a citation whose `section` is the anchor, so the caller opens it with `get_section` directly. **No full bodies.**
 
 ### 3.4 `instituta_outline` / `GET /items/{id}/outline`
 
