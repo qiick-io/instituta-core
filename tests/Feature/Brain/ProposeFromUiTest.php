@@ -67,6 +67,15 @@ it('gives the reading view what it needs to propose a change', function (): void
             ->where('item.sections.1.section_hash', ItemSection::hashOf($this->style->markdown)));
 });
 
+it('renders each section from its markdown, with resolved links to the reading view', function (): void {
+    $decision = Item::query()->where('path', 'decisions/one-repo.md')->sole();
+
+    $this->actingAs(uiPerson($this->organisation, RoleEnum::Member))
+        ->get(route('brain.reading', $this->coding->id))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('item.sections.1.html', '<p>Prefer boring code over clever code. See <a href="'.route('brain.reading', $decision->id, absolute: false).'">decisions</a>.</p>'));
+});
+
 it('lets a member propose a one-section change and opens its page with a diff', function (): void {
     $member = uiPerson($this->organisation, RoleEnum::Member);
     $newStyle = "## Style\n\nTabs, never spaces.";
