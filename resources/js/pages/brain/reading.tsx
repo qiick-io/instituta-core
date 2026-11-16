@@ -13,6 +13,7 @@ import {
     ProposeChangeDrawer,
     type ProposeChangeTarget,
 } from '@/components/brain/propose-change-drawer';
+import { BrainMarkdown } from '@/components/brain/brain-markdown';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { markdownToPlainText } from '@/lib/markdown-plain-text';
 import { cn } from '@/lib/utils';
 import { reading, tree } from '@/routes/brain';
 import { show as tablesShow } from '@/routes/brain/tables';
@@ -63,6 +65,8 @@ type Section = {
     body: string;
     markdown: string | null;
     section_hash: string | null;
+    /** The stored markdown rendered by the server (#241); '' before it was stored. */
+    html: string;
     blocks: Block[];
 };
 
@@ -247,7 +251,11 @@ export default function BrainReading({ item, canPropose }: Props) {
         >
             <Head title={item.title} />
             <PageLayout
-                description={item.summary ?? t('brain.reading.description')}
+                description={
+                    item.summary
+                        ? markdownToPlainText(item.summary)
+                        : t('brain.reading.description')
+                }
                 subheader={
                     <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                         <Badge variant="secondary">{item.type}</Badge>
@@ -328,14 +336,6 @@ export default function BrainReading({ item, canPropose }: Props) {
                                         >
                                             {section.heading}
                                         </h2>
-                                        <Badge variant="outline">
-                                            {t(
-                                                'brain.reading.citationSection',
-                                                {
-                                                    section: section.anchor,
-                                                },
-                                            )}
-                                        </Badge>
                                         {isEditable ? (
                                             <Button
                                                 type="button"
@@ -359,7 +359,9 @@ export default function BrainReading({ item, canPropose }: Props) {
                                         ) : null}
                                     </div>
 
-                                    {section.blocks.length > 0 ? (
+                                    {section.html !== '' ? (
+                                        <BrainMarkdown html={section.html} />
+                                    ) : section.blocks.length > 0 ? (
                                         <div className="space-y-3">
                                             {section.blocks.map(
                                                 (block, index) => (
