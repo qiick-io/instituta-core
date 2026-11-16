@@ -60,6 +60,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('brain.tables.show');
     Route::get('brain/sources', SourcesController::class)->name('brain.sources');
     Route::get('brain/proposals', [ProposalsController::class, 'index'])->name('brain.proposals.index');
+    Route::post('brain/proposals', [ProposalsController::class, 'store'])->name('brain.proposals.store');
     Route::get('brain/proposals/{proposal}', [ProposalsController::class, 'show'])->name('brain.proposals.show');
     Route::patch('brain/proposals/{proposal}', [ProposalsController::class, 'update'])->name('brain.proposals.update');
     Route::get('brain/keys', KeysController::class)->name('brain.keys');

@@ -677,7 +677,26 @@
                 "conflict": "Conflict",
                 "merged": "Merged"
             },
-            "searchPlaceholder": "Search proposals…"
+            "searchPlaceholder": "Search proposals…",
+            "fieldProposedBy": "Proposed by",
+            "viaKey": "via key {{key}}",
+            "fieldBase": "Based on",
+            "fieldDecisionNote": "Decision note",
+            "decisionNotePlaceholder": "Optional: why you accept or reject it",
+            "diffHeading": "Changes",
+            "diffDescription": "Current indexed content against the proposal. Frontmatter is not shown.",
+            "diffTooLarge": "The file is too large to compare here; open the branch or pull request.",
+            "diffLine": {
+                "added": "Added:",
+                "removed": "Removed:"
+            },
+            "overlappingTitle_one": "{{count}} other open proposal changes the same content",
+            "overlappingTitle_other": "{{count}} other open proposals change the same content",
+            "principalType": {
+                "person": "Person",
+                "agent": "Agent",
+                "service": "Service"
+            }
         },
         "graph": {
             "title": "Scoped graph",
@@ -688,6 +707,25 @@
             "depth2": "Depth 2",
             "openTree": "Open tree",
             "canvasLabel": "Brain item neighbour graph"
+        },
+        "propose": {
+            "proposeChange": "Propose change",
+            "editSection": "Propose a change to {{heading}}",
+            "newItem": "New item",
+            "createTitle": "Propose a new item",
+            "editTitle": "Propose a change",
+            "createDescription": "Opens a proposal for a new brain file. Nothing changes until a person accepts it.",
+            "itemDescription": "Edit the whole item. Nothing changes until a person accepts the proposal.",
+            "sectionDescription": "Edit only the section {{heading}}; the rest of the file stays as it is.",
+            "defaultItemTitle": "Update {{title}}",
+            "defaultSectionTitle": "Update {{heading}} in {{title}}",
+            "fieldTitle": "Proposal title",
+            "fieldPath": "File path",
+            "pathHint": "Relative to the source root, ending in .md.",
+            "fieldStableKey": "Stable key",
+            "fieldMarkdown": "Markdown",
+            "markdownHint": "Keep the heading line. If the content changed since you opened it, the proposal is refused and you can re-read it.",
+            "submit": "Open proposal"
         }
     },
     "activity": {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Brain\Data\PerimeterData;
+use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Data\ProposeBrainChangeData;
 use App\Enums\ProposalActionEnum;
@@ -15,6 +16,7 @@ use App\Models\Item;
 use App\Models\ItemSection;
 use App\Models\Product;
 use App\Models\Proposal;
+use App\Models\User;
 use App\Notifications\ProposalOpenedNotification;
 use App\Services\ActivityEventLoggerService;
 use App\Services\ContractAuditService;
@@ -37,12 +39,21 @@ final class ProposeBrainChangeAction
         private readonly ActivityEventLoggerService $activity = new ActivityEventLoggerService,
     ) {}
 
+    /**
+     * @param  ApiKey|null  $apiKey  Null when a signed-in person proposes from the web UI.
+     * @param  User|null  $actor  The signed-in person on the web; for keys the key's user.
+     */
     public function execute(
         PerimeterData $perimeter,
-        ApiKey $apiKey,
+        ?ApiKey $apiKey,
         ProposeBrainChangeData $payload,
         string $surface,
+        ?User $actor = null,
     ): Proposal {
+        if ($perimeter->role === RoleEnum::Guest) {
+            throw new InvalidArgumentException('Guests cannot propose changes.');
+        }
+
         [$organisationId, $companyId, $productId] = $this->scopeColumns($perimeter);
 
         if ($organisationId === null || $organisationId === '') {
@@ -65,7 +76,7 @@ final class ProposeBrainChangeAction
             'path' => $payload->path,
             'area' => $payload->area,
             'proposed_by_principal_id' => $perimeter->principalId,
-            'api_key_id' => $apiKey->id,
+            'api_key_id' => $apiKey?->id,
             'body' => $payload->body,
             'base_content_hash' => $base['base_content_hash'],
             'base_commit' => $base['base_commit'],
@@ -74,14 +85,18 @@ final class ProposeBrainChangeAction
         ]);
 
         $this->audit->record(
-            toolOrEndpoint: $surface === 'mcp' ? 'instituta_propose' : 'POST /proposals',
+            toolOrEndpoint: match ($surface) {
+                'mcp' => 'instituta_propose',
+                'web' => 'POST /brain/proposals',
+                default => 'POST /proposals',
+            },
             perimeter: $perimeter,
             apiKey: $apiKey,
             itemIds: [$proposal->id],
         );
 
-        $apiKey->loadMissing('principal.user');
-        $this->activity->proposalOpened($proposal, $apiKey->principal?->user, [
+        $apiKey?->loadMissing('principal.user');
+        $this->activity->proposalOpened($proposal, $actor ?? $apiKey?->principal?->user, [
             'organisation_id' => $organisationId,
             'proposal_id' => $proposal->id,
             'action' => $payload->action->value,

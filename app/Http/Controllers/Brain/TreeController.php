@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Brain;
 
+use App\Brain\Enums\RoleEnum;
 use App\Http\Controllers\Controller;
 use App\Services\BrainTreeService;
 use App\Services\SessionPerimeterService;
@@ -35,6 +36,7 @@ final class TreeController extends Controller
         return Inertia::render('brain/tree', [
             ...$payload,
             'hasPerimeter' => $perimeter !== null,
+            'canPropose' => $perimeter !== null && $perimeter->role !== RoleEnum::Guest,
         ]);
     }
 }

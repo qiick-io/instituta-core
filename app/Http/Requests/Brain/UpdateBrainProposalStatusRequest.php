@@ -24,6 +24,7 @@ final class UpdateBrainProposalStatusRequest extends FormRequest
     {
         return [
             'status' => ['required', 'string', Rule::in(['accepted', 'rejected'])],
+            'note' => ['nullable', 'string', 'max:2000'],
         ];
     }
 }

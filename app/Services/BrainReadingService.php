@@ -45,6 +45,7 @@ final class BrainReadingService
             'visibility' => $item->visibility->value,
             'path' => $item->path,
             'commit' => $item->commit,
+            'content_hash' => $item->content_hash,
             'citation' => [
                 'source' => $item->source !== null && $item->source->name !== ''
                     ? $item->source->name
@@ -62,6 +63,8 @@ final class BrainReadingService
                     'level' => $section->level,
                     'position' => $section->position,
                     'body' => $section->body,
+                    'markdown' => $section->markdown,
+                    'section_hash' => ItemSection::hashOf($section->markdown),
                     'blocks' => $section->blocks ?? [],
                 ])
                 ->all(),

@@ -6,9 +6,17 @@
  * reason lives here instead of app-ui.overrides.json.
  */
 import { Head, Link } from '@inertiajs/react';
+import { Pencil } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+    ProposeChangeDrawer,
+    type ProposeChangeTarget,
+} from '@/components/brain/propose-change-drawer';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Drawer } from '@/components/ui/drawer';
 import {
     Collapsible,
     CollapsibleContent,
@@ -52,6 +60,8 @@ type Section = {
     level: number;
     position: number;
     body: string;
+    markdown: string | null;
+    section_hash: string | null;
     blocks: Block[];
 };
 
@@ -78,6 +88,7 @@ type Item = {
     visibility: string;
     path: string;
     commit: string | null;
+    content_hash: string;
     citation: Citation;
     sections: Section[];
     tables: StructuredTable[];
@@ -85,6 +96,8 @@ type Item = {
 
 type Props = {
     item: Item;
+    /** False for guests: they read but never propose. */
+    canPropose: boolean;
 };
 
 function BlockView({ block }: { block: Block }) {
@@ -165,8 +178,47 @@ function BlockView({ block }: { block: Block }) {
     );
 }
 
-export default function BrainReading({ item }: Props) {
+export default function BrainReading({ item, canPropose }: Props) {
     const { t } = useTranslation();
+    const [proposeTarget, setProposeTarget] =
+        useState<ProposeChangeTarget | null>(null);
+    // Sections synced before #198 have no stored markdown: they cannot be edited from here.
+    const isEditable =
+        canPropose &&
+        item.sections.length > 0 &&
+        item.sections.every((section) => section.markdown !== null);
+
+    const proposeItemChange = (): void => {
+        setProposeTarget({
+            mode: 'item',
+            stableKey: item.stable_key,
+            path: item.path,
+            area: item.area,
+            title: item.title,
+            baseContentHash: item.content_hash,
+            markdown: item.sections
+                .map((section) => section.markdown ?? '')
+                .join('\n\n'),
+        });
+    };
+
+    const proposeSectionChange = (section: Section): void => {
+        if (section.markdown === null || section.section_hash === null) {
+            return;
+        }
+
+        setProposeTarget({
+            mode: 'section',
+            stableKey: item.stable_key,
+            path: item.path,
+            area: item.area,
+            title: item.title,
+            heading: section.heading,
+            sectionAnchor: section.anchor,
+            baseSectionHash: section.section_hash,
+            markdown: section.markdown,
+        });
+    };
 
     return (
         <>
@@ -206,6 +258,14 @@ export default function BrainReading({ item }: Props) {
                             </Badge>
                         ) : null}
                     </div>
+                }
+                filtersRight={
+                    isEditable ? (
+                        <Button type="button" onClick={proposeItemChange}>
+                            <Pencil />
+                            {t('brain.propose.proposeChange')}
+                        </Button>
+                    ) : null
                 }
                 scrollContent
             >
@@ -268,6 +328,27 @@ export default function BrainReading({ item }: Props) {
                                                 },
                                             )}
                                         </Badge>
+                                        {isEditable ? (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                aria-label={t(
+                                                    'brain.propose.editSection',
+                                                    {
+                                                        heading:
+                                                            section.heading,
+                                                    },
+                                                )}
+                                                onClick={() =>
+                                                    proposeSectionChange(
+                                                        section,
+                                                    )
+                                                }
+                                            >
+                                                <Pencil />
+                                            </Button>
+                                        ) : null}
                                     </div>
 
                                     {section.blocks.length > 0 ? (
@@ -367,6 +448,22 @@ export default function BrainReading({ item }: Props) {
                     </article>
                 </div>
             </PageLayout>
+
+            <Drawer
+                direction="right"
+                open={proposeTarget !== null}
+                onOpenChange={(isOpen) => {
+                    if (!isOpen) {
+                        setProposeTarget(null);
+                    }
+                }}
+            >
+                <ProposeChangeDrawer
+                    target={proposeTarget}
+                    open={proposeTarget !== null}
+                    onCancel={() => setProposeTarget(null)}
+                />
+            </Drawer>
         </>
     );
 }

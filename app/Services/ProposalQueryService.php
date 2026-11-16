@@ -197,7 +197,18 @@ final class ProposalQueryService
         ];
 
         if ($includeBody) {
+            $proposal->loadMissing(['proposedByPrincipal', 'apiKey']);
             $row['body'] = $proposal->body;
+            $row['decision_note'] = $proposal->decision_note;
+            $row['base_content_hash'] = $proposal->base_content_hash;
+            $row['base_commit'] = $proposal->base_commit;
+            $row['merged_at'] = $proposal->merged_at?->toIso8601String();
+            $row['proposed_by'] = [
+                'name' => $proposal->proposedByPrincipal?->name,
+                'type' => $proposal->proposedByPrincipal?->type->value,
+                'key_name' => $proposal->apiKey?->name,
+            ];
+            $row['overlapping_open_proposals'] = $this->overlappingOpenProposalIds($proposal);
         }
 
         return $row;

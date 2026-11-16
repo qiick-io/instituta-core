@@ -13,5 +13,6 @@ readonly class UpdateProposalStatusData
 {
     public function __construct(
         public ProposalStatusEnum $status,
+        public ?string $note = null,
     ) {}
 }

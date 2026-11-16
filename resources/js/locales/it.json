@@ -677,7 +677,26 @@
                 "conflict": "Conflitto",
                 "merged": "Unita"
             },
-            "searchPlaceholder": "Cerca proposte…"
+            "searchPlaceholder": "Cerca proposte…",
+            "fieldProposedBy": "Proposta da",
+            "viaKey": "tramite la chiave {{key}}",
+            "fieldBase": "Basata su",
+            "fieldDecisionNote": "Nota sulla decisione",
+            "decisionNotePlaceholder": "Facoltativa: perché la accetti o la rifiuti",
+            "diffHeading": "Modifiche",
+            "diffDescription": "Contenuto indicizzato attuale confrontato con la proposta. Il frontmatter non è mostrato.",
+            "diffTooLarge": "Il file è troppo grande per il confronto qui; apri il branch o la pull request.",
+            "diffLine": {
+                "added": "Aggiunto:",
+                "removed": "Rimosso:"
+            },
+            "overlappingTitle_one": "{{count}} altra proposta aperta modifica lo stesso contenuto",
+            "overlappingTitle_other": "{{count}} altre proposte aperte modificano lo stesso contenuto",
+            "principalType": {
+                "person": "Persona",
+                "agent": "Agente",
+                "service": "Servizio"
+            }
         },
         "graph": {
             "title": "Grafo nello scope",
@@ -688,6 +707,25 @@
             "depth2": "Profondità 2",
             "openTree": "Apri albero",
             "canvasLabel": "Grafo dei vicini degli elementi del brain"
+        },
+        "propose": {
+            "proposeChange": "Proponi modifica",
+            "editSection": "Proponi una modifica a {{heading}}",
+            "newItem": "Nuovo elemento",
+            "createTitle": "Proponi un nuovo elemento",
+            "editTitle": "Proponi una modifica",
+            "createDescription": "Apre una proposta per un nuovo file del brain. Non cambia nulla finché una persona non la accetta.",
+            "itemDescription": "Modifica l'intero elemento. Non cambia nulla finché una persona non accetta la proposta.",
+            "sectionDescription": "Modifica solo la sezione {{heading}}; il resto del file resta com'è.",
+            "defaultItemTitle": "Aggiorna {{title}}",
+            "defaultSectionTitle": "Aggiorna {{heading}} in {{title}}",
+            "fieldTitle": "Titolo della proposta",
+            "fieldPath": "Percorso del file",
+            "pathHint": "Relativo alla radice della fonte, con estensione .md.",
+            "fieldStableKey": "Chiave stabile",
+            "fieldMarkdown": "Markdown",
+            "markdownHint": "Mantieni la riga del titolo. Se il contenuto è cambiato da quando l'hai aperto, la proposta viene rifiutata e puoi rileggerlo.",
+            "submit": "Apri proposta"
         }
     },
     "activity": {
