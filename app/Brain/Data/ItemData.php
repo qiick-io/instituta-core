@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Brain\Data;
 
 use App\Brain\Enums\VisibilityEnum;
+use App\Brain\Support\TokenEstimator;
 
 final readonly class ItemData
 {
@@ -36,4 +37,17 @@ final readonly class ItemData
         public array $edges = [],
         public string $body = '',
     ) {}
+
+    /**
+     * What reading the whole item costs (#230): the sum of its sections, so outline, section and
+     * item agree; the body when the file has no sections.
+     */
+    public function tokenEstimate(): int
+    {
+        if ($this->sections === []) {
+            return TokenEstimator::forText($this->body);
+        }
+
+        return array_sum(array_map(static fn (SectionData $section): int => $section->tokenEstimate(), $this->sections));
+    }
 }

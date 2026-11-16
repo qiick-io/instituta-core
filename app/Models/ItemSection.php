@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Brain\Support\TokenEstimator;
 use Database\Factories\ItemSectionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -26,6 +27,7 @@ use Illuminate\Support\Carbon;
  * @property int $position
  * @property string $body
  * @property string|null $markdown
+ * @property int $token_estimate
  * @property list<array<string, mixed>>|null $blocks
  * @property string|null $embedding_model_id
  * @property Carbon|null $embedded_at
@@ -45,6 +47,7 @@ use Illuminate\Support\Carbon;
     'position',
     'body',
     'markdown',
+    'token_estimate',
     'blocks',
     'embedding_model_id',
     'embedded_at',
@@ -64,6 +67,7 @@ class ItemSection extends Model
         return [
             'level' => 'integer',
             'position' => 'integer',
+            'token_estimate' => 'integer',
             'blocks' => 'array',
             'embedded_at' => 'datetime',
             'embedding_vector' => 'array',
@@ -118,5 +122,13 @@ class ItemSection extends Model
     public static function hashOf(?string $markdown): ?string
     {
         return $markdown === null ? null : hash('sha256', $markdown);
+    }
+
+    /**
+     * The stored token estimate of a section's text (#230), see {@see TokenEstimator}.
+     */
+    public static function estimateTokens(?string $text): int
+    {
+        return TokenEstimator::forText($text);
     }
 }

@@ -218,10 +218,12 @@ final class LocalContractReader
         return [
             'id' => $item->stableKey,
             'path' => $item->path,
+            'token_estimate' => $item->tokenEstimate(),
             'sections' => array_map(static fn ($section) => [
                 'anchor' => $section->anchor,
                 'heading' => $section->heading,
                 'level' => $section->level,
+                'token_estimate' => $section->tokenEstimate(),
                 'block_types' => array_map(static fn ($b) => $b->type->value, $section->blocks),
             ], $item->sections),
             'citation' => $item->citation->toArray(),
@@ -338,6 +340,7 @@ final class LocalContractReader
             'area' => $item->area,
             'type' => $item->type,
             'visibility' => $item->visibility->value,
+            'token_estimate' => $item->tokenEstimate(),
             ...$this->validity($item),
             'path' => $item->path,
             'adapter' => $item->adapter,

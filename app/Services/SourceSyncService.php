@@ -599,6 +599,7 @@ final class SourceSyncService
                 'visibility' => $itemData->visibility,
                 'commit' => $itemData->citation->commit ?? $commit,
                 'content_hash' => hash('sha256', $itemData->path."\n".$itemData->body),
+                'token_estimate' => $itemData->tokenEstimate(),
                 'frontmatter' => $itemData->frontmatter === [] ? null : $itemData->frontmatter,
                 'decision_date' => $itemData->decisionDate,
                 'effective_date' => $itemData->effectiveDate,
@@ -637,6 +638,7 @@ final class SourceSyncService
                     'position' => $section->position,
                     'body' => $section->body,
                     'markdown' => $section->markdown === '' ? null : $section->markdown,
+                    'token_estimate' => $section->tokenEstimate(),
                     'blocks' => $section->blocks === [] ? null : array_map(
                         static fn ($block): array => $block->toArray(),
                         $section->blocks,

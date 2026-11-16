@@ -27,6 +27,7 @@ final class SearchHitHydratorService
      *     superseded_by: string|null,
      *     anchor: string|null,
      *     heading: string|null,
+     *     token_estimate: int,
      *     snippet: string,
      *     score: float,
      *     citation: array{source: string, path: string, section: string|null, commit: string|null}
@@ -58,7 +59,7 @@ final class SearchHitHydratorService
         $items = Item::query()->whereIn('id', array_column($kept, 'item_id'))->get()->keyBy('id');
         $sections = ItemSection::query()
             ->whereIn('id', array_column($kept, 'section_id'))
-            ->get(['id', 'anchor', 'heading'])
+            ->get(['id', 'anchor', 'heading', 'token_estimate'])
             ->keyBy('id');
 
         $hits = [];
@@ -80,6 +81,8 @@ final class SearchHitHydratorService
                 'superseded_by' => $item->superseded_by,
                 'anchor' => $section?->anchor,
                 'heading' => $section?->heading,
+                // What opening the hit costs: its section, or the whole item without one (#230).
+                'token_estimate' => $section !== null ? $section->token_estimate : $item->token_estimate,
                 'snippet' => $match['snippet'],
                 'score' => round($match['score'], 6),
                 'citation' => [
