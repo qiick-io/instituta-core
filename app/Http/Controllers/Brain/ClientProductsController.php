@@ -56,6 +56,8 @@ final class ClientProductsController extends Controller
             name: $validated['name'],
             slug: $validated['slug'],
             inheritsFromParent: (bool) ($validated['inherits_from_parent'] ?? true),
+            logo: $request->file('logo'),
+            removeLogo: $request->boolean('remove_logo'),
         ));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Product created.')]);
@@ -78,6 +80,8 @@ final class ClientProductsController extends Controller
             name: $validated['name'],
             slug: $validated['slug'],
             inheritsFromParent: (bool) ($validated['inherits_from_parent'] ?? true),
+            logo: $request->file('logo'),
+            removeLogo: $request->boolean('remove_logo'),
         ));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Product updated.')]);

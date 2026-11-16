@@ -698,7 +698,8 @@
             "saveEdit": "Änderungen speichern",
             "cancel": "Abbrechen",
             "searchPlaceholder": "Produkte suchen…",
-            "requiredHint": "Mit * markierte Felder sind Pflicht."
+            "requiredHint": "Mit * markierte Felder sind Pflicht.",
+            "resolvedRules": "Geltende Regeln"
         },
         "sessionReplay": {
             "title": "Agent-Aufrufe",
@@ -878,6 +879,13 @@
             "noMatchesDescription": "Nach Titel oder Pfad suchen.",
             "pickTitle": "Wähle eine Datei zum Lesen",
             "pickDescription": "Links stehen Ordner und Dateien jedes Repositorys in diesem Bereich."
+        },
+        "logo": {
+            "label": "Logo",
+            "upload": "Bild hochladen",
+            "replace": "Bild ersetzen",
+            "remove": "Entfernen",
+            "hint": "PNG, JPEG oder WebP, bis 1 MB. Ohne Bild erscheinen die Initialen."
         }
     },
     "activity": {

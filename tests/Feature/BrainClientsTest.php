@@ -12,6 +12,8 @@ use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
 
 beforeEach(function (): void {
@@ -290,4 +292,58 @@ it('switches the session perimeter to a client company', function (): void {
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('instituta.perimeter.scope_type', 'company')
             ->where('instituta.perimeter.scope_id', $client->id));
+});
+
+it('stores, replaces and removes a client logo, and refuses svg', function (): void {
+    Storage::fake('public');
+    ['org' => $org, 'user' => $user] = clientsOwnerContext();
+
+    $this->actingAs($user)
+        ->post(route('clients.store'), [
+            'name' => 'Logo Co',
+            'slug' => 'logo-co',
+            'logo' => UploadedFile::fake()->image('logo.png', 64, 64),
+        ])
+        ->assertRedirect(route('clients.index'));
+
+    $client = Company::query()->where('slug', 'logo-co')->sole();
+    $firstLogo = $client->logo_path;
+    Storage::disk('public')->assertExists((string) $firstLogo);
+
+    $this->actingAs($user)
+        ->get(route('clients.index'))
+        ->assertInertia(fn ($page) => $page->where('clients.0.logo_url', Storage::disk('public')->url((string) $firstLogo)));
+
+    $this->actingAs($user)
+        ->post(route('clients.update', $client), [
+            '_method' => 'put',
+            'name' => 'Logo Co',
+            'slug' => 'logo-co',
+            'logo' => UploadedFile::fake()->image('new.webp', 64, 64),
+        ])
+        ->assertRedirect(route('clients.index'));
+
+    $client->refresh();
+    Storage::disk('public')->assertMissing((string) $firstLogo);
+    Storage::disk('public')->assertExists((string) $client->logo_path);
+
+    $this->actingAs($user)
+        ->post(route('clients.update', $client), [
+            '_method' => 'put',
+            'name' => 'Logo Co',
+            'slug' => 'logo-co',
+            'remove_logo' => '1',
+        ])
+        ->assertRedirect(route('clients.index'));
+
+    expect($client->fresh()?->logo_path)->toBeNull();
+
+    $this->actingAs($user)
+        ->post(route('clients.update', $client), [
+            '_method' => 'put',
+            'name' => 'Logo Co',
+            'slug' => 'logo-co',
+            'logo' => UploadedFile::fake()->createWithContent('logo.svg', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'),
+        ])
+        ->assertSessionHasErrors('logo');
 });

@@ -11,6 +11,8 @@ use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
 
 beforeEach(function (): void {
@@ -257,4 +259,25 @@ it('rejects duplicate product slugs within the same client', function (): void {
             'slug' => 'taken',
         ])
         ->assertSessionHasErrors('slug');
+});
+
+it('stores a product logo and lists it', function (): void {
+    Storage::fake('public');
+    ['org' => $org, 'user' => $user] = clientProductsOwnerContext();
+    $client = Company::factory()->client()->create(['organisation_id' => $org->id]);
+
+    $this->actingAs($user)
+        ->post(route('clients.products.store', $client), [
+            'name' => 'Logo App',
+            'slug' => 'logo-app',
+            'logo' => UploadedFile::fake()->image('logo.jpg', 32, 32),
+        ])
+        ->assertRedirect(route('clients.products.index', $client));
+
+    $product = Product::query()->where('slug', 'logo-app')->sole();
+    Storage::disk('public')->assertExists((string) $product->logo_path);
+
+    $this->actingAs($user)
+        ->get(route('clients.products.index', $client))
+        ->assertInertia(fn ($page) => $page->where('products.0.logo_url', Storage::disk('public')->url((string) $product->logo_path)));
 });

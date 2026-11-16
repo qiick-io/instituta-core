@@ -50,6 +50,8 @@ final class ClientsController extends Controller
         $action->execute($user, new ClientCompanyData(
             name: $validated['name'],
             slug: $validated['slug'],
+            logo: $request->file('logo'),
+            removeLogo: $request->boolean('remove_logo'),
         ));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Client created.')]);
@@ -70,6 +72,8 @@ final class ClientsController extends Controller
         $action->execute($user, $company, new ClientCompanyData(
             name: $validated['name'],
             slug: $validated['slug'],
+            logo: $request->file('logo'),
+            removeLogo: $request->boolean('remove_logo'),
         ));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Client updated.')]);

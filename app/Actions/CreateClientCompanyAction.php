@@ -10,6 +10,7 @@ use App\Models\Company;
 use App\Models\User;
 use App\Services\ActivityEventLoggerService;
 use App\Services\BrainClientsService;
+use App\Services\LogoStorageService;
 use Illuminate\Support\Facades\Gate;
 
 /**
@@ -20,6 +21,7 @@ final class CreateClientCompanyAction
     public function __construct(
         private readonly BrainClientsService $clients,
         private readonly ActivityEventLoggerService $activity,
+        private readonly LogoStorageService $logos,
     ) {}
 
     public function execute(User $user, ClientCompanyData $data): Company
@@ -37,6 +39,7 @@ final class CreateClientCompanyAction
             'name' => $data->name,
             'slug' => $data->slug,
             'kind' => CompanyKindEnum::Client,
+            'logo_path' => $this->logos->update(null, $data->logo, false, 'companies'),
         ]);
 
         $this->activity->clientCreated($company, $user);
