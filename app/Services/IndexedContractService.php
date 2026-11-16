@@ -121,35 +121,59 @@ final class IndexedContractService
     /**
      * @return array<string, mixed>
      */
+    /**
+     * Keyword, semantic or hybrid search (#217). Hybrid (the default) merges both when embeddings
+     * are on and falls back to keyword otherwise; `mode` in the answer says what ran.
+     *
+     * @return array<string, mixed>
+     */
     public function search(
         PerimeterData $perimeter,
         ?ApiKey $apiKey,
         string $q,
         ?string $area = null,
         int $limit = 20,
+        string $mode = HybridSearchService::MODE_HYBRID,
     ): array {
         $limit = max(1, min(50, $limit));
 
         /** @var list<string> $allowedIds */
         $allowedIds = $this->itemsQuery($perimeter)->pluck('id')->all();
 
+        $isSemanticAvailable = HybridSearchService::isSemanticAvailable();
+        $modeUsed = match (true) {
+            $mode === HybridSearchService::MODE_KEYWORD, ! $isSemanticAvailable => HybridSearchService::MODE_KEYWORD,
+            $mode === HybridSearchService::MODE_SEMANTIC => HybridSearchService::MODE_SEMANTIC,
+            default => HybridSearchService::MODE_HYBRID,
+        };
+
         try {
-            $results = $this->searchDriver()->search($perimeter, $q, $allowedIds, $area, $limit);
+            $keywordHits = $modeUsed === HybridSearchService::MODE_SEMANTIC
+                ? []
+                : $this->searchDriver()->search($perimeter, $q, $allowedIds, $area, $limit);
         } catch (RuntimeException $exception) {
             $this->audit->record('instituta_search', $perimeter, $apiKey, []);
 
             throw $exception;
         }
 
+        $results = $keywordHits;
+
+        if ($modeUsed !== HybridSearchService::MODE_KEYWORD) {
+            $hybrid = app(HybridSearchService::class);
+            $results = $hybrid->fuse($keywordHits, $hybrid->semanticHits($perimeter, $q, $allowedIds, $area, $limit), $limit);
+        }
+
         /** @var list<string> $itemIds */
-        $itemIds = array_map(
-            static fn (array $hit): string => $hit['id'],
+        $itemIds = array_values(array_unique(array_map(
+            static fn (array $hit): string => (string) $hit['id'],
             $results,
-        );
+        )));
 
         $this->audit->record('instituta_search', $perimeter, $apiKey, $itemIds);
 
         return [
+            'mode' => $modeUsed,
             'results' => $results,
             ...$this->freezeMeta($perimeter),
         ];

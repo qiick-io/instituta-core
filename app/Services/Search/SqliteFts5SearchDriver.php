@@ -90,6 +90,7 @@ final class SqliteFts5SearchDriver implements SearchIndexContract
             $safe[] = $token.'*';
         }
 
-        return implode(' ', $safe);
+        // Any term (#217): BM25 still ranks sections matching more terms first.
+        return implode(' OR ', $safe);
     }
 }

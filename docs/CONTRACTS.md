@@ -122,9 +122,9 @@ The local stdio server (`instituta:mcp`) offers the same reads as HTTP for one f
 
 ### 3.3 `instituta_search` / `GET /search`
 
-**Query:** `scope` (required), `q` (required), `area`, `limit` (default 20, max 50).
+**Query:** `scope` (required), `q` (required), `area`, `limit` (default 20, max 50), `mode` (`hybrid` default, `keyword`, `semantic`).
 
-**Behaviour:** apply perimeter first, then rank. Drivers: `pgsql` (reference), `sqlite` (FTS5). MySQL: not supported in v0.1.0 → clear error (`501` on REST, tool error on MCP).
+**Behaviour:** apply perimeter first, then rank. Keyword matching takes **any** term of the query, as a prefix, and ranks sections that match more terms higher (language-neutral: Postgres uses the `simple` configuration). With embeddings on, `hybrid` merges keyword and semantic hits by reciprocal rank fusion and `semantic` uses meaning alone; with embeddings off every mode runs as `keyword`. The answer's `mode` says what ran, and each hit's `match` (`keyword`, `semantic`, `both`) why it was found. Drivers: `pgsql` (reference), `sqlite` (FTS5). MySQL: not supported in v0.1.0 → clear error (`501` on REST, tool error on MCP).
 
 **Returns:** one hit per matching **section** (at most two per item, best first): item id, title, summary, the section's `anchor` and `heading`, a short snippet from that section, score, and a citation whose `section` is the anchor, so the caller opens it with `get_section` directly. **No full bodies.**
 

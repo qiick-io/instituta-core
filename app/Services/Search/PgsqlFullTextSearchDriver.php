@@ -10,7 +10,7 @@ use App\Services\SearchHitHydratorService;
 use Illuminate\Support\Facades\DB;
 
 /**
- * PostgreSQL full-text reference driver (tsvector / GIN / websearch_to_tsquery).
+ * PostgreSQL full-text reference driver (tsvector / GIN, language-neutral `simple` configuration, any-term prefix queries).
  * Vendor SQL stays in this class.
  */
 final class PgsqlFullTextSearchDriver implements SearchIndexContract
@@ -35,7 +35,12 @@ final class PgsqlFullTextSearchDriver implements SearchIndexContract
         $limit = max(1, min(50, $limit));
         $placeholders = implode(',', array_fill(0, count($allowedItemIds), '?'));
 
-        $bindings = [$query, $query, $query, ...$allowedItemIds];
+        $tsQuery = $this->toTsQuery($query);
+        if ($tsQuery === '') {
+            return [];
+        }
+
+        $bindings = [$tsQuery, $tsQuery, $tsQuery, ...$allowedItemIds];
         $areaSql = '';
         if ($area !== null && $area !== '') {
             $areaSql = ' AND i.area = ?';
@@ -51,15 +56,15 @@ final class PgsqlFullTextSearchDriver implements SearchIndexContract
                 s.id AS section_id,
                 s.item_id AS item_id,
                 ts_headline(
-                    'english',
+                    'simple',
                     s.body,
-                    websearch_to_tsquery('english', ?),
+                    to_tsquery('simple', ?),
                     'MaxWords=20, MinWords=5, MaxFragments=1'
                 ) AS snippet,
-                ts_rank(s.search_vector, websearch_to_tsquery('english', ?)) AS score
+                ts_rank(s.search_vector, to_tsquery('simple', ?)) AS score
             FROM item_sections s
             INNER JOIN items i ON i.id = s.item_id
-            WHERE s.search_vector @@ websearch_to_tsquery('english', ?)
+            WHERE s.search_vector @@ to_tsquery('simple', ?)
               AND s.item_id IN ({$placeholders})
               {$areaSql}
             ORDER BY score DESC
@@ -74,5 +79,26 @@ final class PgsqlFullTextSearchDriver implements SearchIndexContract
             'snippet' => (string) $row->snippet,
             'score' => (float) $row->score,
         ], $rows), $limit);
+    }
+
+    /**
+     * Any term, as a prefix (#217): `colour:* | primary:*`. Language-neutral (`simple`), so an
+     * Italian or German brain matches as well as an English one; ts_rank still ranks sections that
+     * match more terms first.
+     */
+    private function toTsQuery(string $query): string
+    {
+        $tokens = preg_split('/\s+/u', mb_strtolower(trim($query))) ?: [];
+        $terms = [];
+
+        foreach ($tokens as $token) {
+            $token = preg_replace('/[^\p{L}\p{N}_]/u', '', $token) ?? '';
+
+            if ($token !== '') {
+                $terms[] = $token.':*';
+            }
+        }
+
+        return implode(' | ', array_unique($terms));
     }
 }

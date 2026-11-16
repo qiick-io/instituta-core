@@ -246,6 +246,12 @@ paths:
                       minimum: 1
                       maximum: 50
                       default: 20
+                - name: mode
+                  in: query
+                  description: hybrid (default) merges words and meaning when embeddings are on; keyword or semantic alone. Without embeddings every mode runs as keyword.
+                  schema:
+                      type: string
+                      enum: [hybrid, keyword, semantic]
             responses:
                 '200':
                     description: One hit per matching section (at most two per item), best first, without full bodies
@@ -255,6 +261,10 @@ paths:
                                 type: object
                                 additionalProperties: true
                                 properties:
+                                    mode:
+                                        type: string
+                                        enum: [hybrid, keyword, semantic]
+                                        description: The mode that ran
                                     results:
                                         type: array
                                         items:
@@ -274,6 +284,15 @@ paths:
                                                     type: string
                                                 score:
                                                     type: number
+                                                match:
+                                                    type: string
+                                                    enum:
+                                                        [
+                                                            keyword,
+                                                            semantic,
+                                                            both,
+                                                        ]
+                                                    description: Present for hybrid and semantic searches
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '404':
