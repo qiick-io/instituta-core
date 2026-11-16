@@ -94,6 +94,7 @@ When a scope is frozen, every contract call for that scope answers from the pinn
 | Outline | `instituta_outline` | `GET /items/{id}/outline` | `outline` |
 | Get by id | `instituta_get` | `GET /items/{id}` | `get` |
 | Get by section | `instituta_get_section` | `GET /items/{id}/sections/{anchor}` | `get` + section |
+| Several sections | `instituta_get_sections` | `POST /sections` | — |
 | Table rows | `instituta_table` | `GET /items/{id}/tables/{key}` | (via get / table) |
 | Resolved view | `instituta_resolve` | `GET /products/{id}/resolved` | `resolve` |
 | Graph neighbours | `instituta_graph` | `GET /items/{id}/neighbours` | `graph` |
@@ -114,7 +115,7 @@ OpenAPI 3.1 lives at `resources/openapi/instituta-v1.yaml` and is served at `GET
 | Resource | `instituta://brain/map` | Areas of the perimeter with item counts (empty areas are gaps) |
 | Resource template | `instituta://products/{product_id}/resolved` | The resolved view of one product, as `instituta_resolve` |
 
-The local stdio server (`instituta:mcp`) offers the same reads as HTTP for one folder (`instituta_get_section` and `instituta_table` included); writes, `instituta_similar`, prompts and resources are HTTP only.
+The local stdio server (`instituta:mcp`) offers the same reads as HTTP for one folder (`instituta_get_section`, `instituta_get_sections` and `instituta_table` included); writes, `instituta_similar`, prompts and resources are HTTP only.
 
 ### 3.1 `instituta_scopes` / `GET /scopes`
 
@@ -147,6 +148,12 @@ Each section also carries its source `markdown` (heading line included) and its 
 ### 3.6 `instituta_get_section` / `GET /items/{id}/sections/{anchor}`
 
 **Returns:** that section only (blocks, `markdown`, `section_hash`, the item's `content_hash`, citation).
+
+#### 3.6.1 `instituta_get_sections` / `POST /sections`
+
+**Body:** `sections`: a list of 1 to 20 `{item, anchor}` (item: id, stable_key or path), for a caller that already knows what it needs (from search hits or an outline).
+
+**Returns:** `sections`, one entry per request in the same order: `{item, anchor, section}` with `section` as §3.6 returns it, or `{item, anchor, error: "not_found"}` when the item or anchor is missing or outside the perimeter. One missing entry never fails the call. Same perimeter, freeze and audit rules as §3.6 (one audit row per call).
 
 ### 3.7 `instituta_table` / `GET /items/{id}/tables/{key}`
 

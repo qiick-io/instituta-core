@@ -162,6 +162,63 @@ paths:
                     $ref: '#/components/responses/Unauthorized'
                 '404':
                     $ref: '#/components/responses/NotFound'
+    /sections:
+        post:
+            tags: [Contract]
+            summary: Several sections in one call
+            description: Each entry answers like getItemSection; a missing or out-of-perimeter one carries error not_found instead of section.
+            operationId: getSections
+            security:
+                - ApiKeyBearer: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [sections]
+                            properties:
+                                sections:
+                                    type: array
+                                    minItems: 1
+                                    maxItems: 20
+                                    items:
+                                        type: object
+                                        required: [item, anchor]
+                                        properties:
+                                            item:
+                                                type: string
+                                                description: Item id, stable_key, or path
+                                            anchor:
+                                                type: string
+            responses:
+                '200':
+                    description: One entry per requested section, in order
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    sections:
+                                        type: array
+                                        items:
+                                            type: object
+                                            required: [item, anchor]
+                                            properties:
+                                                item:
+                                                    type: string
+                                                anchor:
+                                                    type: string
+                                                section:
+                                                    type: object
+                                                    additionalProperties: true
+                                                error:
+                                                    type: string
+                                                    enum: [not_found]
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '422':
+                    $ref: '#/components/responses/ValidationError'
     /items/{id}/tables/{key}:
         get:
             tags: [Contract]

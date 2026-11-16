@@ -8,6 +8,7 @@ use App\Brain\Data\PerimeterData;
 use App\Brain\Enums\ItemStatusEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Contracts\SearchIndexContract;
+use App\Enums\ContractErrorCodeEnum;
 use App\Models\ApiKey;
 use App\Models\Company;
 use App\Models\ContextFreeze;
@@ -28,6 +29,11 @@ use RuntimeException;
  */
 final class IndexedContractService
 {
+    /**
+     * The most sections one getSections call reads (#225).
+     */
+    public const int MAX_REQUESTED_SECTIONS = 20;
+
     public function __construct(
         private readonly ContractAuditService $audit = new ContractAuditService,
         private readonly ?SearchIndexContract $search = null,
@@ -235,6 +241,8 @@ final class IndexedContractService
     }
 
     /**
+     * One section of an item by anchor, or null when the item or section is outside the perimeter.
+     *
      * @return array<string, mixed>|null
      */
     public function getSection(
@@ -244,21 +252,62 @@ final class IndexedContractService
         string $anchor,
     ): ?array {
         $item = $this->findItem($perimeter, $id);
-        if ($item === null) {
-            $this->audit->record('instituta_get_section', $perimeter, $apiKey, []);
+        $this->audit->record('instituta_get_section', $perimeter, $apiKey, $item === null ? [] : [$item->id]);
 
-            return null;
+        return $item === null ? null : $this->sectionPayload($perimeter, $item, $anchor);
+    }
+
+    /**
+     * Several sections in one call (#225): each entry answers like getSection, and a missing
+     * item or anchor (or one outside the perimeter) is reported as `error: not_found` on its own
+     * entry instead of failing the call. One audit row lists every item read.
+     *
+     * @param  list<array{item: string, anchor: string}>  $requestedSections
+     * @return array{sections: list<array<string, mixed>>}
+     */
+    public function getSections(PerimeterData $perimeter, ?ApiKey $apiKey, array $requestedSections): array
+    {
+        /** @var array<string, Item|null> $itemsByRequestedId */
+        $itemsByRequestedId = [];
+        $answeredSections = [];
+
+        foreach ($requestedSections as $requestedSection) {
+            $requestedId = $requestedSection['item'];
+
+            if (! array_key_exists($requestedId, $itemsByRequestedId)) {
+                $itemsByRequestedId[$requestedId] = $this->findItem($perimeter, $requestedId);
+            }
+
+            $item = $itemsByRequestedId[$requestedId];
+            $section = $item === null ? null : $this->sectionPayload($perimeter, $item, $requestedSection['anchor']);
+
+            $answeredSections[] = [
+                'item' => $requestedId,
+                'anchor' => $requestedSection['anchor'],
+                ...($section === null ? ['error' => ContractErrorCodeEnum::NotFound->value] : ['section' => $section]),
+            ];
         }
 
+        $readItemIds = array_values(array_unique(array_map(
+            static fn (Item $item): string => $item->id,
+            array_filter($itemsByRequestedId),
+        )));
+        $this->audit->record('instituta_get_sections', $perimeter, $apiKey, $readItemIds);
+
+        return ['sections' => $answeredSections];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function sectionPayload(PerimeterData $perimeter, Item $item, string $anchor): ?array
+    {
         /** @var ItemSection|null $section */
         $section = $item->sections()->where('anchor', $anchor)->first();
-        if ($section === null) {
-            $this->audit->record('instituta_get_section', $perimeter, $apiKey, [$item->id]);
 
+        if ($section === null) {
             return null;
         }
-
-        $this->audit->record('instituta_get_section', $perimeter, $apiKey, [$item->id]);
 
         return [
             'id' => $item->id,

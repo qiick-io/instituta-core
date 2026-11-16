@@ -155,6 +155,31 @@ final class LocalContractReader
     }
 
     /**
+     * Several sections in one call, as over HTTP (#225): a missing item or anchor answers
+     * `error: not_found` on its own entry (the contract code, kept literal so the brain module
+     * stays independent of the app).
+     *
+     * @param  list<array{item: string, anchor: string}>  $requestedSections
+     * @return array{sections: list<array<string, mixed>>}
+     */
+    public function getSections(BrainRepositoryData $repo, array $requestedSections): array
+    {
+        $answeredSections = [];
+
+        foreach ($requestedSections as $requestedSection) {
+            $section = $this->getSection($repo, $requestedSection['item'], $requestedSection['anchor']);
+
+            $answeredSections[] = [
+                'item' => $requestedSection['item'],
+                'anchor' => $requestedSection['anchor'],
+                ...($section === null ? ['error' => 'not_found'] : ['section' => $section]),
+            ];
+        }
+
+        return ['sections' => $answeredSections];
+    }
+
+    /**
      * The rows of one structured table of an item (#202).
      *
      * @return array<string, mixed>|null
