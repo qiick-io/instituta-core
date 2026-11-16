@@ -18,6 +18,8 @@ interface SearchIndexContract
      *     id: string,
      *     title: string,
      *     summary: string,
+     *     status: string,
+     *     superseded_by: string|null,
      *     anchor: string|null,
      *     heading: string|null,
      *     snippet: string,

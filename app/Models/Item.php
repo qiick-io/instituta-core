@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Brain\Enums\ItemStatusEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Models\Concerns\AppliesPerimeterScopeTrait;
 use Database\Factories\ItemFactory;
@@ -34,6 +35,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $commit
  * @property string $content_hash
  * @property array<string, mixed>|null $frontmatter
+ * @property ItemStatusEnum $status
+ * @property string|null $superseded_by
  * @property Carbon|null $decision_date
  * @property Carbon|null $effective_date
  * @property Carbon|null $review_date
@@ -56,6 +59,8 @@ use Illuminate\Support\Carbon;
     'commit',
     'content_hash',
     'frontmatter',
+    'status',
+    'superseded_by',
     'decision_date',
     'effective_date',
     'review_date',
@@ -74,6 +79,7 @@ class Item extends Model
         return [
             'visibility' => VisibilityEnum::class,
             'frontmatter' => 'array',
+            'status' => ItemStatusEnum::class,
             'decision_date' => 'date',
             'effective_date' => 'date',
             'review_date' => 'date',

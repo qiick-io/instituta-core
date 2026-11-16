@@ -30,6 +30,7 @@ final class ProductResolveController extends Controller
                 $this->apiKey($request),
                 $id,
                 $validated['area'] ?? null,
+                (bool) ($validated['include_inactive'] ?? false),
             ),
         ))->response();
     }

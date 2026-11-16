@@ -9,6 +9,7 @@ use App\Brain\Data\ItemData;
 use App\Brain\Data\LinkEdgeData;
 use App\Brain\Data\ReadRequestData;
 use App\Brain\Data\ValidationIssueData;
+use App\Brain\Enums\ItemStatusEnum;
 
 /**
  * Folder-backed contract operations (CLI / stdio MCP). No database.
@@ -241,7 +242,9 @@ final class LocalContractReader
      */
     public function resolve(BrainRepositoryData $repo, ?string $area = null): array
     {
-        $out = [];
+        /** @var array<string, array<string, mixed>> $byKey */
+        $byKey = [];
+
         foreach ($repo->items as $item) {
             if ($item->resolutionKey === null || $item->resolutionKey === '') {
                 continue;
@@ -249,11 +252,20 @@ final class LocalContractReader
             if ($area !== null && $item->area !== $area) {
                 continue;
             }
-            $out[] = [
+
+            $status = ItemStatusEnum::fromFrontmatter($item->frontmatter);
+
+            // An active entry always wins over an inactive one with the same key (#218).
+            if (! $status->isCurrent() && ($byKey[$item->resolutionKey]['status'] ?? null) === ItemStatusEnum::Active->value) {
+                continue;
+            }
+
+            $byKey[$item->resolutionKey] = [
                 'resolution_key' => $item->resolutionKey,
                 'title' => $item->title,
                 'summary' => $item->summary,
                 'visibility' => $item->visibility->value,
+                ...$this->validity($item),
                 'origin' => [
                     'scope_type' => 'product',
                     'scope_id' => null,
@@ -265,9 +277,27 @@ final class LocalContractReader
             ];
         }
 
-        usort($out, static fn (array $a, array $b): int => strcmp($a['resolution_key'], $b['resolution_key']));
+        ksort($byKey);
 
-        return $out;
+        return array_values($byKey);
+    }
+
+    /**
+     * Whether the entry is still valid (#218), from its frontmatter.
+     *
+     * @return array{status: string, superseded_by: string|null, decision_date: string|null, effective_date: string|null, review_date: string|null}
+     */
+    private function validity(ItemData $item): array
+    {
+        $supersededBy = $item->frontmatter['superseded_by'] ?? null;
+
+        return [
+            'status' => ItemStatusEnum::fromFrontmatter($item->frontmatter)->value,
+            'superseded_by' => is_string($supersededBy) && trim($supersededBy) !== '' ? trim($supersededBy) : null,
+            'decision_date' => $item->decisionDate,
+            'effective_date' => $item->effectiveDate,
+            'review_date' => $item->reviewDate,
+        ];
     }
 
     /**
@@ -283,6 +313,7 @@ final class LocalContractReader
             'area' => $item->area,
             'type' => $item->type,
             'visibility' => $item->visibility->value,
+            ...$this->validity($item),
             'path' => $item->path,
             'adapter' => $item->adapter,
             'origin' => [

@@ -23,6 +23,7 @@ final class ProductResolveRequest extends FormRequest
     {
         return [
             'area' => ['nullable', 'string'],
+            'include_inactive' => ['nullable', 'boolean'],
         ];
     }
 }
