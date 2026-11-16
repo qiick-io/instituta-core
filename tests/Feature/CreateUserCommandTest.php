@@ -115,11 +115,10 @@ it('gives a CLI user a perimeter in the only organisation so the brain is not em
     expect($principal->organisation_id)->toBe($organisation->id)
         ->and(Grant::query()->where('principal_id', $principal->id)->sole()->role)->toBe(BrainRoleEnum::Owner);
 
-    $this->actingAs($user)->get(route('map'))
+    $this->actingAs($user)->get(route('explorer.index'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('hasPerimeter', true)
-            ->where('areas.0.area', 'rules')
-            ->where('areas.0.count', 1));
+            ->where('total', 1));
 });
 
 it('makes later people of an organisation members and keeps other organisations out', function (): void {
@@ -144,8 +143,8 @@ it('makes later people of an organisation members and keeps other organisations 
         ->and($grant->role)->toBe(BrainRoleEnum::Member)
         ->and($grant->max_visibility)->toBe(VisibilityEnum::Internal);
 
-    $this->actingAs($user)->get(route('map'))
-        ->assertInertia(fn (Assert $page) => $page->where('areas.0.count', 1));
+    $this->actingAs($user)->get(route('explorer.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('total', 1));
 });
 
 it('asks for the organisation when there are several and honours the brain role option', function (): void {

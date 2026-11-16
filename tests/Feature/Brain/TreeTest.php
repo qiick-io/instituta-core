@@ -70,35 +70,43 @@ function treeSeed(): array
     return compact('user', 'org');
 }
 
-it('renders the brain tree grouped by area', function (): void {
+it('lays the brain out as repository, folders and files, folders first', function (): void {
     $seed = treeSeed();
+    $sourceName = Source::query()->sole()->name;
 
     $this->actingAs($seed['user'])
         ->get(route('explorer.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('brain/tree')
+            ->component('brain/explorer')
             ->where('hasPerimeter', true)
             ->where('total', 2)
-            ->where('area', null)
-            ->has('groups', 2)
-            ->where('groups.0.area', 'decisions')
-            ->where('groups.1.area', 'rules')
-            ->where('groups.1.items.0.title', 'Coding rules'));
+            ->where('item', null)
+            ->has('nodes', 1)
+            ->where('nodes.0.kind', 'folder')
+            ->where('nodes.0.name', $sourceName)
+            ->where('nodes.0.children.0.name', 'decisions')
+            ->where('nodes.0.children.1.name', 'rules')
+            ->where('nodes.0.children.1.children.0.kind', 'file')
+            ->where('nodes.0.children.1.children.0.name', 'Coding rules')
+            ->where('nodes.0.children.1.children.0.stable_key', 'rules/coding')
+            ->where('nodes.0.children.1.children.0.status', 'active'));
 });
 
-it('filters the tree by area query', function (): void {
+it('opens a file next to the tree', function (): void {
     $seed = treeSeed();
 
     $this->actingAs($seed['user'])
-        ->get(route('explorer.index', ['area' => 'rules']))
+        ->get(route('explorer.show', 'rules/coding'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('brain/tree')
-            ->where('area', 'rules')
-            ->where('total', 1)
-            ->has('groups', 1)
-            ->where('groups.0.area', 'rules'));
+            ->component('brain/explorer')
+            ->where('item.title', 'Coding rules')
+            ->where('total', 2));
+});
+
+it('sends the old map to the explorer', function (): void {
+    $this->actingAs(treeSeed()['user'])->get('/map')->assertRedirect('/explorer');
 });
 
 it('requires authentication for the tree', function (): void {

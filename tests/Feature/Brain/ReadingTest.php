@@ -83,7 +83,7 @@ it('renders the reading view for an item in the perimeter', function (): void {
         ->get(route('explorer.show', ['item' => $seed['item']->id]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('brain/reading')
+            ->component('brain/explorer')
             ->where('item.title', 'Coding rules')
             ->where('item.path', 'rules/coding.md')
             ->where('item.citation.source', 'product-brain')
@@ -99,7 +99,7 @@ it('resolves reading view by stable_key', function (): void {
         ->get(route('explorer.show', ['item' => 'rules/coding']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('brain/reading')
+            ->component('brain/explorer')
             ->where('item.stable_key', 'rules/coding'));
 });
 

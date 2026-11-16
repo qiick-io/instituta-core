@@ -444,7 +444,8 @@
             "sessionReplay": "Replay sessioni",
             "proposals": "Proposte",
             "graph": "Grafo",
-            "gaps": "Lacune"
+            "gaps": "Lacune",
+            "explorer": "Esplora"
         },
         "scope": {
             "label": "Ambito",
@@ -861,6 +862,14 @@
                 "converted": "Proposte",
                 "dismissed": "Archiviate"
             }
+        },
+        "explorer": {
+            "searchPlaceholder": "Trova un file…",
+            "treeLabel": "File del cervello",
+            "noMatches": "Nessun file corrisponde",
+            "noMatchesDescription": "Cerca per titolo o percorso.",
+            "pickTitle": "Scegli un file da leggere",
+            "pickDescription": "A sinistra ci sono cartelle e file di ogni repository in questo ambito."
         }
     },
     "activity": {

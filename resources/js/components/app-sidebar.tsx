@@ -4,11 +4,10 @@ import {
     CircleHelp,
     FilePenLine,
     FolderGit2,
+    FolderTree,
     GitFork,
     History,
     LayoutGrid,
-    ListTree,
-    Map as MapIcon,
     PanelRight,
     ScrollText,
     Sparkles,
@@ -46,9 +45,9 @@ import { useCan } from '@/hooks/use-can';
 import { notificationsSource } from '@/lib/notifications';
 import { dashboard } from '@/routes';
 import { index as activityIndex } from '@/routes/activity';
-import { graph, map } from '@/routes';
+import { graph } from '@/routes';
 import { agentCalls as sessionReplay } from '@/routes/activity';
-import { index as tree } from '@/routes/explorer';
+import { index as explorerIndex } from '@/routes/explorer';
 import { index as clientsIndex } from '@/routes/clients';
 import { index as gapsIndex } from '@/routes/review/gaps';
 import { index as proposalsIndex } from '@/routes/review/proposals';
@@ -73,14 +72,9 @@ export function AppSidebar() {
             icon: LayoutGrid,
         },
         {
-            title: t('brain.nav.map'),
-            href: map.url(),
-            icon: MapIcon,
-        },
-        {
-            title: t('brain.nav.tree'),
-            href: tree.url(),
-            icon: ListTree,
+            title: t('brain.nav.explorer'),
+            href: explorerIndex.url(),
+            icon: FolderTree,
         },
         {
             title: t('brain.nav.graph'),

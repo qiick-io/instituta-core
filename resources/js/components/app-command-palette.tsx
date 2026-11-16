@@ -9,8 +9,7 @@ import {
     History,
     KeyRound,
     LayoutGrid,
-    ListTree,
-    Map as MapIcon,
+    FolderTree,
     MoonStar,
     ScrollText,
     Sun,
@@ -30,10 +29,10 @@ import { useCan } from '@/hooks/use-can';
 import { toUrl } from '@/lib/utils';
 import { dashboard, search as searchRoute } from '@/routes';
 import { index as activityIndex } from '@/routes/activity';
-import { graph, map } from '@/routes';
+import { graph } from '@/routes';
 import { agentCalls as sessionReplay } from '@/routes/activity';
 import { index as keys } from '@/routes/api-keys';
-import { index as tree } from '@/routes/explorer';
+import { index as explorerIndex } from '@/routes/explorer';
 import { index as sources } from '@/routes/repositories';
 import { index as clientsIndex } from '@/routes/clients';
 import { index as gapsIndex } from '@/routes/review/gaps';
@@ -91,16 +90,10 @@ export function AppCommandPalette({
                 icon: LayoutGrid,
             },
             {
-                id: 'map',
-                titleKey: 'brain.nav.map',
-                href: toUrl(map.url()),
-                icon: MapIcon,
-            },
-            {
-                id: 'tree',
-                titleKey: 'brain.nav.tree',
-                href: toUrl(tree.url()),
-                icon: ListTree,
+                id: 'explorer',
+                titleKey: 'brain.nav.explorer',
+                href: toUrl(explorerIndex.url()),
+                icon: FolderTree,
             },
             {
                 id: 'graph',
