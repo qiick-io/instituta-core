@@ -61,9 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('explorer/{item}', [ExplorerController::class, 'show'])
         ->where('item', '.*')
         ->name('explorer.show');
-    Route::get('graph/{item?}', GraphController::class)
-        ->where('item', '.*')
-        ->name('graph');
+    Route::get('graph', GraphController::class)->name('graph');
     Route::get('resolved', ResolvedController::class)->name('resolved');
     Route::get('tables', [TablesController::class, 'index'])->name('tables.index');
     Route::get('tables/{item}/{table}', [TablesController::class, 'show'])->name('tables.show');

@@ -793,14 +793,21 @@
         },
         "graph": {
             "title": "Scoped graph",
-            "description": "Neighbours of one item inside the current perimeter, grouped by area.",
+            "description": "Every item in this scope and the links between them. Click an item to light its neighbours; double click to open it.",
             "rootLabel": "Starting from {{title}}",
             "empty": "No items in this perimeter to graph yet.",
             "depth1": "Depth 1",
             "depth2": "Depth 2",
             "openTree": "Open tree",
             "canvasLabel": "Brain item neighbour graph",
-            "depthLabel": "Graph depth"
+            "depthLabel": "Graph depth",
+            "searchPlaceholder": "Find an item…",
+            "legendLabel": "Area colours",
+            "emptyDescription": "Sync a repository: its items and the links between them appear here.",
+            "links_one": "{{count}} link",
+            "links_other": "{{count}} links",
+            "open": "Open",
+            "clearSelection": "Clear"
         },
         "propose": {
             "proposeChange": "Propose change",
