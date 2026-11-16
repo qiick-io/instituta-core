@@ -387,6 +387,11 @@ paths:
         patch:
             tags: [Contract]
             summary: Accept or reject an open proposal
+            description: >-
+                Accepting is a human decision. A key never accepts a proposal that it or its
+                principal opened, and keys of agent or service principals may only reject unless
+                the install sets INSTITUTA_AGENTS_CAN_ACCEPT_PROPOSALS. A refused accept answers 422
+                with the reason and leaves the proposal open.
             operationId: updateProposal
             security:
                 - ApiKeyBearer: []

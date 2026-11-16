@@ -29,6 +29,7 @@ Search: PostgreSQL is the production FTS driver; SQLite FTS5 for local/tests; My
 | -------- | ------- | ------- |
 | `INSTITUTA_MCP_ENABLED` | (see config) | HTTP MCP at `/mcp` |
 | `INSTITUTA_API_WRITE_ENABLED` | `false` | REST `brain:write` kill switch |
+| `INSTITUTA_AGENTS_CAN_ACCEPT_PROPOSALS` | `false` | Let agent and service keys accept write proposals (a key never accepts its own) |
 | `INSTITUTA_MCP_WRITE_ENABLED` | `false` | MCP write kill switch |
 | `INSTITUTA_GITHUB_TOKEN` | empty | Optional remote sync / proposal materialisation |
 | `AI_EMBEDDINGS_ENABLED` | `false` | Section embeddings + `/api/v1/similar` |

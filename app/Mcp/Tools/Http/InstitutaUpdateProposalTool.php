@@ -21,7 +21,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tool;
 
 #[Name('instituta_update_proposal')]
-#[Description('Accept or reject an open brain write proposal in the key perimeter.')]
+#[Description('Accept or reject an open brain write proposal in the key perimeter. A key never accepts a proposal it or its principal opened; agent and service keys may only reject unless the install allows them to accept.')]
 class InstitutaUpdateProposalTool extends Tool
 {
     public function __construct(

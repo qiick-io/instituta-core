@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Brain\Data\PerimeterData;
+use App\Brain\Enums\PrincipalTypeEnum;
 use App\Brain\Enums\RoleEnum;
 use App\Data\UpdateProposalStatusData;
 use App\Enums\ProposalMaterialisationStatusEnum;
@@ -23,6 +24,12 @@ use InvalidArgumentException;
  * Accepts or rejects an open proposal inside the caller's perimeter.
  *
  * Accept queues git / GitHub PR materialisation (#53); never writes the index here.
+ *
+ * Accepting is a human decision (#197). A decision made with an API key (MCP or REST) is
+ * refused when the key opened the proposal, when the key's principal opened it, or when the
+ * key belongs to an agent or service principal (unless `instituta.proposals.agents_can_accept`
+ * is on). A signed-in person deciding in the web UI is the human in the loop. Rejecting stays
+ * open to everyone who may decide, so a caller can always withdraw its own proposal.
  *
  * @side-effect Updates Proposal status, audits the attempt, logs accepted/rejected (no body), may dispatch MaterialiseProposalJob.
  */
@@ -55,6 +62,10 @@ final class UpdateProposalStatusAction
 
         if (! in_array($payload->status, [ProposalStatusEnum::Accepted, ProposalStatusEnum::Rejected], true)) {
             throw new InvalidArgumentException('Status must be accepted or rejected.');
+        }
+
+        if ($payload->status === ProposalStatusEnum::Accepted && $apiKey instanceof ApiKey) {
+            $this->assertKeyMayAccept($apiKey, $proposal);
         }
 
         $attributes = ['status' => $payload->status];
@@ -102,5 +113,22 @@ final class UpdateProposalStatusAction
         );
 
         return $proposal->refresh();
+    }
+
+    /**
+     * @throws InvalidArgumentException When the key may not accept this proposal.
+     */
+    private function assertKeyMayAccept(ApiKey $apiKey, Proposal $proposal): void
+    {
+        if ($proposal->api_key_id === $apiKey->id || $proposal->proposed_by_principal_id === $apiKey->principal_id) {
+            throw new InvalidArgumentException('A proposal cannot be accepted by the key or principal that opened it.');
+        }
+
+        $apiKey->loadMissing('principal');
+        $isPersonKey = $apiKey->principal?->type === PrincipalTypeEnum::Person;
+
+        if (! $isPersonKey && ! (bool) config('instituta.proposals.agents_can_accept', false)) {
+            throw new InvalidArgumentException('Agent and service keys cannot accept proposals; a person must accept them.');
+        }
     }
 }

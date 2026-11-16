@@ -35,6 +35,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Proposal decisions (#197)
+    |--------------------------------------------------------------------------
+    |
+    | Accepting a write proposal is a human decision. Off by default: agent and
+    | service keys may reject but never accept. A key can never accept a proposal
+    | it (or its principal) opened, whatever this says.
+    |
+    */
+
+    'proposals' => [
+        'agents_can_accept' => (bool) env('INSTITUTA_AGENTS_CAN_ACCEPT_PROPOSALS', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Ingest
     |--------------------------------------------------------------------------
     |

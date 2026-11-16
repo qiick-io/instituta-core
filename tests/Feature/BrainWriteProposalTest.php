@@ -146,9 +146,28 @@ it('creates lists and accepts proposals without exposing body in responses or au
         ->assertJsonCount(1, 'proposals')
         ->assertJsonMissingPath('proposals.0.body');
 
+    // A key never accepts its own proposal (#197): a second person of the organisation decides.
+    $reviewer = Principal::factory()->create(['organisation_id' => $seed['org']->id]);
+    Grant::factory()->create([
+        'principal_id' => $reviewer->id,
+        'scope_type' => ScopeTypeEnum::Organisation,
+        'scope_id' => $seed['org']->id,
+        'role' => RoleEnum::Owner,
+        'max_visibility' => VisibilityEnum::Restricted,
+    ]);
+    $reviewerKey = app(CreateApiKeyAction::class)->execute(
+        principal: $reviewer,
+        name: 'reviewer',
+        scopeType: ScopeTypeEnum::Organisation,
+        scopeId: $seed['org']->id,
+        role: RoleEnum::Owner,
+        maxVisibility: VisibilityEnum::Restricted,
+        abilities: [ApiKeyAbilityEnum::BrainRead->value, ApiKeyAbilityEnum::BrainWrite->value],
+    );
+
     $this->patchJson('/api/v1/proposals/'.$proposalId, [
         'status' => 'accepted',
-    ], writeAuth($seed))
+    ], ['Authorization' => 'Bearer '.$reviewerKey['plain']])
         ->assertOk()
         ->assertJsonPath('status', 'accepted');
 
