@@ -43,6 +43,15 @@ docker compose up --build -d
 
 See the README Docker section and `docker-bake.hcl`. Image publish to GHCR is maintainer-only on a `v*` tag.
 
+## Keeping the brain fresh
+
+Two background processes keep the index in step with the brain repositories:
+
+- **Scheduler:** run `php artisan schedule:run` every minute (cron: `* * * * * cd /path/to/instituta && php artisan schedule:run >> /dev/null 2>&1`). It runs `instituta:sync-due`, which queues a sync for every source whose interval has passed (`sync_interval_minutes`: 15 by default for `git` / `github`, off for `local`; change it with `instituta:source:add --sync-interval=`). A source still at the indexed commit costs only a `git fetch`.
+- **Queue worker:** `php artisan queue:work` (or Horizon with Redis) runs the syncs.
+
+For immediate updates, add a push webhook: `php artisan instituta:source:webhook <source-id>` prints the payload URL and a secret (shown once) to paste in the repository's webhook settings (GitHub: content type `application/json`, event `push`). The request must be signed with `X-Hub-Signature-256`; `--disable` removes the secret. After each sync, materialised proposals whose change is now in the source are marked `merged`.
+
 ## Health
 
 - `GET /health/live` — process up (no I/O)

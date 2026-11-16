@@ -47,6 +47,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $remote_pr_url
  * @property string|null $materialised_commit
  * @property Carbon|null $materialised_at
+ * @property Carbon|null $merged_at When a sync first saw the proposed change in the source (#199).
  * @property string|null $materialisation_error
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -76,6 +77,7 @@ use Illuminate\Support\Carbon;
     'remote_pr_url',
     'materialised_commit',
     'materialised_at',
+    'merged_at',
     'materialisation_error',
 ])]
 #[Hidden(['body'])]
@@ -95,6 +97,7 @@ class Proposal extends Model
             'action' => ProposalActionEnum::class,
             'materialisation_status' => ProposalMaterialisationStatusEnum::class,
             'materialised_at' => 'datetime',
+            'merged_at' => 'datetime',
         ];
     }
 

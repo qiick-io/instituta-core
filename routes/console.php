@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 Schedule::command('activitylog:clean')->daily();
 Schedule::command('instituta:prune-notifications')->daily();
 Schedule::command('instituta:notify-expiring-keys')->daily();
+Schedule::command('instituta:sync-due')->everyMinute()->withoutOverlapping();

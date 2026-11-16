@@ -674,7 +674,8 @@
                 "materialised": "Materialisiert",
                 "local_review": "Lokale Prüfung",
                 "failed": "Fehlgeschlagen",
-                "conflict": "Konflikt"
+                "conflict": "Konflikt",
+                "merged": "Zusammengeführt"
             },
             "searchPlaceholder": "Vorschläge suchen…"
         },

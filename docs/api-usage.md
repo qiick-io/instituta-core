@@ -29,9 +29,15 @@ Enable with `instituta.mcp.enabled`. Same perimeter as REST. Tools include list/
 | ------- | ---- |
 | `instituta:read` | Read a local brain tree without the DB |
 | `instituta:source:add` / `instituta:sync` | Register and sync sources (denylist enforced) |
+| `instituta:sync-due` | Queue syncs for sources whose interval has passed (the scheduler runs it every minute) |
+| `instituta:source:webhook` | Create, rotate or disable a source's push webhook secret |
 | `instituta:embed` | Compute section embeddings |
 | `instituta:export` / `instituta:erase` | Client subtree export and offboarding |
 | `instituta:freeze` / `instituta:unfreeze` | Context freeze |
+
+## Webhooks
+
+`POST /api/webhooks/sources/{source}` queues a sync of that source. No API key: the body must be signed with the source's secret, GitHub style (`X-Hub-Signature-256: sha256=<hmac>`). A `ping` event answers 200 without syncing; an unknown source, or one without a secret, answers 404; a bad signature 401. Rate limited to 60 requests a minute.
 
 ## Related
 
