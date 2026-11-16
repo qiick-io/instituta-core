@@ -183,6 +183,14 @@ Requires `brain:write` and the surface write kill switch. Accepts or rejects an 
 
 **Returns:** updated proposal summary. Git materialisation of `accepted` is out of this contract surface (implementation step).
 
+**Who may accept.** Accepting is a human decision:
+
+- A key can never accept a proposal that it, or its principal, opened.
+- Keys of `agent` and `service` principals may reject but not accept, unless the install sets `INSTITUTA_AGENTS_CAN_ACCEPT_PROPOSALS=true`.
+- A person deciding in the web UI may accept any open proposal in their perimeter (guests excepted).
+
+A refused accept returns `422` (REST) or a tool error (MCP) with the reason, and the proposal stays `open`.
+
 ## 4. Errors
 
 | Situation | HTTP | MCP |
