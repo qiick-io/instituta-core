@@ -290,6 +290,17 @@ final class ActivityEventLoggerService
     }
 
     /**
+     * A gap report was filed, dismissed or turned into a proposal (#229).
+     *
+     * @param  'reported'|'dismissed'|'converted'  $event
+     * @param  array<string, mixed>  $properties
+     */
+    public function gapReport(string $event, Model $subject, ?User $causer, array $properties): void
+    {
+        $this->log('brain', 'gap.'.$event, 'gap.'.$event, $subject, $causer, $properties);
+    }
+
+    /**
      * @param  array<string, mixed>  $properties
      */
     public function proposalAccepted(Model $subject, ?User $causer, array $properties): void

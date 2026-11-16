@@ -413,6 +413,10 @@
             "freezeActivated": {
                 "title": "Freeze del contesto attivato",
                 "body": "{{reason}}"
+            },
+            "gapReported": {
+                "title": "Lacuna segnalata",
+                "body": "{{title}}"
             }
         }
     },
@@ -430,7 +434,8 @@
             "clients": "Clienti",
             "sessionReplay": "Replay sessioni",
             "proposals": "Proposte",
-            "graph": "Grafo"
+            "graph": "Grafo",
+            "gaps": "Lacune"
         },
         "scope": {
             "label": "Ambito",
@@ -812,6 +817,33 @@
             "active": "Attiva",
             "deprecated": "Deprecata",
             "superseded": "Sostituita"
+        },
+        "gaps": {
+            "title": "Lacune",
+            "colSummary": "Lacuna",
+            "colKind": "Tipo",
+            "colRelated": "Collegati",
+            "colReporter": "Segnalata da",
+            "colCreated": "Segnalata",
+            "colActions": "Azioni",
+            "colStatus": "Stato",
+            "searchPlaceholder": "Cerca lacune…",
+            "propose": "Proponi una modifica",
+            "dismiss": "Archivia",
+            "ownersOnly": "Le segnalazioni sono visibili agli owner di questo ambito.",
+            "confirmDismissTitle": "Archiviare questa lacuna?",
+            "confirmDismissDescription": "Esce dall'elenco delle aperte; il cervello non cambia.",
+            "kind": {
+                "missing": "Mancante",
+                "contradiction": "Contraddizione",
+                "unclear": "Poco chiara",
+                "outdated": "Superata"
+            },
+            "status": {
+                "open": "Aperte",
+                "converted": "Proposte",
+                "dismissed": "Archiviate"
+            }
         }
     },
     "activity": {
@@ -980,6 +1012,12 @@
             "description": "Le voci di audit dell’organizzazione compaiono qui mentre si usa il prodotto.",
             "filteredTitle": "Nessuna attività corrispondente",
             "filteredDescription": "Prova un’altra ricerca o cancella i filtri."
+        },
+        "gaps": {
+            "title": "Nessuna lacuna segnalata",
+            "description": "Qui gli agenti segnalano cosa manca o si contraddice nel cervello.",
+            "filteredTitle": "Nessuna lacuna corrisponde",
+            "filteredDescription": "Prova un'altra ricerca."
         }
     },
     "errors": {

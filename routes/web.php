@@ -13,6 +13,7 @@ use App\Http\Controllers\Brain\ClientExportController;
 use App\Http\Controllers\Brain\ClientProductFormController;
 use App\Http\Controllers\Brain\ClientProductsController;
 use App\Http\Controllers\Brain\ClientsController;
+use App\Http\Controllers\Brain\GapsController;
 use App\Http\Controllers\Brain\GraphController;
 use App\Http\Controllers\Brain\KeysController;
 use App\Http\Controllers\Brain\MapController;
@@ -75,6 +76,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('brain/proposals', [ProposalsController::class, 'store'])->name('brain.proposals.store');
     Route::get('brain/proposals/{proposal}', [ProposalsController::class, 'show'])->name('brain.proposals.show');
     Route::patch('brain/proposals/{proposal}', [ProposalsController::class, 'update'])->name('brain.proposals.update');
+    Route::get('brain/gaps', [GapsController::class, 'index'])->name('brain.gaps.index');
+    Route::delete('brain/gaps/{gap}', [GapsController::class, 'destroy'])->name('brain.gaps.destroy');
     Route::get('brain/keys', [KeysController::class, 'index'])->name('brain.keys');
     Route::post('brain/keys', [KeysController::class, 'store'])->name('brain.keys.store');
     Route::delete('brain/keys/{key}', [KeysController::class, 'destroy'])->name('brain.keys.destroy');

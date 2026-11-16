@@ -413,6 +413,10 @@
             "freezeActivated": {
                 "title": "Kontext-Freeze aktiviert",
                 "body": "{{reason}}"
+            },
+            "gapReported": {
+                "title": "Lücke gemeldet",
+                "body": "{{title}}"
             }
         }
     },
@@ -430,7 +434,8 @@
             "clients": "Kunden",
             "sessionReplay": "Sitzungs-Replay",
             "proposals": "Vorschläge",
-            "graph": "Graph"
+            "graph": "Graph",
+            "gaps": "Lücken"
         },
         "scope": {
             "label": "Bereich",
@@ -812,6 +817,33 @@
             "active": "Aktiv",
             "deprecated": "Veraltet",
             "superseded": "Ersetzt"
+        },
+        "gaps": {
+            "title": "Lücken",
+            "colSummary": "Lücke",
+            "colKind": "Art",
+            "colRelated": "Bezug",
+            "colReporter": "Gemeldet von",
+            "colCreated": "Gemeldet",
+            "colActions": "Aktionen",
+            "colStatus": "Status",
+            "searchPlaceholder": "Lücken durchsuchen…",
+            "propose": "Änderung vorschlagen",
+            "dismiss": "Verwerfen",
+            "ownersOnly": "Lückenmeldungen sehen die Owner dieses Bereichs.",
+            "confirmDismissTitle": "Diese Lücke verwerfen?",
+            "confirmDismissDescription": "Sie verlässt die offene Liste; das Gehirn ändert sich nicht.",
+            "kind": {
+                "missing": "Fehlt",
+                "contradiction": "Widerspruch",
+                "unclear": "Unklar",
+                "outdated": "Veraltet"
+            },
+            "status": {
+                "open": "Offen",
+                "converted": "Vorgeschlagen",
+                "dismissed": "Verworfen"
+            }
         }
     },
     "activity": {
@@ -980,6 +1012,12 @@
             "description": "Organisations-Audit-Einträge erscheinen hier, wenn das Produkt genutzt wird.",
             "filteredTitle": "Keine passende Aktivität",
             "filteredDescription": "Andere Suche versuchen oder Filter zurücksetzen."
+        },
+        "gaps": {
+            "title": "Keine Lücken gemeldet",
+            "description": "Hier melden Agenten, was im Gehirn fehlt oder sich widerspricht.",
+            "filteredTitle": "Keine passenden Lücken",
+            "filteredDescription": "Versuche eine andere Suche."
         }
     },
     "errors": {

@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Brain;
 
+use App\Actions\DecideGapReportAction;
 use App\Actions\ProposeBrainChangeAction;
 use App\Actions\UpdateProposalStatusAction;
 use App\Brain\Enums\RoleEnum;
 use App\Data\ProposeBrainChangeData;
 use App\Data\UpdateProposalStatusData;
+use App\Enums\GapReportStatusEnum;
 use App\Enums\ProposalStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Brain\IndexBrainProposalsRequest;
 use App\Http\Requests\Brain\StoreBrainProposalRequest;
 use App\Http\Requests\Brain\UpdateBrainProposalStatusRequest;
+use App\Models\Proposal;
 use App\Models\User;
+use App\Services\GapReportQueryService;
 use App\Services\ProposalDiffService;
 use App\Services\ProposalQueryService;
 use App\Services\SessionPerimeterService;
@@ -35,6 +39,8 @@ final class ProposalsController extends Controller
         private readonly UpdateProposalStatusAction $updateStatus,
         private readonly ProposeBrainChangeAction $propose,
         private readonly ProposalDiffService $diffs,
+        private readonly GapReportQueryService $gapReports,
+        private readonly DecideGapReportAction $decideGap,
     ) {}
 
     public function index(IndexBrainProposalsRequest $request): Response
@@ -89,6 +95,8 @@ final class ProposalsController extends Controller
             return back()->withErrors(['body' => $exception->getMessage()]);
         }
 
+        $this->closeAnsweredGap($request, $proposal, $user);
+
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Proposal opened.')]);
 
         return redirect()->route('brain.proposals.show', $proposal);
@@ -125,5 +133,25 @@ final class ProposalsController extends Controller
         return redirect()
             ->route('brain.proposals.show', $proposal)
             ->with('success', true);
+    }
+
+    /**
+     * A proposal opened from the Gaps page converts the report it answers (#229), when the
+     * person is an owner of the scope and the report is still open.
+     */
+    private function closeAnsweredGap(StoreBrainProposalRequest $request, Proposal $proposal, User $user): void
+    {
+        $gapReportId = $request->validated('gap_report_id');
+        $perimeter = $this->sessions->requirePerimeter($request);
+
+        if (! is_string($gapReportId) || $perimeter->role !== RoleEnum::Owner) {
+            return;
+        }
+
+        $gapReport = $this->gapReports->findInPerimeter($perimeter, $gapReportId);
+
+        if ($gapReport?->status === GapReportStatusEnum::Open) {
+            $this->decideGap->execute($gapReport, $user, $proposal);
+        }
     }
 }
