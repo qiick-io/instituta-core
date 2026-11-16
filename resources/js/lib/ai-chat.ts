@@ -349,3 +349,30 @@ export async function streamAiChat(
         }
     }
 }
+
+/**
+ * Drafts the propose drawer's markdown from a request (#203): the whole item, one section
+ * (`sectionAnchor`) or, without `stableKey`, a new file. Returns markdown, never a proposal.
+ */
+export async function draftProposalMarkdown(
+    request: string,
+    stableKey: string | null,
+    sectionAnchor: string | null,
+): Promise<string> {
+    const response = await fetch('/ai/drafts', {
+        method: 'POST',
+        headers: requestHeaders(),
+        credentials: 'same-origin',
+        body: JSON.stringify({
+            request,
+            stable_key: stableKey,
+            section_anchor: sectionAnchor,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(await errorMessage(response));
+    }
+
+    return ((await response.json()) as { markdown: string }).markdown;
+}

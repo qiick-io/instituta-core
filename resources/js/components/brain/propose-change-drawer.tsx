@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { Sparkles } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +20,9 @@ import {
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { PermissionEnum } from '@/enums/permission-enum';
+import { useCan } from '@/hooks/use-can';
+import { draftProposalMarkdown } from '@/lib/ai-chat';
 import { STRING_LIMITS } from '@/lib/string-limits';
 import { store as proposalsStore } from '@/routes/brain/proposals';
 
@@ -114,6 +118,25 @@ export function ProposeChangeDrawer({
         initialForm({ mode: 'create', area: null }, ''),
     );
     const isCreate = target === null || target.mode === 'create';
+    const { can } = useCan();
+    const canDraftWithAi = can(PermissionEnum.CanUseAi);
+    const [draftRequest, setDraftRequest] = useState('');
+    const [draftError, setDraftError] = useState<string | null>(null);
+    const [isDrafting, setIsDrafting] = useState(false);
+
+    /** Fills the markdown with an AI draft (#203); the person still reviews and submits it. */
+    const draftWithAi = (): void => {
+        setIsDrafting(true);
+        setDraftError(null);
+        void draftProposalMarkdown(
+            draftRequest,
+            form.data.action === 'update' ? form.data.stable_key : null,
+            form.data.section_anchor !== '' ? form.data.section_anchor : null,
+        )
+            .then((markdown) => form.setData('body', markdown))
+            .catch((error: Error) => setDraftError(error.message))
+            .finally(() => setIsDrafting(false));
+    };
 
     useEffect(() => {
         if (!open || target === null) {
@@ -135,6 +158,8 @@ export function ProposeChangeDrawer({
         form.setDefaults({ ...payload });
         form.setData(payload);
         form.clearErrors();
+        setDraftRequest('');
+        setDraftError(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- Inertia form identity is unstable
     }, [target, open]);
 
@@ -273,6 +298,50 @@ export function ProposeChangeDrawer({
                                     : ''}
                             </p>
                         )}
+
+                        {canDraftWithAi ? (
+                            <Field
+                                data-invalid={draftError ? true : undefined}
+                                className="rounded-lg border border-ai-border bg-ai-bg p-3"
+                            >
+                                <FieldLabel htmlFor="proposal_ai_request">
+                                    <Sparkles className="size-4 text-ai-text" />
+                                    {t('brain.propose.aiLabel')}
+                                </FieldLabel>
+                                <div className="flex gap-2">
+                                    <Input
+                                        id="proposal_ai_request"
+                                        value={draftRequest}
+                                        onChange={(event) =>
+                                            setDraftRequest(event.target.value)
+                                        }
+                                        placeholder={t(
+                                            'brain.propose.aiPlaceholder',
+                                        )}
+                                        aria-describedby="proposal-ai-hint proposal-ai-error"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={
+                                            isDrafting ||
+                                            draftRequest.trim() === ''
+                                        }
+                                        onClick={draftWithAi}
+                                    >
+                                        {isDrafting
+                                            ? t('brain.propose.aiDrafting')
+                                            : t('brain.propose.aiDraft')}
+                                    </Button>
+                                </div>
+                                <FieldDescription id="proposal-ai-hint">
+                                    {t('brain.propose.aiHint')}
+                                </FieldDescription>
+                                <FieldError id="proposal-ai-error">
+                                    {draftError}
+                                </FieldError>
+                            </Field>
+                        ) : null}
 
                         <Field
                             data-invalid={form.errors.body ? true : undefined}

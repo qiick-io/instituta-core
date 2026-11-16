@@ -794,7 +794,12 @@
             "fieldStableKey": "Stable key",
             "fieldMarkdown": "Markdown",
             "markdownHint": "Keep the heading line. If the content changed since you opened it, the proposal is refused and you can re-read it.",
-            "submit": "Open proposal"
+            "submit": "Open proposal",
+            "aiLabel": "Draft with AI",
+            "aiPlaceholder": "For example: switch the primary colour to blue",
+            "aiDraft": "Draft",
+            "aiDrafting": "Drafting…",
+            "aiHint": "The draft replaces the markdown below. Review it before opening the proposal."
         }
     },
     "activity": {

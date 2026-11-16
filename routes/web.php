@@ -4,6 +4,7 @@ use App\Enums\PermissionEnum;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\Ai\AiChatController;
 use App\Http\Controllers\Ai\AiConversationController;
+use App\Http\Controllers\Ai\AiDraftController;
 use App\Http\Controllers\Ai\AiPageController;
 use App\Http\Controllers\Ai\AiStatusController;
 use App\Http\Controllers\Brain\ClientCompanyFormController;
@@ -116,6 +117,7 @@ Route::middleware(['auth', 'verified', 'permission:'.PermissionEnum::CanUseAi->v
 
         Route::middleware(EnsureAiAssistantEnabledMiddleware::class)->group(function (): void {
             Route::post('chat', AiChatController::class)->middleware('throttle:20,1')->name('chat');
+            Route::post('drafts', AiDraftController::class)->middleware('throttle:20,1')->name('drafts');
             Route::get('conversations', [AiConversationController::class, 'index'])->name('conversations.index');
             Route::get('conversations/{conversation}', [AiConversationController::class, 'show'])->name('conversations.show');
             Route::delete('conversations/{conversation}', [AiConversationController::class, 'destroy'])->name('conversations.destroy');

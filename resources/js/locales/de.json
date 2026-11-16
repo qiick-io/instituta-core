@@ -794,7 +794,12 @@
             "fieldStableKey": "Stabiler Schlüssel",
             "fieldMarkdown": "Markdown",
             "markdownHint": "Behalte die Überschriftszeile. Hat sich der Inhalt seit dem Öffnen geändert, wird der Vorschlag abgelehnt und du kannst ihn neu lesen.",
-            "submit": "Vorschlag öffnen"
+            "submit": "Vorschlag öffnen",
+            "aiLabel": "Mit KI entwerfen",
+            "aiPlaceholder": "Zum Beispiel: Primärfarbe auf Blau ändern",
+            "aiDraft": "Entwerfen",
+            "aiDrafting": "Entwerfe…",
+            "aiHint": "Der Entwurf ersetzt das Markdown unten. Prüfe ihn, bevor du den Vorschlag öffnest."
         }
     },
     "activity": {
