@@ -6,7 +6,9 @@ namespace App\Mcp\Tools\Http;
 
 use App\Actions\ProposeBrainChangeAction;
 use App\Data\ProposeBrainChangeData;
+use App\Enums\ContractErrorCodeEnum;
 use App\Enums\ProposalActionEnum;
+use App\Exceptions\ContractException;
 use App\Mcp\Support\HttpBrainContext;
 use App\Services\BrainWriteGateService;
 use App\Services\ProposalQueryService;
@@ -49,14 +51,14 @@ class InstitutaProposeTool extends Tool
 
     public function handle(Request $request): Response|ResponseFactory
     {
-        $reason = $this->writeGate->refusalReason($this->brain->apiKey(), 'mcp');
-        if ($reason !== null) {
-            return Response::error($reason);
+        $refusal = $this->writeGate->refusal($this->brain->apiKey(), 'mcp');
+        if ($refusal !== null) {
+            return Response::error($refusal->errorCode->mcpText($refusal->getMessage()));
         }
 
         $action = (string) $request->get('action');
         if (ProposalActionEnum::tryFrom($action) === null) {
-            return Response::error('action must be create, update, or delete.');
+            return Response::error(ContractErrorCodeEnum::ValidationFailed->mcpText('action must be create, update, or delete.'));
         }
 
         try {
@@ -67,7 +69,7 @@ class InstitutaProposeTool extends Tool
                 'mcp',
             );
         } catch (InvalidArgumentException $exception) {
-            return Response::error($exception->getMessage());
+            return Response::error(ContractException::codeOf($exception)->mcpText($exception->getMessage()));
         }
 
         return Response::structured($this->queries->toProposedSummary($proposal));

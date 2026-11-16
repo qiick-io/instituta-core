@@ -148,16 +148,16 @@ it('returns the content hash and each section markdown and hash when reading an 
         ->assertJsonPath('sections.1.section_hash', hash('sha256', "## Colours\n\nPrimary: `#0f766e` (teal), used for **actions**."));
 });
 
-it('refuses updates without a base, with a stale base, on another path or as a duplicate create', function (array $payload, string $message): void {
-    proposeBrand($payload)->assertUnprocessable()->assertJsonPath('message', $message);
+it('refuses updates without a base, with a stale base, on another path or as a duplicate create', function (array $payload, string $message, string $code): void {
+    proposeBrand($payload)->assertUnprocessable()->assertJsonPath('message', $message)->assertJsonPath('code', $code);
 
     expect(Proposal::query()->count())->toBe(0);
 })->with([
-    'no base' => [[], 'base_content_hash is required: send the version you read.'],
-    'stale base' => [['base_content_hash' => str_repeat('a', 64)], 'The content changed since you read it (base_content_hash is stale); re-read and propose again.'],
-    'other path' => [['path' => 'rules/other.md', 'base_content_hash' => str_repeat('a', 64)], 'path must be the item\'s current path (rules/brand.md).'],
-    'duplicate create' => [['action' => 'create'], 'An item with this stable_key already exists; propose an update instead.'],
-    'section on delete' => [['action' => 'delete', 'section_anchor' => 'brand/colours'], 'section_anchor is only allowed on update.'],
+    'no base' => [[], 'base_content_hash is required: send the version you read.', 'base_required'],
+    'stale base' => [['base_content_hash' => str_repeat('a', 64)], 'The content changed since you read it (base_content_hash is stale); re-read and propose again.', 'stale_base'],
+    'other path' => [['path' => 'rules/other.md', 'base_content_hash' => str_repeat('a', 64)], 'path must be the item\'s current path (rules/brand.md).', 'path_mismatch'],
+    'duplicate create' => [['action' => 'create'], 'An item with this stable_key already exists; propose an update instead.', 'item_exists'],
+    'section on delete' => [['action' => 'delete', 'section_anchor' => 'brand/colours'], 'section_anchor is only allowed on update.', 'invalid_change'],
 ]);
 
 it('refuses a stale base over MCP too', function (): void {
@@ -172,7 +172,7 @@ it('refuses a stale base over MCP too', function (): void {
         'path' => 'rules/brand.md',
         'body' => '# Brand',
         'base_content_hash' => str_repeat('b', 64),
-    ])->assertHasErrors(['The content changed since you read it (base_content_hash is stale); re-read and propose again.']);
+    ])->assertHasErrors(['[stale_base] The content changed since you read it (base_content_hash is stale); re-read and propose again.']);
 });
 
 it('edits one section and leaves the frontmatter and every other section untouched', function (): void {

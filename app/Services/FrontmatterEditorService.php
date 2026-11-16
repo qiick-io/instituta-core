@@ -7,6 +7,8 @@ namespace App\Services;
 use App\Brain\Enums\ItemStatusEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Brain\Support\FrontmatterParser;
+use App\Enums\ContractErrorCodeEnum;
+use App\Exceptions\ContractException;
 use InvalidArgumentException;
 use Symfony\Component\Yaml\Yaml;
 
@@ -31,12 +33,12 @@ final class FrontmatterEditorService
     public function assertValid(array $changes): void
     {
         if ($changes === []) {
-            throw new InvalidArgumentException('frontmatter must set or remove at least one key.');
+            throw new ContractException(ContractErrorCodeEnum::InvalidFrontmatter, 'frontmatter must set or remove at least one key.');
         }
 
         foreach ($changes as $key => $value) {
             if (preg_match('/\A[a-z][a-z0-9_]*\z/', (string) $key) !== 1) {
-                throw new InvalidArgumentException("frontmatter key \"{$key}\" must be snake_case.");
+                throw new ContractException(ContractErrorCodeEnum::InvalidFrontmatter, "frontmatter key \"{$key}\" must be snake_case.");
             }
 
             if ($value === null) {
@@ -53,7 +55,7 @@ final class FrontmatterEditorService
             };
 
             if (! $isValid) {
-                throw new InvalidArgumentException("frontmatter \"{$key}\" has an invalid value.");
+                throw new ContractException(ContractErrorCodeEnum::InvalidFrontmatter, "frontmatter \"{$key}\" has an invalid value.");
             }
         }
     }

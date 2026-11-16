@@ -6,6 +6,8 @@ namespace App\Services;
 
 use App\Brain\Enums\RoleEnum;
 use App\Enums\ApiKeyAbilityEnum;
+use App\Enums\ContractErrorCodeEnum;
+use App\Exceptions\ContractException;
 use App\Models\ApiKey;
 use App\Models\Principal;
 
@@ -70,9 +72,9 @@ final class BrainWriteGateService
     }
 
     /**
-     * Human-readable refusal reason, or null when the key may write.
+     * The refusal with its contract code (#227), or null when the key may write.
      */
-    public function refusalReason(ApiKey $key, string $surface): ?string
+    public function refusal(ApiKey $key, string $surface): ?ContractException
     {
         $isEnabled = match ($surface) {
             'mcp' => $this->isMcpWriteEnabled(),
@@ -81,15 +83,15 @@ final class BrainWriteGateService
         };
 
         if (! $isEnabled) {
-            return 'Brain writes are disabled.';
+            return new ContractException(ContractErrorCodeEnum::WriteDisabled, 'Brain writes are disabled.');
         }
 
         if (! in_array(ApiKeyAbilityEnum::BrainWrite->value, $key->abilities, true)) {
-            return 'Ability brain:write is required.';
+            return new ContractException(ContractErrorCodeEnum::AbilityMissing, 'Ability brain:write is required.');
         }
 
         if (! in_array($key->role, [RoleEnum::Owner, RoleEnum::Member], true)) {
-            return 'Guest keys cannot write.';
+            return new ContractException(ContractErrorCodeEnum::GuestRefused, 'Guest keys cannot write.');
         }
 
         return null;

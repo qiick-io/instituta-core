@@ -516,6 +516,9 @@ components:
                         properties:
                             message:
                                 type: string
+                            code:
+                                type: string
+                                enum: [validation_failed]
                             errors:
                                 type: object
                                 additionalProperties:
@@ -525,10 +528,40 @@ components:
     schemas:
         Message:
             type: object
+            description: Every error. Branch on `code` (stable, see docs/CONTRACTS.md §4), never on `message`.
             properties:
                 message:
                     type: string
-            required: [message]
+                code:
+                    type: string
+                    enum:
+                        [
+                            unauthenticated,
+                            forbidden,
+                            not_found,
+                            validation_failed,
+                            write_disabled,
+                            ability_missing,
+                            guest_refused,
+                            out_of_perimeter,
+                            base_required,
+                            stale_base,
+                            path_mismatch,
+                            item_exists,
+                            section_missing,
+                            section_not_synced,
+                            invalid_change,
+                            invalid_frontmatter,
+                            proposal_not_open,
+                            self_accept_refused,
+                            agent_accept_refused,
+                            quota_exceeded,
+                            rate_limited,
+                            embeddings_disabled,
+                            search_unsupported,
+                            request_failed,
+                        ]
+            required: [message, code]
         Citation:
             type: object
             properties:

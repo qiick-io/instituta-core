@@ -6,7 +6,9 @@ namespace App\Mcp\Tools\Http;
 
 use App\Actions\UpdateProposalStatusAction;
 use App\Data\UpdateProposalStatusData;
+use App\Enums\ContractErrorCodeEnum;
 use App\Enums\ProposalStatusEnum;
+use App\Exceptions\ContractException;
 use App\Mcp\Support\HttpBrainContext;
 use App\Models\Proposal;
 use App\Services\BrainWriteGateService;
@@ -41,15 +43,15 @@ class InstitutaUpdateProposalTool extends Tool
 
     public function handle(Request $request): Response|ResponseFactory
     {
-        $reason = $this->writeGate->refusalReason($this->brain->apiKey(), 'mcp');
-        if ($reason !== null) {
-            return Response::error($reason);
+        $refusal = $this->writeGate->refusal($this->brain->apiKey(), 'mcp');
+        if ($refusal !== null) {
+            return Response::error($refusal->errorCode->mcpText($refusal->getMessage()));
         }
 
         $statusValue = (string) $request->get('status');
         $status = ProposalStatusEnum::tryFrom($statusValue);
         if (! in_array($status, [ProposalStatusEnum::Accepted, ProposalStatusEnum::Rejected], true)) {
-            return Response::error('status must be accepted or rejected.');
+            return Response::error(ContractErrorCodeEnum::ValidationFailed->mcpText('status must be accepted or rejected.'));
         }
 
         $perimeter = $this->brain->perimeter();
@@ -60,7 +62,7 @@ class InstitutaUpdateProposalTool extends Tool
             ->first();
 
         if ($proposal === null) {
-            return Response::error('Proposal not found.');
+            return Response::error(ContractErrorCodeEnum::NotFound->mcpText('Proposal not found.'));
         }
 
         try {
@@ -72,7 +74,7 @@ class InstitutaUpdateProposalTool extends Tool
                 'mcp',
             );
         } catch (InvalidArgumentException $exception) {
-            return Response::error($exception->getMessage());
+            return Response::error(ContractException::codeOf($exception)->mcpText($exception->getMessage()));
         }
 
         return Response::structured($this->queries->toSummary($updated));

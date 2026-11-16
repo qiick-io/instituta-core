@@ -8,8 +8,10 @@ use App\Brain\Data\PerimeterData;
 use App\Brain\Enums\PrincipalTypeEnum;
 use App\Brain\Enums\RoleEnum;
 use App\Data\UpdateProposalStatusData;
+use App\Enums\ContractErrorCodeEnum;
 use App\Enums\ProposalMaterialisationStatusEnum;
 use App\Enums\ProposalStatusEnum;
+use App\Exceptions\ContractException;
 use App\Jobs\MaterialiseProposalJob;
 use App\Models\ApiKey;
 use App\Models\Proposal;
@@ -49,19 +51,19 @@ final class UpdateProposalStatusAction
         ?User $actor = null,
     ): Proposal {
         if ($perimeter->role === RoleEnum::Guest) {
-            throw new InvalidArgumentException('Guests cannot accept or reject proposals.');
+            throw new ContractException(ContractErrorCodeEnum::GuestRefused, 'Guests cannot accept or reject proposals.');
         }
 
         if ($proposal->scope_type !== $perimeter->scopeType || $proposal->scope_id !== $perimeter->scopeId) {
-            throw new InvalidArgumentException('Proposal is outside the key perimeter.');
+            throw new ContractException(ContractErrorCodeEnum::OutOfPerimeter, 'Proposal is outside the key perimeter.');
         }
 
         if ($proposal->status !== ProposalStatusEnum::Open) {
-            throw new InvalidArgumentException('Only open proposals can change status.');
+            throw new ContractException(ContractErrorCodeEnum::ProposalNotOpen, 'Only open proposals can change status.');
         }
 
         if (! in_array($payload->status, [ProposalStatusEnum::Accepted, ProposalStatusEnum::Rejected], true)) {
-            throw new InvalidArgumentException('Status must be accepted or rejected.');
+            throw new ContractException(ContractErrorCodeEnum::InvalidChange, 'Status must be accepted or rejected.');
         }
 
         if ($payload->status === ProposalStatusEnum::Accepted && $apiKey instanceof ApiKey) {
@@ -121,14 +123,14 @@ final class UpdateProposalStatusAction
     private function assertKeyMayAccept(ApiKey $apiKey, Proposal $proposal): void
     {
         if ($proposal->api_key_id === $apiKey->id || $proposal->proposed_by_principal_id === $apiKey->principal_id) {
-            throw new InvalidArgumentException('A proposal cannot be accepted by the key or principal that opened it.');
+            throw new ContractException(ContractErrorCodeEnum::SelfAcceptRefused, 'A proposal cannot be accepted by the key or principal that opened it.');
         }
 
         $apiKey->loadMissing('principal');
         $isPersonKey = $apiKey->principal?->type === PrincipalTypeEnum::Person;
 
         if (! $isPersonKey && ! (bool) config('instituta.proposals.agents_can_accept', false)) {
-            throw new InvalidArgumentException('Agent and service keys cannot accept proposals; a person must accept them.');
+            throw new ContractException(ContractErrorCodeEnum::AgentAcceptRefused, 'Agent and service keys cannot accept proposals; a person must accept them.');
         }
     }
 }

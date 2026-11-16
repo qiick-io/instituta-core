@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mcp\Tools\Http;
 
+use App\Enums\ContractErrorCodeEnum;
 use App\Enums\ProposalStatusEnum;
 use App\Mcp\Support\HttpBrainContext;
 use App\Services\BrainWriteGateService;
@@ -35,9 +36,9 @@ class InstitutaListProposalsTool extends Tool
 
     public function handle(Request $request): Response|ResponseFactory
     {
-        $reason = $this->writeGate->refusalReason($this->brain->apiKey(), 'mcp');
-        if ($reason !== null) {
-            return Response::error($reason);
+        $refusal = $this->writeGate->refusal($this->brain->apiKey(), 'mcp');
+        if ($refusal !== null) {
+            return Response::error($refusal->errorCode->mcpText($refusal->getMessage()));
         }
 
         $statusValue = $request->get('status');
@@ -46,7 +47,7 @@ class InstitutaListProposalsTool extends Tool
             : null;
 
         if (is_string($statusValue) && $statusValue !== '' && $status === null) {
-            return Response::error('status must be open, accepted, or rejected.');
+            return Response::error(ContractErrorCodeEnum::ValidationFailed->mcpText('status must be open, accepted, or rejected.'));
         }
 
         return Response::structured(

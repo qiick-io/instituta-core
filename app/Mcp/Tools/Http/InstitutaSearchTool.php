@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mcp\Tools\Http;
 
+use App\Enums\ContractErrorCodeEnum;
 use App\Mcp\Support\HttpBrainContext;
 use App\Services\HybridSearchService;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -52,11 +53,11 @@ class InstitutaSearchTool extends Tool
                 ),
             );
         } catch (RuntimeException $exception) {
-            return Response::error($exception->getMessage());
+            return Response::error(ContractErrorCodeEnum::SearchUnsupported->mcpText($exception->getMessage()));
         } catch (Throwable $exception) {
             report($exception);
 
-            return Response::error('search driver not supported');
+            return Response::error(ContractErrorCodeEnum::RequestFailed->mcpText('search failed'));
         }
     }
 }

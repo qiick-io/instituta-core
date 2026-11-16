@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\ContractErrorCodeEnum;
 use App\Http\Controllers\Api\V1\Concerns\ResolvesInstitutaApiContextTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SimilarSearchRequest;
@@ -30,6 +31,7 @@ final class SimilarSearchController extends Controller
         if (! config('ai.embeddings.enabled')) {
             return (new ApiMessageResource([
                 'message' => 'embeddings disabled',
+                'code' => ContractErrorCodeEnum::EmbeddingsDisabled->value,
             ]))->response()->setStatusCode(501);
         }
 

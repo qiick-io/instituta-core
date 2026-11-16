@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Enums\ApiKeyAbilityEnum;
+use App\Enums\ContractErrorCodeEnum;
 use App\Services\ApiKeyIssuerService;
 use App\Services\PerimeterResolverService;
 use Closure;
@@ -57,7 +58,7 @@ final class AuthenticateApiKeyMiddleware
         }
 
         if (! in_array(ApiKeyAbilityEnum::BrainRead->value, $key->abilities, true)) {
-            return $this->forbidden($request, 'Ability brain:read is required.');
+            return $this->forbidden($request, 'Ability brain:read is required.', ContractErrorCodeEnum::AbilityMissing);
         }
 
         try {
@@ -97,31 +98,31 @@ final class AuthenticateApiKeyMiddleware
 
     private function unauthorized(Request $request, string $message): Response
     {
-        if ($this->isRestApi($request)) {
-            return response()->json(['message' => $message], 401);
-        }
-
-        return response()->json([
-            'jsonrpc' => '2.0',
-            'error' => [
-                'code' => -32001,
-                'message' => $message,
-            ],
-        ], 401);
+        return $this->refuse($request, $message, 401, -32001, ContractErrorCodeEnum::Unauthenticated);
     }
 
-    private function forbidden(Request $request, string $message): Response
+    private function forbidden(Request $request, string $message, ContractErrorCodeEnum $code = ContractErrorCodeEnum::Forbidden): Response
+    {
+        return $this->refuse($request, $message, 403, -32003, $code);
+    }
+
+    /**
+     * REST answers `{message, code}`; MCP a JSON-RPC error whose `data.code` carries the same
+     * contract code (#227).
+     */
+    private function refuse(Request $request, string $message, int $status, int $jsonRpcCode, ContractErrorCodeEnum $code): Response
     {
         if ($this->isRestApi($request)) {
-            return response()->json(['message' => $message], 403);
+            return response()->json(['message' => $message, 'code' => $code->value], $status);
         }
 
         return response()->json([
             'jsonrpc' => '2.0',
             'error' => [
-                'code' => -32003,
+                'code' => $jsonRpcCode,
                 'message' => $message,
+                'data' => ['code' => $code->value],
             ],
-        ], 403);
+        ], $status);
     }
 }

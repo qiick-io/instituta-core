@@ -7,8 +7,10 @@ namespace App\Actions;
 use App\Brain\Data\PerimeterData;
 use App\Brain\Enums\RoleEnum;
 use App\Data\ProposeBrainChangeData;
+use App\Enums\ContractErrorCodeEnum;
 use App\Enums\ProposalActionEnum;
 use App\Enums\ProposalStatusEnum;
+use App\Exceptions\ContractException;
 use App\Models\ApiKey;
 use App\Models\Item;
 use App\Models\ItemSection;
@@ -52,13 +54,13 @@ final class ProposeBrainChangeAction
         ?User $actor = null,
     ): Proposal {
         if ($perimeter->role === RoleEnum::Guest) {
-            throw new InvalidArgumentException('Guests cannot propose changes.');
+            throw new ContractException(ContractErrorCodeEnum::GuestRefused, 'Guests cannot propose changes.');
         }
 
         [$organisationId, $companyId, $productId] = $this->scopeColumns->columnsFor($perimeter);
 
         if ($organisationId === null || $organisationId === '') {
-            throw new InvalidArgumentException('Proposal requires a resolvable organisation scope.');
+            throw new ContractException(ContractErrorCodeEnum::OutOfPerimeter, 'Proposal requires a resolvable organisation scope.');
         }
 
         $this->assertFrontmatterChanges($payload);
@@ -128,7 +130,7 @@ final class ProposeBrainChangeAction
         }
 
         if ($payload->action !== ProposalActionEnum::Update) {
-            throw new InvalidArgumentException('frontmatter is only allowed on update.');
+            throw new ContractException(ContractErrorCodeEnum::InvalidChange, 'frontmatter is only allowed on update.');
         }
 
         $this->frontmatter->assertValid($payload->frontmatterChanges);
@@ -144,11 +146,11 @@ final class ProposeBrainChangeAction
         $hasBody = $payload->body !== null && $payload->body !== '';
 
         if ($payload->sectionAnchor !== null && ! $hasBody) {
-            throw new InvalidArgumentException('A section edit needs the section\'s new markdown as body.');
+            throw new ContractException(ContractErrorCodeEnum::InvalidChange, 'A section edit needs the section\'s new markdown as body.');
         }
 
         if ($payload->action === ProposalActionEnum::Update && ! $hasBody && $payload->frontmatterChanges === null) {
-            throw new InvalidArgumentException('An update needs a body, frontmatter changes, or both.');
+            throw new ContractException(ContractErrorCodeEnum::InvalidChange, 'An update needs a body, frontmatter changes, or both.');
         }
     }
 
@@ -168,22 +170,22 @@ final class ProposeBrainChangeAction
 
         if ($payload->action === ProposalActionEnum::Create) {
             if ($payload->sectionAnchor !== null) {
-                throw new InvalidArgumentException('section_anchor is only allowed on update.');
+                throw new ContractException(ContractErrorCodeEnum::InvalidChange, 'section_anchor is only allowed on update.');
             }
 
             if ($existingItem instanceof Item) {
-                throw new InvalidArgumentException('An item with this stable_key already exists; propose an update instead.');
+                throw new ContractException(ContractErrorCodeEnum::ItemExists, 'An item with this stable_key already exists; propose an update instead.');
             }
 
             return ['base_content_hash' => null, 'base_commit' => null, 'base_section_hash' => null, 'source_id' => null];
         }
 
         if (! $existingItem instanceof Item) {
-            throw new InvalidArgumentException('No item with this stable_key in your perimeter; re-read the brain.');
+            throw new ContractException(ContractErrorCodeEnum::NotFound, 'No item with this stable_key in your perimeter; re-read the brain.');
         }
 
         if ($payload->path !== $existingItem->path) {
-            throw new InvalidArgumentException('path must be the item\'s current path ('.$existingItem->path.').');
+            throw new ContractException(ContractErrorCodeEnum::PathMismatch, 'path must be the item\'s current path ('.$existingItem->path.').');
         }
 
         $base = [
@@ -200,20 +202,20 @@ final class ProposeBrainChangeAction
         }
 
         if ($payload->action === ProposalActionEnum::Delete) {
-            throw new InvalidArgumentException('section_anchor is only allowed on update.');
+            throw new ContractException(ContractErrorCodeEnum::InvalidChange, 'section_anchor is only allowed on update.');
         }
 
         /** @var ItemSection|null $section */
         $section = $existingItem->sections()->where('anchor', $payload->sectionAnchor)->first();
 
         if (! $section instanceof ItemSection) {
-            throw new InvalidArgumentException('No section with this anchor in the item; re-read it.');
+            throw new ContractException(ContractErrorCodeEnum::SectionMissing, 'No section with this anchor in the item; re-read it.');
         }
 
         $currentSectionHash = ItemSection::hashOf($section->markdown);
 
         if ($currentSectionHash === null) {
-            throw new InvalidArgumentException('This section has no stored markdown yet; re-sync the source before editing sections.');
+            throw new ContractException(ContractErrorCodeEnum::SectionNotSynced, 'This section has no stored markdown yet; re-sync the source before editing sections.');
         }
 
         if ($payload->baseSectionHash !== null) {
@@ -231,11 +233,11 @@ final class ProposeBrainChangeAction
     private function assertCurrent(?string $sentHash, string $currentHash, string $field): void
     {
         if ($sentHash === null) {
-            throw new InvalidArgumentException($field.' is required: send the version you read.');
+            throw new ContractException(ContractErrorCodeEnum::BaseRequired, $field.' is required: send the version you read.');
         }
 
         if (! hash_equals($currentHash, $sentHash)) {
-            throw new InvalidArgumentException('The content changed since you read it ('.$field.' is stale); re-read and propose again.');
+            throw new ContractException(ContractErrorCodeEnum::StaleBase, 'The content changed since you read it ('.$field.' is stale); re-read and propose again.');
         }
     }
 }

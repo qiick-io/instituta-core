@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Exceptions;
 
+use App\Enums\ContractErrorCodeEnum;
 use App\Enums\QuotaMetricEnum;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -35,6 +36,7 @@ final class QuotaExceededException extends Exception
 
         return response()->json([
             'message' => $this->getMessage(),
+            'code' => ContractErrorCodeEnum::QuotaExceeded->value,
             'error' => 'quota_exceeded',
             'metric' => $this->metric->value,
             'limit' => $this->limitValue,

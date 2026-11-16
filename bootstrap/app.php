@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AddContractErrorCodeMiddleware;
 use App\Http\Middleware\EnsureTwoFactorIsEnabledMiddleware;
 use App\Http\Middleware\EnsureUserHasPermissionMiddleware;
 use App\Http\Middleware\HandleAppearance;
@@ -32,6 +33,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'permission' => EnsureUserHasPermissionMiddleware::class,
         ]);
+
+        // Outermost on the API so rendered exceptions get their contract code too (#227).
+        $middleware->api(prepend: [AddContractErrorCodeMiddleware::class]);
 
         $middleware->web(append: [
             HandleAppearance::class,
