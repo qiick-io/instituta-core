@@ -6,7 +6,6 @@ import {
     FilePenLine,
     FolderGit2,
     GitFork,
-    History,
     KeyRound,
     LayoutGrid,
     FolderTree,
@@ -30,7 +29,6 @@ import { toUrl } from '@/lib/utils';
 import { dashboard, search as searchRoute } from '@/routes';
 import { index as activityIndex } from '@/routes/activity';
 import { graph } from '@/routes';
-import { agentCalls as sessionReplay } from '@/routes/activity';
 import { index as keys } from '@/routes/api-keys';
 import { index as explorerIndex } from '@/routes/explorer';
 import { index as sources } from '@/routes/repositories';
@@ -130,12 +128,6 @@ export function AppCommandPalette({
                 titleKey: 'brain.nav.clients',
                 href: toUrl(clientsIndex.url()),
                 icon: Building2,
-            },
-            {
-                id: 'session-replay',
-                titleKey: 'brain.nav.sessionReplay',
-                href: toUrl(sessionReplay.url()),
-                icon: History,
             },
             {
                 id: 'activity',

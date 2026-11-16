@@ -443,7 +443,6 @@
             "keys": "Chiavi",
             "activity": "Attività",
             "clients": "Clienti",
-            "sessionReplay": "Replay sessioni",
             "proposals": "Proposte",
             "graph": "Grafo",
             "gaps": "Lacune",
@@ -702,10 +701,10 @@
             "requiredHint": "I campi contrassegnati con * sono obbligatori."
         },
         "sessionReplay": {
-            "title": "Replay sessioni",
-            "description": "Ispeziona le chiamate al contratto di questa organizzazione. Solo metadati — nessun body o segreto.",
+            "title": "Chiamate agent",
+            "description": "Ogni chiamata API e MCP fatta dagli agent (tool, chiave, item letti, token); il contenuto non viene mai memorizzato.",
             "hint": "Filtra per principal, tool o data. Apri una chiamata per vedere gli id degli item e la stima token.",
-            "ownerOnly": "Solo i proprietari dell'organizzazione possono vedere il replay delle sessioni.",
+            "ownerOnly": "Solo i proprietari dell'organizzazione possono vedere le chiamate agent.",
             "searchPlaceholder": "Cerca tool o id di scope…",
             "empty": "Nessuna chiamata al contratto ancora.",
             "view": "Vedi",
@@ -884,6 +883,11 @@
     "activity": {
         "title": "Attività",
         "description": "Registro di audit di questa organizzazione. Le voci più vecchie di {{days}} giorni vengono eliminate.",
+        "tabs": {
+            "ariaLabel": "Viste attività",
+            "auditLog": "Registro audit",
+            "agentCalls": "Chiamate agent"
+        },
         "searchPlaceholder": "Cerca descrizione o evento…",
         "ownerOnly": "Solo i proprietari dell'organizzazione possono vedere il registro attività.",
         "empty": "Nessuna attività ancora.",

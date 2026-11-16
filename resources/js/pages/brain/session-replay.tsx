@@ -1,6 +1,10 @@
-import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import { History } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ActivityViewTabs } from '@/components/activity/activity-view-tabs';
+import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { EmptyStatus } from '@/components/empty-status';
 import { FilterSearch } from '@/components/layout/page-header';
 import {
     PageLayout,
@@ -33,11 +37,11 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { agentCalls as sessionReplay } from '@/routes/activity';
 import AppLayout from '@/layouts/app-layout';
-import { History } from 'lucide-react';
-import { PageEmptyState } from '@/components/admin/page-empty-state';
-import { EmptyStatus } from '@/components/empty-status';
+import { agentCalls, index as activityIndex } from '@/routes/activity';
+import { show as explorerShow } from '@/routes/explorer';
+import type { BreadcrumbItem } from '@/types';
+
 type PrincipalOption = {
     id: string;
     name: string;
@@ -121,7 +125,7 @@ function visitWith(
     overrides: Partial<Filters> & { page?: number; per_page?: number },
 ): void {
     router.get(
-        sessionReplay.url(),
+        agentCalls.url(),
         {
             ...filters,
             ...overrides,
@@ -130,8 +134,16 @@ function visitWith(
     );
 }
 
+function displayValue(value: string | number | null | undefined): string {
+    if (value === null || value === undefined || value === '') {
+        return '—';
+    }
+
+    return String(value);
+}
+
 /**
- * Session replay: inspect contract_calls without content or secrets.
+ * Agent calls (Activity tab): inspect contract_calls without content or secrets.
  */
 export default function BrainSessionReplay({
     is_owner,
@@ -141,14 +153,20 @@ export default function BrainSessionReplay({
     filters,
 }: Props) {
     const { t } = useTranslation();
-    const layoutProps = {
-        breadcrumbs: [
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
             {
-                title: t('brain.nav.sessionReplay'),
-                href: sessionReplay.url(),
+                title: t('activity.title'),
+                href: activityIndex.url(),
+            },
+            {
+                title: t('brain.sessionReplay.title'),
+                href: agentCalls.url(),
             },
         ],
-    };
+        [t],
+    );
+    const layoutProps = { breadcrumbs };
     const [search, setSearch] = useState(filters.search ?? '');
     const [apiKeyId, setApiKeyId] = useState(filters.api_key_id ?? '');
     const [agentSessionId, setAgentSessionId] = useState(
@@ -178,9 +196,22 @@ export default function BrainSessionReplay({
         });
     };
 
+    const apiKeyLabel = selected?.api_key
+        ? `${selected.api_key.name} (${selected.api_key.display_prefix}…)`
+        : '—';
+
+    const scopeLabel = selected
+        ? `${selected.scope_type}:${selected.scope_id}`
+        : '—';
+
+    const whenLabel = selected?.called_at
+        ? new Date(selected.called_at).toLocaleString()
+        : '—';
+
     return (
         <AppLayout {...layoutProps}>
             <Head title={t('brain.sessionReplay.title')} />
+            <ActivityViewTabs view="agent-calls" />
             <PageLayout
                 description={t('brain.sessionReplay.description')}
                 filters={
@@ -442,7 +473,10 @@ export default function BrainSessionReplay({
                     }
                 }}
             >
-                <SheetContent className="overflow-y-auto sm:max-w-lg">
+                <SheetContent
+                    side="right"
+                    className="overflow-y-auto sm:max-w-lg"
+                >
                     <SheetHeader>
                         <SheetTitle>
                             {t('brain.sessionReplay.detailTitle')}
@@ -452,55 +486,72 @@ export default function BrainSessionReplay({
                         </SheetDescription>
                     </SheetHeader>
                     {selected ? (
-                        <dl className="mt-6 space-y-3 text-sm">
+                        <dl className="grid gap-3 px-4 pb-4 text-sm break-all text-muted-foreground sm:grid-cols-2">
                             <div>
-                                <dt className="text-muted-foreground">
+                                <dt className="font-medium text-foreground">
                                     {t('brain.sessionReplay.colTool')}
                                 </dt>
                                 <dd className="font-mono text-xs">
-                                    {selected.tool_or_endpoint}
+                                    {displayValue(selected.tool_or_endpoint)}
                                 </dd>
                             </div>
                             <div>
-                                <dt className="text-muted-foreground">
+                                <dt className="font-medium text-foreground">
                                     {t('brain.sessionReplay.colScope')}
                                 </dt>
                                 <dd className="font-mono text-xs">
-                                    {selected.scope_type}:{selected.scope_id}
+                                    {scopeLabel}
                                 </dd>
                             </div>
                             <div>
-                                <dt className="text-muted-foreground">
+                                <dt className="font-medium text-foreground">
                                     {t('brain.sessionReplay.fieldKey')}
                                 </dt>
-                                <dd>
-                                    {selected.api_key
-                                        ? `${selected.api_key.name} (${selected.api_key.display_prefix}…)`
-                                        : '—'}
-                                </dd>
+                                <dd>{apiKeyLabel}</dd>
                             </div>
                             <div>
-                                <dt className="text-muted-foreground">
+                                <dt className="font-medium text-foreground">
                                     {t('brain.sessionReplay.fieldSession')}
                                 </dt>
                                 <dd className="font-mono text-xs">
-                                    {selected.agent_session_id ?? '—'}
+                                    {displayValue(selected.agent_session_id)}
                                 </dd>
                             </div>
                             <div>
-                                <dt className="text-muted-foreground">
+                                <dt className="font-medium text-foreground">
                                     {t('brain.sessionReplay.fieldTokens')}
                                 </dt>
-                                <dd>{selected.token_estimate ?? '—'}</dd>
+                                <dd>{displayValue(selected.token_estimate)}</dd>
                             </div>
                             <div>
-                                <dt className="text-muted-foreground">
+                                <dt className="font-medium text-foreground">
+                                    {t('brain.sessionReplay.colWhen')}
+                                </dt>
+                                <dd>{whenLabel}</dd>
+                            </div>
+                            <div className="sm:col-span-2">
+                                <dt className="font-medium text-foreground">
                                     {t('brain.sessionReplay.fieldItemIds')}
                                 </dt>
                                 <dd className="font-mono text-xs break-all">
-                                    {selected.item_ids.length > 0
-                                        ? selected.item_ids.join(', ')
-                                        : '—'}
+                                    {selected.item_ids.length > 0 ? (
+                                        <ul className="flex flex-wrap gap-x-2 gap-y-1">
+                                            {selected.item_ids.map((itemId) => (
+                                                <li key={itemId}>
+                                                    <Link
+                                                        href={explorerShow.url(
+                                                            itemId,
+                                                        )}
+                                                        className="text-foreground underline-offset-4 hover:underline"
+                                                    >
+                                                        {itemId}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        '—'
+                                    )}
                                 </dd>
                             </div>
                         </dl>

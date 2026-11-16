@@ -4,7 +4,6 @@ import {
     FolderGit2,
     FolderTree,
     GitFork,
-    History,
     Inbox,
     LayoutGrid,
     PanelRight,
@@ -45,7 +44,6 @@ import { notificationsSource } from '@/lib/notifications';
 import { dashboard } from '@/routes';
 import { index as activityIndex } from '@/routes/activity';
 import { graph } from '@/routes';
-import { agentCalls as sessionReplay } from '@/routes/activity';
 import { index as explorerIndex } from '@/routes/explorer';
 import { index as clientsIndex } from '@/routes/clients';
 import { index as reviewIndex } from '@/routes/review';
@@ -89,11 +87,6 @@ export function AppSidebar() {
             title: t('brain.nav.clients'),
             href: clientsIndex.url(),
             icon: Building2,
-        },
-        {
-            title: t('brain.nav.sessionReplay'),
-            href: sessionReplay.url(),
-            icon: History,
         },
         {
             title: t('brain.nav.activity'),
