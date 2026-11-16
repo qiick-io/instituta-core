@@ -12,6 +12,7 @@ use App\Brain\Data\SectionData;
 use App\Brain\Data\SkippedFileData;
 use App\Brain\Data\StructuredTableData;
 use App\Brain\Data\ValidationIssueData;
+use App\Brain\Enums\ItemStatusEnum;
 use App\Brain\Exceptions\DenylistHitException;
 use App\Brain\Readers\BrainReader;
 use App\Enums\QuotaMetricEnum;
@@ -579,6 +580,10 @@ final class SourceSyncService
                 'effective_date' => $itemData->effectiveDate,
                 'review_date' => $itemData->reviewDate,
                 'resolution_key' => $itemData->resolutionKey,
+                'status' => ItemStatusEnum::fromFrontmatter($itemData->frontmatter),
+                'superseded_by' => is_string($itemData->frontmatter['superseded_by'] ?? null) && trim($itemData->frontmatter['superseded_by']) !== ''
+                    ? trim($itemData->frontmatter['superseded_by'])
+                    : null,
             ],
         );
 

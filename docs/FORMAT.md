@@ -81,6 +81,8 @@ Native and Basic Memory notes use YAML frontmatter. Recognised fields (all optio
 | `decision_date` | When the decision was taken (ISO-8601 date) |
 | `effective_date` | When it takes effect |
 | `review_date` | When it should be reviewed / expires |
+| `status` | `draft` \| `active` \| `deprecated` \| `superseded` (default `active`; `superseded` when only `superseded_by` is set). Readers prefer `active` entries: search lists them first and resolution never lets an inactive entry win over an active one (#218) |
+| `superseded_by` | `stable_key` of the entry that replaces this one |
 | `tags` | List of strings |
 
 Unknown frontmatter keys are preserved in the indexed `frontmatter` JSON blob.

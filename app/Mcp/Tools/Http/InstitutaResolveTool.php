@@ -15,7 +15,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('instituta_resolve')]
-#[Description('The rules, decisions and design entries that apply to one product: for each key the most specific version (product over company over organisation). Use it before working on a product.')]
+#[Description('The rules, decisions and design entries that apply to one product: for each key the most specific active version (product over company over organisation); superseded or deprecated entries never win over an active one. Use it before working on a product.')]
 #[IsReadOnly]
 class InstitutaResolveTool extends Tool
 {
@@ -26,6 +26,7 @@ class InstitutaResolveTool extends Tool
         return [
             'product_id' => $schema->string()->description('Product ULID')->required(),
             'area' => $schema->string()->description('Optional area filter')->nullable(),
+            'include_inactive' => $schema->boolean()->description('Also let draft, deprecated and superseded entries win (default false: they show only when no active entry exists)')->nullable(),
         ];
     }
 
@@ -37,6 +38,7 @@ class InstitutaResolveTool extends Tool
                 $this->brain->apiKey(),
                 (string) $request->get('product_id'),
                 $request->get('area'),
+                (bool) $request->get('include_inactive', false),
             ),
         );
     }

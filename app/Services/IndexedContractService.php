@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Brain\Data\PerimeterData;
+use App\Brain\Enums\ItemStatusEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Contracts\SearchIndexContract;
 use App\Models\ApiKey;
@@ -164,6 +165,10 @@ final class IndexedContractService
             $results = $hybrid->fuse($keywordHits, $hybrid->semanticHits($perimeter, $q, $allowedIds, $area, $limit), $limit);
         }
 
+        // Current entries first (#218); the sort is stable, so relevance order holds within each group.
+        usort($results, static fn (array $left, array $right): int => (int) (($right['status'] ?? 'active') === 'active')
+            <=> (int) (($left['status'] ?? 'active') === 'active'));
+
         /** @var list<string> $itemIds */
         $itemIds = array_values(array_unique(array_map(
             static fn (array $hit): string => (string) $hit['id'],
@@ -195,6 +200,7 @@ final class IndexedContractService
 
         $payload = [
             ...$this->summary($item, $perimeter),
+            'frontmatter' => $item->frontmatter ?? (object) [],
             'sections' => $item->sections
                 ->sortBy('position')
                 ->values()
@@ -358,11 +364,20 @@ final class IndexedContractService
     /**
      * @return array<string, mixed>
      */
+    /**
+     * The entry that applies per resolution key, most specific scope first (product over company
+     * over organisation). An active entry always wins over a draft, deprecated or superseded one
+     * (#218); an inactive entry shows only when no active one exists for its key, or with
+     * `$includeInactive`, and carries its status either way.
+     *
+     * @return array<string, mixed>
+     */
     public function resolve(
         PerimeterData $perimeter,
         ?ApiKey $apiKey,
         string $productId,
         ?string $area = null,
+        bool $includeInactive = false,
     ): array {
         $product = Product::query()->find($productId);
         if ($product === null) {
@@ -409,11 +424,20 @@ final class IndexedContractService
 
             foreach ($this->applyFreezeFilter($query, $perimeter)->get() as $item) {
                 /** @var Item $item */
-                $resolved[(string) $item->resolution_key] = [
+                $key = (string) $item->resolution_key;
+                $isCurrent = $item->status->isCurrent();
+
+                // A more specific inactive entry never replaces an active one (#218).
+                if (! $isCurrent && ! $includeInactive && ($resolved[$key]['status'] ?? null) === ItemStatusEnum::Active->value) {
+                    continue;
+                }
+
+                $resolved[$key] = [
                     'resolution_key' => (string) $item->resolution_key,
                     'title' => $item->title,
                     'summary' => $item->summary,
                     'visibility' => $item->visibility->value,
+                    ...$this->validity($item),
                     'origin' => [
                         'scope_type' => $layer['scope_type'],
                         'scope_id' => $layer['scope_id'],
@@ -627,6 +651,7 @@ final class IndexedContractService
             'area' => $item->area,
             'type' => $item->type,
             'visibility' => $item->visibility->value,
+            ...$this->validity($item),
             'origin' => [
                 'scope_type' => $item->product_id !== null
                     ? 'product'
@@ -638,6 +663,24 @@ final class IndexedContractService
                 'content_hash' => $item->content_hash,
             ],
             'citation' => $this->citation($item),
+        ];
+    }
+
+    /**
+     * Whether the entry is still valid (#218), so an agent prefers current rules and says when it
+     * relies on an old one.
+     *
+     * @return array{status: string, superseded_by: string|null, decision_date: string|null, effective_date: string|null, review_date: string|null, is_review_overdue: bool}
+     */
+    private function validity(Item $item): array
+    {
+        return [
+            'status' => $item->status->value,
+            'superseded_by' => $item->superseded_by,
+            'decision_date' => $item->decision_date?->toDateString(),
+            'effective_date' => $item->effective_date?->toDateString(),
+            'review_date' => $item->review_date?->toDateString(),
+            'is_review_overdue' => $item->review_date !== null && $item->review_date->isPast(),
         ];
     }
 

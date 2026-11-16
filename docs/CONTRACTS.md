@@ -58,6 +58,12 @@ Snake_case JSON. Dates ISO-8601. Errors as Laravel JSON error responses.
   "area": "string",
   "type": "string",
   "visibility": "public|internal|restricted",
+  "status": "draft|active|deprecated|superseded",
+  "superseded_by": "stable_key|null",
+  "decision_date": "YYYY-MM-DD|null",
+  "effective_date": "YYYY-MM-DD|null",
+  "review_date": "YYYY-MM-DD|null",
+  "is_review_overdue": false,
   "origin": {
     "scope_type": "organisation|company|product",
     "scope_id": "ulid|null",
@@ -124,7 +130,7 @@ The local stdio server (`instituta:mcp`) offers the same reads as HTTP for one f
 
 **Query:** `scope` (required), `q` (required), `area`, `limit` (default 20, max 50), `mode` (`hybrid` default, `keyword`, `semantic`).
 
-**Behaviour:** apply perimeter first, then rank. Keyword matching takes **any** term of the query, as a prefix, and ranks sections that match more terms higher (language-neutral: Postgres uses the `simple` configuration). With embeddings on, `hybrid` merges keyword and semantic hits by reciprocal rank fusion and `semantic` uses meaning alone; with embeddings off every mode runs as `keyword`. The answer's `mode` says what ran, and each hit's `match` (`keyword`, `semantic`, `both`) why it was found. Drivers: `pgsql` (reference), `sqlite` (FTS5). MySQL: not supported in v0.1.0 → clear error (`501` on REST, tool error on MCP).
+**Behaviour:** apply perimeter first, then rank. Keyword matching takes **any** term of the query, as a prefix, and ranks sections that match more terms higher (language-neutral: Postgres uses the `simple` configuration). With embeddings on, `hybrid` merges keyword and semantic hits by reciprocal rank fusion and `semantic` uses meaning alone; with embeddings off every mode runs as `keyword`. The answer's `mode` says what ran, and each hit's `match` (`keyword`, `semantic`, `both`) why it was found. Active entries are listed before draft, deprecated and superseded ones (relevance order within each group); every hit carries `status` and `superseded_by`. Drivers: `pgsql` (reference), `sqlite` (FTS5). MySQL: not supported in v0.1.0 → clear error (`501` on REST, tool error on MCP).
 
 **Returns:** one hit per matching **section** (at most two per item, best first): item id, title, summary, the section's `anchor` and `heading`, a short snippet from that section, score, and a citation whose `section` is the anchor, so the caller opens it with `get_section` directly. **No full bodies.**
 
@@ -134,7 +140,7 @@ The local stdio server (`instituta:mcp`) offers the same reads as HTTP for one f
 
 ### 3.5 `instituta_get` / `GET /items/{id}`
 
-**Returns:** full content as typed blocks + citation. Honour visibility and perimeter; forbidden scope → empty / not found, not an error leak of existence across tenants.
+**Returns:** full content as typed blocks + citation, plus the item's `frontmatter`. Honour visibility and perimeter; forbidden scope → empty / not found, not an error leak of existence across tenants.
 
 Each section also carries its source `markdown` (heading line included) and its `section_hash` (sha256 of that markdown). Writers edit from `markdown`, never from the plain-text `body`, and send `origin.content_hash` or `section_hash` back as the base of a proposal (§3.10).
 
@@ -156,6 +162,8 @@ Each section also carries its source `markdown` (heading line included) and its 
 
 **Returns:** resolved keys, origins, ACL cuts, token estimate.
 
+
+**Validity (#218).** For each resolution key the most specific **active** entry wins; a draft, deprecated or superseded entry never replaces an active one, and shows only when no active entry exists for its key (or with `include_inactive=true`). Every entry carries its `status` and dates.
 ### 3.9 `instituta_graph` / `GET /items/{id}/neighbours`
 
 **Query:** `depth` (default 1, max 2 in the MVP).
