@@ -10,12 +10,14 @@ import {
     LayoutGrid,
     ListTree,
     Map as MapIcon,
+    PanelRight,
     ScrollText,
     Sparkles,
     Users,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { index as assistantIndex } from '@/routes/ai';
+import { toggleAssistantPanel } from '@/components/ai/assistant-panel';
 import AppLogo from '@/components/app-logo';
 import { AppUserMenuContent } from '@/components/app-user-menu-content';
 import { NavFooter } from '@/components/nav-footer';
@@ -26,12 +28,21 @@ import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
+    SidebarGroup,
     SidebarHeader,
     SidebarMenu,
+    SidebarMenuAction,
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { Kbd } from '@/components/ui/kbd';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { PermissionEnum } from '@/enums/permission-enum';
+import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useCan } from '@/hooks/use-can';
 import { notificationsSource } from '@/lib/notifications';
 import { dashboard } from '@/routes';
@@ -110,16 +121,6 @@ export function AppSidebar() {
             href: activityIndex.url(),
             icon: ScrollText,
         },
-        ...(can(PermissionEnum.CanUseAi)
-            ? [
-                  {
-                      title: t('assistant.title'),
-                      href: assistantIndex.url(),
-                      icon: Sparkles,
-                      isAiAccent: true,
-                  },
-              ]
-            : []),
         ...(can(PermissionEnum.CanShowUsers)
             ? [
                   {
@@ -163,6 +164,13 @@ export function AppSidebar() {
                 </SidebarHeader>
 
                 <SidebarContent>
+                    {can(PermissionEnum.CanUseAi) ? (
+                        <SidebarGroup className="px-2 py-0">
+                            <SidebarMenu>
+                                <AssistantNavItem />
+                            </SidebarMenu>
+                        </SidebarGroup>
+                    ) : null}
                     <NavMain items={mainNavItems} />
                 </SidebarContent>
 
@@ -186,5 +194,60 @@ export function AppSidebar() {
                 </SidebarFooter>
             </nav>
         </Sidebar>
+    );
+}
+
+/** Keyboard shortcut hint of the assistant side panel (handled in the panel). */
+const ASSISTANT_PANEL_SHORTCUT =
+    typeof navigator !== 'undefined' &&
+    /Mac|iPhone|iPad|iPod/.test(navigator.userAgent)
+        ? '⌘J'
+        : 'Ctrl+J';
+
+/**
+ * The Assistant, pinned above the Platform group (app-ui `docs/shell.md`, copied from
+ * externa-core `app-sidebar.tsx`): the item opens `/ai`; on other pages it shows the ⌘J hint,
+ * which gives way on hover to an action that opens the side panel in place.
+ */
+function AssistantNavItem() {
+    const { t } = useTranslation();
+    const { isCurrentUrl } = useCurrentUrl();
+    const isOnAssistantPage = isCurrentUrl(assistantIndex.url());
+
+    return (
+        <SidebarMenuItem>
+            <SidebarMenuButton
+                asChild
+                isActive={isOnAssistantPage}
+                tooltip={{ children: t('assistant.title') }}
+                className="sidebar-ai-nav"
+            >
+                <Link href={assistantIndex.url()} prefetch>
+                    <Sparkles />
+                    <span>{t('assistant.title')}</span>
+                    {!isOnAssistantPage ? (
+                        <Kbd className="ml-auto transition-opacity group-focus-within/menu-item:opacity-0 group-hover/menu-item:opacity-0 group-data-[collapsible=icon]:hidden">
+                            {ASSISTANT_PANEL_SHORTCUT}
+                        </Kbd>
+                    ) : null}
+                </Link>
+            </SidebarMenuButton>
+            {!isOnAssistantPage ? (
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <SidebarMenuAction
+                            showOnHover
+                            onClick={toggleAssistantPanel}
+                            aria-label={t('assistant.openPanel')}
+                        >
+                            <PanelRight />
+                        </SidebarMenuAction>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                        {t('assistant.openPanel')} ({ASSISTANT_PANEL_SHORTCUT})
+                    </TooltipContent>
+                </Tooltip>
+            ) : null}
+        </SidebarMenuItem>
     );
 }

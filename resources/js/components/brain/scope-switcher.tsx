@@ -60,9 +60,8 @@ export function ScopeSwitcher() {
             }}
         >
             <SelectTrigger
-                size="sm"
                 aria-label={t('brain.scope.label')}
-                className="max-w-56"
+                className="max-w-28 sm:max-w-56"
             >
                 <SelectValue placeholder={t('brain.scope.label')} />
             </SelectTrigger>

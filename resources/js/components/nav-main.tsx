@@ -38,11 +38,6 @@ export function NavMain({ items }: { items: NavItem[] }) {
                                     shouldMatchPrefix,
                                 )}
                                 tooltip={{ children: item.title }}
-                                className={
-                                    item.isAiAccent
-                                        ? 'sidebar-ai-nav'
-                                        : undefined
-                                }
                             >
                                 <Link href={item.href} prefetch>
                                     {item.icon && <item.icon />}

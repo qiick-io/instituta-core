@@ -1235,6 +1235,7 @@
                 "done": "Regeln des Produkts aufgelöst",
                 "error": "Konnte das Produkt nicht auflösen"
             }
-        }
+        },
+        "openPanel": "Assistenten-Panel öffnen"
     }
 }

@@ -11,6 +11,4 @@ export type NavItem = {
     href: NonNullable<InertiaLinkProps['href']>;
     icon?: LucideIcon | null;
     isActive?: boolean;
-    /** AI surfaces use the violet `ai` tokens (the Assistant item), never the brand primary. */
-    isAiAccent?: boolean;
 };
