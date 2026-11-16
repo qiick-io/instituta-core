@@ -1149,7 +1149,23 @@
         "activityDescription": "Gli eventi di audit più recenti dell'organizzazione.",
         "activityViewAll": "Vedi tutta l'attività",
         "noPerimeterTitle": "Nessun accesso al brain",
-        "noPerimeterDescription": "Il tuo account non ha un perimetro in un'organizzazione. Chiedi a un owner di darti accesso."
+        "noPerimeterDescription": "Il tuo account non ha un perimetro in un'organizzazione. Chiedi a un owner di darti accesso.",
+        "statSourcesHealth": "Salute del cervello: {{errors}} errori, {{warnings}} avvisi",
+        "healthTitle": "Salute del cervello",
+        "healthDescription": "Cosa hanno lasciato di sbagliato gli ultimi sync, con come sistemarlo.",
+        "colSeverity": "Problema",
+        "colIssue": "Dove",
+        "colFix": "Correzione suggerita",
+        "healthEmptyTitle": "Nessun problema",
+        "healthEmptyDescription": "I link si risolvono, le chiavi sono uniche e le revisioni aggiornate.",
+        "health": {
+            "reader_issue": "Illeggibile",
+            "skipped_file": "Saltato",
+            "broken_link": "Link rotto",
+            "missing_superseded_by": "superseded_by errato",
+            "duplicate_resolution_key": "Chiave duplicata",
+            "review_overdue": "Revisione scaduta"
+        }
     },
     "assistant": {
         "title": "Assistente",

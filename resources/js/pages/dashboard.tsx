@@ -36,6 +36,7 @@ export default function Dashboard(props: DashboardProps) {
                         proposals={props.proposals}
                         apiKeys={props.apiKeys}
                         latestActivity={props.latestActivity}
+                        health={props.health}
                     />
                 ) : (
                     <PageEmptyState

@@ -52,6 +52,25 @@ export type DashboardActivityEvent = {
     causer: { id: number; name: string; email: string } | null;
 };
 
+/** One problem the brain health check found (#231). */
+export type DashboardHealthIssue = {
+    code: string;
+    severity: 'error' | 'warning';
+    item: string | null;
+    stable_key: string | null;
+    path: string;
+    message: string;
+    suggested_fix: string;
+};
+
+/** Null when the user is not an owner. */
+export type DashboardHealth = {
+    issues: DashboardHealthIssue[];
+    counts: Record<string, number>;
+    error_count: number;
+    warning_count: number;
+} | null;
+
 export type DashboardOverviewMetrics = {
     contentStats: DashboardContentStats;
     areaCounts: DashboardAreaCount[];
@@ -60,4 +79,5 @@ export type DashboardOverviewMetrics = {
     apiKeys: DashboardApiKeys;
     /** Null when the user is not an owner (no activity page either). */
     latestActivity: DashboardActivityEvent[] | null;
+    health: DashboardHealth;
 };
