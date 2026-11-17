@@ -823,9 +823,6 @@
             "neighbours": "Linked items",
             "moreNeighbours_one": "and {{count}} more",
             "moreNeighbours_other": "and {{count}} more",
-            "showArea": "Show {{area}}",
-            "hideArea": "Hide {{area}}",
-            "showAll": "Show all",
             "preview": "Preview",
             "previewLoading": "Loading the preview…",
             "previewFailed": "Could not load the preview.",
@@ -841,7 +838,12 @@
             "pathSteps_other": "{{count}} steps",
             "pathNone": "{{from}} and {{to}} are not connected.",
             "clearPath": "Clear path",
-            "pathHint": "Shift-click another item to see how they connect."
+            "pathHint": "Shift-click another item to see how they connect.",
+            "areaFilter": "Area",
+            "areaFilterLabel": "Filter by area",
+            "layoutLabel": "Layout",
+            "layoutFree": "Free",
+            "layoutFreeHint": "Items placed by their links"
         },
         "propose": {
             "proposeChange": "Propose change",

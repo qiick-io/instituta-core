@@ -823,9 +823,6 @@
             "neighbours": "Verknüpfte Einträge",
             "moreNeighbours_one": "und {{count}} weiterer",
             "moreNeighbours_other": "und {{count}} weitere",
-            "showArea": "{{area}} einblenden",
-            "hideArea": "{{area}} ausblenden",
-            "showAll": "Alle anzeigen",
             "preview": "Vorschau",
             "previewLoading": "Vorschau wird geladen…",
             "previewFailed": "Die Vorschau konnte nicht geladen werden.",
@@ -841,7 +838,12 @@
             "pathSteps_other": "{{count}} Schritte",
             "pathNone": "{{from}} und {{to}} sind nicht verbunden.",
             "clearPath": "Pfad entfernen",
-            "pathHint": "Shift-Klick auf einen anderen Eintrag zeigt, wie sie verbunden sind."
+            "pathHint": "Shift-Klick auf einen anderen Eintrag zeigt, wie sie verbunden sind.",
+            "areaFilter": "Bereich",
+            "areaFilterLabel": "Nach Bereich filtern",
+            "layoutLabel": "Anordnung",
+            "layoutFree": "Frei",
+            "layoutFreeHint": "Einträge nach ihren Verknüpfungen angeordnet"
         },
         "propose": {
             "proposeChange": "Änderung vorschlagen",

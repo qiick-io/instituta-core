@@ -1,7 +1,12 @@
 import { Head, router } from '@inertiajs/react';
-import { Network, Orbit, RotateCcw } from 'lucide-react';
+import { Network, Orbit } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
+import type { ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+    DataTableFacetedFilter,
+    type DataTableFacetedFilterOption,
+} from '@/components/admin/data-table-faceted-filter';
 import { PageEmptyState } from '@/components/admin/page-empty-state';
 import {
     BrainGraphCanvas,
@@ -11,7 +16,7 @@ import { GraphItemCard } from '@/components/brain/graph-item-card';
 import { GraphPathCard } from '@/components/brain/graph-path-card';
 import { FilterSearch } from '@/components/layout/page-header';
 import { PageLayout } from '@/components/layout/page-layout';
-import { Button } from '@/components/ui/button';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import AppLayout from '@/layouts/app-layout';
 import {
     type BrainGraphEdgeInput,
@@ -54,7 +59,8 @@ export default function BrainGraph({
     const { t } = useTranslation();
     const [search, setSearch] = useState('');
     const [matchIds, setMatchIds] = useState<string[] | null>(null);
-    const [hiddenAreas, setHiddenAreas] = useState<string[]>([]);
+    /** Areas picked in the Area filter; none picked shows every area. */
+    const [shownAreas, setShownAreas] = useState<string[]>([]);
     const [fitRequest, setFitRequest] = useState(0);
     const [selectedId, setSelectedId] = useState<string | null>(
         () => nodes.find((node) => node.stable_key === focus)?.id ?? null,
@@ -87,6 +93,13 @@ export default function BrainGraph({
     const areas = useMemo(
         () => [...new Set(nodes.map((node) => node.area))].sort(),
         [nodes],
+    );
+    const hiddenAreas = useMemo(
+        () =>
+            shownAreas.length === 0
+                ? []
+                : areas.filter((area) => !shownAreas.includes(area)),
+        [areas, shownAreas],
     );
     const countsByArea = useMemo(() => {
         const counts = new Map<string, number>();
@@ -207,8 +220,12 @@ export default function BrainGraph({
         findMatches(value, hiddenAreas);
     };
 
-    const updateHiddenAreas = (hidden: string[]): void => {
-        setHiddenAreas(hidden);
+    const showAreas = (shown: string[]): void => {
+        const hidden =
+            shown.length === 0
+                ? []
+                : areas.filter((area) => !shown.includes(area));
+        setShownAreas(shown);
         setFitRequest((request) => request + 1);
         setTrace(null);
 
@@ -221,12 +238,37 @@ export default function BrainGraph({
         }
     };
 
-    const toggleArea = (area: string): void =>
-        updateHiddenAreas(
-            hiddenAreas.includes(area)
-                ? hiddenAreas.filter((hidden) => hidden !== area)
-                : [...hiddenAreas, area],
-        );
+    const areaOptions = useMemo<DataTableFacetedFilterOption[]>(
+        () =>
+            areas.map((area) => {
+                const AreaDot: ComponentType<{ className?: string }> = ({
+                    className,
+                }) => (
+                    <span
+                        aria-hidden="true"
+                        className={cn(
+                            'flex items-center justify-center',
+                            className,
+                        )}
+                    >
+                        <span
+                            className="size-2.5 rounded-full"
+                            style={{
+                                backgroundColor: legendColour(area, areas),
+                            }}
+                        />
+                    </span>
+                );
+
+                return {
+                    value: area,
+                    label: t(`brain.areas.${area}`, { defaultValue: area }),
+                    icon: AreaDot,
+                };
+            }),
+        [areas, t],
+    );
+    const visibleAreas = areas.filter((area) => !hiddenAreas.includes(area));
 
     const hasGraph = hasPerimeter && nodes.length > 0;
     const traceFrom = trace === null ? undefined : nodesById.get(trace.fromId);
@@ -242,90 +284,56 @@ export default function BrainGraph({
                 description={t('brain.graph.description')}
                 filters={
                     hasGraph ? (
-                        <FilterSearch
-                            value={search}
-                            onChange={searchFor}
-                            placeholder={t('brain.graph.searchPlaceholder')}
-                        />
+                        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:flex-nowrap">
+                            <FilterSearch
+                                value={search}
+                                onChange={searchFor}
+                                placeholder={t('brain.graph.searchPlaceholder')}
+                            />
+                            <DataTableFacetedFilter
+                                title={t('brain.graph.areaFilter')}
+                                ariaLabel={t('brain.graph.areaFilterLabel')}
+                                options={areaOptions}
+                                selectedValues={shownAreas}
+                                onSelectedValuesChange={showAreas}
+                            />
+                        </div>
                     ) : undefined
                 }
                 filtersRight={
                     hasGraph ? (
-                        <div className="flex flex-wrap items-center gap-1">
-                            <ul
-                                className="flex flex-wrap items-center gap-1"
-                                aria-label={t('brain.graph.legendLabel')}
+                        <ToggleGroup
+                            variant="outline"
+                            type="single"
+                            value={grouped ? 'constellations' : 'free'}
+                            aria-label={t('brain.graph.layoutLabel')}
+                            onValueChange={(value) => {
+                                if (value) {
+                                    setGrouped(value === 'constellations');
+                                }
+                            }}
+                        >
+                            <ToggleGroupItem
+                                value="free"
+                                title={t('brain.graph.layoutFreeHint')}
                             >
-                                {areas.map((area) => {
-                                    const isHidden = hiddenAreas.includes(area);
-
-                                    return (
-                                        <li key={area}>
-                                            <button
-                                                type="button"
-                                                aria-pressed={!isHidden}
-                                                title={t(
-                                                    isHidden
-                                                        ? 'brain.graph.showArea'
-                                                        : 'brain.graph.hideArea',
-                                                    { area: areaLabel(area) },
-                                                )}
-                                                onClick={() => toggleArea(area)}
-                                                className={cn(
-                                                    'flex items-center gap-1.5 rounded-full border border-transparent px-2.5 py-1 text-sm text-muted-foreground transition-colors hover:border-border hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-                                                    isHidden &&
-                                                        'line-through opacity-50',
-                                                )}
-                                            >
-                                                <span
-                                                    aria-hidden="true"
-                                                    className={cn(
-                                                        'size-2.5 rounded-full transition-transform',
-                                                        isHidden && 'scale-75',
-                                                    )}
-                                                    style={{
-                                                        backgroundColor:
-                                                            isHidden
-                                                                ? 'var(--muted-foreground)'
-                                                                : legendColour(
-                                                                      area,
-                                                                      areas,
-                                                                  ),
-                                                    }}
-                                                />
-                                                {areaLabel(area)}
-                                                <span className="text-xs tabular-nums opacity-70">
-                                                    {countsByArea.get(area) ??
-                                                        0}
-                                                </span>
-                                            </button>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                            {hiddenAreas.length > 0 ? (
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => updateHiddenAreas([])}
-                                >
-                                    <RotateCcw />
-                                    {t('brain.graph.showAll')}
-                                </Button>
-                            ) : null}
-                            <Button
-                                type="button"
-                                variant={grouped ? 'secondary' : 'ghost'}
-                                size="sm"
-                                aria-pressed={grouped}
+                                <Network className="size-4" />
+                                {/* Icon only below `sm`, so the row fits next to the search on a phone. */}
+                                <span className="sr-only sm:not-sr-only">
+                                    {t('brain.graph.layoutFree')}
+                                </span>
+                            </ToggleGroupItem>
+                            <ToggleGroupItem
+                                value="constellations"
                                 title={t('brain.graph.constellationsHint')}
-                                onClick={() => setGrouped((value) => !value)}
                             >
-                                <Orbit />
-                                {t('brain.graph.constellations')}
-                            </Button>
-                        </div>
+                                <Orbit className="size-4" />
+                                {/* Icon only below `sm`, so the row fits next to the search on a phone. */}
+                                <span className="sr-only sm:not-sr-only">
+                                    {t('brain.graph.constellations')}
+                                </span>
+                            </ToggleGroupItem>
+                        </ToggleGroup>
                     ) : undefined
                 }
             >
@@ -356,6 +364,34 @@ export default function BrainGraph({
                             centreRequest={centreRequest}
                             fitRequest={fitRequest}
                         />
+                        <ul
+                            className="pointer-events-none absolute top-3 right-3 hidden flex-col gap-1 rounded-lg border bg-card/80 px-3 py-2 text-xs text-muted-foreground shadow-sm backdrop-blur sm:flex"
+                            aria-label={t('brain.graph.legendLabel')}
+                        >
+                            {visibleAreas.map((area) => (
+                                <li
+                                    key={area}
+                                    className="flex items-center gap-2"
+                                >
+                                    <span
+                                        aria-hidden="true"
+                                        className="size-2 rounded-full"
+                                        style={{
+                                            backgroundColor: legendColour(
+                                                area,
+                                                areas,
+                                            ),
+                                        }}
+                                    />
+                                    <span className="flex-1">
+                                        {areaLabel(area)}
+                                    </span>
+                                    <span className="tabular-nums">
+                                        {countsByArea.get(area) ?? 0}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
                         {matchIds !== null &&
                         selected === null &&
                         trace === null ? (
