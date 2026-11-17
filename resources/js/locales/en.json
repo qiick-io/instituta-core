@@ -802,7 +802,7 @@
         },
         "graph": {
             "title": "Scoped graph",
-            "description": "Every item in this scope and the links between them. Click an item to light its neighbours; double click to open it.",
+            "description": "Every item in this scope and the links between them. Click an item to see its links, double click to open it; drag to move, scroll to zoom.",
             "rootLabel": "Starting from {{title}}",
             "empty": "No items in this perimeter to graph yet.",
             "depth1": "Depth 1",
@@ -816,7 +816,13 @@
             "links_one": "{{count}} link",
             "links_other": "{{count}} links",
             "open": "Open",
-            "clearSelection": "Clear"
+            "clearSelection": "Clear",
+            "zoomIn": "Zoom in",
+            "zoomOut": "Zoom out",
+            "fitView": "Fit to view",
+            "neighbours": "Linked items",
+            "moreNeighbours_one": "and {{count}} more",
+            "moreNeighbours_other": "and {{count}} more"
         },
         "propose": {
             "proposeChange": "Propose change",

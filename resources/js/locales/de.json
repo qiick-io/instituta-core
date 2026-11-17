@@ -802,7 +802,7 @@
         },
         "graph": {
             "title": "Eingeschränkter Graph",
-            "description": "Jeder Eintrag in diesem Bereich und die Links dazwischen. Klicke einen Eintrag, um seine Nachbarn hervorzuheben; Doppelklick öffnet ihn.",
+            "description": "Alle Einträge in diesem Bereich und ihre Verknüpfungen. Klicke auf einen Eintrag, um seine Verknüpfungen zu sehen, Doppelklick öffnet ihn; ziehen zum Verschieben, scrollen zum Zoomen.",
             "rootLabel": "Ausgangspunkt {{title}}",
             "empty": "Keine Einträge in diesem Umfang für den Graphen.",
             "depth1": "Tiefe 1",
@@ -816,7 +816,13 @@
             "links_one": "{{count}} Link",
             "links_other": "{{count}} Links",
             "open": "Öffnen",
-            "clearSelection": "Abwählen"
+            "clearSelection": "Abwählen",
+            "zoomIn": "Vergrößern",
+            "zoomOut": "Verkleinern",
+            "fitView": "An Ansicht anpassen",
+            "neighbours": "Verknüpfte Einträge",
+            "moreNeighbours_one": "und {{count}} weiterer",
+            "moreNeighbours_other": "und {{count}} weitere"
         },
         "propose": {
             "proposeChange": "Änderung vorschlagen",

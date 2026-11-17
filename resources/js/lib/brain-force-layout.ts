@@ -46,8 +46,8 @@ export function brainNodeRadius(degree: number): number {
 /**
  * Lays the whole brain out with a force simulation (#254): links pull related items together,
  * linked nodes push each other away, collision keeps every node apart, and a pull to the centre
- * keeps unlinked items in a compact cloud near the rest. Run to rest up front (no animation), so the graph
- * appears settled and the same data always gives the same picture.
+ * keeps unlinked items in a compact cloud near the rest. Run to rest up front, so the graph
+ * appears settled and the same data always gives the same picture; the canvas only adds a small float on top (#270).
  */
 export function layoutBrainGraph(
     nodes: BrainGraphNodeInput[],
@@ -74,7 +74,7 @@ export function layoutBrainGraph(
             'link',
             forceLink<SimulatedNode, SimulationLinkDatum<SimulatedNode>>(links)
                 .id((node) => node.id)
-                .distance(60)
+                .distance(80)
                 .strength(0.4),
         )
         // Linked items push harder so clusters stay readable; unlinked ones barely push and are
@@ -87,7 +87,7 @@ export function layoutBrainGraph(
         )
         .force(
             'collide',
-            forceCollide<SimulatedNode>().radius((node) => node.radius + 4),
+            forceCollide<SimulatedNode>().radius((node) => node.radius + 10),
         )
         .force(
             'x',

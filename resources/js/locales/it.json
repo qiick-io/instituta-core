@@ -802,7 +802,7 @@
         },
         "graph": {
             "title": "Grafo nello scope",
-            "description": "Ogni voce in questo ambito e i link tra loro. Clicca una voce per illuminarne i vicini; doppio clic per aprirla.",
+            "description": "Ogni elemento di questo ambito e i collegamenti tra loro. Clicca un elemento per vederne i collegamenti, doppio clic per aprirlo; trascina per spostarti, scorri per lo zoom.",
             "rootLabel": "Partenza da {{title}}",
             "empty": "Nessun elemento in questo perimetro da mostrare nel grafo.",
             "depth1": "Profondità 1",
@@ -816,7 +816,13 @@
             "links_one": "{{count}} link",
             "links_other": "{{count}} link",
             "open": "Apri",
-            "clearSelection": "Deseleziona"
+            "clearSelection": "Deseleziona",
+            "zoomIn": "Ingrandisci",
+            "zoomOut": "Riduci",
+            "fitView": "Adatta alla vista",
+            "neighbours": "Elementi collegati",
+            "moreNeighbours_one": "e altro {{count}}",
+            "moreNeighbours_other": "e altri {{count}}"
         },
         "propose": {
             "proposeChange": "Proponi modifica",
