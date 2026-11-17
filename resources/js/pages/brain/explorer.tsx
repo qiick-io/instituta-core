@@ -10,6 +10,7 @@ import {
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageEmptyState } from '@/components/admin/page-empty-state';
+import { AssetView } from '@/components/brain/asset-view';
 import { BrainFileTree } from '@/components/brain/brain-file-tree';
 import type {
     BrainFileNode,
@@ -366,12 +367,21 @@ export default function BrainExplorer({
                                             ) : null}
                                         </Alert>
                                     ))}
-                                    <ItemReader
-                                        item={item}
-                                        neighbourhood={neighbourhood}
-                                        isEditable={isEditable}
-                                        onProposeSection={proposeSectionChange}
-                                    />
+                                    {item.asset ? (
+                                        <AssetView
+                                            asset={item.asset}
+                                            title={item.title}
+                                        />
+                                    ) : (
+                                        <ItemReader
+                                            item={item}
+                                            neighbourhood={neighbourhood}
+                                            isEditable={isEditable}
+                                            onProposeSection={
+                                                proposeSectionChange
+                                            }
+                                        />
+                                    )}
                                 </div>
                             )}
                         </section>

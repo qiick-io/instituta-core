@@ -945,6 +945,16 @@
             "replace": "Bild ersetzen",
             "remove": "Entfernen",
             "hint": "PNG, JPEG oder WebP, bis 1 MB. Ohne Bild erscheinen die Initialen."
+        },
+        "asset": {
+            "download": "Herunterladen",
+            "openOriginal": "Original öffnen",
+            "format": "Format",
+            "size": "Größe",
+            "dimensions": "Abmessungen",
+            "alt": "Alternativtext",
+            "usedIn": "Verwendet in",
+            "notUsed": "Noch kein Dokument bettet diese Datei ein oder verlinkt sie."
         }
     },
     "activity": {

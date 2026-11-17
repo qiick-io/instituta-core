@@ -30,7 +30,7 @@ Matched case-insensitively on repository owner/name, remote URL, and path (enfor
 - Cybergrant
 - Zerotredici
 
-Also skipped by hygiene rules (minimal MVP scanner + path rules): `vendor/`, `node_modules/`, generated build output, chat dumps, binaries without a sidecar, and files that look like secrets / PII (private keys, API tokens, `.env` bodies, passwords in URLs, emails and phone numbers in bodies). Matches are never stored; the sync report records only that a file was skipped and why.
+Also skipped by hygiene rules (minimal MVP scanner + path rules): `vendor/`, `node_modules/`, generated build output, chat dumps, binaries other than the assets of §7 (and assets over 20 MB, `asset_too_large`), and files that look like secrets / PII (private keys, API tokens, `.env` bodies, passwords in URLs, emails and phone numbers in bodies). Matches are never stored; the sync report records only that a file was skipped and why.
 
 ## 3. Manifest (`instituta.json`)
 
@@ -120,7 +120,7 @@ Markdown bodies are split on headings. Each section has:
 | Type | Payload |
 |---|---|
 | `text` | Markdown / plain text |
-| `image` | `path`, **mandatory** `alt`, optional `caption` (agents get path + alt + caption, never the binary) |
+| `image` | `path`, **mandatory** `alt`, optional `caption` (agents get path + alt + caption, never the binary). A local `path` is an `embeds` link to the asset (§7), and the reading view shows the picture |
 | `table` | Narrative table (rendered as UI table) |
 | `data-table` | Reference to a structured table key (§6) |
 | `code` | Language + source |
@@ -136,11 +136,28 @@ Source-of-truth tables (colour tokens, app-ui / site-ui registries, lexicons) ar
 
 Agents query rows through the contract `instituta_table` / `GET /items/{id}/tables/{key}`.
 
-## 7. Sidecars
+## 7. Assets and sidecars
 
-Binaries (images, PDFs) are not ingested as raw content. A sidecar file next to the binary carries caption, extracted text, tags, and other metadata the reader indexes. Missing sidecars → binary skipped (hygiene).
+Images (`png`, `jpg`, `jpeg`, `gif`, `webp`, `avif`, `svg`) and PDFs are **assets** (#311): files people keep in the brain next to their notes (logos, screenshots, brand sheets, specs). Each one becomes an item of its own:
 
-Recommended naming: `<file>.meta.yml` or `<file>.md` sidecar as defined by the adapter; native format prefers YAML sidecars with at least `alt` (images) or `text` (PDFs).
+- stable key: its path, extension included (`brand/excubia/mark.svg`, never clashing with `mark.md`);
+- title: the file name; type `image` or `document`; area from its top folder, like markdown;
+- metadata only: content type, bytes, SHA-256, width × height (raster size or the SVG's `width` / `height` / `viewBox`), alt text and caption. **The bytes never enter the index or reach an agent**; agents read the description (format, size, dimensions, alt, caption, path) and where the file is used.
+- The sync keeps a content-addressed copy of the bytes in the app's private storage, so people can view and download the file in the Explorer (inside their perimeter only; SVGs served under a sandboxing CSP).
+- Files over **20 MB** are skipped (`asset_too_large`): the brain holds references, not media archives.
+
+A **sidecar** is optional. `<file>.meta.yml` (or `.meta.yaml`) next to the asset adds:
+
+```yaml
+title: Excubia mark
+alt: The Excubia shield
+caption: Dark variant, 512 px
+tags: [brand, excubia]
+visibility: internal   # optional, as for markdown
+area: style            # optional
+```
+
+The sidecar is read with its asset, not as an item. A `<file>.md` next to an asset stays a markdown item of its own (for long write-ups about the file).
 
 ## 8. Links and the graph
 

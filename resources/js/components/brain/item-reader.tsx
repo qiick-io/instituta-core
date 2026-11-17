@@ -76,6 +76,18 @@ type Citation = {
     commit: string | null;
 };
 
+export type ItemAsset = {
+    mime: string;
+    bytes: number;
+    width: number | null;
+    height: number | null;
+    alt: string | null;
+    caption: string | null;
+    url: string;
+    download_url: string;
+    used_in: Array<{ title: string; stable_key: string }>;
+};
+
 export type Item = {
     id: string;
     stable_key: string;
@@ -83,6 +95,8 @@ export type Item = {
     summary: string | null;
     /** Generated-block markers in the file, e.g. `qiick-standards` with its note (#295). */
     generated_blocks: Array<{ source: string; note: string }>;
+    /** Set for an image or a PDF (#311): metadata and the URL the app serves it from. */
+    asset: ItemAsset | null;
     area: string;
     type: string;
     visibility: string;

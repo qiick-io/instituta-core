@@ -6,7 +6,7 @@
  * folders start open, entries that are not active show their status.
  */
 import { Link } from '@inertiajs/react';
-import { ChevronRight, FileText, Folder } from 'lucide-react';
+import { ChevronRight, FileImage, FileText, Folder } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
     Collapsible,
@@ -28,6 +28,8 @@ export type BrainFileNode = {
     path: string;
     stable_key: string;
     status: string;
+    /** `image` and `document` are assets (#311); the rest are text items. */
+    type: string;
 };
 
 export type BrainFolderNode = {
@@ -75,7 +77,7 @@ function TreeEntry({
                         href={explorerShow.url(node.stable_key)}
                         preserveScroll
                     >
-                        <FileText />
+                        {node.type === 'image' ? <FileImage /> : <FileText />}
                         <span>{node.name}</span>
                         {node.status !== 'active' ? (
                             <span className="ml-auto shrink-0 text-xs text-muted-foreground">

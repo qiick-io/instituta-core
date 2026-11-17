@@ -30,6 +30,8 @@ const LISTED_NEIGHBOURS = 8;
 
 type ItemPreview = {
     summary: string | null;
+    /** Set for an image or a PDF (#311): it previews as itself. */
+    asset: { url: string; mime: string; alt: string | null } | null;
     sections: Array<{
         anchor: string;
         heading: string | null;
@@ -121,7 +123,27 @@ function PreviewBody({ state }: { state: PreviewState }) {
         );
     }
 
-    const { summary, sections, hasMore } = state.preview;
+    const { summary, sections, hasMore, asset } = state.preview;
+
+    if (asset !== null) {
+        return asset.mime === 'application/pdf' ? (
+            <a
+                href={asset.url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-primary underline-offset-4 hover:underline"
+            >
+                {t('brain.asset.openOriginal')}
+            </a>
+        ) : (
+            <img
+                src={asset.url}
+                alt={asset.alt ?? summary ?? ''}
+                className="max-h-56 w-full rounded-md object-contain"
+            />
+        );
+    }
+
     // The summary is often the first paragraph: do not say it twice.
     const showsSummary =
         (summary ?? '').trim() !== '' &&

@@ -178,14 +178,6 @@ class MarkdownAdapter implements BrainAdapterContract
 
     protected function areaFromPath(string $relativePath): string
     {
-        $parts = explode('/', str_replace('\\', '/', $relativePath));
-        $first = strtolower($parts[0]);
-
-        return match ($first) {
-            'rules', 'decisions', 'style', 'brand', 'glossary', 'plans', 'notes' => $first === 'brand' ? 'style' : $first,
-            'design-system', 'design_system', 'designsystem' => 'design-system',
-            'connected-systems', 'connected_systems' => 'connected-systems',
-            default => 'notes',
-        };
+        return PathHelper::areaFromPath($relativePath);
     }
 }

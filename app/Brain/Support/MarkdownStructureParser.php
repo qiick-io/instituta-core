@@ -383,6 +383,18 @@ final class MarkdownStructureParser
                     'alt' => $alt,
                     'caption' => $descendant->getTitle() !== '' ? $descendant->getTitle() : null,
                 ]);
+
+                // A picture in the repo is an asset of the brain: the edge lets the sync resolve it,
+                // so the page can show it and the asset knows where it is used (#311).
+                $url = $descendant->getUrl();
+                if ($url !== '' && preg_match('#^(?:[a-z][a-z\d+.-]*:|//|\#)#i', $url) !== 1) {
+                    $edges[] = new LinkEdgeData(
+                        fromPath: $path,
+                        target: $url,
+                        relation: 'embeds',
+                        fromSection: $section,
+                    );
+                }
             }
         });
     }
