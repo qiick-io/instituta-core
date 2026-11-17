@@ -8,8 +8,12 @@ use App\Brain\Data\CitationData;
 use App\Brain\Data\ItemData;
 use App\Brain\Data\ManifestData;
 use App\Brain\Data\ReadRequestData;
+use App\Brain\Data\SectionData;
 use App\Brain\Enums\VisibilityEnum;
+use App\Brain\Scanners\SecretPiiScanner;
+use App\Brain\Support\DocumentTextExtractor;
 use App\Brain\Support\PathHelper;
+use Illuminate\Support\Str;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
@@ -29,6 +33,11 @@ use Symfony\Component\Yaml\Yaml;
  */
 final class AssetReader
 {
+    public function __construct(
+        private readonly DocumentTextExtractor $textExtractor = new DocumentTextExtractor,
+        private readonly SecretPiiScanner $secretPiiScanner = new SecretPiiScanner,
+    ) {}
+
     /** Larger files are skipped (`asset_too_large`): a brain holds references, not media archives. */
     public const int MAX_BYTES = 20 * 1024 * 1024;
 
@@ -112,7 +121,7 @@ final class AssetReader
 
     /**
      * @param  callable(string): string  $areaFromPath  The area rule of the markdown adapter.
-     * @return array{item: ItemData|null, skip_reason: string|null}
+     * @return array{item: ItemData|null, skip_reason: string|null, text_withheld: string|null}
      */
     public function read(
         string $absolutePath,
@@ -124,17 +133,17 @@ final class AssetReader
         $bytes = @filesize($absolutePath);
 
         if ($bytes === false) {
-            return ['item' => null, 'skip_reason' => 'unreadable'];
+            return ['item' => null, 'skip_reason' => 'unreadable', 'text_withheld' => null];
         }
 
         if ($bytes > self::MAX_BYTES) {
-            return ['item' => null, 'skip_reason' => 'asset_too_large'];
+            return ['item' => null, 'skip_reason' => 'asset_too_large', 'text_withheld' => null];
         }
 
         $contents = @file_get_contents($absolutePath);
 
         if ($contents === false) {
-            return ['item' => null, 'skip_reason' => 'unreadable'];
+            return ['item' => null, 'skip_reason' => 'unreadable', 'text_withheld' => null];
         }
 
         $extension = PathHelper::extension($relativePath);
@@ -155,6 +164,33 @@ final class AssetReader
             is_array($sidecar['tags'] ?? null) ? $sidecar['tags'] : [],
             static fn (mixed $tag): bool => is_string($tag) && $tag !== '',
         ));
+
+        // The text of an Office or OpenDocument file, read locally, becomes sections people and
+        // agents can search and read (#317). It passes the same secret / PII scan as markdown:
+        // a hit keeps the file (still downloadable) and withholds its text.
+        $sections = [];
+        $text = '';
+        $textWithheld = null;
+        $parts = DocumentTextExtractor::supports($extension) ? $this->textExtractor->extract($absolutePath, $extension) : null;
+
+        if ($parts !== null) {
+            $text = implode("\n\n", array_column($parts, 'text'));
+            $textWithheld = $this->secretPiiScanner->skipReasonForContent($text);
+
+            if ($textWithheld !== null) {
+                $text = '';
+            } else {
+                foreach ($parts as $position => $part) {
+                    $sections[] = new SectionData(
+                        anchor: Str::slug($part['heading']) ?: 'text',
+                        heading: $part['heading'],
+                        level: 2,
+                        position: $position + 1,
+                        body: $part['text'],
+                    );
+                }
+            }
+        }
 
         $item = new ItemData(
             path: $relativePath,
@@ -187,13 +223,15 @@ final class AssetReader
                     'height' => $height,
                     'alt' => $alt,
                     'caption' => $caption,
+                    'has_text' => $sections !== [],
                 ],
             ],
-            // What search and agents read: the description, never the bytes.
-            body: implode("\n", array_filter([$title, $alt, $caption, $description, $relativePath])),
+            sections: $sections,
+            // What search and agents read: the description and the extracted text, never the bytes.
+            body: implode("\n", array_filter([$title, $alt, $caption, $description, $relativePath, $text])),
         );
 
-        return ['item' => $item, 'skip_reason' => null];
+        return ['item' => $item, 'skip_reason' => null, 'text_withheld' => $textWithheld];
     }
 
     /**

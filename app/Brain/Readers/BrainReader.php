@@ -108,6 +108,11 @@ final class BrainReader
 
                 if ($asset['item'] !== null) {
                     $items[] = $asset['item'];
+
+                    // The file is in, its text is not: reported like a skip, without the match (#317).
+                    if ($asset['text_withheld'] !== null) {
+                        $skipped[] = new SkippedFileData($relative, 'text_withheld:'.$asset['text_withheld']);
+                    }
                 } else {
                     $skipped[] = new SkippedFileData($relative, $asset['skip_reason'] ?? 'unreadable');
                 }

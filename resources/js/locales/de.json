@@ -961,7 +961,9 @@
                 "text": "{{format}}-Dokument",
                 "spreadsheet": "{{format}}-Tabelle",
                 "presentation": "{{format}}-Präsentation"
-            }
+            },
+            "extractedText": "Text",
+            "extractedTextHint": "Beim Sync aus der Datei gelesen, damit Suche und Agenten ihn nutzen können."
         }
     },
     "activity": {

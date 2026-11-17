@@ -376,6 +376,7 @@ export default function BrainExplorer({
                                         <AssetView
                                             asset={item.asset}
                                             title={item.title}
+                                            sections={item.sections}
                                         />
                                     ) : (
                                         <ItemReader

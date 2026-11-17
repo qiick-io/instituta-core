@@ -42,9 +42,12 @@ function formatBytes(bytes: number, locale: string): string {
 export function AssetView({
     asset,
     title,
+    sections,
 }: {
     asset: ItemAsset;
     title: string;
+    /** The text read out of a document (#317): pages, slides or one part. */
+    sections: Array<{ anchor: string; heading: string; body: string }>;
 }) {
     const { t, i18n } = useTranslation();
     const isPdf = asset.mime === 'application/pdf';
@@ -152,6 +155,34 @@ export function AssetView({
                     </>
                 ) : null}
             </dl>
+
+            {sections.length > 0 ? (
+                <section className="flex flex-col gap-2">
+                    <h2 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                        {t('brain.asset.extractedText')}
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                        {t('brain.asset.extractedTextHint')}
+                    </p>
+                    <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto rounded-lg border bg-card p-4">
+                        {sections.map((section) => (
+                            <article
+                                key={section.anchor}
+                                className="flex flex-col gap-1"
+                            >
+                                {sections.length > 1 ? (
+                                    <h3 className="text-sm font-semibold">
+                                        {section.heading}
+                                    </h3>
+                                ) : null}
+                                <p className="text-sm whitespace-pre-line">
+                                    {section.body}
+                                </p>
+                            </article>
+                        ))}
+                    </div>
+                </section>
+            ) : null}
 
             <section className="flex flex-col gap-2">
                 <h2 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
