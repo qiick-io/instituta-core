@@ -135,7 +135,8 @@
         "copy": "Kopieren",
         "copied": "Kopiert",
         "restore": "Wiederherstellen",
-        "deletePermanently": "Dauerhaft löschen"
+        "deletePermanently": "Dauerhaft löschen",
+        "pageOf": "Seite {{page}} von {{total}}"
     },
     "confirmDestructive": {
         "typeToConfirm": "Tippe „{{name}}“ zur Bestätigung"
