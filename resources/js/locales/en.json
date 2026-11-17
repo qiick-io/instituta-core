@@ -822,7 +822,17 @@
             "fitView": "Fit to view",
             "neighbours": "Linked items",
             "moreNeighbours_one": "and {{count}} more",
-            "moreNeighbours_other": "and {{count}} more"
+            "moreNeighbours_other": "and {{count}} more",
+            "showArea": "Show {{area}}",
+            "hideArea": "Hide {{area}}",
+            "showAll": "Show all",
+            "preview": "Preview",
+            "previewLoading": "Loading the preview…",
+            "previewFailed": "Could not load the preview.",
+            "previewEmpty": "This item has no content yet.",
+            "previewMore": "Open the item to read the rest.",
+            "matches_one": "{{count}} match",
+            "matches_other": "{{count}} matches"
         },
         "propose": {
             "proposeChange": "Propose change",

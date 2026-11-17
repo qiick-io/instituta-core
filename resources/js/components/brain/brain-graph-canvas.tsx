@@ -1,16 +1,18 @@
 /**
- * The whole brain as a living graph (#254, #270), drawn on a canvas so hundreds of nodes stay
+ * The whole brain as a living graph (#254, #270, #273), drawn on a canvas so hundreds of nodes stay
  * smooth. Positions come from `layoutBrainGraph` (d3-force, settled once); on top of them every
  * node floats a few pixels on its own slow loop, and a handful of beams run along the links.
  *
- * - Click selects a node: its neighbours light up, the rest dims, and beams run only along the
- *   selected node's links (at most MAX_SELECTED_BEAMS, so it stays fast). Click empty space to clear.
- * - Double click (or Enter on the focused canvas) opens the item.
- * - Drag to pan, wheel to zoom, the buttons zoom and fit.
- * - Labels only where they fit: the selection, the hovered node and the hubs, more as you zoom in,
- *   never overlapping.
- * - Reduced motion: no float, no beams, camera jumps instead of gliding; the canvas redraws only
- *   when something changes. Colours come from the theme tokens and follow light/dark.
+ * - On load the brain unfolds from its centre, nodes popping in from the middle outwards.
+ * - Click selects a node: a pulse rings out, its neighbours light up, the rest fades, and beams run
+ *   only along the selected node's links (at most MAX_SELECTED_BEAMS). Click empty space to clear.
+ * - Hover previews a node's links. Double click (or Enter on the focused canvas) opens the item.
+ * - Areas hidden from the legend fade out with their links; search matches glow, the rest fades.
+ * - Drag to pan, wheel to zoom, the buttons zoom and fit (to the visible nodes).
+ * - Labels only where they fit: the selection, the hovered node, matches and hubs, more as you
+ *   zoom in, never overlapping.
+ * - Reduced motion: no intro, float, beams, pulse or dust; fades and the camera jump; the canvas
+ *   redraws only when something changes. Colours come from the theme tokens and follow light/dark.
  */
 import { Maximize, Minus, Plus } from 'lucide-react';
 import { useCallback, useEffect, useRef } from 'react';
@@ -24,6 +26,8 @@ import type {
 import {
     areaIndex,
     boxesOverlap,
+    easeOutBack,
+    easeOutCubic,
     floatOffset,
     type LabelBox,
     type Palette,
@@ -42,6 +46,12 @@ const FLOAT_AMPLITUDE = 3;
 const MIN_ZOOM = 0.08;
 const MAX_ZOOM = 4;
 const LABEL_FONT_SIZE = 12;
+/** The intro: the last node starts popping in after INTRO_SPREAD, each takes INTRO_DURATION. */
+const INTRO_SPREAD = 0.9;
+const INTRO_DURATION = 0.7;
+const PULSE_DURATION = 1.1;
+/** Faint specks behind the graph that drift with a little parallax. */
+const DUST_COUNT = 70;
 
 type Camera = { x: number; y: number; k: number };
 
@@ -51,11 +61,17 @@ type Props = {
     nodes: PlacedBrainNode[];
     edges: BrainGraphEdgeInput[];
     areas: string[];
+    /** Areas switched off in the legend: their nodes and links fade out. */
+    hiddenAreas: string[];
+    /** Search matches (ids), or null when there is no search. */
+    matchIds: string[] | null;
     selectedId: string | null;
     onSelect: (id: string | null) => void;
     onOpen: (node: PlacedBrainNode) => void;
     /** Glide the camera to this node; a new nonce asks again for the same node. */
     centreRequest: CentreRequest;
+    /** A new value fits the camera to the visible nodes. */
+    fitRequest: number;
 };
 
 /** Everything the frame loop reads, kept in a ref so drawing never re-renders React. */
@@ -65,10 +81,25 @@ type Scene = {
     links: Array<[number, number]>;
     nodeArea: number[];
     neighbours: Set<number> | null;
+    matches: Set<number> | null;
+    hiddenAreas: Set<number>;
     selected: number | null;
     hovered: number | null;
+    /** Animated per node: shown (1) or hidden by the legend (0). */
+    visible: Float32Array;
+    /** Animated per node: full (1) or faded by a selection or a search. */
+    emphasis: Float32Array;
+    /** Per node, 0 at the centre and 1 at the rim: when it pops in during the intro. */
+    introDelay: Float32Array;
+    introStart: number | null;
+    pulseStart: number | null;
+    lastTime: number | null;
+    centreX: number;
+    centreY: number;
     px: Float32Array;
     py: Float32Array;
+    /** Per node, the intro and legend scale of the body (0..~1.1). */
+    scale: Float32Array;
     camera: Camera;
     target: Camera | null;
     width: number;
@@ -88,28 +119,36 @@ function prefersReducedMotion(): boolean {
     );
 }
 
-/** A small deterministic hash, so ambient beams pick edges without any state. */
+/** A small deterministic hash, so ambient beams and dust need no state. */
 function hash(value: number): number {
     const x = Math.sin(value * 12.9898) * 43758.5453;
 
     return x - Math.floor(x);
 }
 
-function fitCamera(scene: Scene): Camera {
-    if (scene.nodes.length === 0 || scene.width === 0) {
-        return { x: scene.width / 2, y: scene.height / 2, k: 1 };
-    }
+function isShown(scene: Scene, index: number): boolean {
+    return !scene.hiddenAreas.has(scene.nodeArea[index]);
+}
 
+function fitCamera(scene: Scene): Camera {
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
 
-    for (const node of scene.nodes) {
+    scene.nodes.forEach((node, index) => {
+        if (!isShown(scene, index)) {
+            return;
+        }
+
         minX = Math.min(minX, node.x - node.radius);
         minY = Math.min(minY, node.y - node.radius);
         maxX = Math.max(maxX, node.x + node.radius);
         maxY = Math.max(maxY, node.y + node.radius);
+    });
+
+    if (!Number.isFinite(minX) || scene.width === 0) {
+        return { x: scene.width / 2, y: scene.height / 2, k: 1 };
     }
 
     const padding = 48;
@@ -144,6 +183,75 @@ function cameraOn(scene: Scene, index: number): Camera {
     };
 }
 
+/** Moves the animated values towards their targets; returns whether anything is still moving. */
+function stepTransitions(scene: Scene, time: number): boolean {
+    const dt =
+        scene.lastTime === null ? 0 : Math.min(0.1, time - scene.lastTime);
+    scene.lastTime = time;
+    const ease = scene.animate ? 1 - Math.exp(-dt * 9) : 1;
+    let moving = false;
+
+    for (let index = 0; index < scene.nodes.length; index++) {
+        const visibleTarget = isShown(scene, index) ? 1 : 0;
+        let emphasisTarget = 1;
+
+        if (scene.neighbours !== null) {
+            emphasisTarget = scene.neighbours.has(index) ? 1 : 0.14;
+        } else if (scene.matches !== null) {
+            emphasisTarget = scene.matches.has(index) ? 1 : 0.22;
+        }
+
+        scene.visible[index] += (visibleTarget - scene.visible[index]) * ease;
+        scene.emphasis[index] +=
+            (emphasisTarget - scene.emphasis[index]) * ease;
+
+        if (
+            Math.abs(visibleTarget - scene.visible[index]) > 0.005 ||
+            Math.abs(emphasisTarget - scene.emphasis[index]) > 0.005
+        ) {
+            moving = true;
+        } else {
+            scene.visible[index] = visibleTarget;
+            scene.emphasis[index] = emphasisTarget;
+        }
+    }
+
+    return moving;
+}
+
+/** Faint specks in screen space that drift with a fraction of the camera, for depth. */
+function drawDust(
+    context: CanvasRenderingContext2D,
+    scene: Scene,
+    palette: Palette,
+    time: number,
+): void {
+    for (let speck = 0; speck < DUST_COUNT; speck++) {
+        const depth = 0.04 + hash(speck * 3.1) * 0.12;
+        const span = Math.max(scene.width, scene.height) + 200;
+        const x =
+            ((((hash(speck * 1.7) * span + scene.camera.x * depth) % span) +
+                span) %
+                span) -
+            100;
+        const y =
+            ((((hash(speck * 2.3) * span + scene.camera.y * depth) % span) +
+                span) %
+                span) -
+            100;
+        const twinkle =
+            0.5 + 0.5 * Math.sin(time * (0.4 + hash(speck) * 0.8) + speck);
+
+        context.beginPath();
+        context.arc(x, y, 0.6 + hash(speck * 5.3) * 1.1, 0, Math.PI * 2);
+        context.fillStyle = rgba(
+            palette.mutedForeground,
+            0.05 + twinkle * 0.12,
+        );
+        context.fill();
+    }
+}
+
 function draw(
     context: CanvasRenderingContext2D,
     scene: Scene,
@@ -155,18 +263,43 @@ function draw(
         return;
     }
 
-    const { camera, nodes, links, px, py } = scene;
+    const { camera, nodes, links, px, py, visible, emphasis, scale } = scene;
     const hasSelection = scene.selected !== null;
 
     context.setTransform(scene.dpr, 0, 0, scene.dpr, 0, 0);
     context.clearRect(0, 0, scene.width, scene.height);
 
+    if (scene.animate) {
+        drawDust(context, scene, palette, time);
+    }
+
+    // Positions and scales: the float, the intro unfolding from the centre, the legend fade.
     for (let index = 0; index < nodes.length; index++) {
         const offset = scene.animate
             ? floatOffset(index, time, FLOAT_AMPLITUDE)
             : { dx: 0, dy: 0 };
-        px[index] = nodes[index].x + offset.dx;
-        py[index] = nodes[index].y + offset.dy;
+        let spread = 1;
+        let pop = 1;
+
+        if (scene.animate && scene.introStart !== null) {
+            const progress =
+                (time -
+                    scene.introStart -
+                    scene.introDelay[index] * INTRO_SPREAD) /
+                INTRO_DURATION;
+            spread = easeOutCubic(progress);
+            pop = progress <= 0 ? 0 : easeOutBack(progress);
+        }
+
+        px[index] =
+            scene.centreX +
+            (nodes[index].x - scene.centreX) * spread +
+            offset.dx;
+        py[index] =
+            scene.centreY +
+            (nodes[index].y - scene.centreY) * spread +
+            offset.dy;
+        scale[index] = pop * (0.4 + 0.6 * visible[index]);
     }
 
     context.save();
@@ -174,99 +307,180 @@ function draw(
     context.scale(camera.k, camera.k);
     context.lineCap = 'round';
 
-    // Links: one path for the quiet ones, one for the selected node's.
+    // Quiet links, bucketed by strength so each bucket is one path.
     const isLit = (from: number, to: number): boolean =>
         hasSelection && (from === scene.selected || to === scene.selected);
+    const isPreviewed = (from: number, to: number): boolean =>
+        !hasSelection &&
+        scene.hovered !== null &&
+        (from === scene.hovered || to === scene.hovered);
+    const buckets = new Map<number, Array<[number, number]>>();
+    const litLinks: Array<[number, number]> = [];
+    const previewLinks: Array<[number, number]> = [];
 
-    context.beginPath();
+    for (const link of links) {
+        const [from, to] = link;
+        const presence =
+            Math.min(visible[from], visible[to]) *
+            Math.min(1, scale[from], scale[to]);
 
-    for (const [from, to] of links) {
-        if (!isLit(from, to)) {
-            context.moveTo(px[from], py[from]);
-            context.lineTo(px[to], py[to]);
+        if (presence < 0.02) {
+            continue;
+        }
+
+        if (isLit(from, to)) {
+            litLinks.push(link);
+            continue;
+        }
+
+        if (isPreviewed(from, to)) {
+            previewLinks.push(link);
+            continue;
+        }
+
+        const strength =
+            Math.round(presence * Math.min(emphasis[from], emphasis[to]) * 10) /
+            10;
+
+        if (strength > 0) {
+            const bucket = buckets.get(strength) ?? [];
+            bucket.push(link);
+            buckets.set(strength, bucket);
         }
     }
 
     context.lineWidth = 1 / camera.k;
-    context.strokeStyle = rgba(palette.border, hasSelection ? 0.25 : 0.75);
-    context.stroke();
 
-    const litLinks = hasSelection
-        ? links.filter(([from, to]) => isLit(from, to))
-        : [];
-
-    if (litLinks.length > 0) {
+    for (const [strength, bucket] of buckets) {
         context.beginPath();
 
-        for (const [from, to] of litLinks) {
+        for (const [from, to] of bucket) {
             context.moveTo(px[from], py[from]);
             context.lineTo(px[to], py[to]);
         }
 
-        context.lineWidth = 1.5 / camera.k;
-        context.strokeStyle = rgba(palette.primary, 0.45);
+        context.strokeStyle = rgba(
+            palette.border,
+            0.8 * Math.max(0.15, strength),
+        );
         context.stroke();
+    }
+
+    const strokeLinks = (
+        group: Array<[number, number]>,
+        colour: string,
+        width: number,
+    ): void => {
+        if (group.length === 0) {
+            return;
+        }
+
+        context.beginPath();
+
+        for (const [from, to] of group) {
+            context.moveTo(px[from], py[from]);
+            context.lineTo(px[to], py[to]);
+        }
+
+        context.lineWidth = width / camera.k;
+        context.strokeStyle = colour;
+        context.stroke();
+    };
+
+    strokeLinks(litLinks, rgba(palette.primary, 0.5), 1.5);
+
+    if (scene.hovered !== null) {
+        strokeLinks(
+            previewLinks,
+            rgba(palette.areas[scene.nodeArea[scene.hovered]], 0.6),
+            1.4,
+        );
     }
 
     if (scene.animate) {
         drawBeams(context, scene, palette, litLinks, time);
     }
 
+    // The pulse rings out of a freshly selected node.
+    if (scene.animate && scene.selected !== null && scene.pulseStart !== null) {
+        const radius = nodes[scene.selected].radius;
+
+        for (let ring = 0; ring < 2; ring++) {
+            const progress =
+                (time - scene.pulseStart - ring * 0.22) / PULSE_DURATION;
+
+            if (progress > 0 && progress < 1) {
+                context.beginPath();
+                context.arc(
+                    px[scene.selected],
+                    py[scene.selected],
+                    radius + easeOutCubic(progress) * (radius * 2.5 + 40),
+                    0,
+                    Math.PI * 2,
+                );
+                context.lineWidth = 2 / camera.k;
+                context.strokeStyle = rgba(
+                    palette.primary,
+                    (1 - progress) * 0.55,
+                );
+                context.stroke();
+            }
+        }
+    }
+
     // Nodes: a soft halo for the ones that matter, then the body.
     for (let index = 0; index < nodes.length; index++) {
+        if (scale[index] <= 0.01 || visible[index] <= 0.01) {
+            continue;
+        }
+
         const node = nodes[index];
         const colour = palette.areas[scene.nodeArea[index]];
+        const radius = node.radius * scale[index];
+        const alpha = emphasis[index] * visible[index];
         const isNeighbour = scene.neighbours?.has(index) ?? false;
-        const isDimmed = hasSelection && !isNeighbour;
-        const isHighlighted =
-            index === scene.selected ||
-            index === scene.hovered ||
-            (hasSelection ? isNeighbour : node.degree >= LABELLED_DEGREE);
-        const alpha = isDimmed ? 0.16 : 1;
+        const isMatch = scene.matches?.has(index) ?? false;
+        const isFocus = index === scene.selected || index === scene.hovered;
+        const haloStrength = isFocus
+            ? 0.3
+            : isNeighbour || isMatch
+              ? 0.24
+              : !hasSelection && node.degree >= LABELLED_DEGREE
+                ? 0.13
+                : 0;
 
-        if (isHighlighted && !isDimmed) {
+        if (haloStrength > 0 && alpha > 0.3) {
+            const reach = radius * (isMatch && !isFocus ? 2.9 : 2.4);
             const halo = context.createRadialGradient(
                 px[index],
                 py[index],
-                node.radius * 0.6,
+                radius * 0.6,
                 px[index],
                 py[index],
-                node.radius * 2.4,
+                reach,
             );
-            halo.addColorStop(
-                0,
-                rgba(
-                    colour,
-                    hasSelection || index === scene.hovered ? 0.28 : 0.14,
-                ),
-            );
+            halo.addColorStop(0, rgba(colour, haloStrength * alpha));
             halo.addColorStop(1, rgba(colour, 0));
             context.fillStyle = halo;
             context.beginPath();
-            context.arc(
-                px[index],
-                py[index],
-                node.radius * 2.4,
-                0,
-                Math.PI * 2,
-            );
+            context.arc(px[index], py[index], reach, 0, Math.PI * 2);
             context.fill();
         }
 
         context.beginPath();
-        context.arc(px[index], py[index], node.radius, 0, Math.PI * 2);
+        context.arc(px[index], py[index], radius, 0, Math.PI * 2);
         context.fillStyle = rgba(colour, 0.92 * alpha);
         context.fill();
         context.lineWidth = 1.5 / camera.k;
         context.strokeStyle = rgba(palette.card, alpha);
         context.stroke();
 
-        if (index === scene.selected || index === scene.hovered) {
+        if (isFocus || (isMatch && !hasSelection)) {
             context.beginPath();
             context.arc(
                 px[index],
                 py[index],
-                node.radius + 4 / camera.k,
+                radius + 4 / camera.k,
                 0,
                 Math.PI * 2,
             );
@@ -285,8 +499,8 @@ function draw(
 
 /**
  * Beams: a short glowing trail running along a link. With a selection they run outward from the
- * selected node along its links; without one, a few drift across random links to show the graph
- * is alive. Never more than MAX_SELECTED_BEAMS at once.
+ * selected node along its links; without one, a few drift across random visible links to show the
+ * graph is alive. Never more than MAX_SELECTED_BEAMS at once.
  */
 function drawBeams(
     context: CanvasRenderingContext2D,
@@ -305,16 +519,19 @@ function drawBeams(
     }> = [];
 
     if (scene.selected !== null) {
-        litLinks.slice(0, MAX_SELECTED_BEAMS).forEach(([from, to], index) => {
-            const outward = from === scene.selected;
-            beams.push({
-                from: outward ? from : to,
-                to: outward ? to : from,
-                progress: (time * 0.55 + index * 0.37) % 1,
-                colour: palette.primary,
-                alpha: 0.95,
+        litLinks
+            .filter(([from, to]) => isShown(scene, from) && isShown(scene, to))
+            .slice(0, MAX_SELECTED_BEAMS)
+            .forEach(([from, to], index) => {
+                const outward = from === scene.selected;
+                beams.push({
+                    from: outward ? from : to,
+                    to: outward ? to : from,
+                    progress: (time * 0.55 + index * 0.37) % 1,
+                    colour: palette.primary,
+                    alpha: 0.95,
+                });
             });
-        });
     } else if (scene.links.length > 0) {
         const period = 2.8;
 
@@ -325,6 +542,16 @@ function drawBeams(
                 scene.links[
                     Math.floor(hash(cycle * 31 + beam * 7) * scene.links.length)
                 ];
+
+            if (
+                scene.visible[link[0]] < 0.9 ||
+                scene.visible[link[1]] < 0.9 ||
+                scene.emphasis[link[0]] < 0.9 ||
+                scene.emphasis[link[1]] < 0.9
+            ) {
+                continue;
+            }
+
             beams.push({
                 from: link[0],
                 to: link[1],
@@ -374,30 +601,35 @@ function drawLabels(
     const candidates: number[] = [];
     const seen = new Set<number>();
     const add = (index: number | null): void => {
-        if (index !== null && !seen.has(index)) {
+        if (
+            index !== null &&
+            !seen.has(index) &&
+            scene.visible[index] > 0.6 &&
+            scene.scale[index] > 0.8
+        ) {
             seen.add(index);
             candidates.push(index);
         }
     };
+    const byDegree = (a: number, b: number): number =>
+        nodes[b].degree - nodes[a].degree;
 
     add(scene.selected);
     add(scene.hovered);
-    [...(scene.neighbours ?? [])]
-        .sort((a, b) => nodes[b].degree - nodes[a].degree)
-        .forEach(add);
+    [...(scene.neighbours ?? [])].sort(byDegree).forEach(add);
+    [...(scene.matches ?? [])].sort(byDegree).slice(0, 60).forEach(add);
 
     const showsAll = camera.k >= ALL_LABELS_ZOOM;
-    const byDegree = nodes
+    const quiet = scene.selected === null && scene.matches === null;
+    nodes
         .map((_, index) => index)
         .filter(
             (index) =>
-                showsAll ||
-                (scene.selected === null &&
-                    nodes[index].degree >= LABELLED_DEGREE),
+                showsAll || (quiet && nodes[index].degree >= LABELLED_DEGREE),
         )
-        .sort((a, b) => nodes[b].degree - nodes[a].degree)
-        .slice(0, 300);
-    byDegree.forEach(add);
+        .sort(byDegree)
+        .slice(0, 300)
+        .forEach(add);
 
     context.font = `500 ${LABEL_FONT_SIZE}px ${palette.fontFamily}`;
     context.textBaseline = 'middle';
@@ -417,7 +649,10 @@ function drawLabels(
 
         const width = textWidth + 12;
         const centreX = px[index] * camera.k + camera.x;
-        const top = (py[index] + nodes[index].radius) * camera.k + camera.y + 6;
+        const top =
+            (py[index] + nodes[index].radius * scene.scale[index]) * camera.k +
+            camera.y +
+            6;
         const box = { x: centreX - width / 2, y: top, width, height };
 
         if (
@@ -432,20 +667,21 @@ function drawLabels(
 
         placed.push(box);
         const isFocus = index === scene.selected || index === scene.hovered;
+        const alpha = Math.max(0.35, scene.emphasis[index]);
 
         context.beginPath();
         context.roundRect(box.x, box.y, width, height, height / 2);
-        context.fillStyle = rgba(palette.card, 0.88);
+        context.fillStyle = rgba(palette.card, 0.88 * alpha);
         context.fill();
         context.lineWidth = 1;
         context.strokeStyle = rgba(
             isFocus ? palette.primary : palette.border,
-            isFocus ? 0.6 : 0.9,
+            (isFocus ? 0.6 : 0.9) * alpha,
         );
         context.stroke();
         context.fillStyle = rgba(
             isFocus ? palette.foreground : palette.mutedForeground,
-            1,
+            alpha,
         );
         context.fillText(label, centreX, top + height / 2 + 0.5);
     }
@@ -455,10 +691,13 @@ export function BrainGraphCanvas({
     nodes,
     edges,
     areas,
+    hiddenAreas,
+    matchIds,
     selectedId,
     onSelect,
     onOpen,
     centreRequest,
+    fitRequest,
 }: Props) {
     const { t } = useTranslation();
     const containerRef = useRef<HTMLDivElement>(null);
@@ -469,10 +708,21 @@ export function BrainGraphCanvas({
         links: [],
         nodeArea: [],
         neighbours: null,
+        matches: null,
+        hiddenAreas: new Set(),
         selected: null,
         hovered: null,
+        visible: new Float32Array(0),
+        emphasis: new Float32Array(0),
+        introDelay: new Float32Array(0),
+        introStart: null,
+        pulseStart: null,
+        lastTime: null,
+        centreX: 0,
+        centreY: 0,
         px: new Float32Array(0),
         py: new Float32Array(0),
+        scale: new Float32Array(0),
         camera: { x: 0, y: 0, k: 1 },
         target: null,
         width: 0,
@@ -503,7 +753,7 @@ export function BrainGraphCanvas({
         scene.dirty = true;
     }, []);
 
-    // Data: index the nodes, resolve links to indexes, colour by area.
+    // Data: index the nodes, resolve links to indexes, colour by area, order the intro.
     useEffect(() => {
         const scene = sceneRef.current;
         scene.nodes = nodes;
@@ -517,7 +767,24 @@ export function BrainGraphCanvas({
         scene.nodeArea = nodes.map((node) => areaIndex(node.area, areas));
         scene.px = new Float32Array(nodes.length);
         scene.py = new Float32Array(nodes.length);
+        scene.scale = new Float32Array(nodes.length).fill(1);
+        scene.visible = new Float32Array(nodes.length).fill(1);
+        scene.emphasis = new Float32Array(nodes.length).fill(1);
+
+        const count = Math.max(1, nodes.length);
+        scene.centreX = nodes.reduce((sum, node) => sum + node.x, 0) / count;
+        scene.centreY = nodes.reduce((sum, node) => sum + node.y, 0) / count;
+        const distances = nodes.map((node) =>
+            Math.hypot(node.x - scene.centreX, node.y - scene.centreY),
+        );
+        const farthest = Math.max(1, ...distances);
+        scene.introDelay = Float32Array.from(
+            distances.map((distance) => distance / farthest),
+        );
+
         scene.labelWidths = new Map();
+        scene.introStart = null;
+        scene.lastTime = null;
         scene.fitted = false;
         scene.dirty = true;
     }, [nodes, edges, areas]);
@@ -531,9 +798,11 @@ export function BrainGraphCanvas({
         if (index === undefined) {
             scene.selected = null;
             scene.neighbours = null;
+            scene.pulseStart = null;
         } else {
             scene.selected = index;
             scene.neighbours = new Set([index]);
+            scene.pulseStart = performance.now() / 1000;
 
             for (const [from, to] of scene.links) {
                 if (from === index) {
@@ -549,6 +818,29 @@ export function BrainGraphCanvas({
 
     useEffect(() => {
         const scene = sceneRef.current;
+        scene.hiddenAreas = new Set(
+            hiddenAreas.map((area) => areaIndex(area, areas)),
+        );
+        scene.dirty = true;
+    }, [hiddenAreas, areas, nodes]);
+
+    useEffect(() => {
+        const scene = sceneRef.current;
+        scene.matches =
+            matchIds === null
+                ? null
+                : new Set(
+                      matchIds.flatMap((id) => {
+                          const index = scene.indexById.get(id);
+
+                          return index === undefined ? [] : [index];
+                      }),
+                  );
+        scene.dirty = true;
+    }, [matchIds, nodes]);
+
+    useEffect(() => {
+        const scene = sceneRef.current;
         const index =
             centreRequest === null
                 ? undefined
@@ -558,6 +850,14 @@ export function BrainGraphCanvas({
             moveCamera(cameraOn(scene, index));
         }
     }, [centreRequest, moveCamera]);
+
+    useEffect(() => {
+        const scene = sceneRef.current;
+
+        if (fitRequest > 0 && scene.fitted) {
+            moveCamera(fitCamera(scene));
+        }
+    }, [fitRequest, moveCamera]);
 
     // Size, theme and motion preference.
     useEffect(() => {
@@ -625,10 +925,12 @@ export function BrainGraphCanvas({
         const loop = (now: number): void => {
             frame = requestAnimationFrame(loop);
             const scene = sceneRef.current;
+            const time = now / 1000;
 
             if (!scene.fitted && scene.width > 0 && scene.nodes.length > 0) {
                 scene.camera = fitCamera(scene);
                 scene.fitted = true;
+                scene.introStart = time;
 
                 if (scene.selected !== null) {
                     scene.camera = cameraOn(scene, scene.selected);
@@ -656,8 +958,12 @@ export function BrainGraphCanvas({
                 scene.dirty = true;
             }
 
+            if (stepTransitions(scene, time)) {
+                scene.dirty = true;
+            }
+
             if (scene.animate || scene.dirty) {
-                draw(context, scene, now / 1000);
+                draw(context, scene, time);
                 scene.dirty = false;
             }
         };
@@ -699,6 +1005,10 @@ export function BrainGraphCanvas({
             let bestDistance = Infinity;
 
             for (let index = 0; index < scene.nodes.length; index++) {
+                if (!isShown(scene, index)) {
+                    continue;
+                }
+
                 const distance = Math.hypot(
                     scene.px[index] - worldX,
                     scene.py[index] - worldY,

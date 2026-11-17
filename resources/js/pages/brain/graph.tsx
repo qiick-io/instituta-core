@@ -1,5 +1,5 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { ArrowUpRight, Network, X } from 'lucide-react';
+import { Head, router } from '@inertiajs/react';
+import { Network, RotateCcw } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageEmptyState } from '@/components/admin/page-empty-state';
@@ -7,17 +7,10 @@ import {
     BrainGraphCanvas,
     type CentreRequest,
 } from '@/components/brain/brain-graph-canvas';
+import { GraphItemCard } from '@/components/brain/graph-item-card';
 import { FilterSearch } from '@/components/layout/page-header';
 import { PageLayout } from '@/components/layout/page-layout';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import {
     type BrainGraphEdgeInput,
@@ -26,6 +19,7 @@ import {
     layoutBrainGraph,
 } from '@/lib/brain-force-layout';
 import { AREA_TOKENS, areaIndex } from '@/lib/brain-graph-render';
+import { cn } from '@/lib/utils';
 import { graph } from '@/routes';
 import { show as explorerShow } from '@/routes/explorer';
 
@@ -37,18 +31,16 @@ type Props = {
     focus: string | null;
 };
 
-/** How many neighbours the side card lists before it says "and N more". */
-const LISTED_NEIGHBOURS = 8;
-
 /** The legend dot uses the same softened area colour as the canvas. */
 function legendColour(area: string, areas: string[]): string {
     return `color-mix(in oklab, var(${AREA_TOKENS[areaIndex(area, areas)]}) 78%, var(--card))`;
 }
 
 /**
- * The brain as a graph (#254, #270): every item in the perimeter and the links between them.
- * Clicking a node selects it and the side card shows it with its linked items (each selectable)
- * and Open; double click opens it straight away. Search selects and centres the first match.
+ * The brain as a graph (#254, #270, #273): every item in the perimeter and the links between them.
+ * Clicking a node selects it and the side card previews its content, lists its linked items and
+ * opens it; double click opens it straight away. The legend switches areas on and off; search
+ * highlights every match and centres the best one (selecting it when it is the only one).
  */
 export default function BrainGraph({
     hasPerimeter,
@@ -58,6 +50,9 @@ export default function BrainGraph({
 }: Props) {
     const { t } = useTranslation();
     const [search, setSearch] = useState('');
+    const [matchIds, setMatchIds] = useState<string[] | null>(null);
+    const [hiddenAreas, setHiddenAreas] = useState<string[]>([]);
+    const [fitRequest, setFitRequest] = useState(0);
     const [selectedId, setSelectedId] = useState<string | null>(
         () => nodes.find((node) => node.stable_key === focus)?.id ?? null,
     );
@@ -71,6 +66,15 @@ export default function BrainGraph({
         () => [...new Set(nodes.map((node) => node.area))].sort(),
         [nodes],
     );
+    const countsByArea = useMemo(() => {
+        const counts = new Map<string, number>();
+
+        for (const node of nodes) {
+            counts.set(node.area, (counts.get(node.area) ?? 0) + 1);
+        }
+
+        return counts;
+    }, [nodes]);
     const selected = placedNodes.find((node) => node.id === selectedId) ?? null;
 
     const neighbours = useMemo(() => {
@@ -89,9 +93,14 @@ export default function BrainGraph({
         }
 
         return placedNodes
-            .filter((node) => ids.has(node.id))
+            .filter(
+                (node) => ids.has(node.id) && !hiddenAreas.includes(node.area),
+            )
             .sort((a, b) => b.degree - a.degree);
-    }, [edges, placedNodes, selectedId]);
+    }, [edges, placedNodes, selectedId, hiddenAreas]);
+
+    const areaLabel = (area: string): string =>
+        t(`brain.areas.${area}`, { defaultValue: area });
 
     const selectAndCentre = (id: string): void => {
         setSelectedId(id);
@@ -102,24 +111,60 @@ export default function BrainGraph({
         router.visit(explorerShow.url(node.stable_key));
     }, []);
 
-    const searchFor = (value: string): void => {
-        setSearch(value);
+    const findMatches = (value: string, hidden: string[]): void => {
         const needle = value.trim().toLowerCase();
 
         if (needle === '') {
+            setMatchIds(null);
+
             return;
         }
 
-        const match = nodes.find(
-            (node) =>
-                node.title.toLowerCase().includes(needle) ||
-                node.stable_key.toLowerCase().includes(needle),
-        );
+        const matches = nodes
+            .filter(
+                (node) =>
+                    !hidden.includes(node.area) &&
+                    (node.title.toLowerCase().includes(needle) ||
+                        node.stable_key.toLowerCase().includes(needle)),
+            )
+            .sort((a, b) => b.degree - a.degree);
 
-        if (match) {
-            selectAndCentre(match.id);
+        setMatchIds(matches.map((node) => node.id));
+
+        if (matches.length === 1) {
+            selectAndCentre(matches[0].id);
+        } else if (matches.length > 1) {
+            setSelectedId(null);
+            setCentreRequest({ id: matches[0].id, nonce: Date.now() });
         }
     };
+
+    const searchFor = (value: string): void => {
+        setSearch(value);
+        findMatches(value, hiddenAreas);
+    };
+
+    const updateHiddenAreas = (hidden: string[]): void => {
+        setHiddenAreas(hidden);
+        setFitRequest((request) => request + 1);
+
+        if (selected !== null && hidden.includes(selected.area)) {
+            setSelectedId(null);
+        }
+
+        if (search.trim() !== '') {
+            findMatches(search, hidden);
+        }
+    };
+
+    const toggleArea = (area: string): void =>
+        updateHiddenAreas(
+            hiddenAreas.includes(area)
+                ? hiddenAreas.filter((hidden) => hidden !== area)
+                : [...hiddenAreas, area],
+        );
+
+    const hasGraph = hasPerimeter && nodes.length > 0;
 
     return (
         <AppLayout
@@ -130,7 +175,7 @@ export default function BrainGraph({
                 className="min-h-0"
                 description={t('brain.graph.description')}
                 filters={
-                    hasPerimeter && nodes.length > 0 ? (
+                    hasGraph ? (
                         <FilterSearch
                             value={search}
                             onChange={searchFor}
@@ -139,32 +184,71 @@ export default function BrainGraph({
                     ) : undefined
                 }
                 filtersRight={
-                    hasPerimeter && nodes.length > 0 ? (
-                        <ul
-                            className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground"
-                            aria-label={t('brain.graph.legendLabel')}
-                        >
-                            {areas.map((area) => (
-                                <li
-                                    key={area}
-                                    className="flex items-center gap-1.5"
+                    hasGraph ? (
+                        <div className="flex flex-wrap items-center gap-1">
+                            <ul
+                                className="flex flex-wrap items-center gap-1"
+                                aria-label={t('brain.graph.legendLabel')}
+                            >
+                                {areas.map((area) => {
+                                    const isHidden = hiddenAreas.includes(area);
+
+                                    return (
+                                        <li key={area}>
+                                            <button
+                                                type="button"
+                                                aria-pressed={!isHidden}
+                                                title={t(
+                                                    isHidden
+                                                        ? 'brain.graph.showArea'
+                                                        : 'brain.graph.hideArea',
+                                                    { area: areaLabel(area) },
+                                                )}
+                                                onClick={() => toggleArea(area)}
+                                                className={cn(
+                                                    'flex items-center gap-1.5 rounded-full border border-transparent px-2.5 py-1 text-sm text-muted-foreground transition-colors hover:border-border hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+                                                    isHidden &&
+                                                        'line-through opacity-50',
+                                                )}
+                                            >
+                                                <span
+                                                    aria-hidden="true"
+                                                    className={cn(
+                                                        'size-2.5 rounded-full transition-transform',
+                                                        isHidden && 'scale-75',
+                                                    )}
+                                                    style={{
+                                                        backgroundColor:
+                                                            isHidden
+                                                                ? 'var(--muted-foreground)'
+                                                                : legendColour(
+                                                                      area,
+                                                                      areas,
+                                                                  ),
+                                                    }}
+                                                />
+                                                {areaLabel(area)}
+                                                <span className="text-xs tabular-nums opacity-70">
+                                                    {countsByArea.get(area) ??
+                                                        0}
+                                                </span>
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                            {hiddenAreas.length > 0 ? (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => updateHiddenAreas([])}
                                 >
-                                    <span
-                                        aria-hidden="true"
-                                        className="size-2.5 rounded-full"
-                                        style={{
-                                            backgroundColor: legendColour(
-                                                area,
-                                                areas,
-                                            ),
-                                        }}
-                                    />
-                                    {t(`brain.areas.${area}`, {
-                                        defaultValue: area,
-                                    })}
-                                </li>
-                            ))}
-                        </ul>
+                                    <RotateCcw />
+                                    {t('brain.graph.showAll')}
+                                </Button>
+                            ) : null}
+                        </div>
                     ) : undefined
                 }
             >
@@ -184,122 +268,33 @@ export default function BrainGraph({
                             nodes={placedNodes}
                             edges={edges}
                             areas={areas}
+                            hiddenAreas={hiddenAreas}
+                            matchIds={matchIds}
                             selectedId={selectedId}
                             onSelect={setSelectedId}
                             onOpen={open}
                             centreRequest={centreRequest}
+                            fitRequest={fitRequest}
                         />
+                        {matchIds !== null && selected === null ? (
+                            <p
+                                className="absolute top-3 left-3 rounded-full border bg-card/90 px-3 py-1 text-xs text-muted-foreground shadow-sm backdrop-blur"
+                                aria-live="polite"
+                            >
+                                {t('brain.graph.matches', {
+                                    count: matchIds.length,
+                                })}
+                            </p>
+                        ) : null}
                         {selected ? (
-                            <Card className="absolute top-3 left-3 max-h-[calc(100%-1.5rem)] w-72 gap-3 overflow-y-auto bg-card/90 py-4 shadow-md backdrop-blur">
-                                <CardHeader className="px-4">
-                                    <CardTitle className="text-base leading-snug break-words">
-                                        {selected.title}
-                                    </CardTitle>
-                                    <CardDescription className="font-mono text-xs break-all">
-                                        {selected.stable_key}
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="flex flex-col gap-3 px-4">
-                                    <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                                        <Badge variant="outline">
-                                            <span
-                                                aria-hidden="true"
-                                                className="size-2 rounded-full"
-                                                style={{
-                                                    backgroundColor:
-                                                        legendColour(
-                                                            selected.area,
-                                                            areas,
-                                                        ),
-                                                }}
-                                            />
-                                            {t(`brain.areas.${selected.area}`, {
-                                                defaultValue: selected.area,
-                                            })}
-                                        </Badge>
-                                        <span>
-                                            {t('brain.graph.links', {
-                                                count: selected.degree,
-                                            })}
-                                        </span>
-                                    </div>
-                                    {neighbours.length > 0 ? (
-                                        <div className="flex flex-col gap-1">
-                                            <p className="text-xs font-medium text-muted-foreground">
-                                                {t('brain.graph.neighbours')}
-                                            </p>
-                                            <ul className="-mx-2 flex flex-col">
-                                                {neighbours
-                                                    .slice(0, LISTED_NEIGHBOURS)
-                                                    .map((neighbour) => (
-                                                        <li key={neighbour.id}>
-                                                            <button
-                                                                type="button"
-                                                                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                                                                onClick={() =>
-                                                                    selectAndCentre(
-                                                                        neighbour.id,
-                                                                    )
-                                                                }
-                                                            >
-                                                                <span
-                                                                    aria-hidden="true"
-                                                                    className="size-2 shrink-0 rounded-full"
-                                                                    style={{
-                                                                        backgroundColor:
-                                                                            legendColour(
-                                                                                neighbour.area,
-                                                                                areas,
-                                                                            ),
-                                                                    }}
-                                                                />
-                                                                <span className="truncate">
-                                                                    {
-                                                                        neighbour.title
-                                                                    }
-                                                                </span>
-                                                            </button>
-                                                        </li>
-                                                    ))}
-                                            </ul>
-                                            {neighbours.length >
-                                            LISTED_NEIGHBOURS ? (
-                                                <p className="text-xs text-muted-foreground">
-                                                    {t(
-                                                        'brain.graph.moreNeighbours',
-                                                        {
-                                                            count:
-                                                                neighbours.length -
-                                                                LISTED_NEIGHBOURS,
-                                                        },
-                                                    )}
-                                                </p>
-                                            ) : null}
-                                        </div>
-                                    ) : null}
-                                    <div className="flex gap-2">
-                                        <Button asChild size="sm">
-                                            <Link
-                                                href={explorerShow.url(
-                                                    selected.stable_key,
-                                                )}
-                                            >
-                                                <ArrowUpRight />
-                                                {t('brain.graph.open')}
-                                            </Link>
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setSelectedId(null)}
-                                        >
-                                            <X />
-                                            {t('brain.graph.clearSelection')}
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            <GraphItemCard
+                                item={selected}
+                                neighbours={neighbours}
+                                areaLabel={areaLabel}
+                                areaColour={(area) => legendColour(area, areas)}
+                                onSelectNeighbour={selectAndCentre}
+                                onClose={() => setSelectedId(null)}
+                            />
                         ) : null}
                     </div>
                 )}
