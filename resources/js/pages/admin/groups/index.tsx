@@ -42,7 +42,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { SegmentedIconItem } from '@/components/segmented-icon-item';
+import { ToggleGroup } from '@/components/ui/toggle-group';
 import { PermissionEnum } from '@/enums/permission-enum';
 import { useCan } from '@/hooks/use-can';
 import { useDebouncedServerSearch } from '@/hooks/use-debounced-server-search';
@@ -587,20 +588,20 @@ export default function AdminGroupsIndex({
                                         visit({ trashed: value === 'trashed' });
                                     }}
                                 >
-                                    <ToggleGroupItem
+                                    <SegmentedIconItem
                                         value="active"
-                                        aria-label={t('groups.title')}
-                                        className="px-2.5"
+                                        isActive={!isTrashed}
+                                        label={t('groups.title')}
                                     >
                                         <UsersRound className="size-4" />
-                                    </ToggleGroupItem>
-                                    <ToggleGroupItem
+                                    </SegmentedIconItem>
+                                    <SegmentedIconItem
                                         value="trashed"
-                                        aria-label={t('a11y.trashList')}
-                                        className="px-2.5"
+                                        isActive={isTrashed}
+                                        label={t('a11y.trashList')}
                                     >
                                         <Trash2 className="size-4" />
-                                    </ToggleGroupItem>
+                                    </SegmentedIconItem>
                                 </ToggleGroup>
                             </div>
                         )

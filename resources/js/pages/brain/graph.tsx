@@ -17,7 +17,8 @@ import { GraphItemCard } from '@/components/brain/graph-item-card';
 import { GraphPathCard } from '@/components/brain/graph-path-card';
 import { FilterSearch } from '@/components/layout/page-header';
 import { PageLayout } from '@/components/layout/page-layout';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { SegmentedIconItem } from '@/components/segmented-icon-item';
+import { ToggleGroup } from '@/components/ui/toggle-group';
 import { Spinner } from '@/components/ui/spinner';
 import { useBrainLayout } from '@/hooks/use-brain-layout';
 import AppLayout from '@/layouts/app-layout';
@@ -453,24 +454,20 @@ export default function BrainGraph({
                                     }
                                 }}
                             >
-                                <ToggleGroupItem
+                                <SegmentedIconItem
                                     value="area"
-                                    title={t('brain.graph.colourAreaHint')}
+                                    isActive={colourBy === 'area'}
+                                    label={t('brain.graph.colourAreaHint')}
                                 >
-                                    <Palette className="size-4" />
-                                    <span className="sr-only sm:not-sr-only">
-                                        {t('brain.graph.colourArea')}
-                                    </span>
-                                </ToggleGroupItem>
-                                <ToggleGroupItem
+                                    <Palette />
+                                </SegmentedIconItem>
+                                <SegmentedIconItem
                                     value="freshness"
-                                    title={t('brain.graph.colourFreshnessHint')}
+                                    isActive={colourBy === 'freshness'}
+                                    label={t('brain.graph.colourFreshnessHint')}
                                 >
-                                    <History className="size-4" />
-                                    <span className="sr-only sm:not-sr-only">
-                                        {t('brain.graph.colourFreshness')}
-                                    </span>
-                                </ToggleGroupItem>
+                                    <History />
+                                </SegmentedIconItem>
                             </ToggleGroup>
                             <ToggleGroup
                                 variant="outline"
@@ -483,26 +480,20 @@ export default function BrainGraph({
                                     }
                                 }}
                             >
-                                <ToggleGroupItem
+                                <SegmentedIconItem
                                     value="free"
-                                    title={t('brain.graph.layoutFreeHint')}
+                                    isActive={!grouped}
+                                    label={t('brain.graph.layoutFreeHint')}
                                 >
-                                    <Network className="size-4" />
-                                    {/* Icon only below `sm`, so the row fits next to the search on a phone. */}
-                                    <span className="sr-only sm:not-sr-only">
-                                        {t('brain.graph.layoutFree')}
-                                    </span>
-                                </ToggleGroupItem>
-                                <ToggleGroupItem
+                                    <Network />
+                                </SegmentedIconItem>
+                                <SegmentedIconItem
                                     value="constellations"
-                                    title={t('brain.graph.constellationsHint')}
+                                    isActive={grouped}
+                                    label={t('brain.graph.constellationsHint')}
                                 >
-                                    <Orbit className="size-4" />
-                                    {/* Icon only below `sm`, so the row fits next to the search on a phone. */}
-                                    <span className="sr-only sm:not-sr-only">
-                                        {t('brain.graph.constellations')}
-                                    </span>
-                                </ToggleGroupItem>
+                                    <Orbit />
+                                </SegmentedIconItem>
                             </ToggleGroup>
                         </div>
                     ) : undefined

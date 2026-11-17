@@ -111,8 +111,8 @@ it('renders the graph in light and dark', function (string $mode): void {
     $page = $mode === 'dark' ? $start->inDarkMode() : $start->inLightMode();
 
     $page->assertSee('Area')
-        ->assertSee('Free')
-        ->assertSee('Constellations')
+        ->assertPresent('[aria-label="Items placed by their links"]')
+        ->assertPresent('[aria-label="Group the items by area"]')
         ->assertPresent('canvas[role="img"]')
         ->assertSee('Rules')
         ->assertSee('Notes')
@@ -172,9 +172,7 @@ it('opens with an area filter and constellations layout pressed', function (): v
     ], absolute: false))->inLightMode();
 
     $page->assertSee('Area')
-        ->assertSee('Free')
-        ->assertSee('Constellations')
-        ->assertAttribute('[title="Group the items by area"]', 'data-state', 'on')
+        ->assertAttribute('[aria-label="Group the items by area"]', 'data-state', 'on')
         ->assertNoJavaScriptErrors();
 });
 
@@ -222,7 +220,7 @@ it('shows review signals and the freshness view', function (): void {
         ->assertSee('Open proposals')
         ->assertSee('Waiting for review')
         ->assertSee('Today')
-        ->assertAttribute('[title="Colour the items by when they last changed"]', 'data-state', 'on')
+        ->assertAttribute('[aria-label="Colour the items by when they last changed"]', 'data-state', 'on')
         ->assertNoJavaScriptErrors();
 });
 
