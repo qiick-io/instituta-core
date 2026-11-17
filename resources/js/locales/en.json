@@ -802,7 +802,7 @@
         },
         "graph": {
             "title": "Scoped graph",
-            "description": "Every item in this scope and the links between them. Click an item to see its links, double click to open it; drag to move, scroll to zoom.",
+            "description": "Every item in this scope and the links between them. Click an item to see its links, double click to open it, Shift-click a second one to trace the path; drag items or the view, scroll to zoom.",
             "rootLabel": "Starting from {{title}}",
             "empty": "No items in this perimeter to graph yet.",
             "depth1": "Depth 1",
@@ -832,7 +832,16 @@
             "previewEmpty": "This item has no content yet.",
             "previewMore": "Open the item to read the rest.",
             "matches_one": "{{count}} match",
-            "matches_other": "{{count}} matches"
+            "matches_other": "{{count}} matches",
+            "resetLayout": "Reset layout",
+            "constellations": "Constellations",
+            "constellationsHint": "Group the items by area",
+            "pathTitle": "Path",
+            "pathSteps_one": "{{count}} step",
+            "pathSteps_other": "{{count}} steps",
+            "pathNone": "{{from}} and {{to}} are not connected.",
+            "clearPath": "Clear path",
+            "pathHint": "Shift-click another item to see how they connect."
         },
         "propose": {
             "proposeChange": "Propose change",

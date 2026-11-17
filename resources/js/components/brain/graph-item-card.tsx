@@ -277,6 +277,9 @@ export function GraphItemCard({
                         </Link>
                     </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                    {t('brain.graph.pathHint')}
+                </p>
             </CardContent>
         </Card>
     );

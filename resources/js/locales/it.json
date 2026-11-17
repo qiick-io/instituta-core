@@ -802,7 +802,7 @@
         },
         "graph": {
             "title": "Grafo nello scope",
-            "description": "Ogni elemento di questo ambito e i collegamenti tra loro. Clicca un elemento per vederne i collegamenti, doppio clic per aprirlo; trascina per spostarti, scorri per lo zoom.",
+            "description": "Ogni elemento di questo ambito e i collegamenti tra loro. Clicca un elemento per vederne i collegamenti, doppio clic per aprirlo, Shift-clic su un secondo per tracciare il percorso; trascina elementi o vista, scorri per lo zoom.",
             "rootLabel": "Partenza da {{title}}",
             "empty": "Nessun elemento in questo perimetro da mostrare nel grafo.",
             "depth1": "Profondità 1",
@@ -832,7 +832,16 @@
             "previewEmpty": "Questo elemento non ha ancora contenuto.",
             "previewMore": "Apri l'elemento per leggere il resto.",
             "matches_one": "{{count}} risultato",
-            "matches_other": "{{count}} risultati"
+            "matches_other": "{{count}} risultati",
+            "resetLayout": "Ripristina disposizione",
+            "constellations": "Costellazioni",
+            "constellationsHint": "Raggruppa gli elementi per area",
+            "pathTitle": "Percorso",
+            "pathSteps_one": "{{count}} passaggio",
+            "pathSteps_other": "{{count}} passaggi",
+            "pathNone": "{{from}} e {{to}} non sono collegati.",
+            "clearPath": "Cancella percorso",
+            "pathHint": "Shift-clic su un altro elemento per vedere come sono collegati."
         },
         "propose": {
             "proposeChange": "Proponi modifica",
