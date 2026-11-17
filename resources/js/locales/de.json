@@ -226,7 +226,8 @@
             "brandContrastWarning": "Diese Farbe erfüllt möglicherweise nicht den WCAG-AA-Kontrast. Bevorzugen Sie einen stärkeren Ton.",
             "defaultThemeTitle": "Standard-Theme",
             "defaultThemeDescription": "Für Besucher ohne persönliche Hell/Dunkel-Wahl (einschließlich der Anmeldeseite)",
-            "defaultAppearance": "Standard-Erscheinungsbild"
+            "defaultAppearance": "Standard-Erscheinungsbild",
+            "themePresetSalvia": "Salbei (Standard)"
         },
         "profile": {
             "breadcrumb": "Profileinstellungen",

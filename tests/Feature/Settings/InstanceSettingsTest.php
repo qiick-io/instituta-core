@@ -81,7 +81,7 @@ it('shows appearance with theme presets to managers', function (): void {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('settings/appearance')
-            ->where('appearance.theme_preset', 'teal')
+            ->where('appearance.theme_preset', 'salvia')
             ->has('appearance.theme_presets', count(ThemePresetEnum::cases())));
 });
 
@@ -314,16 +314,16 @@ it('rejects an unknown theme preset and invalid brand colours', function (): voi
         ])
         ->assertSessionHasErrors(['theme_preset', 'project_color', 'project_color_dark']);
 
-    expect(app(SettingsRepositoryService::class)->themePreset())->toBe('teal');
+    expect(app(SettingsRepositoryService::class)->themePreset())->toBe('salvia');
 });
 
 it('merges the shared base with the preset brand colours', function (): void {
-    $teal = app(ThemePresetService::class)->resolve(null, null, null);
+    $default = app(ThemePresetService::class)->resolve(null, null, null);
     $violet = app(ThemePresetService::class)->resolve('violet', null, null);
 
-    expect($teal['themePreset'])->toBe('teal')
-        ->and($teal['light']['primary'])->toBe(config('theme-presets.presets.teal.light.primary'))
-        ->and($teal['light']['sidebar'])->toBe(config('theme-presets.base.light.sidebar'))
+    expect($default['themePreset'])->toBe('salvia')
+        ->and($default['light']['primary'])->toBe('#5C7653')
+        ->and($default['light']['sidebar'])->toBe(config('theme-presets.base.light.sidebar'))
         ->and($violet['light']['ai'])->toBe(config('theme-presets.ai_override_light.ai'));
 });
 

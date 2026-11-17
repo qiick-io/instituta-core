@@ -226,7 +226,8 @@
             "brandContrastWarning": "This colour may not meet WCAG AA contrast. Prefer a stronger shade.",
             "defaultThemeTitle": "Default theme",
             "defaultThemeDescription": "Used for visitors without a personal light/dark choice (including the login page)",
-            "defaultAppearance": "Default appearance"
+            "defaultAppearance": "Default appearance",
+            "themePresetSalvia": "Salvia (default)"
         },
         "profile": {
             "breadcrumb": "Profile settings",

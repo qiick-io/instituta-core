@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Enums;
 
 /**
- * Built-in appearance theme presets (config/theme-presets.php), as in qiick-io/externa-core.
- * Instituta ships Teal until an Instituta brand preset exists in app-ui.
+ * Built-in appearance theme presets (config/theme-presets.php), as in qiick-io/externa-core,
+ * plus Instituta's own Salvia (#269), the default.
  */
 enum ThemePresetEnum: string
 {
+    case Salvia = 'salvia';
     case Teal = 'teal';
     case Blue = 'blue';
     case Indigo = 'indigo';
@@ -26,11 +27,11 @@ enum ThemePresetEnum: string
     }
 
     /**
-     * Instituta's default preset (AGENTS.md: Teal until an Instituta preset exists).
+     * Instituta's default preset: its product colour, Salvia (knowledge brand kit, #269).
      */
     public static function default(): self
     {
-        return self::Teal;
+        return self::Salvia;
     }
 
     public static function tryFromNullable(?string $value): self

@@ -231,7 +231,7 @@ Instituta is the operating company brain: agents and humans query brand, rules, 
 - Working name: no public publish (Packagist, GHCR, npm, domain). Repo stays private until the maintainer says otherwise.
 - Never ingest Klover, Cybergrant or Zerotredici. Never proxy writes to other qiick products.
 - `docs/FORMAT.md` and `docs/CONTRACTS.md` are public contracts once approved; change them only when the issue says so.
-- Theme preset: **Teal** until an Instituta preset exists in app-ui.
+- Theme preset: **Salvia**, Instituta's own colour from the knowledge brand kit (`projects/qiick/instituta-brand.md`), shipped locally in `config/theme-presets.php` until app-ui has it as a registry preset. The standards block above still says Teal: it changes when app-ui does.
 - Migrations may change until the first tagged release; after that they are forward-only (`migrations-frozen`).
 - Quality gate (local, before every push):
 
