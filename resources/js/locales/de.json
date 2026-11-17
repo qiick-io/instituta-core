@@ -864,7 +864,8 @@
             "openProposals_one": "{{count}} offener Vorschlag",
             "openProposals_other": "{{count}} offene Vorschläge",
             "openGaps_one": "{{count}} offene Lücke",
-            "openGaps_other": "{{count}} offene Lücken"
+            "openGaps_other": "{{count}} offene Lücken",
+            "exportImage": "Als Bild speichern"
         },
         "propose": {
             "proposeChange": "Änderung vorschlagen",

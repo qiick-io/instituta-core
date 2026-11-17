@@ -18,7 +18,7 @@
  * - Reduced motion: no intro, float, beams, pulse, dust or glides; the canvas redraws only when
  *   something changes. Colours come from the theme tokens and follow light/dark.
  */
-import { Maximize, Minus, Plus, Undo2 } from 'lucide-react';
+import { Download, Maximize, Minus, Plus, Undo2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -1913,6 +1913,41 @@ export function BrainGraphCanvas({
 
     const fit = (): void => moveCamera(fitCamera(sceneRef.current));
 
+    /** Saves what the canvas shows as a PNG, on the card background (#290). */
+    const exportImage = (): void => {
+        const canvas = canvasRef.current;
+        const palette = sceneRef.current.palette;
+
+        if (canvas === null || palette === null) {
+            return;
+        }
+
+        const image = document.createElement('canvas');
+        image.width = canvas.width;
+        image.height = canvas.height;
+        const context = image.getContext('2d');
+
+        if (context === null) {
+            return;
+        }
+
+        context.fillStyle = rgba(palette.card, 1);
+        context.fillRect(0, 0, image.width, image.height);
+        context.drawImage(canvas, 0, 0);
+        image.toBlob((blob) => {
+            if (blob === null) {
+                return;
+            }
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `instituta-graph-${new Date().toISOString().slice(0, 10)}.png`;
+            link.click();
+            window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }, 'image/png');
+    };
+
     /** Lets every dropped node go: the springs pull everything back to the layout. */
     const resetLayout = (): void => {
         const scene = sceneRef.current;
@@ -2084,6 +2119,17 @@ export function BrainGraphCanvas({
                         <Undo2 />
                     </Button>
                 ) : null}
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className={controlClass}
+                    onClick={exportImage}
+                    aria-label={t('brain.graph.exportImage')}
+                    title={t('brain.graph.exportImage')}
+                >
+                    <Download />
+                </Button>
                 <Button
                     type="button"
                     variant="outline"
