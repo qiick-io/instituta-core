@@ -23,6 +23,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import { index as explorerIndex } from '@/routes/explorer';
 import type {
     BrainGraphEdgeInput,
     PlacedBrainNode,
@@ -1811,10 +1812,95 @@ export function BrainGraphCanvas({
         setHasPinned(false);
     };
 
+    /**
+     * Arrow keys walk the graph: from the selection, the linked item that lies most in that
+     * direction (the nearest visible item in that direction when no link goes that way); with no
+     * selection, the biggest hub. The camera follows when the item leaves the middle of the view.
+     */
+    const step = (dx: number, dy: number): void => {
+        const scene = sceneRef.current;
+        const from = scene.selected;
+
+        if (from === null) {
+            const hub = scene.byDegree.find((index) => isShown(scene, index));
+
+            if (hub !== undefined) {
+                onSelect(scene.nodes[hub].id);
+                moveCamera(cameraOn(scene, hub));
+            }
+
+            return;
+        }
+
+        const score = (index: number): number => {
+            const vx = scene.px[index] - scene.px[from];
+            const vy = scene.py[index] - scene.py[from];
+            const distance = Math.hypot(vx, vy);
+
+            if (distance === 0) {
+                return -Infinity;
+            }
+
+            const alignment = (vx * dx + vy * dy) / distance;
+
+            // Within ~60° of the arrow; closer and straighter wins.
+            return alignment < 0.5 ? -Infinity : alignment * 2 - distance / 400;
+        };
+        const pick = (candidates: Iterable<number>): number | null => {
+            let best: number | null = null;
+            let bestScore = -Infinity;
+
+            for (const index of candidates) {
+                if (index === from || !isShown(scene, index)) {
+                    continue;
+                }
+
+                const value = score(index);
+
+                if (value > bestScore) {
+                    best = index;
+                    bestScore = value;
+                }
+            }
+
+            return best;
+        };
+        const next =
+            pick(scene.neighbours ?? []) ??
+            pick(scene.nodes.map((_, index) => index));
+
+        if (next === null) {
+            return;
+        }
+
+        onSelect(scene.nodes[next].id);
+
+        const screenX = scene.px[next] * scene.camera.k + scene.camera.x;
+        const screenY = scene.py[next] * scene.camera.k + scene.camera.y;
+
+        if (
+            screenX < scene.width * 0.2 ||
+            screenX > scene.width * 0.85 ||
+            screenY < scene.height * 0.15 ||
+            screenY > scene.height * 0.85
+        ) {
+            moveCamera(cameraOn(scene, next));
+        }
+    };
+
     const onKeyDown = (event: React.KeyboardEvent<HTMLCanvasElement>): void => {
         const scene = sceneRef.current;
+        const arrows: Record<string, [number, number]> = {
+            ArrowLeft: [-1, 0],
+            ArrowRight: [1, 0],
+            ArrowUp: [0, -1],
+            ArrowDown: [0, 1],
+        };
 
-        if (event.key === 'Escape') {
+        if (event.key in arrows) {
+            const [dx, dy] = arrows[event.key];
+            step(dx, dy);
+        } else if (event.key === 'Escape') {
             onSelect(null);
         } else if (event.key === 'Enter' && scene.selected !== null) {
             onOpen(scene.nodes[scene.selected]);
@@ -1832,6 +1918,20 @@ export function BrainGraphCanvas({
     };
 
     const controlClass = 'size-8 bg-card/80 backdrop-blur';
+    const selectedNode =
+        selectedId === null
+            ? undefined
+            : nodes.find((node) => node.id === selectedId);
+    const announcement =
+        selectedNode === undefined
+            ? ''
+            : t('brain.graph.selectedAnnouncement', {
+                  title: selectedNode.title,
+                  area: t(`brain.areas.${selectedNode.area}`, {
+                      defaultValue: selectedNode.area,
+                  }),
+                  count: selectedNode.degree,
+              });
 
     return (
         <div
@@ -1842,11 +1942,21 @@ export function BrainGraphCanvas({
                     'radial-gradient(ellipse at 50% 40%, color-mix(in oklab, var(--primary) 7%, transparent), transparent 70%)',
             }}
         >
+            <a
+                href={explorerIndex.url()}
+                className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-10 focus:rounded-md focus:border focus:bg-card focus:px-3 focus:py-1.5 focus:text-sm focus:shadow-sm"
+            >
+                {t('brain.graph.listAlternative')}
+            </a>
+            <p className="sr-only" aria-live="polite">
+                {announcement}
+            </p>
             <canvas
                 ref={canvasRef}
                 role="img"
                 tabIndex={0}
                 aria-label={t('brain.graph.canvasLabel')}
+                aria-description={t('brain.graph.keyboardHint')}
                 onKeyDown={onKeyDown}
                 className="absolute inset-0 size-full cursor-grab touch-none rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />

@@ -843,7 +843,11 @@
             "layoutLabel": "Anordnung",
             "layoutFree": "Frei",
             "layoutFreeHint": "Einträge nach ihren Verknüpfungen angeordnet",
-            "layingOut": "Das Gehirn wird angeordnet…"
+            "layingOut": "Das Gehirn wird angeordnet…",
+            "listAlternative": "Einträge als Liste anzeigen",
+            "keyboardHint": "Pfeiltasten wechseln zwischen verknüpften Einträgen, Enter öffnet den ausgewählten, Escape hebt die Auswahl auf, Plus und Minus zoomen, 0 passt die Ansicht an.",
+            "selectedAnnouncement_one": "{{title}} ausgewählt, {{area}}, {{count}} Verknüpfung",
+            "selectedAnnouncement_other": "{{title}} ausgewählt, {{area}}, {{count}} Verknüpfungen"
         },
         "propose": {
             "proposeChange": "Änderung vorschlagen",
