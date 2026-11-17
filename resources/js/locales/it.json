@@ -491,6 +491,9 @@
         "reading": {
             "description": "Vista estesa di un concetto nell'ambito corrente.",
             "outline": "Indice",
+            "neighbourhood": "Vicini",
+            "noNeighbours": "Nessun elemento collegato ancora.",
+            "openInGraph": "Apri nel grafo",
             "empty": "Questo concetto non ha ancora sezioni.",
             "unknownBlock": "Tipo di blocco non supportato: {{type}}",
             "structuredTables": "Tabelle strutturate",

@@ -10,6 +10,7 @@ import type {
 } from '@/components/brain/brain-file-tree';
 import { ItemReader } from '@/components/brain/item-reader';
 import type { Item, Section } from '@/components/brain/item-reader';
+import type { Neighbourhood } from '@/components/brain/item-neighbourhood';
 import {
     ProposeChangeDrawer,
     type ProposeChangeTarget,
@@ -33,6 +34,8 @@ type Props = {
     nodes: BrainTreeNode[];
     total: number;
     item: Item | null;
+    /** Linked neighbours for the open item; null on the index. */
+    neighbourhood: Neighbourhood | null;
     hasPerimeter: boolean;
     /** False for guests: they read but never propose. */
     canPropose: boolean;
@@ -56,6 +59,7 @@ export default function BrainExplorer({
     nodes,
     total,
     item,
+    neighbourhood,
     hasPerimeter,
     canPropose,
 }: Props) {
@@ -302,6 +306,7 @@ export default function BrainExplorer({
                                     </header>
                                     <ItemReader
                                         item={item}
+                                        neighbourhood={neighbourhood}
                                         isEditable={isEditable}
                                         onProposeSection={proposeSectionChange}
                                     />

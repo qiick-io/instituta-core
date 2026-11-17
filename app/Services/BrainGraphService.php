@@ -13,6 +13,7 @@ use App\Models\Item;
 use App\Models\ItemChange;
 use App\Models\ItemLink;
 use App\Models\Proposal;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
 /**
@@ -76,6 +77,67 @@ final class BrainGraphService
                 'changed_at' => $changedAt[$item->id] ?? $item->created_at?->toIso8601String(),
             ])->all()),
             'edges' => array_values($edges),
+        ];
+    }
+
+    /**
+     * An item's linked neighbours inside the perimeter (#289): resolved links both ways,
+     * deduplicated, never the item itself, sorted by title, at most 24. Also the sorted
+     * distinct areas of every item in the perimeter (same order the big graph uses for colours).
+     *
+     * @return array{areas: list<string>, neighbours: list<array{id: string, title: string, stable_key: string, area: string}>}
+     */
+    public function neighbourhood(PerimeterData $perimeter, string $itemId): array
+    {
+        $items = Item::query()
+            ->withinPerimeter($perimeter)
+            ->get(['id', 'title', 'stable_key', 'area'])
+            ->keyBy('id');
+
+        /** @var list<string> $areas */
+        $areas = $items->pluck('area')->unique()->sort()->values()->all();
+
+        if (! $items->has($itemId)) {
+            return [
+                'areas' => $areas,
+                'neighbours' => [],
+            ];
+        }
+
+        $neighbourIds = [];
+
+        foreach (ItemLink::query()
+            ->whereNotNull('to_item_id')
+            ->where(static function (Builder $query) use ($itemId): void {
+                $query->where('from_item_id', $itemId)->orWhere('to_item_id', $itemId);
+            })
+            ->get(['from_item_id', 'to_item_id']) as $link) {
+            $from = (string) $link->from_item_id;
+            $to = (string) $link->to_item_id;
+            $other = $from === $itemId ? $to : $from;
+
+            if ($other === $itemId || ! $items->has($other)) {
+                continue;
+            }
+
+            $neighbourIds[$other] = true;
+        }
+
+        $neighbours = array_values($items
+            ->only(array_keys($neighbourIds))
+            ->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)
+            ->take(24)
+            ->map(static fn (Item $item): array => [
+                'id' => (string) $item->id,
+                'title' => $item->title,
+                'stable_key' => $item->stable_key,
+                'area' => $item->area,
+            ])
+            ->all());
+
+        return [
+            'areas' => $areas,
+            'neighbours' => $neighbours,
         ];
     }
 

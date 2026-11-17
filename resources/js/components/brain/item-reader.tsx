@@ -9,6 +9,10 @@ import { Link } from '@inertiajs/react';
 import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { BrainMarkdown } from '@/components/brain/brain-markdown';
+import {
+    ItemNeighbourhood,
+    type Neighbourhood,
+} from '@/components/brain/item-neighbourhood';
 import { Button } from '@/components/ui/button';
 import {
     Collapsible,
@@ -173,10 +177,12 @@ function BlockView({ block }: { block: Block }) {
  */
 export function ItemReader({
     item,
+    neighbourhood,
     isEditable,
     onProposeSection,
 }: {
     item: Item;
+    neighbourhood: Neighbourhood | null;
     isEditable: boolean;
     onProposeSection: (section: Section) => void;
 }) {
@@ -186,29 +192,42 @@ export function ItemReader({
     return (
         <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[12rem_minmax(0,1fr)]">
             <aside className="hidden xl:block">
-                <div className="sticky top-0 space-y-2">
-                    <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                        {t('brain.reading.outline')}
-                    </p>
-                    <ScrollArea className="h-[min(70vh,32rem)] pr-2">
-                        <nav
-                            aria-label={t('brain.reading.outline')}
-                            className="space-y-1"
-                        >
-                            {item.sections.map((section) => (
-                                <a
-                                    key={section.anchor}
-                                    href={`#${section.anchor}`}
-                                    className={cn(
-                                        'block rounded-md px-2 py-1 text-sm text-muted-foreground hover:bg-muted/40 hover:text-foreground',
-                                        section.level > 2 && 'pl-4',
-                                    )}
-                                >
-                                    {section.heading}
-                                </a>
-                            ))}
-                        </nav>
-                    </ScrollArea>
+                <div className="sticky top-0 space-y-6">
+                    <div className="space-y-2">
+                        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                            {t('brain.reading.outline')}
+                        </p>
+                        <ScrollArea className="h-[min(40vh,20rem)] pr-2">
+                            <nav
+                                aria-label={t('brain.reading.outline')}
+                                className="space-y-1"
+                            >
+                                {item.sections.map((section) => (
+                                    <a
+                                        key={section.anchor}
+                                        href={`#${section.anchor}`}
+                                        className={cn(
+                                            'block rounded-md px-2 py-1 text-sm text-muted-foreground hover:bg-muted/40 hover:text-foreground',
+                                            section.level > 2 && 'pl-4',
+                                        )}
+                                    >
+                                        {section.heading}
+                                    </a>
+                                ))}
+                            </nav>
+                        </ScrollArea>
+                    </div>
+                    {neighbourhood !== null ? (
+                        <ItemNeighbourhood
+                            centre={{
+                                id: item.id,
+                                title: item.title,
+                                stable_key: item.stable_key,
+                                area: item.area,
+                            }}
+                            neighbourhood={neighbourhood}
+                        />
+                    ) : null}
                 </div>
             </aside>
 
