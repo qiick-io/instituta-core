@@ -58,7 +58,10 @@ export type Section = {
     body: string;
     markdown: string | null;
     section_hash: string | null;
-    /** The stored markdown rendered by the server (#241); '' before it was stored. */
+    /**
+     * The stored markdown rendered by the server (#241), without its heading: '' when the section
+     * is only a heading, or before markdown was stored (`markdown` null).
+     */
     html: string;
     blocks: Block[];
 };
@@ -191,6 +194,40 @@ function BlockView({ block }: { block: Block }) {
 }
 
 /**
+ * A section's content: the server-rendered markdown, else its structured blocks, else the plain body
+ * of a section stored before markdown was kept. Stored markdown that is only a heading renders to
+ * '' and shows nothing: the plain body would repeat the heading as `# Title` (#326).
+ */
+function SectionContent({ section }: { section: Section }) {
+    if (section.html !== '') {
+        return <BrainMarkdown html={section.html} />;
+    }
+
+    if (section.blocks.length > 0) {
+        return (
+            <div className="space-y-3">
+                {section.blocks.map((block, index) => (
+                    <BlockView
+                        key={`${section.anchor}-${index}`}
+                        block={block}
+                    />
+                ))}
+            </div>
+        );
+    }
+
+    if (section.markdown !== null) {
+        return null;
+    }
+
+    return (
+        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            {section.body}
+        </p>
+    );
+}
+
+/**
  * One item read in full (#241, #253): its outline, its sections rendered from markdown with a
  * propose action per section, and its structured tables. The Explorer shows it next to the file
  * tree; proposing goes back to the page, which owns the drawer.
@@ -294,22 +331,7 @@ export function ItemReader({
                                 ) : null}
                             </div>
 
-                            {section.html !== '' ? (
-                                <BrainMarkdown html={section.html} />
-                            ) : section.blocks.length > 0 ? (
-                                <div className="space-y-3">
-                                    {section.blocks.map((block, index) => (
-                                        <BlockView
-                                            key={`${section.anchor}-${index}`}
-                                            block={block}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                                    {section.body}
-                                </p>
-                            )}
+                            <SectionContent section={section} />
                         </section>
                     ))
                 )}
