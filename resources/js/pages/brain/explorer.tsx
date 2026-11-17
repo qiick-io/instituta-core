@@ -279,13 +279,11 @@ export default function BrainExplorer({
                                 />
                             ) : (
                                 <div className="flex flex-col gap-6">
-                                    {/* The file's own header (#295): fixed while the body scrolls, its actions on the right. */}
+                                    {/* The file's own header (#295): fixed while the body scrolls, its actions on the right.
+                                        No title: the breadcrumb is the page title (app-ui docs/page.md, #303). */}
                                     <header className="sticky top-0 z-10 flex flex-col gap-3 border-b bg-background/95 pb-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-                                        <div className="flex items-start justify-between gap-4">
+                                        <div className="flex items-center justify-between gap-4">
                                             <div className="flex min-w-0 flex-col gap-2">
-                                                <h1 className="text-xl font-semibold tracking-tight break-words">
-                                                    {item.title}
-                                                </h1>
                                                 <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                                                     <Badge variant="secondary">
                                                         {item.type}
