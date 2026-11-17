@@ -501,7 +501,8 @@
             "citationSource": "Quelle: {{source}}",
             "citationPath": "Datei: {{path}}",
             "citationCommit": "Commit: {{commit}}",
-            "citationSection": "Abschnitt: {{section}}"
+            "citationSection": "Abschnitt: {{section}}",
+            "generatedTitle": "Erzeugt von {{source}}"
         },
         "resolved": {
             "title": "Aufgelöste Ansicht",

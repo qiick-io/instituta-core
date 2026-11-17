@@ -1,5 +1,12 @@
 import { Head } from '@inertiajs/react';
-import { FileText, FolderTree, Pencil, Plus, SearchX } from 'lucide-react';
+import {
+    FileCog,
+    FileText,
+    FolderTree,
+    Pencil,
+    Plus,
+    SearchX,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageEmptyState } from '@/components/admin/page-empty-state';
@@ -18,6 +25,7 @@ import {
 import { EmptyStatus } from '@/components/empty-status';
 import { FilterSearch } from '@/components/layout/page-header';
 import { PageLayout } from '@/components/layout/page-layout';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Drawer } from '@/components/ui/drawer';
@@ -161,16 +169,6 @@ export default function BrainExplorer({
             headerActions={
                 canPropose ? (
                     <>
-                        {isEditable ? (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={proposeItemChange}
-                            >
-                                <Pencil />
-                                {t('brain.propose.proposeChange')}
-                            </Button>
-                        ) : null}
                         <Button
                             type="button"
                             onClick={() =>
@@ -266,12 +264,13 @@ export default function BrainExplorer({
 
                         <section
                             className={cn(
-                                'min-h-0 overflow-y-auto',
-                                item === null && 'hidden lg:block',
+                                'flex min-h-0 flex-col overflow-y-auto',
+                                item === null && 'hidden lg:flex',
                             )}
                         >
                             {item === null ? (
                                 <PageEmptyState
+                                    className="flex-1"
                                     icon={FileText}
                                     title={t('brain.explorer.pickTitle')}
                                     description={t(
@@ -280,7 +279,71 @@ export default function BrainExplorer({
                                 />
                             ) : (
                                 <div className="flex flex-col gap-6">
-                                    <header className="flex flex-col gap-2">
+                                    {/* The file's own header (#295): fixed while the body scrolls, its actions on the right. */}
+                                    <header className="sticky top-0 z-10 flex flex-col gap-3 border-b bg-background/95 pb-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex min-w-0 flex-col gap-2">
+                                                <h1 className="text-xl font-semibold tracking-tight break-words">
+                                                    {item.title}
+                                                </h1>
+                                                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                                                    <Badge variant="secondary">
+                                                        {item.type}
+                                                    </Badge>
+                                                    <Badge variant="outline">
+                                                        {t(
+                                                            `brain.areas.${item.area}`,
+                                                            {
+                                                                defaultValue:
+                                                                    item.area,
+                                                            },
+                                                        )}
+                                                    </Badge>
+                                                    <span>
+                                                        {t(
+                                                            'brain.reading.citationSource',
+                                                            {
+                                                                source: item
+                                                                    .citation
+                                                                    .source,
+                                                            },
+                                                        )}
+                                                    </span>
+                                                    <span aria-hidden="true">
+                                                        ·
+                                                    </span>
+                                                    <span className="font-mono text-xs break-all">
+                                                        {item.citation.path}
+                                                    </span>
+                                                    {item.citation.commit ? (
+                                                        <>
+                                                            <span aria-hidden="true">
+                                                                ·
+                                                            </span>
+                                                            <span className="font-mono text-xs">
+                                                                {item.citation.commit.slice(
+                                                                    0,
+                                                                    7,
+                                                                )}
+                                                            </span>
+                                                        </>
+                                                    ) : null}
+                                                </div>
+                                            </div>
+                                            {canPropose && isEditable ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="shrink-0"
+                                                    onClick={proposeItemChange}
+                                                >
+                                                    <Pencil />
+                                                    {t(
+                                                        'brain.propose.proposeChange',
+                                                    )}
+                                                </Button>
+                                            ) : null}
+                                        </div>
                                         {summaryIsNew(item) ? (
                                             <p className="text-sm text-muted-foreground">
                                                 {markdownToPlainText(
@@ -288,43 +351,23 @@ export default function BrainExplorer({
                                                 )}
                                             </p>
                                         ) : null}
-                                        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                                            <Badge variant="secondary">
-                                                {item.type}
-                                            </Badge>
-                                            <Badge variant="outline">
-                                                {t(`brain.areas.${item.area}`, {
-                                                    defaultValue: item.area,
-                                                })}
-                                            </Badge>
-                                            <span>
-                                                {t(
-                                                    'brain.reading.citationSource',
-                                                    {
-                                                        source: item.citation
-                                                            .source,
-                                                    },
-                                                )}
-                                            </span>
-                                            <span aria-hidden="true">·</span>
-                                            <span className="font-mono text-xs">
-                                                {item.citation.path}
-                                            </span>
-                                            {item.citation.commit ? (
-                                                <>
-                                                    <span aria-hidden="true">
-                                                        ·
-                                                    </span>
-                                                    <span className="font-mono text-xs">
-                                                        {item.citation.commit.slice(
-                                                            0,
-                                                            7,
-                                                        )}
-                                                    </span>
-                                                </>
-                                            ) : null}
-                                        </div>
                                     </header>
+                                    {item.generated_blocks.map((block) => (
+                                        <Alert key={block.source}>
+                                            <FileCog />
+                                            <AlertTitle>
+                                                {t(
+                                                    'brain.reading.generatedTitle',
+                                                    { source: block.source },
+                                                )}
+                                            </AlertTitle>
+                                            {block.note !== '' ? (
+                                                <AlertDescription>
+                                                    {block.note}
+                                                </AlertDescription>
+                                            ) : null}
+                                        </Alert>
+                                    ))}
                                     <ItemReader
                                         item={item}
                                         neighbourhood={neighbourhood}
