@@ -23,7 +23,8 @@ import AppLayout from '@/layouts/app-layout';
 import { Bot, Boxes, KeyRound, Table as TableIcon } from 'lucide-react';
 import { PageEmptyState } from '@/components/admin/page-empty-state';
 import { EmptyStatus } from '@/components/empty-status';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { SegmentedIconItem } from '@/components/segmented-icon-item';
+import { ToggleGroup } from '@/components/ui/toggle-group';
 
 type ProductOption = {
     id: string;
@@ -142,14 +143,20 @@ export default function BrainResolved({
                             variant="outline"
                             aria-label={t('brain.resolved.viewLabel')}
                         >
-                            <ToggleGroupItem value="table">
+                            <SegmentedIconItem
+                                value="table"
+                                isActive={!agentMode}
+                                label={t('brain.resolved.viewTable')}
+                            >
                                 <TableIcon />
-                                {t('brain.resolved.viewTable')}
-                            </ToggleGroupItem>
-                            <ToggleGroupItem value="agent">
+                            </SegmentedIconItem>
+                            <SegmentedIconItem
+                                value="agent"
+                                isActive={agentMode}
+                                label={t('brain.resolved.agentToggle')}
+                            >
                                 <Bot />
-                                {t('brain.resolved.agentToggle')}
-                            </ToggleGroupItem>
+                            </SegmentedIconItem>
                         </ToggleGroup>
                     ) : null
                 }
