@@ -822,7 +822,17 @@
             "fitView": "Adatta alla vista",
             "neighbours": "Elementi collegati",
             "moreNeighbours_one": "e altro {{count}}",
-            "moreNeighbours_other": "e altri {{count}}"
+            "moreNeighbours_other": "e altri {{count}}",
+            "showArea": "Mostra {{area}}",
+            "hideArea": "Nascondi {{area}}",
+            "showAll": "Mostra tutto",
+            "preview": "Anteprima",
+            "previewLoading": "Caricamento dell'anteprima…",
+            "previewFailed": "Impossibile caricare l'anteprima.",
+            "previewEmpty": "Questo elemento non ha ancora contenuto.",
+            "previewMore": "Apri l'elemento per leggere il resto.",
+            "matches_one": "{{count}} risultato",
+            "matches_other": "{{count}} risultati"
         },
         "propose": {
             "proposeChange": "Proponi modifica",

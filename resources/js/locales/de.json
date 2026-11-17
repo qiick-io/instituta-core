@@ -822,7 +822,17 @@
             "fitView": "An Ansicht anpassen",
             "neighbours": "Verknüpfte Einträge",
             "moreNeighbours_one": "und {{count}} weiterer",
-            "moreNeighbours_other": "und {{count}} weitere"
+            "moreNeighbours_other": "und {{count}} weitere",
+            "showArea": "{{area}} einblenden",
+            "hideArea": "{{area}} ausblenden",
+            "showAll": "Alle anzeigen",
+            "preview": "Vorschau",
+            "previewLoading": "Vorschau wird geladen…",
+            "previewFailed": "Die Vorschau konnte nicht geladen werden.",
+            "previewEmpty": "Dieser Eintrag hat noch keinen Inhalt.",
+            "previewMore": "Öffne den Eintrag, um den Rest zu lesen.",
+            "matches_one": "{{count}} Treffer",
+            "matches_other": "{{count}} Treffer"
         },
         "propose": {
             "proposeChange": "Änderung vorschlagen",

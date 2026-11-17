@@ -122,3 +122,23 @@ export function boxesOverlap(a: LabelBox, b: LabelBox, gap = 4): boolean {
 export function truncateLabel(title: string, max = 32): string {
     return title.length > max ? `${title.slice(0, max - 1).trimEnd()}…` : title;
 }
+
+export function clamp01(value: number): number {
+    return Math.min(1, Math.max(0, value));
+}
+
+export function easeOutCubic(progress: number): number {
+    return 1 - Math.pow(1 - clamp01(progress), 3);
+}
+
+/** Overshoots a little before settling: nodes "pop" into place. */
+export function easeOutBack(progress: number): number {
+    const p = clamp01(progress);
+    const overshoot = 1.70158;
+
+    return (
+        1 +
+        (overshoot + 1) * Math.pow(p - 1, 3) +
+        overshoot * Math.pow(p - 1, 2)
+    );
+}

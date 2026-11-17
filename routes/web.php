@@ -16,6 +16,7 @@ use App\Http\Controllers\Brain\ClientsController;
 use App\Http\Controllers\Brain\ExplorerController;
 use App\Http\Controllers\Brain\GapsController;
 use App\Http\Controllers\Brain\GraphController;
+use App\Http\Controllers\Brain\GraphPreviewController;
 use App\Http\Controllers\Brain\KeysController;
 use App\Http\Controllers\Brain\LegacyBrainRedirectController;
 use App\Http\Controllers\Brain\ProposalsController;
@@ -62,6 +63,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->where('item', '.*')
         ->name('explorer.show');
     Route::get('graph', GraphController::class)->name('graph');
+    Route::get('graph/preview/{item}', GraphPreviewController::class)
+        ->where('item', '.*')
+        ->name('graph.preview');
     Route::get('resolved', ResolvedController::class)->name('resolved');
     Route::get('tables', [TablesController::class, 'index'])->name('tables.index');
     Route::get('tables/{item}/{table}', [TablesController::class, 'show'])->name('tables.show');

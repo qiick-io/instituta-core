@@ -8,6 +8,7 @@ use App\Brain\Enums\VisibilityEnum;
 use App\Models\Grant;
 use App\Models\Item;
 use App\Models\ItemLink;
+use App\Models\ItemSection;
 use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\Source;
@@ -93,4 +94,39 @@ it('renders every item of the perimeter and each link once, with link counts', f
 
 it('requires authentication for the graph', function (): void {
     $this->get(route('graph'))->assertRedirect();
+});
+
+it('previews an item for the graph card without leaving the page', function (): void {
+    $seed = graphUiSeed();
+    $seed['item']->update(['summary' => 'The root of the rules']);
+
+    foreach (range(1, 5) as $position) {
+        ItemSection::factory()->create([
+            'item_id' => $seed['item']->id,
+            'organisation_id' => $seed['org']->id,
+            'anchor' => "part-{$position}",
+            'heading' => "Part {$position}",
+            'level' => 2,
+            'position' => $position,
+            'body' => "Body {$position}",
+            'markdown' => "Body **{$position}**",
+        ]);
+    }
+
+    $this->actingAs($seed['user'])
+        ->getJson(route('graph.preview', ['item' => $seed['item']->stable_key]))
+        ->assertOk()
+        ->assertJsonPath('summary', 'The root of the rules')
+        ->assertJsonCount(4, 'sections')
+        ->assertJsonPath('sections.0.heading', 'Part 1')
+        ->assertJsonPath('hasMore', true);
+});
+
+it('does not preview an item outside the perimeter', function (): void {
+    $seed = graphUiSeed();
+    $other = Item::factory()->create(['stable_key' => 'rules/elsewhere']);
+
+    $this->actingAs($seed['user'])
+        ->getJson(route('graph.preview', ['item' => $other->stable_key]))
+        ->assertNotFound();
 });
