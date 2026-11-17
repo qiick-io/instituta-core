@@ -823,9 +823,6 @@
             "neighbours": "Elementi collegati",
             "moreNeighbours_one": "e altro {{count}}",
             "moreNeighbours_other": "e altri {{count}}",
-            "showArea": "Mostra {{area}}",
-            "hideArea": "Nascondi {{area}}",
-            "showAll": "Mostra tutto",
             "preview": "Anteprima",
             "previewLoading": "Caricamento dell'anteprima…",
             "previewFailed": "Impossibile caricare l'anteprima.",
@@ -841,7 +838,12 @@
             "pathSteps_other": "{{count}} passaggi",
             "pathNone": "{{from}} e {{to}} non sono collegati.",
             "clearPath": "Cancella percorso",
-            "pathHint": "Shift-clic su un altro elemento per vedere come sono collegati."
+            "pathHint": "Shift-clic su un altro elemento per vedere come sono collegati.",
+            "areaFilter": "Area",
+            "areaFilterLabel": "Filtra per area",
+            "layoutLabel": "Disposizione",
+            "layoutFree": "Libero",
+            "layoutFreeHint": "Elementi disposti in base ai collegamenti"
         },
         "propose": {
             "proposeChange": "Proponi modifica",
