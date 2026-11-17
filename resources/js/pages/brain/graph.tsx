@@ -17,7 +17,7 @@ import { GraphItemCard } from '@/components/brain/graph-item-card';
 import { GraphPathCard } from '@/components/brain/graph-path-card';
 import { FilterSearch } from '@/components/layout/page-header';
 import { PageLayout } from '@/components/layout/page-layout';
-import { SegmentedIconItem } from '@/components/segmented-icon-item';
+import { SegmentedIconItem } from '@/components/admin/segmented-icon-item';
 import { ToggleGroup } from '@/components/ui/toggle-group';
 import { Spinner } from '@/components/ui/spinner';
 import { useBrainLayout } from '@/hooks/use-brain-layout';

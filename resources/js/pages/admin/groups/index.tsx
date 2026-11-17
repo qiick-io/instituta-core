@@ -42,7 +42,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { SegmentedIconItem } from '@/components/segmented-icon-item';
+import { SegmentedIconItem } from '@/components/admin/segmented-icon-item';
 import { ToggleGroup } from '@/components/ui/toggle-group';
 import { PermissionEnum } from '@/enums/permission-enum';
 import { useCan } from '@/hooks/use-can';
