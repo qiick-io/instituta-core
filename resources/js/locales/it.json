@@ -842,7 +842,8 @@
             "areaFilterLabel": "Filtra per area",
             "layoutLabel": "Disposizione",
             "layoutFree": "Libero",
-            "layoutFreeHint": "Elementi disposti in base ai collegamenti"
+            "layoutFreeHint": "Elementi disposti in base ai collegamenti",
+            "layingOut": "Disposizione del cervello…"
         },
         "propose": {
             "proposeChange": "Proponi modifica",

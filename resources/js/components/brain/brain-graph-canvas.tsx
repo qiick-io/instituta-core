@@ -162,7 +162,21 @@ type Scene = {
     dirty: boolean;
     fitted: boolean;
     labelWidths: Map<number, number>;
+    /** Node indexes, most linked first: the label order, sorted once per data change. */
+    byDegree: number[];
+    /** Bumped whenever laid out places move (data, glide, springs), so the hit grid rebuilds. */
+    positionsVersion: number;
+    hitGrid: HitGrid | null;
 };
+
+type HitGrid = { version: number; cells: Map<number, number[]> };
+
+/** Cell size of the hit grid, in world units: a little more than the biggest node. */
+const HIT_CELL = 64;
+
+function hitCellKey(column: number, row: number): number {
+    return column * 100_003 + row;
+}
 
 function prefersReducedMotion(): boolean {
     return (
@@ -311,6 +325,7 @@ function stepTransitions(scene: Scene, time: number): boolean {
             scene.glide = null;
         }
 
+        scene.positionsVersion += 1;
         moving = true;
     }
 
@@ -321,6 +336,7 @@ function stepTransitions(scene: Scene, time: number): boolean {
             scene.springsActive = false;
         }
 
+        scene.positionsVersion += 1;
         moving = true;
     }
 
@@ -437,6 +453,23 @@ function draw(
         !hasPath &&
         scene.hovered !== null &&
         (from === scene.hovered || to === scene.hovered);
+    // What the view shows, in world units, with a margin for halos and labels.
+    const margin = 60 / camera.k;
+    const viewLeft = -camera.x / camera.k - margin;
+    const viewTop = -camera.y / camera.k - margin;
+    const viewRight = (scene.width - camera.x) / camera.k + margin;
+    const viewBottom = (scene.height - camera.y) / camera.k + margin;
+    const inView = (index: number): boolean =>
+        px[index] >= viewLeft &&
+        px[index] <= viewRight &&
+        py[index] >= viewTop &&
+        py[index] <= viewBottom;
+    const linkInView = (from: number, to: number): boolean =>
+        Math.max(px[from], px[to]) >= viewLeft &&
+        Math.min(px[from], px[to]) <= viewRight &&
+        Math.max(py[from], py[to]) >= viewTop &&
+        Math.min(py[from], py[to]) <= viewBottom;
+
     const buckets = new Map<number, Array<[number, number]>>();
     const litLinks: Array<[number, number]> = [];
     const previewLinks: Array<[number, number]> = [];
@@ -448,7 +481,7 @@ function draw(
             Math.min(visible[from], visible[to]) *
             Math.min(1, scale[from], scale[to]);
 
-        if (presence < 0.02) {
+        if (presence < 0.02 || !linkInView(from, to)) {
             continue;
         }
 
@@ -564,12 +597,65 @@ function draw(
             : [],
     );
 
-    // Nodes: a soft halo for the ones that matter, then the body.
+    // Plain nodes (no halo, no ring) are batched into one path per colour and strength, so a big
+    // brain costs a few fills instead of thousands; the ones that matter are drawn after, on top.
+    const plain = new Map<number, number[]>();
+    const special: number[] = [];
+
     for (let index = 0; index < nodes.length; index++) {
-        if (scale[index] <= 0.01 || visible[index] <= 0.01) {
+        if (scale[index] <= 0.01 || visible[index] <= 0.01 || !inView(index)) {
             continue;
         }
 
+        const isSpecial =
+            index === scene.selected ||
+            index === scene.hovered ||
+            index === scene.dragged ||
+            pinned[index] === 1 ||
+            pathEnds.has(index) ||
+            (scene.neighbours?.has(index) ?? false) ||
+            (scene.matches?.has(index) ?? false) ||
+            (scene.pathSet?.has(index) ?? false) ||
+            (!hasSelection && nodes[index].degree >= LABELLED_DEGREE);
+
+        if (isSpecial) {
+            special.push(index);
+            continue;
+        }
+
+        const strength = Math.round(emphasis[index] * visible[index] * 10);
+        const key = scene.nodeArea[index] * 100 + strength;
+        const batch = plain.get(key) ?? [];
+        batch.push(index);
+        plain.set(key, batch);
+    }
+
+    // Below ~3px on screen the card outline would only blur the dot.
+    const outlines = camera.k * 6 >= 3;
+
+    for (const [key, batch] of plain) {
+        const area = Math.floor(key / 100);
+        const alpha = (key % 100) / 10;
+        context.beginPath();
+
+        for (const index of batch) {
+            const radius = nodes[index].radius * scale[index];
+            context.moveTo(px[index] + radius, py[index]);
+            context.arc(px[index], py[index], radius, 0, Math.PI * 2);
+        }
+
+        context.fillStyle = rgba(palette.areas[area], 0.92 * alpha);
+        context.fill();
+
+        if (outlines) {
+            context.lineWidth = 1.5 / camera.k;
+            context.strokeStyle = rgba(palette.card, alpha);
+            context.stroke();
+        }
+    }
+
+    // The nodes that matter: a soft halo, the body, a ring.
+    for (const index of special) {
         const node = nodes[index];
         const colour = palette.areas[scene.nodeArea[index]];
         const radius = node.radius * scale[index];
@@ -838,15 +924,29 @@ function drawLabels(
         scene.selected === null &&
         scene.matches === null &&
         scene.path === null;
-    nodes
-        .map((_, index) => index)
-        .filter(
-            (index) =>
-                showsAll || (quiet && nodes[index].degree >= LABELLED_DEGREE),
-        )
-        .sort(byDegree)
-        .slice(0, 300)
-        .forEach(add);
+    let listed = 0;
+
+    for (const index of scene.byDegree) {
+        if (listed >= 300) {
+            break;
+        }
+
+        if (!showsAll && !(quiet && nodes[index].degree >= LABELLED_DEGREE)) {
+            break; // sorted by degree: the rest are below the hub threshold too
+        }
+
+        if (
+            px[index] * camera.k + camera.x < -100 ||
+            px[index] * camera.k + camera.x > scene.width + 100 ||
+            py[index] * camera.k + camera.y < -40 ||
+            py[index] * camera.k + camera.y > scene.height + 40
+        ) {
+            continue;
+        }
+
+        add(index);
+        listed += 1;
+    }
 
     context.font = `500 ${LABEL_FONT_SIZE}px ${palette.fontFamily}`;
     context.textBaseline = 'middle';
@@ -1083,6 +1183,9 @@ export function BrainGraphCanvas({
         dirty: true,
         fitted: false,
         labelWidths: new Map(),
+        byDegree: [],
+        positionsVersion: 0,
+        hitGrid: null,
     });
     const callbacks = useRef({ onSelect, onOpen, onTrace });
 
@@ -1128,6 +1231,7 @@ export function BrainGraphCanvas({
                 start: null,
             };
             scene.introStart = null;
+            scene.positionsVersion += 1;
             moveCamera(fitCamera(scene, toX, toY));
             scene.dirty = true;
 
@@ -1166,6 +1270,10 @@ export function BrainGraphCanvas({
         );
 
         scene.labelWidths = new Map();
+        scene.byDegree = nodes
+            .map((_, index) => index)
+            .sort((a, b) => nodes[b].degree - nodes[a].degree);
+        scene.positionsVersion += 1;
         scene.introStart = null;
         scene.lastTime = null;
         scene.fitted = false;
@@ -1430,12 +1538,55 @@ export function BrainGraphCanvas({
             scene.dirty = true;
         };
 
+        /** The hit grid over the laid out places, rebuilt only after they move. */
+        const hitGrid = (): HitGrid => {
+            if (
+                scene.hitGrid !== null &&
+                scene.hitGrid.version === scene.positionsVersion
+            ) {
+                return scene.hitGrid;
+            }
+
+            const cells = new Map<number, number[]>();
+
+            for (let index = 0; index < scene.nodes.length; index++) {
+                const key = hitCellKey(
+                    Math.floor(
+                        (scene.bx[index] + scene.springs.ox[index]) / HIT_CELL,
+                    ),
+                    Math.floor(
+                        (scene.by[index] + scene.springs.oy[index]) / HIT_CELL,
+                    ),
+                );
+                const cell = cells.get(key) ?? [];
+                cell.push(index);
+                cells.set(key, cell);
+            }
+
+            scene.hitGrid = { version: scene.positionsVersion, cells };
+
+            return scene.hitGrid;
+        };
+
         const hitTest = (point: Point): number | null => {
             const world = toWorld(point);
             let best: number | null = null;
             let bestDistance = Infinity;
+            const { cells } = hitGrid();
+            const column = Math.floor(world.x / HIT_CELL);
+            const row = Math.floor(world.y / HIT_CELL);
+            const candidates: number[] = [];
 
-            for (let index = 0; index < scene.nodes.length; index++) {
+            // Nodes float a few pixels off their place: the 3×3 cells around the pointer cover it.
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    candidates.push(
+                        ...(cells.get(hitCellKey(column + dx, row + dy)) ?? []),
+                    );
+                }
+            }
+
+            for (const index of candidates) {
                 if (!isShown(scene, index)) {
                     continue;
                 }
