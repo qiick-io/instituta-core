@@ -8,7 +8,7 @@ import {
 
 /**
  * One icon item of a segmented control (`ToggleGroup type="single" variant="outline"`), as in
- * Users active / trash (#305): the icon only, its name in a tooltip and as the accessible name,
+ * Users active / trash: the icon only, its name in a tooltip and as the accessible name,
  * so a row of filters stays compact at every width. Segments without an icon keep their text.
  *
  * The tooltip trigger would otherwise stamp its own `data-state` (closed / delayed-open) over the

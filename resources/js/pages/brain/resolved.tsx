@@ -23,7 +23,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Bot, Boxes, KeyRound, Table as TableIcon } from 'lucide-react';
 import { PageEmptyState } from '@/components/admin/page-empty-state';
 import { EmptyStatus } from '@/components/empty-status';
-import { SegmentedIconItem } from '@/components/segmented-icon-item';
+import { SegmentedIconItem } from '@/components/admin/segmented-icon-item';
 import { ToggleGroup } from '@/components/ui/toggle-group';
 
 type ProductOption = {
