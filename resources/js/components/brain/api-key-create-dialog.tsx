@@ -2,7 +2,7 @@ import { useForm } from '@inertiajs/react';
 import { KeyRound } from 'lucide-react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import KeysController from '@/actions/App/Http/Controllers/Brain/KeysController';
+import KeysController from '@/actions/App/Http/Controllers/Settings/KeysController';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {

@@ -8,7 +8,7 @@ use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Brain\Support\FrontmatterParser;
-use App\Enums\ApiKeyAbilityEnum;
+use App\Enums\ApiKeyScopeEnum;
 use App\Enums\ProposalMaterialisationStatusEnum;
 use App\Enums\ProposalStatusEnum;
 use App\Enums\SourceProviderEnum;
@@ -87,7 +87,7 @@ beforeEach(function (): void {
         scopeId: $this->organisation->id,
         role: RoleEnum::Owner,
         maxVisibility: VisibilityEnum::Restricted,
-        abilities: [ApiKeyAbilityEnum::BrainRead->value, ApiKeyAbilityEnum::BrainWrite->value],
+        scopes: [ApiKeyScopeEnum::BrainRead->value, ApiKeyScopeEnum::BrainWrite->value],
     );
 
     Process::fake(function (PendingProcess $process) {

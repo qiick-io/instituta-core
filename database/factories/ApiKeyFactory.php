@@ -7,11 +7,11 @@ namespace Database\Factories;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
-use App\Enums\ApiKeyAbilityEnum;
+use App\Enums\ApiKeyScopeEnum;
 use App\Models\ApiKey;
 use App\Models\Principal;
+use App\Services\ApiKeyIssuerService;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 
 /**
  * Active API key bound to a fresh principal. The plain secret is never stored: a test that
@@ -32,40 +32,41 @@ class ApiKeyFactory extends Factory
 
         return [
             'name' => fake()->word().' key',
-            'prefix' => ApiKey::DEFAULT_PREFIX,
-            'hash' => $secret['hash'],
-            'display_prefix' => $secret['display_prefix'],
+            'key_prefix' => $secret['key_prefix'],
+            'key_hash' => $secret['hash'],
             'principal_id' => Principal::factory(),
+            'created_by' => null,
             'scope_type' => ScopeTypeEnum::Organisation,
             'scope_id' => fn (array $attributes): mixed => Principal::query()->whereKey($attributes['principal_id'])->value('organisation_id'),
             'role' => RoleEnum::Member,
             'max_visibility' => VisibilityEnum::Internal,
-            'abilities' => [ApiKeyAbilityEnum::BrainRead->value],
+            'scopes' => [ApiKeyScopeEnum::BrainRead->value],
             'ip_allowlist' => null,
+            'rate_limit_per_minute' => null,
             'expires_at' => null,
             'last_used_at' => null,
+            'last_used_ip' => null,
             'revoked_at' => null,
+            'previous_key_hash' => null,
+            'previous_key_valid_until' => null,
         ];
     }
 
     /**
-     * @param  array{plain: string, display_prefix: string, hash: string}  $secret
+     * @param  array{plain: string, key_prefix: string, hash: string}  $secret
      */
     public function withSecret(array $secret): static
     {
         return $this->state(fn (): array => [
-            'hash' => $secret['hash'],
-            'display_prefix' => $secret['display_prefix'],
+            'key_prefix' => $secret['key_prefix'],
+            'key_hash' => $secret['hash'],
         ]);
     }
 
     public function writeAbility(): static
     {
         return $this->state(fn (): array => [
-            'abilities' => [
-                ApiKeyAbilityEnum::BrainRead->value,
-                ApiKeyAbilityEnum::BrainWrite->value,
-            ],
+            'scopes' => [ApiKeyScopeEnum::BrainWrite->value],
         ]);
     }
 
@@ -73,6 +74,8 @@ class ApiKeyFactory extends Factory
     {
         return $this->state(fn (): array => [
             'revoked_at' => now()->subMinute(),
+            'previous_key_hash' => null,
+            'previous_key_valid_until' => null,
         ]);
     }
 
@@ -84,17 +87,10 @@ class ApiKeyFactory extends Factory
     }
 
     /**
-     * @return array{plain: string, display_prefix: string, hash: string}
+     * @return array{plain: string, key_prefix: string, hash: string}
      */
-    public function makeSecret(string $prefix = ApiKey::DEFAULT_PREFIX): array
+    public function makeSecret(): array
     {
-        $plain = $prefix.Str::random(40);
-        $displayPrefix = substr($plain, 0, 12);
-
-        return [
-            'plain' => $plain,
-            'display_prefix' => $displayPrefix,
-            'hash' => hash('sha256', $plain),
-        ];
+        return app(ApiKeyIssuerService::class)->makeSecret();
     }
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Brain\Enums\RoleEnum;
-use App\Enums\ApiKeyAbilityEnum;
+use App\Enums\ApiKeyScopeEnum;
 use App\Models\ApiKey;
 use App\Models\Principal;
 use App\Models\User;
@@ -51,19 +51,25 @@ final class BrainKeysService
             ->all();
 
         $rows = [];
+
         foreach ($keys as $key) {
             $rows[] = [
                 'id' => $key->id,
                 'name' => $key->name,
                 'principal_name' => $key->principal?->name,
                 'principal_type' => $key->principal?->type->value,
-                'can_write' => in_array(ApiKeyAbilityEnum::BrainWrite->value, $key->abilities ?? [], true),
-                'display_prefix' => $key->display_prefix,
+                // Derived for the existing screen until registry items replace can_write.
+                'can_write' => $key->hasScope(ApiKeyScopeEnum::BrainWrite),
+                'display_prefix' => $key->key_prefix,
+                'key_prefix' => $key->key_prefix,
+                'scopes' => $key->scopes,
                 'scope_type' => $key->scope_type->value,
                 'scope_id' => $key->scope_id,
                 'role' => $key->role->value,
                 'max_visibility' => $key->max_visibility->value,
+                'rate_limit_per_minute' => $key->rate_limit_per_minute,
                 'last_used_at' => $key->last_used_at?->toIso8601String(),
+                'last_used_ip' => $key->last_used_ip,
                 'expires_at' => $key->expires_at?->toIso8601String(),
                 'revoked_at' => $key->revoked_at?->toIso8601String(),
                 'revoked' => $key->revoked_at !== null,

@@ -8,7 +8,7 @@ use App\Brain\Enums\PrincipalTypeEnum;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
-use App\Enums\ApiKeyAbilityEnum;
+use App\Enums\ApiKeyScopeEnum;
 use App\Enums\GapReportStatusEnum;
 use App\Enums\SourceProviderEnum;
 use App\Mcp\Servers\HttpBrainServer;
@@ -63,7 +63,7 @@ beforeEach(function (): void {
         scopeId: $this->organisation->id,
         role: RoleEnum::Guest,
         maxVisibility: VisibilityEnum::Internal,
-        abilities: [ApiKeyAbilityEnum::BrainRead->value],
+        scopes: [ApiKeyScopeEnum::BrainRead->value],
     );
     $this->headers = ['Authorization' => 'Bearer '.$created['plain']];
     $this->key = $created['key'];

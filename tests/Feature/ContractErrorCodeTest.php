@@ -6,7 +6,7 @@ use App\Actions\CreateApiKeyAction;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
-use App\Enums\ApiKeyAbilityEnum;
+use App\Enums\ApiKeyScopeEnum;
 use App\Models\Grant;
 use App\Models\Organisation;
 use App\Models\Principal;
@@ -31,7 +31,7 @@ beforeEach(function (): void {
         scopeId: $this->organisation->id,
         role: RoleEnum::Owner,
         maxVisibility: VisibilityEnum::Restricted,
-        abilities: [ApiKeyAbilityEnum::BrainRead->value],
+        scopes: [ApiKeyScopeEnum::BrainRead->value],
     )['plain'];
 });
 

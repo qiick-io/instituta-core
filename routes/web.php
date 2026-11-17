@@ -18,7 +18,6 @@ use App\Http\Controllers\Brain\ExplorerController;
 use App\Http\Controllers\Brain\GapsController;
 use App\Http\Controllers\Brain\GraphController;
 use App\Http\Controllers\Brain\GraphPreviewController;
-use App\Http\Controllers\Brain\KeysController;
 use App\Http\Controllers\Brain\LegacyBrainRedirectController;
 use App\Http\Controllers\Brain\ProposalsController;
 use App\Http\Controllers\Brain\ResolvedController;
@@ -30,6 +29,7 @@ use App\Http\Controllers\Brain\TablesController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Settings\KeysController;
 use App\Http\Middleware\EnsureAiAssistantEnabledMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -89,6 +89,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('settings/repositories/{source}/sync', SourceSyncController::class)->name('repositories.sync');
     Route::get('settings/api-keys', [KeysController::class, 'index'])->name('api-keys.index');
     Route::post('settings/api-keys', [KeysController::class, 'store'])->name('api-keys.store');
+    Route::post('settings/api-keys/{key}/rotate', [KeysController::class, 'rotate'])->name('api-keys.rotate');
     Route::delete('settings/api-keys/{key}', [KeysController::class, 'destroy'])->name('api-keys.destroy');
 
     Route::get('clients', [ClientsController::class, 'index'])->name('clients.index');

@@ -208,6 +208,6 @@ it('refuses brain:write ability on issue', function (): void {
         scopeId: $org->id,
         role: RoleEnum::Owner,
         maxVisibility: VisibilityEnum::Restricted,
-        abilities: ['brain:write'],
+        scopes: ['brain:write'],
     ))->toThrow(InvalidArgumentException::class);
 });

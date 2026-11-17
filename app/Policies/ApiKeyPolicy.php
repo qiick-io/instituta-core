@@ -29,6 +29,11 @@ class ApiKeyPolicy
         return $user->principals()->exists();
     }
 
+    public function update(User $user, ApiKey $apiKey): bool
+    {
+        return $this->owns($user, $apiKey) && $apiKey->revoked_at === null;
+    }
+
     public function delete(User $user, ApiKey $apiKey): bool
     {
         return $this->owns($user, $apiKey);

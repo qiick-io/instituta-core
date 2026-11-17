@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import KeysController from '@/actions/App/Http/Controllers/Brain/KeysController';
+import KeysController from '@/actions/App/Http/Controllers/Settings/KeysController';
 import { HeaderIconButton } from '@/components/admin/header-icon-button';
 import { TruncatedText } from '@/components/admin/truncated-text';
 import { DataTable } from '@/components/admin/data-table';
@@ -62,10 +62,11 @@ type Props = {
 };
 
 /**
- * API keys for organisation owners (#201), laid out like externa-core's API keys page: create
- * from the header, the new secret once in a warning with copy, revoke with confirmation.
+ * API keys for organisation owners (#201 / #329), under settings. Create from the header,
+ * the new secret once in a warning with copy, revoke with confirmation. Registry items
+ * from app-ui#175 replace the form and list row once they ship.
  */
-export default function BrainKeys({ is_owner, keys, plainTextKey }: Props) {
+export default function ApiKeys({ is_owner, keys, plainTextKey }: Props) {
     const { t } = useTranslation();
     const [search, setSearch] = useState('');
     const [isCreateOpen, setIsCreateOpen] = useState(false);

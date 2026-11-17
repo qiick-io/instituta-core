@@ -43,7 +43,8 @@ class ContractCallReplayResource extends JsonResource
             'api_key' => $apiKey instanceof ApiKey ? [
                 'id' => $apiKey->id,
                 'name' => $apiKey->name,
-                'display_prefix' => $apiKey->display_prefix,
+                'display_prefix' => $apiKey->key_prefix,
+                'key_prefix' => $apiKey->key_prefix,
             ] : null,
             'agent_session_id' => $this->agent_session_id,
         ];

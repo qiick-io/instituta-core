@@ -479,7 +479,7 @@ it('authenticates a valid bearer key over HTTP MCP', function (): void {
 it('rejects keys without brain:read over HTTP', function (): void {
     config(['instituta.mcp.enabled' => true]);
     $seed = seedOwnerKey();
-    $seed['key']->forceFill(['abilities' => []])->save();
+    $seed['key']->forceFill(['scopes' => []])->save();
 
     $this->postJson('/mcp', [
         'jsonrpc' => '2.0',

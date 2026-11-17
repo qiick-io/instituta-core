@@ -71,7 +71,7 @@ it('returns 401 without a bearer key on REST', function (): void {
 
 it('rejects keys without brain:read on REST', function (): void {
     $seed = restSeedOwnerKey();
-    $seed['key']->forceFill(['abilities' => []])->save();
+    $seed['key']->forceFill(['scopes' => []])->save();
 
     $this->getJson('/api/v1/scopes', restAuth($seed))->assertForbidden();
 });

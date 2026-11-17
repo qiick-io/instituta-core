@@ -6,7 +6,7 @@ use App\Actions\CreateApiKeyAction;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
-use App\Enums\ApiKeyAbilityEnum;
+use App\Enums\ApiKeyScopeEnum;
 use App\Enums\ProposalMaterialisationStatusEnum;
 use App\Enums\ProposalStatusEnum;
 use App\Jobs\MaterialiseProposalJob;
@@ -38,9 +38,9 @@ function writeSeedOwnerKey(bool $withWriteAbility = true): array
         'max_visibility' => VisibilityEnum::Restricted,
     ]);
 
-    $abilities = [ApiKeyAbilityEnum::BrainRead->value];
+    $abilities = [ApiKeyScopeEnum::BrainRead->value];
     if ($withWriteAbility) {
-        $abilities[] = ApiKeyAbilityEnum::BrainWrite->value;
+        $abilities[] = ApiKeyScopeEnum::BrainWrite->value;
     }
 
     $created = app(CreateApiKeyAction::class)->execute(
@@ -50,7 +50,7 @@ function writeSeedOwnerKey(bool $withWriteAbility = true): array
         scopeId: $org->id,
         role: RoleEnum::Owner,
         maxVisibility: VisibilityEnum::Restricted,
-        abilities: $abilities,
+        scopes: $abilities,
     );
 
     return [
@@ -113,9 +113,9 @@ it('refuses issuing brain:write for guest keys even when writes are enabled', fu
         scopeId: $org->id,
         role: RoleEnum::Guest,
         maxVisibility: VisibilityEnum::Public,
-        abilities: [
-            ApiKeyAbilityEnum::BrainRead->value,
-            ApiKeyAbilityEnum::BrainWrite->value,
+        scopes: [
+            ApiKeyScopeEnum::BrainRead->value,
+            ApiKeyScopeEnum::BrainWrite->value,
         ],
     ))->toThrow(InvalidArgumentException::class);
 });
@@ -162,7 +162,7 @@ it('creates lists and accepts proposals without exposing body in responses or au
         scopeId: $seed['org']->id,
         role: RoleEnum::Owner,
         maxVisibility: VisibilityEnum::Restricted,
-        abilities: [ApiKeyAbilityEnum::BrainRead->value, ApiKeyAbilityEnum::BrainWrite->value],
+        scopes: [ApiKeyScopeEnum::BrainRead->value, ApiKeyScopeEnum::BrainWrite->value],
     );
 
     $this->patchJson('/api/v1/proposals/'.$proposalId, [
@@ -229,6 +229,6 @@ it('refuses brain:write on issue when all write kill switches are off', function
         scopeId: $org->id,
         role: RoleEnum::Owner,
         maxVisibility: VisibilityEnum::Restricted,
-        abilities: ['brain:write'],
+        scopes: ['brain:write'],
     ))->toThrow(InvalidArgumentException::class);
 });

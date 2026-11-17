@@ -121,14 +121,14 @@ it('logs api key create and revoke with organisation stamp', function (): void {
     );
 
     expect(Activity::query()
-        ->where('event', 'api_key.created')
+        ->where('event', 'created')
         ->where('organisation_id', $org->id)
         ->exists())->toBeTrue();
 
     $revoke->execute($created['key']);
 
     expect(Activity::query()
-        ->where('event', 'api_key.revoked')
+        ->where('event', 'revoked')
         ->where('organisation_id', $org->id)
         ->exists())->toBeTrue();
 });
@@ -261,13 +261,13 @@ it('scopes the activity page to the owner organisation and hides other tenants',
 
     activity('keys')
         ->causedBy($ownerA)
-        ->event('api_key.created')
+        ->event('created')
         ->withProperties(['organisation_id' => $orgA->id])
         ->log('org-a-only');
 
     activity('keys')
         ->causedBy($ownerB)
-        ->event('api_key.created')
+        ->event('created')
         ->withProperties(['organisation_id' => $orgB->id])
         ->log('org-b-only');
 
@@ -322,7 +322,7 @@ it('filters activity logs by log name and event', function (): void {
 
     activity('keys')
         ->causedBy($user)
-        ->event('api_key.created')
+        ->event('created')
         ->withProperties(['organisation_id' => $org->id])
         ->log('key-row');
 
