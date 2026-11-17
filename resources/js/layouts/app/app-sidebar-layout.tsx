@@ -12,8 +12,8 @@ import type { AppLayoutProps } from '@/types';
 
 /**
  * Authenticated app layout with collapsible sidebar and header bar.
- * Holds keyboard shortcuts and the command palette (#130): the palette trigger
- * is the first header action (before the scope switcher).
+ * Holds keyboard shortcuts and the command palette (#130): the palette's search icon sits right
+ * after the sidebar toggle (#299), the scope switcher and the page actions on the right.
  */
 export default function AppSidebarLayout({
     children,
@@ -35,11 +35,13 @@ export default function AppSidebarLayout({
                 >
                     <AppSidebarHeader
                         breadcrumbs={breadcrumbs}
+                        leading={
+                            <CommandPaletteTrigger
+                                onOpen={() => setIsPaletteOpen(true)}
+                            />
+                        }
                         actions={
                             <>
-                                <CommandPaletteTrigger
-                                    onOpen={() => setIsPaletteOpen(true)}
-                                />
                                 <ScopeSwitcher />
                                 {headerActions}
                             </>
