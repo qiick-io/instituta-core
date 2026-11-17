@@ -74,6 +74,11 @@ function flatten(text: string): string {
  * it, as when the summary is the first paragraph.
  */
 function summaryIsNew(item: Item): boolean {
+    // An asset's summary is its format and size, which the asset view already shows (#315).
+    if (item.asset) {
+        return false;
+    }
+
     const summary = flatten(item.summary ?? '');
 
     if (summary === '') {

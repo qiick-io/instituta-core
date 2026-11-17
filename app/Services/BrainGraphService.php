@@ -65,7 +65,7 @@ final class BrainGraphService
         $proposalsByKey = $this->openProposalsByKey($perimeter);
         // Images and PDFs no document uses stay out of the graph (#311): hundreds of loose logos
         // and screenshots would bury the brain; the ones a page embeds or links come with their links.
-        $items = $items->reject(static fn (Item $item): bool => in_array($item->type, ['image', 'document'], true)
+        $items = $items->reject(static fn (Item $item): bool => in_array($item->type, ['image', 'document', 'file'], true)
             && AssetReader::mimeType($item->path) !== null
             && ($degrees[$item->id] ?? 0) === 0);
 

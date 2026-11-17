@@ -138,10 +138,10 @@ Agents query rows through the contract `instituta_table` / `GET /items/{id}/tabl
 
 ## 7. Assets and sidecars
 
-Images (`png`, `jpg`, `jpeg`, `gif`, `webp`, `avif`, `svg`) and PDFs are **assets** (#311): files people keep in the brain next to their notes (logos, screenshots, brand sheets, specs). Each one becomes an item of its own:
+Images (`png`, `jpg`, `jpeg`, `gif`, `webp`, `avif`, `svg`) and PDFs are **assets** (#311): files people keep in the brain next to their notes (logos, screenshots, brand sheets, specs). Archives (`zip`), fonts (`ttf`, `otf`, `woff`, `woff2`) and Office / OpenDocument files (`docx`, `xlsx`, `pptx`, `doc`, `xls`, `ppt`, `odt`, `ods`, `odp`) are assets too, **download only** (type `file`, #315): listed with their kind, format and size, always served as an attachment, never shown in the page. The brain keeps references next to the knowledge; it is not a file manager (fixed types, a size limit, read-only, no uploads). Each asset becomes an item of its own:
 
 - stable key: its path, extension included (`brand/excubia/mark.svg`, never clashing with `mark.md`);
-- title: the file name; type `image` or `document`; area from its top folder, like markdown;
+- title: the file name; type `image`, `document` (PDF) or `file` (download only); area from its top folder, like markdown;
 - metadata only: content type, bytes, SHA-256, width × height (raster size or the SVG's `width` / `height` / `viewBox`), alt text and caption. **The bytes never enter the index or reach an agent**; agents read the description (format, size, dimensions, alt, caption, path) and where the file is used.
 - The sync keeps a content-addressed copy of the bytes in the app's private storage, so people can view and download the file in the Explorer (inside their perimeter only; SVGs served under a sandboxing CSP).
 - Files over **20 MB** are skipped (`asset_too_large`): the brain holds references, not media archives.

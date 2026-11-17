@@ -91,3 +91,26 @@ it('skips an asset over the size limit', function (): void {
     expect(assetItem($result->items, 'notes/huge.png'))->toBeNull()
         ->and(collect($result->skipped)->first(fn ($skip) => $skip->path === 'notes/huge.png')?->reason)->toBe('asset_too_large');
 });
+
+it('reads archives, fonts and Office files as download-only files', function (): void {
+    $root = assetBrain();
+    file_put_contents($root.'/notes/kit.zip', "PK\x03\x04fake");
+    file_put_contents($root.'/brand/inter.woff2', 'wOF2fake');
+    file_put_contents($root.'/notes/budget.xlsx', "PK\x03\x04fake");
+
+    $result = BrainReader::withDefaults()->read(new ReadRequestData(path: $root));
+
+    $zip = assetItem($result->items, 'notes/kit.zip');
+    $font = assetItem($result->items, 'brand/inter.woff2');
+    $sheet = assetItem($result->items, 'notes/budget.xlsx');
+
+    expect($zip?->type)->toBe('file')
+        ->and($zip?->frontmatter['asset']['kind'])->toBe('archive')
+        ->and($zip?->summary)->toStartWith('ZIP archive')
+        ->and($font?->frontmatter['asset']['kind'])->toBe('font')
+        ->and($font?->frontmatter['asset']['mime'])->toBe('font/woff2')
+        ->and($sheet?->frontmatter['asset']['kind'])->toBe('spreadsheet')
+        ->and($sheet?->summary)->toStartWith('XLSX spreadsheet')
+        ->and(AssetReader::isDownloadOnly('notes/kit.zip'))->toBeTrue()
+        ->and(AssetReader::isDownloadOnly('notes/guide.pdf'))->toBeFalse();
+});

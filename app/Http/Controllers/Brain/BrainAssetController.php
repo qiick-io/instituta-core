@@ -19,7 +19,8 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
  * the session perimeter and pass its policy, exactly like opening it in the Explorer; 404
  * otherwise. The content type comes from the file's extension, never from the bytes; `nosniff`
  * stops browsers guessing. An SVG is served under a sandboxing CSP, so a script inside it never
- * runs. `?download=1` saves the file under its own name.
+ * runs. `?download=1` saves the file under its own name; download-only files (archives, fonts,
+ * Office documents) are always sent as attachments.
  */
 final class BrainAssetController extends Controller
 {
@@ -57,7 +58,10 @@ final class BrainAssetController extends Controller
 
         $response = new BinaryFileResponse($this->assets->absolutePath($sha256), 200, $headers);
         $response->setContentDisposition(
-            $request->boolean('download') ? ResponseHeaderBag::DISPOSITION_ATTACHMENT : ResponseHeaderBag::DISPOSITION_INLINE,
+            // Archives, fonts and Office files are always downloaded, never opened in the page (#315).
+            $request->boolean('download') || AssetReader::isDownloadOnly($asset->path)
+                ? ResponseHeaderBag::DISPOSITION_ATTACHMENT
+                : ResponseHeaderBag::DISPOSITION_INLINE,
             basename($asset->path),
             preg_replace('/[^\x20-\x7e]/', '_', basename($asset->path)) ?? 'asset',
         );
