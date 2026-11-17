@@ -91,5 +91,71 @@ it('keeps the file but withholds text that holds personal data, reported without
 
 it('does not read legacy binary Office formats', function (): void {
     expect(DocumentTextExtractor::supports('doc'))->toBeFalse()
-        ->and(DocumentTextExtractor::supports('docx'))->toBeTrue();
+        ->and(DocumentTextExtractor::supports('docx'))->toBeTrue()
+        ->and(DocumentTextExtractor::supports('pdf'))->toBeTrue();
+});
+
+/**
+ * A minimal, valid PDF with one line of text per page.
+ *
+ * @param  list<string>  $lines
+ */
+function textPdf(array $lines): string
+{
+    $objects = ['<< /Type /Catalog /Pages 2 0 R >>'];
+    $kids = [];
+    $pageObjects = [];
+
+    foreach ($lines as $index => $line) {
+        $pageNumber = 4 + $index * 2;
+        $kids[] = $pageNumber.' 0 R';
+        $stream = 'BT /F1 18 Tf 40 700 Td ('.$line.') Tj ET';
+        $pageObjects[] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents '.($pageNumber + 1).' 0 R >>';
+        $pageObjects[] = '<< /Length '.strlen($stream)." >>\nstream\n".$stream."\nendstream";
+    }
+
+    $objects[] = '<< /Type /Pages /Kids ['.implode(' ', $kids).'] /Count '.count($lines).' >>';
+    $objects[] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
+    $objects = [...$objects, ...$pageObjects];
+
+    $pdf = "%PDF-1.4\n";
+    $offsets = [];
+
+    foreach ($objects as $number => $object) {
+        $offsets[] = strlen($pdf);
+        $pdf .= ($number + 1)." 0 obj\n".$object."\nendobj\n";
+    }
+
+    $xref = strlen($pdf);
+    $pdf .= 'xref'."\n0 ".(count($objects) + 1)."\n0000000000 65535 f \n";
+
+    foreach ($offsets as $offset) {
+        $pdf .= sprintf("%010d 00000 n \n", $offset);
+    }
+
+    return $pdf.'trailer << /Size '.(count($objects) + 1)." /Root 1 0 R >>\nstartxref\n".$xref."\n%%EOF\n";
+}
+
+it('reads the text of a PDF, one section per page', function (): void {
+    $root = officeBrain();
+    file_put_contents($root.'/notes/handbook.pdf', textPdf(['Welcome to the handbook', 'Holidays are booked in advance']));
+
+    $result = BrainReader::withDefaults()->read(new ReadRequestData(path: $root));
+    $handbook = officeItem($result->items, 'notes/handbook.pdf');
+
+    expect($handbook->type)->toBe('document')
+        ->and(array_map(fn ($section) => $section->heading, $handbook->sections))->toBe(['Page 1', 'Page 2'])
+        ->and($handbook->sections[0]->body)->toContain('Welcome to the handbook')
+        ->and($handbook->sections[1]->body)->toContain('Holidays are booked in advance')
+        ->and($handbook->frontmatter['asset']['has_text'])->toBeTrue();
+});
+
+it('keeps a PDF it cannot read as a file without text', function (): void {
+    $root = officeBrain();
+    file_put_contents($root.'/notes/broken.pdf', "%PDF-1.4\nnot really a pdf\n");
+
+    $broken = officeItem(BrainReader::withDefaults()->read(new ReadRequestData(path: $root))->items, 'notes/broken.pdf');
+
+    expect($broken->sections)->toBe([])
+        ->and($broken->frontmatter['asset']['has_text'])->toBeFalse();
 });
