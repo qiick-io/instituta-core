@@ -39,6 +39,9 @@ import {
     easeOutBack,
     easeOutCubic,
     floatOffset,
+    freshness,
+    mixRgb,
+    type Rgb,
     type LabelBox,
     type Palette,
     readPalette,
@@ -75,6 +78,8 @@ type Camera = { x: number; y: number; k: number };
 
 export type CentreRequest = { id: string; nonce: number } | null;
 
+export type GraphColourBy = 'area' | 'freshness';
+
 type Props = {
     nodes: PlacedBrainNode[];
     edges: BrainGraphEdgeInput[];
@@ -83,6 +88,10 @@ type Props = {
     hiddenAreas: string[];
     /** Search matches (ids), or null when there is no search. */
     matchIds: string[] | null;
+    /** Items the Review filter hides (ids), or null when it is off (#287). */
+    hiddenIds: string[] | null;
+    /** What a node's colour says: its area, or how fresh its content is (#287). */
+    colourBy: GraphColourBy;
     /** A traced path (ids in order), or null. */
     pathIds: string[] | null;
     /** Area names to write over each constellation, in `areas` order; null to write none. */
@@ -128,6 +137,13 @@ type Scene = {
     pathSet: Set<number> | null;
     areaLabels: string[] | null;
     hiddenAreas: Set<number>;
+    /** 1 for nodes the Review filter hides (#287). */
+    hiddenNodes: Uint8Array;
+    /** Per node, 1 when something waits for review on it (#287). */
+    signals: Uint8Array;
+    /** Per node, how fresh its content is, 0..1 (#287). */
+    fresh: Float32Array;
+    colourBy: GraphColourBy;
     selected: number | null;
     hovered: number | null;
     /** Laid out place of each node (moves during a layout glide). */
@@ -194,7 +210,36 @@ function hash(value: number): number {
 }
 
 function isShown(scene: Scene, index: number): boolean {
-    return !scene.hiddenAreas.has(scene.nodeArea[index]);
+    return (
+        !scene.hiddenAreas.has(scene.nodeArea[index]) &&
+        scene.hiddenNodes[index] !== 1
+    );
+}
+
+/** Freshness is drawn in this many steps, so nodes still batch by colour. */
+const FRESH_STEPS = 8;
+/** Changed within about a week: glows in the freshness view. */
+const FRESH_GLOW = 0.68;
+
+/** The colour key of a node: its area, or its freshness step (offset past the areas). */
+function colourKey(scene: Scene, index: number): number {
+    return scene.colourBy === 'area'
+        ? scene.nodeArea[index]
+        : 10 + Math.round(scene.fresh[index] * FRESH_STEPS);
+}
+
+function keyColour(palette: Palette, key: number): Rgb {
+    return key < 10
+        ? palette.areas[key]
+        : mixRgb(
+              palette.mutedForeground,
+              palette.primary,
+              (key - 10) / FRESH_STEPS,
+          );
+}
+
+function nodeColour(scene: Scene, palette: Palette, index: number): Rgb {
+    return keyColour(palette, colourKey(scene, index));
 }
 
 /**
@@ -556,7 +601,7 @@ function draw(
     if (scene.hovered !== null) {
         strokeLinks(
             previewLinks,
-            rgba(palette.areas[scene.nodeArea[scene.hovered]], 0.6),
+            rgba(nodeColour(scene, palette, scene.hovered), 0.6),
             1.4,
         );
     }
@@ -617,7 +662,9 @@ function draw(
             (scene.neighbours?.has(index) ?? false) ||
             (scene.matches?.has(index) ?? false) ||
             (scene.pathSet?.has(index) ?? false) ||
-            (!hasSelection && nodes[index].degree >= LABELLED_DEGREE);
+            (!hasSelection && nodes[index].degree >= LABELLED_DEGREE) ||
+            (scene.colourBy === 'freshness' &&
+                scene.fresh[index] >= FRESH_GLOW);
 
         if (isSpecial) {
             special.push(index);
@@ -625,7 +672,7 @@ function draw(
         }
 
         const strength = Math.round(emphasis[index] * visible[index] * 10);
-        const key = scene.nodeArea[index] * 100 + strength;
+        const key = colourKey(scene, index) * 100 + strength;
         const batch = plain.get(key) ?? [];
         batch.push(index);
         plain.set(key, batch);
@@ -635,7 +682,7 @@ function draw(
     const outlines = camera.k * 6 >= 3;
 
     for (const [key, batch] of plain) {
-        const area = Math.floor(key / 100);
+        const colour = keyColour(palette, Math.floor(key / 100));
         const alpha = (key % 100) / 10;
         context.beginPath();
 
@@ -645,7 +692,7 @@ function draw(
             context.arc(px[index], py[index], radius, 0, Math.PI * 2);
         }
 
-        context.fillStyle = rgba(palette.areas[area], 0.92 * alpha);
+        context.fillStyle = rgba(colour, 0.92 * alpha);
         context.fill();
 
         if (outlines) {
@@ -658,7 +705,7 @@ function draw(
     // The nodes that matter: a soft halo, the body, a ring.
     for (const index of special) {
         const node = nodes[index];
-        const colour = palette.areas[scene.nodeArea[index]];
+        const colour = nodeColour(scene, palette, index);
         const radius = node.radius * scale[index];
         const alpha = emphasis[index] * visible[index];
         const isNeighbour = scene.neighbours?.has(index) ?? false;
@@ -669,13 +716,18 @@ function draw(
             index === scene.hovered ||
             index === scene.dragged ||
             pathEnds.has(index);
+        const isFreshGlow =
+            scene.colourBy === 'freshness' && scene.fresh[index] >= FRESH_GLOW;
         const haloStrength = isFocus
             ? 0.3
             : isOnPath || isNeighbour || isMatch
               ? 0.24
-              : !hasSelection && node.degree >= LABELLED_DEGREE
-                ? 0.13
-                : 0;
+              : isFreshGlow
+                ? // Recent changes breathe in the freshness view.
+                  0.22 + (scene.animate ? 0.1 * Math.sin(time * 2 + index) : 0)
+                : !hasSelection && node.degree >= LABELLED_DEGREE
+                  ? 0.13
+                  : 0;
 
         if (haloStrength > 0 && alpha > 0.3) {
             const reach = radius * (isMatch && !isFocus ? 2.9 : 2.4);
@@ -727,6 +779,31 @@ function draw(
             context.stroke();
             context.setLineDash([]);
         }
+    }
+
+    // Something waits for review: a small warning dot on the node's rim (#287).
+    for (let index = 0; index < nodes.length; index++) {
+        if (
+            scene.signals[index] !== 1 ||
+            scale[index] < 0.5 ||
+            visible[index] < 0.05 ||
+            !inView(index)
+        ) {
+            continue;
+        }
+
+        const radius = nodes[index].radius * scale[index];
+        const dot = Math.max(2.5 / camera.k, radius * 0.32);
+        const x = px[index] + radius * Math.SQRT1_2;
+        const y = py[index] - radius * Math.SQRT1_2;
+        const alpha = Math.max(0.35, emphasis[index]) * visible[index];
+        context.beginPath();
+        context.arc(x, y, dot, 0, Math.PI * 2);
+        context.fillStyle = rgba(palette.warning, alpha);
+        context.fill();
+        context.lineWidth = 1.5 / camera.k;
+        context.strokeStyle = rgba(palette.card, alpha);
+        context.stroke();
     }
 
     context.restore();
@@ -806,7 +883,7 @@ function drawBeams(
                 from: link[0],
                 to: link[1],
                 progress: clock - cycle,
-                colour: palette.areas[scene.nodeArea[link[0]]],
+                colour: nodeColour(scene, palette, link[0]),
                 alpha: 0.8,
             });
         }
@@ -1105,7 +1182,7 @@ function drawMinimap(
             0,
             Math.PI * 2,
         );
-        context.fillStyle = rgba(palette.areas[scene.nodeArea[index]], alpha);
+        context.fillStyle = rgba(nodeColour(scene, palette, index), alpha);
         context.fill();
     }
 
@@ -1130,6 +1207,8 @@ export function BrainGraphCanvas({
     areas,
     hiddenAreas,
     matchIds,
+    hiddenIds,
+    colourBy,
     pathIds,
     areaLabels,
     selectedId,
@@ -1154,6 +1233,10 @@ export function BrainGraphCanvas({
         pathSet: null,
         areaLabels: null,
         hiddenAreas: new Set(),
+        hiddenNodes: new Uint8Array(0),
+        signals: new Uint8Array(0),
+        fresh: new Float32Array(0),
+        colourBy: 'area',
         selected: null,
         hovered: null,
         bx: new Float32Array(0),
@@ -1248,6 +1331,16 @@ export function BrainGraphCanvas({
             return from === undefined || to === undefined ? [] : [[from, to]];
         });
         scene.nodeArea = nodes.map((node) => areaIndex(node.area, areas));
+        const now = Date.now();
+        scene.signals = Uint8Array.from(
+            nodes.map((node) =>
+                node.open_proposals + node.open_gaps > 0 ? 1 : 0,
+            ),
+        );
+        scene.fresh = Float32Array.from(
+            nodes.map((node) => freshness(node.changed_at, now)),
+        );
+        scene.hiddenNodes = new Uint8Array(nodes.length);
         scene.bx = Float32Array.from(nodes.map((node) => node.x));
         scene.by = Float32Array.from(nodes.map((node) => node.y));
         scene.springs = createSpringState(nodes.length);
@@ -1315,6 +1408,23 @@ export function BrainGraphCanvas({
 
         scene.dirty = true;
     }, [selectedId, nodes, edges]);
+
+    useEffect(() => {
+        const scene = sceneRef.current;
+        scene.hiddenNodes = new Uint8Array(scene.nodes.length);
+
+        for (const id of hiddenIds ?? []) {
+            const index = scene.indexById.get(id);
+
+            if (index !== undefined) {
+                scene.hiddenNodes[index] = 1;
+            }
+        }
+
+        scene.colourBy = colourBy;
+        scene.positionsVersion += 1;
+        scene.dirty = true;
+    }, [hiddenIds, colourBy, nodes]);
 
     useEffect(() => {
         const scene = sceneRef.current;

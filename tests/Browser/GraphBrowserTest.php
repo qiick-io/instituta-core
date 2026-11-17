@@ -11,6 +11,7 @@ use App\Models\ItemLink;
 use App\Models\ItemSection;
 use App\Models\Organisation;
 use App\Models\Principal;
+use App\Models\Proposal;
 use App\Models\Source;
 use App\Models\User;
 
@@ -193,5 +194,34 @@ it('walks the graph from the keyboard', function (): void {
         ->assertSee('Preview')
         ->keys('canvas[role="img"]', ['Escape'])
         ->assertDontSee('Preview')
+        ->assertNoJavaScriptErrors();
+});
+
+/**
+ * Review signals and freshness (#287): an item with an open proposal shows it in its card, the
+ * Review filter and the freshness colours come back from the query string with their legend.
+ */
+it('shows review signals and the freshness view', function (): void {
+    $seed = graphBrowserSeed();
+    $principal = Principal::query()->where('user_id', $seed['user']->id)->firstOrFail();
+    Proposal::factory()->create([
+        'organisation_id' => $seed['org']->id,
+        'proposed_by_principal_id' => $principal->id,
+        'stable_key' => $seed['item']->stable_key,
+    ]);
+
+    $this->actingAs($seed['user']);
+    $page = visit(route('graph', [
+        'focus' => $seed['item']->stable_key,
+        'review' => 'proposals',
+        'colour' => 'freshness',
+    ], absolute: false))->inLightMode();
+
+    $page->assertSee('Alpha root')
+        ->assertSee('1 open proposal')
+        ->assertSee('Open proposals')
+        ->assertSee('Waiting for review')
+        ->assertSee('Today')
+        ->assertAttribute('[title="Colour the items by when they last changed"]', 'data-state', 'on')
         ->assertNoJavaScriptErrors();
 });

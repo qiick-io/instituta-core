@@ -17,6 +17,12 @@ export type BrainGraphNodeInput = {
     area: string;
     status: string;
     degree: number;
+    /** Open proposals on the item (#287). */
+    open_proposals: number;
+    /** Open gap reports that name the item; owners only (#287). */
+    open_gaps: number;
+    /** When the item's content last changed, ISO 8601 (#287). */
+    changed_at: string | null;
 };
 
 export type BrainGraphEdgeInput = {

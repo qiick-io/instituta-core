@@ -15,7 +15,8 @@ use Inertia\Response;
  * The whole brain as a graph (#254): nodes and links of the perimeter, laid out in the browser.
  * The view lives in the query string (#279), so a link reopens it as it was: `?focus=` (an item's
  * stable key) selects one node, `?to=` traces the path from it to another, `?area=` (comma list)
- * shows only those areas and `?layout=constellations` groups the nodes by area.
+ * shows only those areas, `?layout=constellations` groups the nodes by area, `?review=` (proposals,
+ * gaps) shows only items waiting for review and `?colour=freshness` colours by last change (#287).
  */
 final class GraphController extends Controller
 {
@@ -44,6 +45,13 @@ final class GraphController extends Controller
                 'areas' => $areas,
                 'layout' => $request->string('layout')->toString() === 'constellations' ? 'constellations' : 'free',
                 'to' => $to === '' ? null : $to,
+                'review' => $request->string('review')->explode(',')
+                    ->map(static fn (string $signal): string => trim($signal))
+                    ->filter(static fn (string $signal): bool => in_array($signal, ['proposals', 'gaps'], true))
+                    ->unique()
+                    ->values()
+                    ->all(),
+                'colour' => $request->string('colour')->toString() === 'freshness' ? 'freshness' : 'area',
             ],
         ]);
     }
