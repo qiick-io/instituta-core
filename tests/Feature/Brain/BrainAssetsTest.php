@@ -34,6 +34,7 @@ beforeEach(function (): void {
     imagepng($image);
     File::put($this->brainPath.'/brand/logo.png', (string) ob_get_clean());
     File::put($this->brainPath.'/brand/mark.svg', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>alert(1)</script></svg>');
+    File::put($this->brainPath.'/notes/kit.zip', "PK\x03\x04fake");
     File::put($this->brainPath.'/notes/brand.md', "# Brand\n\nOur logo:\n\n![The logo](../brand/logo.png)\n");
 
     $this->organisation = Organisation::factory()->create();
@@ -117,4 +118,16 @@ it('shows embedded pictures through the asset route, and the asset knows where i
             ->where('item.asset.width', 4)
             ->where('item.asset.url', $assetUrl)
             ->where('item.asset.used_in.0.stable_key', 'notes/brand'));
+});
+
+it('always sends download-only files as attachments', function (): void {
+    $kit = Item::query()->where('path', 'notes/kit.zip')->firstOrFail();
+
+    expect($kit->type)->toBe('file');
+
+    $this->actingAs($this->user)
+        ->get(route('brain.assets.show', $kit->id))
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/zip')
+        ->assertHeader('Content-Disposition', 'attachment; filename=kit.zip');
 });

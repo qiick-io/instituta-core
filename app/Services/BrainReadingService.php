@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Brain\Data\PerimeterData;
 use App\Brain\Readers\AssetReader;
+use App\Brain\Support\PathHelper;
 use App\Models\Item;
 use App\Models\ItemLink;
 use App\Models\ItemSection;
@@ -191,7 +192,7 @@ final class BrainReadingService
     /**
      * An asset's metadata for the reading view, and where it is used (#311); null for a document.
      *
-     * @return array{mime: string, bytes: int, width: int|null, height: int|null, alt: string|null, caption: string|null, url: string, download_url: string, used_in: list<array{title: string, stable_key: string}>}|null
+     * @return array{mime: string, kind: string, extension: string, is_download_only: bool, bytes: int, width: int|null, height: int|null, alt: string|null, caption: string|null, url: string, download_url: string, used_in: list<array{title: string, stable_key: string}>}|null
      */
     private function assetPayload(PerimeterData $perimeter, Item $item): ?array
     {
@@ -214,6 +215,9 @@ final class BrainReadingService
 
         return [
             'mime' => (string) AssetReader::mimeType($item->path),
+            'kind' => is_string($asset['kind'] ?? null) ? $asset['kind'] : 'image',
+            'extension' => PathHelper::extension($item->path),
+            'is_download_only' => AssetReader::isDownloadOnly($item->path),
             'bytes' => is_int($asset['bytes'] ?? null) ? $asset['bytes'] : 0,
             'width' => is_int($asset['width'] ?? null) ? $asset['width'] : null,
             'height' => is_int($asset['height'] ?? null) ? $asset['height'] : null,

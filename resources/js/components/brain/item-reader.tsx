@@ -78,6 +78,10 @@ type Citation = {
 
 export type ItemAsset = {
     mime: string;
+    /** `image`, `pdf`, or for download-only files `archive`, `font`, `text`, `spreadsheet`, `presentation` (#315). */
+    kind: string;
+    extension: string;
+    is_download_only: boolean;
     bytes: number;
     width: number | null;
     height: number | null;

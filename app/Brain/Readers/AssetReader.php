@@ -14,11 +14,15 @@ use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Turns an image or a PDF in a source into a brain item that carries metadata only (#311): logos,
- * screenshots and documents people keep next to their notes are files of the brain too. The item's
- * stable key is its path (extension included, so `logo.svg` never clashes with `logo.md`), its
- * title the file name, its type `image` or `document`. The bytes never enter the index or reach an
- * agent; the sync keeps a content-addressed copy so the app can show them.
+ * Turns an image, a PDF or a download-only file (zip, font, Office document, #315) in a source into
+ * a brain item that carries metadata only (#311): logos, screenshots, specs and templates people
+ * keep next to their notes are files of the brain too. It is not a file manager: a fixed list of
+ * types, a size limit, read-only, and the bytes are offered, never interpreted.
+ *
+ * The item's stable key is its path (extension included, so `logo.svg` never clashes with
+ * `logo.md`), its title the file name, its type `image`, `document` (PDF) or `file` (download only).
+ * The bytes never enter the index or reach an agent; the sync keeps a content-addressed copy so the
+ * app can show or offer them.
  *
  * An optional `<file>.meta.yml` (or `.meta.yaml`) sidecar adds a title, alt text, caption, tags and
  * a visibility. Without one the file still enters, described by its format and size.
@@ -38,7 +42,49 @@ final class AssetReader
         'avif' => 'image/avif',
         'svg' => 'image/svg+xml',
         'pdf' => 'application/pdf',
+        // Download-only files (#315): kept and listed, never previewed.
+        'zip' => 'application/zip',
+        'ttf' => 'font/ttf',
+        'otf' => 'font/otf',
+        'woff' => 'font/woff',
+        'woff2' => 'font/woff2',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'doc' => 'application/msword',
+        'xls' => 'application/vnd.ms-excel',
+        'ppt' => 'application/vnd.ms-powerpoint',
+        'odt' => 'application/vnd.oasis.opendocument.text',
+        'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+        'odp' => 'application/vnd.oasis.opendocument.presentation',
     ];
+
+    /** @var array<string, string> What a download-only file is, for its label and icon. */
+    private const array DOWNLOAD_KINDS = [
+        'zip' => 'archive',
+        'ttf' => 'font',
+        'otf' => 'font',
+        'woff' => 'font',
+        'woff2' => 'font',
+        'docx' => 'text',
+        'doc' => 'text',
+        'odt' => 'text',
+        'xlsx' => 'spreadsheet',
+        'xls' => 'spreadsheet',
+        'ods' => 'spreadsheet',
+        'pptx' => 'presentation',
+        'ppt' => 'presentation',
+        'odp' => 'presentation',
+    ];
+
+    /**
+     * Whether the file is only offered for download (an archive, a font, an Office file): the app
+     * never shows it inline, so nothing in it runs or renders in the browser.
+     */
+    public static function isDownloadOnly(string $relativePath): bool
+    {
+        return isset(self::DOWNLOAD_KINDS[PathHelper::extension($relativePath)]);
+    }
 
     /**
      * Whether the path is a file this reader turns into an asset item.
@@ -93,15 +139,18 @@ final class AssetReader
 
         $extension = PathHelper::extension($relativePath);
         $mime = self::MIME_TYPES[$extension];
+        $kind = self::DOWNLOAD_KINDS[$extension] ?? null;
         $sidecar = $this->sidecar($absolutePath);
-        [$width, $height] = $extension === 'svg'
-            ? $this->svgSize($contents)
-            : $this->rasterSize($contents);
+        [$width, $height] = match (true) {
+            $kind !== null, $mime === 'application/pdf' => [null, null],
+            $extension === 'svg' => $this->svgSize($contents),
+            default => $this->rasterSize($contents),
+        };
 
         $alt = $this->stringField($sidecar, 'alt');
         $caption = $this->stringField($sidecar, 'caption');
         $title = $this->stringField($sidecar, 'title') ?? basename($relativePath);
-        $description = $this->describe($extension, $bytes, $width, $height);
+        $description = $this->describe($extension, $kind, $bytes, $width, $height);
         $tags = array_values(array_filter(
             is_array($sidecar['tags'] ?? null) ? $sidecar['tags'] : [],
             static fn (mixed $tag): bool => is_string($tag) && $tag !== '',
@@ -112,7 +161,11 @@ final class AssetReader
             stableKey: $relativePath,
             title: $title,
             summary: $caption ?? $alt ?? $description,
-            type: $mime === 'application/pdf' ? 'document' : 'image',
+            type: match (true) {
+                $kind !== null => 'file',
+                $mime === 'application/pdf' => 'document',
+                default => 'image',
+            },
             area: $this->stringField($sidecar, 'area') ?? $areaFromPath($relativePath),
             visibility: VisibilityEnum::tryFromLoose($sidecar['visibility'] ?? null)
                 ?? ($manifest !== null ? $manifest->defaultVisibility : VisibilityEnum::Internal),
@@ -127,6 +180,7 @@ final class AssetReader
             frontmatter: [
                 'asset' => [
                     'mime' => $mime,
+                    'kind' => $kind ?? ($mime === 'application/pdf' ? 'pdf' : 'image'),
                     'bytes' => $bytes,
                     'sha256' => hash('sha256', $contents),
                     'width' => $width,
@@ -143,17 +197,25 @@ final class AssetReader
     }
 
     /**
-     * "PNG image, 512 × 512, 24 KB" or "PDF document, 1.2 MB".
+     * "PNG image, 512 × 512, 24 KB", "PDF document, 1.2 MB", "XLSX spreadsheet, 80 KB".
      */
-    private function describe(string $extension, int $bytes, ?int $width, ?int $height): string
+    private function describe(string $extension, ?string $kind, int $bytes, ?int $width, ?int $height): string
     {
-        $kind = strtoupper($extension === 'jpeg' ? 'jpg' : $extension).($extension === 'pdf' ? ' document' : ' image');
+        $noun = match ($kind) {
+            'archive' => 'archive',
+            'font' => 'font',
+            'spreadsheet' => 'spreadsheet',
+            'presentation' => 'presentation',
+            'text' => 'document',
+            default => $extension === 'pdf' ? 'document' : 'image',
+        };
+        $label = strtoupper($extension === 'jpeg' ? 'jpg' : $extension).' '.$noun;
         $size = $bytes >= 1024 * 1024
             ? round($bytes / (1024 * 1024), 1).' MB'
             : max(1, (int) round($bytes / 1024)).' KB';
 
         return implode(', ', array_filter([
-            $kind,
+            $label,
             $width !== null && $height !== null ? $width.' × '.$height : null,
             $size,
         ]));
