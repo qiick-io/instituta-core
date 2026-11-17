@@ -87,7 +87,7 @@ final readonly class ReportGapAction
     {
         $item = Item::query()
             ->withinPerimeter($perimeter)
-            ->where(fn ($query) => $query->whereKey($itemReference)->orWhere('stable_key', $itemReference)->orWhere('path', $itemReference))
+            ->matchingReference($itemReference)
             ->first();
 
         if ($item === null || ($anchor !== null && ! $item->sections()->where('anchor', $anchor)->exists())) {

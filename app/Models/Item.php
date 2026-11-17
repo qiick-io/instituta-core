@@ -154,6 +154,47 @@ class Item extends Model
     }
 
     /**
+     * The items a reference names (an id, a stable key or a path), best match first, so `first()`
+     * is the item the reference means (#328).
+     *
+     * Several items in one perimeter can share a stable key or path: the organisation's rule and the
+     * client or product overrides of it (`rules/coding`). The exact id wins; then the item of the
+     * widest scope (organisation, then company, then product), so an organisation key reads the
+     * organisation's own rule and a company key the company's own rule, never one product's
+     * override. The path and id make the order total, so the same call always reads the same item.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeMatchingReference(Builder $query, string $reference): Builder
+    {
+        return $query
+            ->where(function (Builder $builder) use ($reference): void {
+                $builder->whereKey($reference)
+                    ->orWhere($builder->qualifyColumn('stable_key'), $reference)
+                    ->orWhere($builder->qualifyColumn('path'), $reference);
+            })
+            ->orderByRaw('CASE WHEN items.id = ? THEN 0 ELSE 1 END', [$reference])
+            ->widestScopeFirst();
+    }
+
+    /**
+     * Orders items from the widest scope to the narrowest (organisation, company, product), then by
+     * path and id, so a lookup by a key several scopes share is deterministic (#328).
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeWidestScopeFirst(Builder $query): Builder
+    {
+        return $query
+            ->orderByRaw('CASE WHEN items.product_id IS NULL THEN 0 ELSE 1 END')
+            ->orderByRaw('CASE WHEN items.company_id IS NULL THEN 0 ELSE 1 END')
+            ->orderBy($query->qualifyColumn('path'))
+            ->orderBy($query->qualifyColumn('id'));
+    }
+
+    /**
      * @param  Builder<static>  $query
      * @return Builder<static>
      */

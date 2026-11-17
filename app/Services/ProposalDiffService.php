@@ -52,6 +52,7 @@ final class ProposalDiffService
             ->where('organisation_id', $proposal->organisation_id)
             ->where('stable_key', $proposal->stable_key)
             ->when($proposal->source_id !== null, fn ($query) => $query->where('source_id', $proposal->source_id))
+            ->widestScopeFirst()
             ->first();
 
         if (! $item instanceof Item) {

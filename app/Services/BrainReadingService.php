@@ -142,11 +142,7 @@ final class BrainReadingService
         /** @var Item|null $item */
         $item = Item::query()
             ->withinPerimeter($perimeter)
-            ->where(static function ($query) use ($id): void {
-                $query->where('id', $id)
-                    ->orWhere('stable_key', $id)
-                    ->orWhere('path', $id);
-            })
+            ->matchingReference($id)
             ->first();
 
         return $item;

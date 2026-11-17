@@ -166,6 +166,7 @@ final class ProposeBrainChangeAction
         $existingItem = Item::query()
             ->withinPerimeter($perimeter)
             ->where('stable_key', $payload->stableKey)
+            ->widestScopeFirst()
             ->first();
 
         if ($payload->action === ProposalActionEnum::Create) {

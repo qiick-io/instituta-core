@@ -50,7 +50,7 @@ final class ProposalDraftService
 
     private function currentMarkdown(PerimeterData $perimeter, string $stableKey, ?string $sectionAnchor): string
     {
-        $item = Item::query()->withinPerimeter($perimeter)->where('stable_key', $stableKey)->first();
+        $item = Item::query()->withinPerimeter($perimeter)->where('stable_key', $stableKey)->widestScopeFirst()->first();
 
         if (! $item instanceof Item) {
             throw new InvalidArgumentException('No item with this stable_key in your perimeter.');

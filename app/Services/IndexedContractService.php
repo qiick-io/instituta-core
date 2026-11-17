@@ -820,11 +820,7 @@ final class IndexedContractService
     {
         /** @var Item|null $item */
         $item = $this->itemsQuery($perimeter)
-            ->where(function (Builder $builder) use ($id): void {
-                $builder->where('id', $id)
-                    ->orWhere('stable_key', $id)
-                    ->orWhere('path', $id);
-            })
+            ->matchingReference($id)
             ->first();
 
         return $item;
