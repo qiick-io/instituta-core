@@ -1,0 +1,7 @@
+{
+    "format": "instituta",
+    "format_version": 1,
+    "name": "Lumen Health Clinic brain",
+    "default_visibility": "internal",
+    "areas": ["rules", "style", "plans", "notes"]
+}
