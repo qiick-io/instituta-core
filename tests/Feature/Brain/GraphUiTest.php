@@ -5,12 +5,19 @@ declare(strict_types=1);
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
+use App\Enums\GapReportKindEnum;
+use App\Enums\GapReportStatusEnum;
+use App\Enums\ItemChangeKindEnum;
+use App\Enums\ProposalStatusEnum;
+use App\Models\GapReport;
 use App\Models\Grant;
 use App\Models\Item;
+use App\Models\ItemChange;
 use App\Models\ItemLink;
 use App\Models\ItemSection;
 use App\Models\Organisation;
 use App\Models\Principal;
+use App\Models\Proposal;
 use App\Models\Source;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -140,9 +147,13 @@ it('reads the graph view from the query string', function (): void {
             'to' => $seed['neighbour']->stable_key,
             'area' => 'rules, notes,,rules',
             'layout' => 'constellations',
+            'review' => 'gaps,bogus,proposals',
+            'colour' => 'freshness',
         ]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
+            ->where('view.review', ['gaps', 'proposals'])
+            ->where('view.colour', 'freshness')
             ->where('view.areas', ['rules', 'notes'])
             ->where('view.layout', 'constellations')
             ->where('view.to', $seed['neighbour']->stable_key));
@@ -157,5 +168,70 @@ it('falls back to the free layout for an unknown one', function (): void {
         ->assertInertia(fn (Assert $page) => $page
             ->where('view.areas', [])
             ->where('view.layout', 'free')
+            ->where('view.review', [])
+            ->where('view.colour', 'area')
             ->where('view.to', null));
+});
+
+it('carries review signals and the last change on each node', function (): void {
+    $seed = graphUiSeed();
+    $principal = Principal::query()->where('user_id', $seed['user']->id)->firstOrFail();
+
+    Proposal::factory()->create([
+        'organisation_id' => $seed['org']->id,
+        'proposed_by_principal_id' => $principal->id,
+        'stable_key' => $seed['item']->stable_key,
+    ]);
+    Proposal::factory()->create([
+        'organisation_id' => $seed['org']->id,
+        'proposed_by_principal_id' => $principal->id,
+        'stable_key' => $seed['item']->stable_key,
+        'status' => ProposalStatusEnum::Rejected,
+    ]);
+    GapReport::query()->create([
+        'organisation_id' => $seed['org']->id,
+        'scope_type' => 'organisation',
+        'scope_id' => $seed['org']->id,
+        'kind' => GapReportKindEnum::Missing,
+        'status' => GapReportStatusEnum::Open,
+        'summary' => 'Neighbour lacks an example',
+        'reported_by_principal_id' => $principal->id,
+        'related' => [[
+            'item' => $seed['neighbour']->id,
+            'stable_key' => $seed['neighbour']->stable_key,
+            'path' => $seed['neighbour']->path,
+            'title' => $seed['neighbour']->title,
+            'anchor' => null,
+        ]],
+    ]);
+    ItemChange::query()->create([
+        'organisation_id' => $seed['org']->id,
+        'source_id' => $seed['item']->source_id,
+        'item_id' => $seed['item']->id,
+        'kind' => ItemChangeKindEnum::Updated,
+        'stable_key' => $seed['item']->stable_key,
+        'path' => $seed['item']->path,
+        'title' => $seed['item']->title,
+        'area' => $seed['item']->area,
+        'visibility' => $seed['item']->visibility,
+        'status' => $seed['item']->fresh()?->status,
+        'changed_at' => '2026-11-10 09:30:00',
+    ]);
+
+    $this->actingAs($seed['user'])
+        ->get(route('graph'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('nodes', function ($nodes) use ($seed): bool {
+                $byKey = collect($nodes)->keyBy('stable_key');
+                $item = $byKey[$seed['item']->stable_key];
+                $neighbour = $byKey[$seed['neighbour']->stable_key];
+
+                return $item['open_proposals'] === 1
+                    && $item['open_gaps'] === 0
+                    && str_starts_with((string) $item['changed_at'], '2026-11-10T09:30:00')
+                    && $neighbour['open_proposals'] === 0
+                    && $neighbour['open_gaps'] === 1
+                    && $neighbour['changed_at'] !== null;
+            }));
 });

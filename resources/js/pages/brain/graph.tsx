@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Network, Orbit } from 'lucide-react';
+import { History, Network, Orbit, Palette } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import { PageEmptyState } from '@/components/admin/page-empty-state';
 import {
     BrainGraphCanvas,
     type CentreRequest,
+    type GraphColourBy,
 } from '@/components/brain/brain-graph-canvas';
 import { GraphItemCard } from '@/components/brain/graph-item-card';
 import { GraphPathCard } from '@/components/brain/graph-path-card';
@@ -43,8 +44,13 @@ type Props = {
         layout: 'free' | 'constellations';
         /** Stable key of the item to trace a path to from `focus` (`?to=`). */
         to: string | null;
+        /** Review signals to show only (`?review=proposals,gaps`) (#287). */
+        review: ReviewSignal[];
+        colour: GraphColourBy;
     };
 };
+
+type ReviewSignal = 'proposals' | 'gaps';
 
 /** The legend dot uses the same softened area colour as the canvas. */
 function legendColour(area: string, areas: string[]): string {
@@ -77,6 +83,10 @@ export default function BrainGraph({
         () => nodes.find((node) => node.stable_key === focus)?.id ?? null,
     );
     const [centreRequest, setCentreRequest] = useState<CentreRequest>(null);
+    const [reviewSignals, setReviewSignals] = useState<ReviewSignal[]>(
+        () => view.review,
+    );
+    const [colourBy, setColourBy] = useState<GraphColourBy>(() => view.colour);
     const [grouped, setGrouped] = useState(
         () => view.layout === 'constellations',
     );
@@ -295,6 +305,43 @@ export default function BrainGraph({
         [areas, t],
     );
     const visibleAreas = areas.filter((area) => !hiddenAreas.includes(area));
+    const hasGaps = nodes.some((node) => node.open_gaps > 0);
+    const reviewOptions = useMemo<DataTableFacetedFilterOption[]>(
+        () => [
+            { value: 'proposals', label: t('brain.graph.reviewProposals') },
+            ...(hasGaps
+                ? [{ value: 'gaps', label: t('brain.graph.reviewGaps') }]
+                : []),
+        ],
+        [hasGaps, t],
+    );
+    const hiddenIds = useMemo(
+        () =>
+            reviewSignals.length === 0
+                ? null
+                : nodes
+                      .filter(
+                          (node) =>
+                              !(
+                                  (reviewSignals.includes('proposals') &&
+                                      node.open_proposals > 0) ||
+                                  (reviewSignals.includes('gaps') &&
+                                      node.open_gaps > 0)
+                              ),
+                      )
+                      .map((node) => node.id),
+        [nodes, reviewSignals],
+    );
+    const showReviewSignals = (values: string[]): void => {
+        setReviewSignals(
+            values.filter(
+                (value): value is ReviewSignal =>
+                    value === 'proposals' || value === 'gaps',
+            ),
+        );
+        setFitRequest((request) => request + 1);
+        setTrace(null);
+    };
 
     const selectedKey = selected?.stable_key ?? null;
     const traceToKey =
@@ -321,6 +368,14 @@ export default function BrainGraph({
             query.layout = 'constellations';
         }
 
+        if (reviewSignals.length > 0) {
+            query.review = reviewSignals.join(',');
+        }
+
+        if (colourBy === 'freshness') {
+            query.colour = 'freshness';
+        }
+
         const url = graph.url({ query });
 
         if (url === `${window.location.pathname}${window.location.search}`) {
@@ -336,12 +391,14 @@ export default function BrainGraph({
                     areas: shownAreas,
                     layout: grouped ? 'constellations' : 'free',
                     to: traceToKey,
+                    review: reviewSignals,
+                    colour: colourBy,
                 },
             }),
             preserveState: true,
             preserveScroll: true,
         });
-    }, [selectedKey, traceToKey, shownAreas, grouped]);
+    }, [selectedKey, traceToKey, shownAreas, grouped, reviewSignals, colourBy]);
 
     const hasGraph = hasPerimeter && nodes.length > 0;
     const traceFrom = trace === null ? undefined : nodesById.get(trace.fromId);
@@ -369,43 +426,85 @@ export default function BrainGraph({
                                 selectedValues={shownAreas}
                                 onSelectedValuesChange={showAreas}
                             />
+                            <DataTableFacetedFilter
+                                title={t('brain.graph.reviewFilter')}
+                                ariaLabel={t('brain.graph.reviewFilterLabel')}
+                                options={reviewOptions}
+                                selectedValues={reviewSignals}
+                                onSelectedValuesChange={showReviewSignals}
+                            />
                         </div>
                     ) : undefined
                 }
                 filtersRight={
                     hasGraph ? (
-                        <ToggleGroup
-                            variant="outline"
-                            type="single"
-                            value={grouped ? 'constellations' : 'free'}
-                            aria-label={t('brain.graph.layoutLabel')}
-                            onValueChange={(value) => {
-                                if (value) {
-                                    setGrouped(value === 'constellations');
-                                }
-                            }}
-                        >
-                            <ToggleGroupItem
-                                value="free"
-                                title={t('brain.graph.layoutFreeHint')}
+                        <div className="flex items-center gap-2">
+                            <ToggleGroup
+                                variant="outline"
+                                type="single"
+                                value={colourBy}
+                                aria-label={t('brain.graph.colourLabel')}
+                                onValueChange={(value) => {
+                                    if (
+                                        value === 'area' ||
+                                        value === 'freshness'
+                                    ) {
+                                        setColourBy(value);
+                                    }
+                                }}
                             >
-                                <Network className="size-4" />
-                                {/* Icon only below `sm`, so the row fits next to the search on a phone. */}
-                                <span className="sr-only sm:not-sr-only">
-                                    {t('brain.graph.layoutFree')}
-                                </span>
-                            </ToggleGroupItem>
-                            <ToggleGroupItem
-                                value="constellations"
-                                title={t('brain.graph.constellationsHint')}
+                                <ToggleGroupItem
+                                    value="area"
+                                    title={t('brain.graph.colourAreaHint')}
+                                >
+                                    <Palette className="size-4" />
+                                    <span className="sr-only sm:not-sr-only">
+                                        {t('brain.graph.colourArea')}
+                                    </span>
+                                </ToggleGroupItem>
+                                <ToggleGroupItem
+                                    value="freshness"
+                                    title={t('brain.graph.colourFreshnessHint')}
+                                >
+                                    <History className="size-4" />
+                                    <span className="sr-only sm:not-sr-only">
+                                        {t('brain.graph.colourFreshness')}
+                                    </span>
+                                </ToggleGroupItem>
+                            </ToggleGroup>
+                            <ToggleGroup
+                                variant="outline"
+                                type="single"
+                                value={grouped ? 'constellations' : 'free'}
+                                aria-label={t('brain.graph.layoutLabel')}
+                                onValueChange={(value) => {
+                                    if (value) {
+                                        setGrouped(value === 'constellations');
+                                    }
+                                }}
                             >
-                                <Orbit className="size-4" />
-                                {/* Icon only below `sm`, so the row fits next to the search on a phone. */}
-                                <span className="sr-only sm:not-sr-only">
-                                    {t('brain.graph.constellations')}
-                                </span>
-                            </ToggleGroupItem>
-                        </ToggleGroup>
+                                <ToggleGroupItem
+                                    value="free"
+                                    title={t('brain.graph.layoutFreeHint')}
+                                >
+                                    <Network className="size-4" />
+                                    {/* Icon only below `sm`, so the row fits next to the search on a phone. */}
+                                    <span className="sr-only sm:not-sr-only">
+                                        {t('brain.graph.layoutFree')}
+                                    </span>
+                                </ToggleGroupItem>
+                                <ToggleGroupItem
+                                    value="constellations"
+                                    title={t('brain.graph.constellationsHint')}
+                                >
+                                    <Orbit className="size-4" />
+                                    {/* Icon only below `sm`, so the row fits next to the search on a phone. */}
+                                    <span className="sr-only sm:not-sr-only">
+                                        {t('brain.graph.constellations')}
+                                    </span>
+                                </ToggleGroupItem>
+                            </ToggleGroup>
+                        </div>
                     ) : undefined
                 }
             >
@@ -435,6 +534,8 @@ export default function BrainGraph({
                             areas={areas}
                             hiddenAreas={hiddenAreas}
                             matchIds={matchIds}
+                            hiddenIds={hiddenIds}
+                            colourBy={colourBy}
                             pathIds={trace?.ids ?? null}
                             areaLabels={areaLabels}
                             selectedId={selectedId}
@@ -448,29 +549,61 @@ export default function BrainGraph({
                             className="pointer-events-none absolute top-3 right-3 hidden flex-col gap-1 rounded-lg border bg-card/80 px-3 py-2 text-xs text-muted-foreground shadow-sm backdrop-blur sm:flex"
                             aria-label={t('brain.graph.legendLabel')}
                         >
-                            {visibleAreas.map((area) => (
-                                <li
-                                    key={area}
-                                    className="flex items-center gap-2"
-                                >
+                            {colourBy === 'freshness' ? (
+                                <li className="flex flex-col gap-1">
                                     <span
                                         aria-hidden="true"
-                                        className="size-2 rounded-full"
+                                        className="h-1.5 w-32 rounded-full"
                                         style={{
-                                            backgroundColor: legendColour(
-                                                area,
-                                                areas,
-                                            ),
+                                            backgroundImage:
+                                                'linear-gradient(to right, var(--muted-foreground), var(--primary))',
                                         }}
                                     />
-                                    <span className="flex-1">
-                                        {areaLabel(area)}
-                                    </span>
-                                    <span className="tabular-nums">
-                                        {countsByArea.get(area) ?? 0}
+                                    <span className="flex justify-between gap-4">
+                                        <span>{t('brain.graph.freshOld')}</span>
+                                        <span>{t('brain.graph.freshNew')}</span>
                                     </span>
                                 </li>
-                            ))}
+                            ) : null}
+                            {(colourBy === 'area' ? visibleAreas : []).map(
+                                (area) => (
+                                    <li
+                                        key={area}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <span
+                                            aria-hidden="true"
+                                            className="size-2 rounded-full"
+                                            style={{
+                                                backgroundColor: legendColour(
+                                                    area,
+                                                    areas,
+                                                ),
+                                            }}
+                                        />
+                                        <span className="flex-1">
+                                            {areaLabel(area)}
+                                        </span>
+                                        <span className="tabular-nums">
+                                            {countsByArea.get(area) ?? 0}
+                                        </span>
+                                    </li>
+                                ),
+                            )}
+                            {nodes.some(
+                                (node) =>
+                                    node.open_proposals + node.open_gaps > 0,
+                            ) ? (
+                                <li className="flex items-center gap-2 border-t pt-1">
+                                    <span
+                                        aria-hidden="true"
+                                        className="size-2 rounded-full bg-warning"
+                                    />
+                                    <span className="flex-1">
+                                        {t('brain.graph.reviewLegend')}
+                                    </span>
+                                </li>
+                            ) : null}
                         </ul>
                         {matchIds !== null &&
                         selected === null &&

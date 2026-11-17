@@ -13,6 +13,7 @@ export type Palette = {
     foreground: Rgb;
     mutedForeground: Rgb;
     primary: Rgb;
+    warning: Rgb;
     fontFamily: string;
 };
 
@@ -82,6 +83,7 @@ export function readPalette(element: HTMLElement): Palette {
         foreground: resolve('--foreground'),
         mutedForeground: resolve('--muted-foreground'),
         primary: resolve('--primary'),
+        warning: resolve('--warning'),
         fontFamily: getComputedStyle(element).fontFamily,
     };
 
@@ -141,4 +143,20 @@ export function easeOutBack(progress: number): number {
         (overshoot + 1) * Math.pow(p - 1, 3) +
         overshoot * Math.pow(p - 1, 2)
     );
+}
+
+/**
+ * How fresh an item is, from when its content last changed: 1 for today, falling on a log scale
+ * to 0 at a year or more (or never). Recent weeks stay apart; old months blur together.
+ */
+export function freshness(changedAt: string | null, now: number): number {
+    if (changedAt === null) {
+        return 0;
+    }
+
+    const days = Math.max(0, (now - Date.parse(changedAt)) / 86_400_000);
+
+    return Number.isFinite(days)
+        ? clamp01(1 - Math.log1p(days) / Math.log1p(365))
+        : 0;
 }

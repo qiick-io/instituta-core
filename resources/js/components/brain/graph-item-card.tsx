@@ -19,8 +19,11 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { PlacedBrainNode } from '@/lib/brain-force-layout';
+import { formatRelativeTime } from '@/lib/relative-time';
 import { show as explorerShow } from '@/routes/explorer';
 import { preview as previewRoute } from '@/routes/graph';
+import { index as reviewGaps } from '@/routes/review/gaps';
+import { index as reviewProposals } from '@/routes/review/proposals';
 
 /** How many neighbours the card lists before it says "and N more". */
 const LISTED_NEIGHBOURS = 8;
@@ -177,7 +180,7 @@ export function GraphItemCard({
     onSelectNeighbour: (id: string) => void;
     onClose: () => void;
 }) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const preview = useItemPreview(item.stable_key);
 
     return (
@@ -214,7 +217,39 @@ export function GraphItemCard({
                     <span>
                         {t('brain.graph.links', { count: item.degree })}
                     </span>
+                    {item.changed_at !== null ? (
+                        <span>
+                            {t('brain.graph.changed', {
+                                when: formatRelativeTime(
+                                    Date.parse(item.changed_at) / 1000,
+                                    i18n.language,
+                                ),
+                            })}
+                        </span>
+                    ) : null}
                 </div>
+                {item.open_proposals + item.open_gaps > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                        {item.open_proposals > 0 ? (
+                            <Badge variant="warning" asChild>
+                                <Link href={reviewProposals.url()}>
+                                    {t('brain.graph.openProposals', {
+                                        count: item.open_proposals,
+                                    })}
+                                </Link>
+                            </Badge>
+                        ) : null}
+                        {item.open_gaps > 0 ? (
+                            <Badge variant="warning" asChild>
+                                <Link href={reviewGaps.url()}>
+                                    {t('brain.graph.openGaps', {
+                                        count: item.open_gaps,
+                                    })}
+                                </Link>
+                            </Badge>
+                        ) : null}
+                    </div>
+                ) : null}
 
                 <div className="flex flex-col gap-1.5">
                     <p className="text-xs font-medium text-muted-foreground">
