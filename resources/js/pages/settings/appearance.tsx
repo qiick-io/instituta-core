@@ -75,7 +75,7 @@ export default function Appearance({
     const { projectAppearance } = usePage().props;
     const canManageSettings = can(PermissionEnum.CanManageSettings);
 
-    const initialThemePreset = appearance?.theme_preset ?? 'teal';
+    const initialThemePreset = appearance?.theme_preset ?? 'salvia';
     const initialColor = appearance?.project_color ?? null;
     const initialColorDark = appearance?.project_color_dark ?? null;
     const initialAppearance = appearance?.default_appearance ?? 'system';

@@ -226,7 +226,8 @@
             "brandContrastWarning": "Questo colore potrebbe non rispettare il contrasto WCAG AA. Preferisci una tonalità più forte.",
             "defaultThemeTitle": "Tema predefinito",
             "defaultThemeDescription": "Usato per i visitatori senza una scelta personale chiaro/scuro (inclusa la pagina di accesso)",
-            "defaultAppearance": "Aspetto predefinito"
+            "defaultAppearance": "Aspetto predefinito",
+            "themePresetSalvia": "Salvia (predefinito)"
         },
         "profile": {
             "breadcrumb": "Impostazioni profilo",

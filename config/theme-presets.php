@@ -13,7 +13,7 @@
  */
 
 return [
-    'default' => 'teal',
+    'default' => 'salvia',
     'ai_accent_hue' => 306.0,
     'ai_override_hue_tolerance' => 30.0,
     'ai_override_light' => [
@@ -89,8 +89,45 @@ return [
         ],
     ],
     'presets' => [
+        'salvia' => [
+            // Instituta's product colour (#269): Salvia (sage), hue 138°, from the knowledge brand
+            // kit (projects/qiick/instituta-brand.md). Accent #5C7653 takes white text (5.03:1),
+            // never Snow; the mark #8BA782 takes Ink (6.85:1). AI stays violet.
+            'name' => 'Salvia (default)',
+            'ai_override' => false,
+            'light' => [
+                'primary' => '#5C7653',
+                'ring' => '#5C7653',
+                'chart-1' => '#5C7653',
+                'chart-2' => '#0E7C86',
+                'sidebar-primary' => '#5C7653',
+                'sidebar-accent' => '#F2F9EF',
+                'sidebar-accent-foreground' => '#3F5438',
+                'sidebar-ring' => '#5C7653',
+                'ai' => '#7F35BB',
+                'ai-hover' => '#69279B',
+                'ai-bg' => '#F7F0FF',
+                'ai-text' => '#521B79',
+                'ai-border' => '#9650D3',
+            ],
+            'dark' => [
+                'primary' => '#8BA782',
+                'ring' => '#8BA782',
+                'chart-1' => '#8BA782',
+                'chart-2' => '#2CB1BC',
+                'sidebar-primary' => '#8BA782',
+                'sidebar-accent' => '#1A2318',
+                'sidebar-accent-foreground' => '#B0C8A9',
+                'sidebar-ring' => '#8BA782',
+                'ai' => '#C497F2',
+                'ai-hover' => '#D8B8FA',
+                'ai-bg' => '#3A0F57',
+                'ai-text' => '#D8B8FA',
+                'ai-border' => '#AD70E6',
+            ],
+        ],
         'teal' => [
-            'name' => 'Teal (default)',
+            'name' => 'Teal',
             'ai_override' => false,
             'light' => [
                 'primary' => '#0E7C86',

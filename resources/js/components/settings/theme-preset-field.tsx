@@ -12,6 +12,7 @@ import type { ThemePresetCatalogItem, ThemePresetSlug } from '@/types';
 
 /** Translation keys for the built-in preset names (en / de / it). */
 const PRESET_NAME_KEYS: Record<ThemePresetSlug, string> = {
+    salvia: 'settings.appearance.themePresetSalvia',
     teal: 'settings.appearance.themePresetTeal',
     blue: 'settings.appearance.themePresetBlue',
     indigo: 'settings.appearance.themePresetIndigo',

@@ -1,6 +1,7 @@
 import type { DefaultAppearance } from '@/types/instance-settings';
 
 export type ThemePresetSlug =
+    | 'salvia'
     | 'teal'
     | 'blue'
     | 'indigo'
