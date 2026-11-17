@@ -1,4 +1,4 @@
 {
-    "resources/js/components/app-sidebar-header.tsx": "Ahead of the pin: search icon next to the sidebar toggle with tooltips (qiick-io/app-ui#158), after v0.8.0. Drop this entry when the pin moves to the release that carries it.",
+    "resources/js/components/app-sidebar-header.tsx": "Ahead of the pin: search icon next to the sidebar toggle with tooltips (qiick-io/app-ui#158) and the toggle no longer cut at the header edge (qiick-io/app-ui#160), both after v0.8.0. Drop this entry when the pin moves to the release that carries them.",
     "resources/js/components/command-palette.tsx": "Ahead of the pin: search icon trigger with tooltip (qiick-io/app-ui#158), after v0.8.0. Drop this entry when the pin moves to the release that carries it."
 }

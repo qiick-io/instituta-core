@@ -76,8 +76,8 @@ export default function BrainGaps({
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
+            // The view (Proposals / Gaps) is the tab under the header, not a breadcrumb (#303).
             { title: t('review.title'), href: reviewIndex.url() },
-            { title: t('brain.gaps.title'), href: gapsIndex.url() },
         ],
         [t],
     );
