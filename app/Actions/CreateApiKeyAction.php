@@ -7,9 +7,10 @@ namespace App\Actions;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
-use App\Enums\ApiKeyAbilityEnum;
+use App\Enums\ApiKeyScopeEnum;
 use App\Models\ApiKey;
 use App\Models\Principal;
+use App\Models\User;
 use App\Services\ApiKeyIssuerService;
 use App\Services\BrainWriteGateService;
 use App\Services\PerimeterResolverService;
@@ -17,6 +18,9 @@ use InvalidArgumentException;
 
 /**
  * Issues a new API key for a principal (plain secret returned once).
+ *
+ * Empty scopes are refused. `brain:write` requires writes enabled and an
+ * owner/member principal. The plaintext never enters the activity log.
  */
 final class CreateApiKeyAction
 {
@@ -27,7 +31,7 @@ final class CreateApiKeyAction
     ) {}
 
     /**
-     * @param  list<string>  $abilities
+     * @param  list<string>  $scopes
      * @param  list<string>|null  $ipAllowlist
      * @return array{key: ApiKey, plain: string}
      */
@@ -38,11 +42,19 @@ final class CreateApiKeyAction
         string $scopeId,
         RoleEnum $role,
         VisibilityEnum $maxVisibility,
-        array $abilities = [ApiKeyAbilityEnum::BrainRead->value],
+        array $scopes = [ApiKeyScopeEnum::BrainRead->value],
         ?array $ipAllowlist = null,
+        ?int $rateLimitPerMinute = null,
         ?\DateTimeInterface $expiresAt = null,
+        ?User $createdBy = null,
     ): array {
-        if (in_array(ApiKeyAbilityEnum::BrainWrite->value, $abilities, true)) {
+        $scopes = ApiKeyScopeEnum::normalize($scopes);
+
+        if ($scopes === []) {
+            throw new InvalidArgumentException('API key scopes must not be empty.');
+        }
+
+        if (in_array(ApiKeyScopeEnum::BrainWrite->value, $scopes, true)) {
             if (! $this->writeGate->isApiWriteEnabled() && ! $this->writeGate->isMcpWriteEnabled()) {
                 throw new InvalidArgumentException('Ability brain:write is refused while writes are disabled.');
             }
@@ -56,31 +68,21 @@ final class CreateApiKeyAction
             }
         }
 
-        if ($abilities === []) {
-            $abilities = [ApiKeyAbilityEnum::BrainRead->value];
-        }
-
-        if (
-            in_array(ApiKeyAbilityEnum::BrainWrite->value, $abilities, true)
-            && ! in_array(ApiKeyAbilityEnum::BrainRead->value, $abilities, true)
-        ) {
-            $abilities[] = ApiKeyAbilityEnum::BrainRead->value;
-        }
-
         $secret = $this->issuer->makeSecret();
 
         $key = new ApiKey([
             'name' => $name,
-            'prefix' => ApiKey::DEFAULT_PREFIX,
-            'hash' => $secret['hash'],
-            'display_prefix' => $secret['display_prefix'],
+            'key_prefix' => $secret['key_prefix'],
+            'key_hash' => $secret['hash'],
             'principal_id' => $principal->id,
+            'created_by' => $createdBy !== null ? $createdBy->id : $principal->user_id,
             'scope_type' => $scopeType,
             'scope_id' => $scopeId,
             'role' => $role,
             'max_visibility' => $maxVisibility,
-            'abilities' => $abilities,
+            'scopes' => $scopes,
             'ip_allowlist' => $ipAllowlist,
+            'rate_limit_per_minute' => $rateLimitPerMinute,
             'expires_at' => $expiresAt,
         ]);
 
@@ -88,18 +90,21 @@ final class CreateApiKeyAction
         $this->perimeters->fromApiKey($key->setRelation('principal', $principal));
         $key->save();
 
-        activity('keys')
+        activity('api-keys')
             ->performedOn($key)
-            ->causedBy($principal->user)
-            ->event('api_key.created')
+            ->causedBy($createdBy ?? $principal->user)
+            ->event('created')
             ->withProperties([
+                'name' => $key->name,
+                'scopes' => $key->scopes,
+                'key_prefix' => $key->key_prefix,
                 'organisation_id' => $principal->organisation_id,
                 'principal_id' => $principal->id,
                 'scope_type' => $scopeType->value,
                 'scope_id' => $scopeId,
                 'role' => $role->value,
             ])
-            ->log('api_key.created');
+            ->log('created');
 
         return ['key' => $key, 'plain' => $secret['plain']];
     }

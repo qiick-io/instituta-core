@@ -89,7 +89,7 @@ it('shows an owner the content, sources, proposals, keys and activity of their o
     ApiKey::factory()->revoked()->create(['principal_id' => $ownerPrincipal->id]);
     activity('keys')
         ->causedBy($owner)
-        ->event('api_key.created')
+        ->event('created')
         ->withProperties(['organisation_id' => $acme->id])
         ->log('acme-key-created');
 

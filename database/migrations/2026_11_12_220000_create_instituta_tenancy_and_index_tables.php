@@ -104,22 +104,25 @@ return new class extends Migration
         Schema::create('api_keys', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->string('name');
-            $table->string('prefix');
-            $table->string('hash', 64)->unique();
-            $table->string('display_prefix', 12);
+            $table->string('key_prefix', 32)->unique();
+            $table->string('key_hash', 64);
             $table->foreignUlid('principal_id')->constrained('principals')->cascadeOnDelete();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('scope_type');
             $table->ulid('scope_id');
             $table->string('role');
             $table->string('max_visibility');
-            $table->json('abilities');
+            $table->json('scopes');
             $table->json('ip_allowlist')->nullable();
+            $table->unsignedInteger('rate_limit_per_minute')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('last_used_at')->nullable();
+            $table->string('last_used_ip', 45)->nullable();
             $table->timestamp('revoked_at')->nullable();
+            $table->string('previous_key_hash', 64)->nullable();
+            $table->timestamp('previous_key_valid_until')->nullable();
             $table->timestamps();
 
-            $table->index('display_prefix');
             $table->index(['scope_type', 'scope_id']);
             $table->index('revoked_at');
         });

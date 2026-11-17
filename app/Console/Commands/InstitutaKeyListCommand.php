@@ -26,7 +26,7 @@ class InstitutaKeyListCommand extends Command
         $rows = $issuer->listForPrincipal($principal)->map(static fn ($key): array => [
             $key->id,
             $key->name,
-            $key->display_prefix,
+            $key->key_prefix,
             $key->scope_type->value,
             $key->scope_id,
             $key->role->value,
@@ -36,7 +36,7 @@ class InstitutaKeyListCommand extends Command
         ])->all();
 
         $this->table(
-            ['id', 'name', 'display_prefix', 'scope_type', 'scope_id', 'role', 'max_visibility', 'revoked_at', 'expires_at'],
+            ['id', 'name', 'key_prefix', 'scope_type', 'scope_id', 'role', 'max_visibility', 'revoked_at', 'expires_at'],
             $rows,
         );
 

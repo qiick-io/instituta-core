@@ -8,10 +8,11 @@ use App\Brain\Data\PerimeterData;
 use App\Brain\Enums\PrincipalTypeEnum;
 use App\Brain\Enums\RoleEnum;
 use App\Data\CreateBrainApiKeyData;
-use App\Enums\ApiKeyAbilityEnum;
+use App\Enums\ApiKeyScopeEnum;
 use App\Models\ApiKey;
 use App\Models\Grant;
 use App\Models\Principal;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -20,7 +21,7 @@ use InvalidArgumentException;
  *
  * A key for "me" belongs to the owner's person principal. A key for an agent creates the agent
  * principal (owned by the person) and its grant in the same scope first, so the key's
- * perimeter never exceeds what the owner granted. Everything else — write ability rules,
+ * perimeter never exceeds what the owner granted. Everything else — write scope rules,
  * hashing, the one-time secret — is {@see CreateApiKeyAction}, the same as the CLI.
  *
  * @throws InvalidArgumentException When the key would exceed the owner's role or writes are off.
@@ -34,13 +35,13 @@ final class CreateBrainApiKeyAction
     /**
      * @return array{key: ApiKey, plain: string}
      */
-    public function execute(Principal $owner, PerimeterData $perimeter, CreateBrainApiKeyData $data): array
+    public function execute(Principal $owner, PerimeterData $perimeter, CreateBrainApiKeyData $data, ?User $createdBy = null): array
     {
         if ($perimeter->role !== RoleEnum::Owner) {
             throw new InvalidArgumentException('Only owners can create API keys.');
         }
 
-        return DB::transaction(function () use ($owner, $perimeter, $data): array {
+        return DB::transaction(function () use ($owner, $perimeter, $data, $createdBy): array {
             $principal = $owner;
 
             if ($data->agentName !== null) {
@@ -60,10 +61,9 @@ final class CreateBrainApiKeyAction
                 ]);
             }
 
-            $abilities = [ApiKeyAbilityEnum::BrainRead->value];
-            if ($data->canWrite) {
-                $abilities[] = ApiKeyAbilityEnum::BrainWrite->value;
-            }
+            $scopes = $data->canWrite
+                ? [ApiKeyScopeEnum::BrainWrite->value]
+                : [ApiKeyScopeEnum::BrainRead->value];
 
             return $this->createApiKey->execute(
                 principal: $principal,
@@ -72,8 +72,9 @@ final class CreateBrainApiKeyAction
                 scopeId: $perimeter->scopeId,
                 role: $data->role,
                 maxVisibility: $data->maxVisibility,
-                abilities: $abilities,
+                scopes: $scopes,
                 expiresAt: $data->expiresAt,
+                createdBy: $createdBy,
             );
         });
     }

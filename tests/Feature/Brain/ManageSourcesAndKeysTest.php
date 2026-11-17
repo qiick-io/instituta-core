@@ -6,7 +6,7 @@ use App\Actions\GrantOrganisationAccessAction;
 use App\Brain\Enums\PrincipalTypeEnum;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
-use App\Enums\ApiKeyAbilityEnum;
+use App\Enums\ApiKeyScopeEnum;
 use App\Jobs\SyncSourceJob;
 use App\Models\ApiKey;
 use App\Models\Grant;
@@ -130,13 +130,13 @@ it('creates a key for a new agent, shows the secret once and stores only its has
         ->and($agent->name)->toBe('Cursor')
         ->and(Grant::query()->where('principal_id', $agent->id)->sole()->role)->toBe(RoleEnum::Member)
         ->and($key->principal_id)->toBe($agent->id)
-        ->and($key->abilities)->toBe([ApiKeyAbilityEnum::BrainRead->value])
+        ->and($key->scopes)->toBe([ApiKeyScopeEnum::BrainRead->value])
         ->and($key->expires_at)->not->toBeNull();
 
     $this->actingAs($this->owner)
         ->get(route('api-keys.index'))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('plainTextKey', fn (?string $plain): bool => $plain !== null && ! str_contains($key->hash, $plain))
+            ->where('plainTextKey', fn (?string $plain): bool => $plain !== null && ! str_contains($key->key_hash, $plain))
             ->where('keys.0.principal_name', 'Cursor')
             ->where('keys.0.principal_type', 'agent'));
 
@@ -154,7 +154,7 @@ it('hands the new secret to the keys page through the session', function (): voi
             'max_visibility' => 'restricted',
         ])
         ->assertSessionHas('plain_text_api_key', fn (string $plain): bool => str_starts_with($plain, ApiKey::DEFAULT_PREFIX)
-            && ! str_contains((string) ApiKey::query()->sole()->hash, $plain));
+            && ! str_contains((string) ApiKey::query()->sole()->key_hash, $plain));
 
     expect(ApiKey::query()->sole()->principal_id)->toBe($this->owner->principals()->sole()->id);
 });

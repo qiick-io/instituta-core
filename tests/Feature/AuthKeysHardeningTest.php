@@ -67,7 +67,7 @@ it('bootstraps org company owner principal and key from instituta:install', func
         expect(Grant::query()->where('principal_id', $principal->id)->exists())->toBeTrue();
         expect(ApiKey::query()->where('principal_id', $principal->id)->count())->toBe(1);
 
-        expect(Activity::query()->where('description', 'api_key.created')->exists())->toBeTrue();
+        expect(Activity::query()->where('log_name', 'api-keys')->where('event', 'created')->exists())->toBeTrue();
     } finally {
         if ($envBackup === null) {
             File::delete($envPath);
@@ -115,7 +115,7 @@ it('rejects expired and revoked keys on REST', function (): void {
     $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer '.$revoked['plain']])
         ->assertUnauthorized();
 
-    expect(Activity::query()->where('description', 'api_key.revoked')->exists())->toBeTrue();
+    expect(Activity::query()->where('log_name', 'api-keys')->where('event', 'revoked')->exists())->toBeTrue();
 });
 
 it('rejects expired and revoked keys on MCP', function (): void {

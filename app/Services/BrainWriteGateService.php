@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Brain\Enums\RoleEnum;
-use App\Enums\ApiKeyAbilityEnum;
+use App\Enums\ApiKeyScopeEnum;
 use App\Enums\ContractErrorCodeEnum;
 use App\Exceptions\ContractException;
 use App\Models\ApiKey;
 use App\Models\Principal;
 
 /**
- * Kill switch + ability + role checks for brain:write (#54).
+ * Kill switch + scope + role checks for brain:write (#54).
  *
  * Writes stay off unless the surface flag is on, the key carries brain:write,
  * and the key (and principal) role is owner or member — never guest.
@@ -60,7 +60,7 @@ final class BrainWriteGateService
             return false;
         }
 
-        if (! in_array(ApiKeyAbilityEnum::BrainWrite->value, $key->abilities, true)) {
+        if (! $key->hasScope(ApiKeyScopeEnum::BrainWrite)) {
             return false;
         }
 
@@ -86,7 +86,7 @@ final class BrainWriteGateService
             return new ContractException(ContractErrorCodeEnum::WriteDisabled, 'Brain writes are disabled.');
         }
 
-        if (! in_array(ApiKeyAbilityEnum::BrainWrite->value, $key->abilities, true)) {
+        if (! $key->hasScope(ApiKeyScopeEnum::BrainWrite)) {
             return new ContractException(ContractErrorCodeEnum::AbilityMissing, 'Ability brain:write is required.');
         }
 

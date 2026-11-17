@@ -65,7 +65,7 @@ final class ContractCallReplayQueryService
     {
         $query = ContractCall::query()
             ->where('organisation_id', $organisationId)
-            ->with(['principal:id,name', 'apiKey:id,name,display_prefix', 'agentSession:id'])
+            ->with(['principal:id,name', 'apiKey:id,name,key_prefix', 'agentSession:id'])
             ->orderByDesc('called_at');
 
         $this->applyFilters($query, $filters);

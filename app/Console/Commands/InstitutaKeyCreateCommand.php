@@ -64,7 +64,7 @@ class InstitutaKeyCreateCommand extends Command
 
         $this->info('API key created. Store the plain secret; it will not be shown again.');
         $this->line('id: '.$result['key']->id);
-        $this->line('display_prefix: '.$result['key']->display_prefix);
+        $this->line('key_prefix: '.$result['key']->key_prefix);
         $this->line('plain: '.$result['plain']);
 
         return self::SUCCESS;

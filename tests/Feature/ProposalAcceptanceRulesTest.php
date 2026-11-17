@@ -7,7 +7,7 @@ use App\Brain\Enums\PrincipalTypeEnum;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
-use App\Enums\ApiKeyAbilityEnum;
+use App\Enums\ApiKeyScopeEnum;
 use App\Enums\ProposalStatusEnum;
 use App\Jobs\MaterialiseProposalJob;
 use App\Mcp\Servers\HttpBrainServer;
@@ -63,7 +63,7 @@ function acceptanceKey(Organisation $organisation, PrincipalTypeEnum $type): arr
         scopeId: $organisation->id,
         role: RoleEnum::Owner,
         maxVisibility: VisibilityEnum::Restricted,
-        abilities: [ApiKeyAbilityEnum::BrainRead->value, ApiKeyAbilityEnum::BrainWrite->value],
+        scopes: [ApiKeyScopeEnum::BrainRead->value, ApiKeyScopeEnum::BrainWrite->value],
     );
 
     return ['principal' => $principal, 'key' => $created['key'], 'plain' => $created['plain']];
@@ -118,7 +118,7 @@ it('refuses another key of the same principal accepting its proposal', function 
         scopeId: $this->organisation->id,
         role: RoleEnum::Owner,
         maxVisibility: VisibilityEnum::Restricted,
-        abilities: [ApiKeyAbilityEnum::BrainRead->value, ApiKeyAbilityEnum::BrainWrite->value],
+        scopes: [ApiKeyScopeEnum::BrainRead->value, ApiKeyScopeEnum::BrainWrite->value],
     );
 
     decideOverRest($proposalId, $secondKey['plain'], 'accepted')->assertUnprocessable();

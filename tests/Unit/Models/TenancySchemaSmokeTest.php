@@ -47,8 +47,8 @@ it('factories create tenancy graph and index rows', function (): void {
     expect($organisation->wasRecentlyCreated)->toBeTrue();
     expect($company->kind)->toBe(CompanyKindEnum::Own);
     expect($client->kind)->toBe(CompanyKindEnum::Client);
-    expect($apiKey->getAttributes()['hash'] ?? null)->not->toBeEmpty();
-    expect(strlen($apiKey->display_prefix))->toBe(12);
+    expect($apiKey->getAttributes()['key_hash'] ?? null)->not->toBeEmpty();
+    expect(strlen($apiKey->key_prefix))->toBeGreaterThanOrEqual(12);
     $this->assertDatabaseHas('items', [
         'id' => $item->id,
         'organisation_id' => $organisation->id,

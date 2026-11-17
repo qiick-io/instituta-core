@@ -30,7 +30,7 @@ test('the api key factory stores a chosen secret hash and stays active by defaul
     $secret = ApiKey::factory()->makeSecret();
     $apiKey = ApiKey::factory()->withSecret($secret)->create();
 
-    expect($apiKey->hash)->toBe(hash('sha256', $secret['plain']))
+    expect($apiKey->key_hash)->toBe(hash('sha256', $secret['plain']))
         ->and($apiKey->principal)->toBeInstanceOf(Principal::class)
         ->and($apiKey->scope_id)->toBe($apiKey->principal->organisation_id)
         ->and($apiKey->revoked_at)->toBeNull()

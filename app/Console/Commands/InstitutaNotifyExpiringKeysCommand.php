@@ -13,31 +13,33 @@ use Illuminate\Support\Facades\DB;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 /**
- * Notifies organisation users about API keys that expire within the next N days.
+ * Notifies organisation users about API keys that expire in the warning window.
  *
- * Runs daily; skips keys already revoked or without an expiry. Uses a
- * notification type + key id fingerprint so the same key is not re-notified
- * every day for the same expiry window (one unread/read row per key until pruned).
+ * Runs daily; picks keys that expire between N and N+1 days from now (default N=7)
+ * so each key is notified once without extra state. Skips revoked keys and keys
+ * without an expiry.
  */
 #[AsCommand(name: 'instituta:notify-expiring-keys')]
 class InstitutaNotifyExpiringKeysCommand extends Command
 {
     protected $signature = 'instituta:notify-expiring-keys
-        {--days=7 : Notify when expiry is within this many days}';
+        {--days= : Days ahead to warn (defaults to config api.expiry_warning_days)}';
 
     protected $description = 'Notify users when organisation API keys are about to expire';
 
     public function handle(NotifyOrganisationUsersService $notify): int
     {
-        $days = max(1, (int) $this->option('days'));
-        $horizon = Carbon::now()->addDays($days);
+        $days = (int) ($this->option('days') ?: config('api.expiry_warning_days', 7));
+        $days = max(1, $days);
+        $windowStart = Carbon::now()->addDays($days);
+        $windowEnd = Carbon::now()->addDays($days + 1);
 
         $keys = ApiKey::query()
             ->with('principal')
             ->whereNull('revoked_at')
             ->whereNotNull('expires_at')
-            ->where('expires_at', '>', now())
-            ->where('expires_at', '<=', $horizon)
+            ->where('expires_at', '>', $windowStart)
+            ->where('expires_at', '<=', $windowEnd)
             ->get();
 
         $sent = 0;
@@ -54,6 +56,7 @@ class InstitutaNotifyExpiringKeysCommand extends Command
             }
 
             $expiresAt = $key->expires_at;
+
             if ($expiresAt === null) {
                 continue;
             }

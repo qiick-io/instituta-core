@@ -36,11 +36,15 @@ function keysSeed(): array
         'scope_type' => ScopeTypeEnum::Organisation,
         'scope_id' => $org->id,
         'role' => RoleEnum::Owner,
-        'display_prefix' => 'ik_dogf',
+        'key_prefix' => 'ins_test_dogfood1',
     ]);
 
     return compact('user', 'principal');
 }
+
+beforeEach(function (): void {
+    $this->withoutVite();
+});
 
 it('lists api keys for an owner', function (): void {
     $seed = keysSeed();
@@ -49,11 +53,11 @@ it('lists api keys for an owner', function (): void {
         ->get(route('api-keys.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('brain/keys')
+            ->component('settings/api-keys')
             ->where('is_owner', true)
             ->has('keys', 1)
             ->where('keys.0.name', 'dogfood')
-            ->where('keys.0.display_prefix', 'ik_dogf')
+            ->where('keys.0.display_prefix', 'ins_test_dogfood1')
             ->where('keys.0.revoked', false));
 });
 
@@ -77,7 +81,7 @@ it('hides keys from non-owners', function (): void {
         ->get(route('api-keys.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('brain/keys')
+            ->component('settings/api-keys')
             ->where('is_owner', false)
             ->has('keys', 0));
 });
