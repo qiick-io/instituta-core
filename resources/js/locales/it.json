@@ -802,7 +802,6 @@
         },
         "graph": {
             "title": "Grafo nello scope",
-            "description": "Ogni elemento di questo ambito e i collegamenti tra loro. Clicca un elemento per vederne i collegamenti, doppio clic per aprirlo, Shift-clic su un secondo per tracciare il percorso; trascina elementi o vista, scorri per lo zoom.",
             "rootLabel": "Partenza da {{title}}",
             "empty": "Nessun elemento in questo perimetro da mostrare nel grafo.",
             "depth1": "Profondità 1",
