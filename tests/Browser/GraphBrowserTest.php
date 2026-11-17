@@ -176,3 +176,22 @@ it('opens with an area filter and constellations layout pressed', function (): v
         ->assertAttribute('[title="Group the items by area"]', 'data-state', 'on')
         ->assertNoJavaScriptErrors();
 });
+
+/**
+ * Keyboard: the first arrow on the focused canvas selects the biggest hub and opens its card,
+ * Escape clears it (#285).
+ */
+it('walks the graph from the keyboard', function (): void {
+    $seed = graphBrowserSeed();
+
+    $this->actingAs($seed['user']);
+    $page = visit(route('graph', absolute: false))->inLightMode();
+
+    $page->assertPresent('canvas[role="img"]')
+        ->keys('canvas[role="img"]', ['ArrowRight'])
+        ->assertSee('Beta middle')
+        ->assertSee('Preview')
+        ->keys('canvas[role="img"]', ['Escape'])
+        ->assertDontSee('Preview')
+        ->assertNoJavaScriptErrors();
+});

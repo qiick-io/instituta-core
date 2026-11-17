@@ -843,7 +843,11 @@
             "layoutLabel": "Disposizione",
             "layoutFree": "Libero",
             "layoutFreeHint": "Elementi disposti in base ai collegamenti",
-            "layingOut": "Disposizione del cervello…"
+            "layingOut": "Disposizione del cervello…",
+            "listAlternative": "Mostra gli elementi come elenco",
+            "keyboardHint": "Le frecce si spostano tra elementi collegati, Invio apre quello selezionato, Esc deseleziona, più e meno per lo zoom, 0 adatta la vista.",
+            "selectedAnnouncement_one": "{{title}} selezionato, {{area}}, {{count}} collegamento",
+            "selectedAnnouncement_other": "{{title}} selezionato, {{area}}, {{count}} collegamenti"
         },
         "propose": {
             "proposeChange": "Proponi modifica",

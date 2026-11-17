@@ -843,7 +843,11 @@
             "layoutLabel": "Layout",
             "layoutFree": "Free",
             "layoutFreeHint": "Items placed by their links",
-            "layingOut": "Laying out the brain…"
+            "layingOut": "Laying out the brain…",
+            "listAlternative": "Show the items as a list",
+            "keyboardHint": "Arrow keys move between linked items, Enter opens the selected one, Escape clears, plus and minus zoom, 0 fits the view.",
+            "selectedAnnouncement_one": "{{title}} selected, {{area}}, {{count}} link",
+            "selectedAnnouncement_other": "{{title}} selected, {{area}}, {{count}} links"
         },
         "propose": {
             "proposeChange": "Propose change",
