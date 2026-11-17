@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Brain\Support;
 
+use Smalot\PdfParser\Parser as PdfParser;
+use Throwable;
 use ZipArchive;
 
 /**
- * Reads the text out of Office and OpenDocument files, locally (#317): no file leaves the app and
- * no model is involved. OOXML (`docx`, `pptx`, `xlsx`) and ODF (`odt`, `odp`, `ods`) are zip
+ * Reads the text out of PDFs (#321), Office and OpenDocument files (#317), locally: no file leaves
+ * the app and no model is involved. OOXML (`docx`, `pptx`, `xlsx`) and ODF (`odt`, `odp`, `ods`) are zip
  * archives of XML, so the text is the XML's text nodes with paragraph and slide breaks kept.
  * Legacy binary formats (`doc`, `xls`, `ppt`) are not read.
  *
@@ -22,6 +24,9 @@ final class DocumentTextExtractor
 
     public const int MAX_TEXT_CHARS = 500_000;
 
+    /** Pages read from a PDF; the rest stays in the file. */
+    private const int MAX_PDF_PAGES = 500;
+
     /**
      * The file's text as parts in reading order (pages, slides, or one part), or null when the
      * format is not read or nothing could be read.
@@ -30,6 +35,12 @@ final class DocumentTextExtractor
      */
     public function extract(string $absolutePath, string $extension): ?array
     {
+        if ($extension === 'pdf') {
+            $pages = $this->pdfPages($absolutePath);
+
+            return $pages === null ? null : $this->capped($pages);
+        }
+
         if (! class_exists(ZipArchive::class)) {
             return null;
         }
@@ -60,7 +71,34 @@ final class DocumentTextExtractor
      */
     public static function supports(string $extension): bool
     {
-        return in_array($extension, ['docx', 'pptx', 'xlsx', 'odt', 'odp', 'ods'], true);
+        return in_array($extension, ['pdf', 'docx', 'pptx', 'xlsx', 'odt', 'odp', 'ods'], true);
+    }
+
+    /**
+     * One part per PDF page that has text, read with smalot/pdfparser (LGPL-3.0, used unmodified,
+     * #321). A scanned PDF has no text layer and gives nothing; a malformed or encrypted one gives
+     * nothing either: the file stays viewable and downloadable.
+     *
+     * @return list<array{heading: string, text: string}>|null
+     */
+    private function pdfPages(string $absolutePath): ?array
+    {
+        try {
+            $document = (new PdfParser)->parseFile($absolutePath);
+            $parts = [];
+
+            foreach (array_slice($document->getPages(), 0, self::MAX_PDF_PAGES) as $index => $page) {
+                $text = $this->clean($page->getText());
+
+                if ($text !== '') {
+                    $parts[] = ['heading' => 'Page '.($index + 1), 'text' => $text];
+                }
+            }
+
+            return $parts === [] ? null : $parts;
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     private function entry(ZipArchive $zip, string $name): ?string
