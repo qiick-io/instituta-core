@@ -225,3 +225,16 @@ it('shows review signals and the freshness view', function (): void {
         ->assertAttribute('[title="Colour the items by when they last changed"]', 'data-state', 'on')
         ->assertNoJavaScriptErrors();
 });
+
+/**
+ * The view can be saved as a PNG (#290): the button is there and clicking it raises no error.
+ */
+it('offers to save the view as an image', function (): void {
+    $seed = graphBrowserSeed();
+
+    $this->actingAs($seed['user']);
+    visit(route('graph', absolute: false))->inLightMode()
+        ->assertPresent('button[aria-label="Save as image"]')
+        ->click('button[aria-label="Save as image"]')
+        ->assertNoJavaScriptErrors();
+});

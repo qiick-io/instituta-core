@@ -864,7 +864,8 @@
             "openProposals_one": "{{count}} open proposal",
             "openProposals_other": "{{count}} open proposals",
             "openGaps_one": "{{count}} open gap",
-            "openGaps_other": "{{count}} open gaps"
+            "openGaps_other": "{{count}} open gaps",
+            "exportImage": "Save as image"
         },
         "propose": {
             "proposeChange": "Propose change",
