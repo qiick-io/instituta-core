@@ -491,6 +491,9 @@
         "reading": {
             "description": "Long-form view of one concept in the current scope.",
             "outline": "Outline",
+            "neighbourhood": "Neighbourhood",
+            "noNeighbours": "No linked items yet.",
+            "openInGraph": "Open in graph",
             "empty": "This concept has no sections yet.",
             "unknownBlock": "Unsupported block type: {{type}}",
             "structuredTables": "Structured tables",

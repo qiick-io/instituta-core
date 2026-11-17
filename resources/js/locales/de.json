@@ -491,6 +491,9 @@
         "reading": {
             "description": "Langform-Ansicht eines Konzepts im aktuellen Scope.",
             "outline": "Gliederung",
+            "neighbourhood": "Nachbarschaft",
+            "noNeighbours": "Noch keine verknüpften Einträge.",
+            "openInGraph": "Im Graph öffnen",
             "empty": "Dieses Konzept hat noch keine Abschnitte.",
             "unknownBlock": "Nicht unterstützter Blocktyp: {{type}}",
             "structuredTables": "Strukturierte Tabellen",

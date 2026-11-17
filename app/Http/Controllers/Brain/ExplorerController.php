@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Brain;
 use App\Brain\Enums\RoleEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Item;
+use App\Services\BrainGraphService;
 use App\Services\BrainReadingService;
 use App\Services\BrainTreeService;
 use App\Services\SessionPerimeterService;
@@ -25,6 +26,7 @@ final class ExplorerController extends Controller
         private readonly SessionPerimeterService $sessions,
         private readonly BrainTreeService $tree,
         private readonly BrainReadingService $reading,
+        private readonly BrainGraphService $graph,
     ) {}
 
     public function index(Request $request): Response
@@ -34,6 +36,7 @@ final class ExplorerController extends Controller
         return Inertia::render('brain/explorer', [
             ...($perimeter === null ? ['nodes' => [], 'total' => 0] : $this->tree->tree($perimeter)),
             'item' => null,
+            'neighbourhood' => null,
             'hasPerimeter' => $perimeter !== null,
             'canPropose' => $perimeter !== null && $perimeter->role !== RoleEnum::Guest,
         ]);
@@ -60,6 +63,7 @@ final class ExplorerController extends Controller
         return Inertia::render('brain/explorer', [
             ...$this->tree->tree($perimeter),
             'item' => $payload,
+            'neighbourhood' => $this->graph->neighbourhood($perimeter, (string) $payload['id']),
             'hasPerimeter' => true,
             'canPropose' => $perimeter->role !== RoleEnum::Guest,
         ]);
