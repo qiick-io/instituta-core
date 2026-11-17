@@ -26,7 +26,8 @@
         "users": "Benutzer",
         "openCount_one": ", {{count}} offen",
         "openCount_other": ", {{count}} offen",
-        "groups": "Gruppen"
+        "groups": "Gruppen",
+        "settings": "Einstellungen"
     },
     "ai": {
         "fabDescription": "Schnelle Assistenten-Schublade. Öffnen Sie die Vollseite für den Verlauf.",
@@ -943,6 +944,25 @@
             "replace": "Bild ersetzen",
             "remove": "Entfernen",
             "hint": "PNG, JPEG oder WebP, bis 1 MB. Ohne Bild erscheinen die Initialen."
+        },
+        "asset": {
+            "download": "Herunterladen",
+            "openOriginal": "Original öffnen",
+            "format": "Format",
+            "size": "Größe",
+            "dimensions": "Abmessungen",
+            "alt": "Alternativtext",
+            "usedIn": "Verwendet in",
+            "notUsed": "Noch kein Dokument bettet diese Datei ein oder verlinkt sie.",
+            "kinds": {
+                "archive": "{{format}}-Archiv",
+                "font": "{{format}}-Schrift",
+                "text": "{{format}}-Dokument",
+                "spreadsheet": "{{format}}-Tabelle",
+                "presentation": "{{format}}-Präsentation"
+            },
+            "extractedText": "Text",
+            "extractedTextHint": "Beim Sync aus der Datei gelesen, damit Suche und Agenten ihn nutzen können."
         }
     },
     "activity": {

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Brain\Data\PerimeterData;
+use App\Brain\Readers\AssetReader;
+use App\Brain\Support\PathHelper;
 use App\Models\Item;
 use App\Models\ItemLink;
 use App\Models\ItemSection;
@@ -52,6 +54,7 @@ final class BrainReadingService
                 'path' => $item->path,
                 'commit' => $item->commit,
             ],
+            'asset' => $this->assetPayload($perimeter, $item),
             'generated_blocks' => array_values(array_unique(
                 $item->sections
                     ->sortBy('position')
@@ -92,7 +95,7 @@ final class BrainReadingService
      * A quick look at one item for the graph's side card (#273): its summary and first sections,
      * rendered like the reading view. Null outside the perimeter.
      *
-     * @return array{id: string, summary: string|null, sections: array<int, array{anchor: string, heading: string, level: int, html: string, body: string}>, hasMore: bool}|null
+     * @return array{id: string, summary: string|null, asset: array{url: string, mime: string, alt: string|null}|null, sections: array<int, array{anchor: string, heading: string, level: int, html: string, body: string}>, hasMore: bool}|null
      */
     public function preview(PerimeterData $perimeter, string $id, int $sections = 4): ?array
     {
@@ -105,9 +108,17 @@ final class BrainReadingService
         $urlsByLinkTarget = $this->urlsByLinkTarget($item);
         $all = $item->sections()->orderBy('position')->get();
 
+        $asset = self::isAsset($item) && is_array($item->frontmatter['asset'] ?? null) ? $item->frontmatter['asset'] : null;
+
         return [
             'id' => $item->id,
             'summary' => $item->summary,
+            // An image or PDF previews as itself (#311).
+            'asset' => $asset === null ? null : [
+                'url' => route('brain.assets.show', $item->id, absolute: false),
+                'mime' => (string) AssetReader::mimeType($item->path),
+                'alt' => is_string($asset['alt'] ?? null) ? $asset['alt'] : null,
+            ],
             'sections' => $all
                 ->take($sections)
                 ->values()
@@ -148,11 +159,73 @@ final class BrainReadingService
      */
     private function urlsByLinkTarget(Item $item): array
     {
-        return ItemLink::query()
+        $links = ItemLink::query()
             ->where('from_item_id', $item->id)
             ->whereNotNull('to_item_id')
-            ->get(['target', 'to_item_id'])
-            ->mapWithKeys(static fn (ItemLink $link): array => [$link->target => route('explorer.show', (string) $link->to_item_id, absolute: false)])
+            ->get(['target', 'to_item_id']);
+        // A link or picture pointing at an asset opens the file itself (#311).
+        $assetIds = Item::query()
+            ->whereKey($links->pluck('to_item_id')->unique()->all())
+            ->get(['id', 'path', 'frontmatter'])
+            ->filter(static fn (Item $target): bool => self::isAsset($target))
+            ->pluck('id')
             ->all();
+
+        return $links
+            ->mapWithKeys(static fn (ItemLink $link): array => [
+                $link->target => in_array($link->to_item_id, $assetIds, true)
+                    ? route('brain.assets.show', (string) $link->to_item_id, absolute: false)
+                    : route('explorer.show', (string) $link->to_item_id, absolute: false),
+            ])
+            ->all();
+    }
+
+    /**
+     * Whether an item is a brain asset (an image or a PDF, #311): it carries the asset metadata the
+     * reader records and a served extension.
+     */
+    public static function isAsset(Item $item): bool
+    {
+        return is_array($item->frontmatter['asset'] ?? null) && AssetReader::mimeType($item->path) !== null;
+    }
+
+    /**
+     * An asset's metadata for the reading view, and where it is used (#311); null for a document.
+     *
+     * @return array{mime: string, kind: string, extension: string, is_download_only: bool, bytes: int, width: int|null, height: int|null, alt: string|null, caption: string|null, url: string, download_url: string, used_in: list<array{title: string, stable_key: string}>}|null
+     */
+    private function assetPayload(PerimeterData $perimeter, Item $item): ?array
+    {
+        $asset = $item->frontmatter['asset'] ?? null;
+
+        if (! is_array($asset) || ! self::isAsset($item)) {
+            return null;
+        }
+
+        /** @var list<array{title: string, stable_key: string}> $usedIn */
+        $usedIn = Item::query()
+            ->withinPerimeter($perimeter)
+            ->whereIn('id', ItemLink::query()->where('to_item_id', $item->id)->select('from_item_id'))
+            ->orderBy('title')
+            ->limit(50)
+            ->get(['title', 'stable_key'])
+            ->map(static fn (Item $user): array => ['title' => $user->title, 'stable_key' => $user->stable_key])
+            ->values()
+            ->all();
+
+        return [
+            'mime' => (string) AssetReader::mimeType($item->path),
+            'kind' => is_string($asset['kind'] ?? null) ? $asset['kind'] : 'image',
+            'extension' => PathHelper::extension($item->path),
+            'is_download_only' => AssetReader::isDownloadOnly($item->path),
+            'bytes' => is_int($asset['bytes'] ?? null) ? $asset['bytes'] : 0,
+            'width' => is_int($asset['width'] ?? null) ? $asset['width'] : null,
+            'height' => is_int($asset['height'] ?? null) ? $asset['height'] : null,
+            'alt' => is_string($asset['alt'] ?? null) ? $asset['alt'] : null,
+            'caption' => is_string($asset['caption'] ?? null) ? $asset['caption'] : null,
+            'url' => route('brain.assets.show', $item->id, absolute: false),
+            'download_url' => route('brain.assets.show', ['item' => $item->id, 'download' => 1], absolute: false),
+            'used_in' => $usedIn,
+        ];
     }
 }

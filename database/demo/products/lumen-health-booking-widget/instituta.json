@@ -1,0 +1,7 @@
+{
+    "format": "instituta",
+    "format_version": 1,
+    "name": "Booking Widget brain",
+    "default_visibility": "internal",
+    "areas": ["rules", "decisions"]
+}

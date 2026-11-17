@@ -7,6 +7,7 @@ use App\Http\Controllers\Ai\AiConversationController;
 use App\Http\Controllers\Ai\AiDraftController;
 use App\Http\Controllers\Ai\AiPageController;
 use App\Http\Controllers\Ai\AiStatusController;
+use App\Http\Controllers\Brain\BrainAssetController;
 use App\Http\Controllers\Brain\ClientCompanyFormController;
 use App\Http\Controllers\Brain\ClientEraseController;
 use App\Http\Controllers\Brain\ClientExportController;
@@ -66,6 +67,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('graph/preview/{item}', GraphPreviewController::class)
         ->where('item', '.*')
         ->name('graph.preview');
+    Route::get('brain-assets/{item}', BrainAssetController::class)->name('brain.assets.show');
     Route::get('resolved', ResolvedController::class)->name('resolved');
     Route::get('tables', [TablesController::class, 'index'])->name('tables.index');
     Route::get('tables/{item}/{table}', [TablesController::class, 'show'])->name('tables.show');

@@ -58,7 +58,10 @@ export type Section = {
     body: string;
     markdown: string | null;
     section_hash: string | null;
-    /** The stored markdown rendered by the server (#241); '' before it was stored. */
+    /**
+     * The stored markdown rendered by the server (#241), without its heading: '' when the section
+     * is only a heading, or before markdown was stored (`markdown` null).
+     */
     html: string;
     blocks: Block[];
 };
@@ -76,6 +79,22 @@ type Citation = {
     commit: string | null;
 };
 
+export type ItemAsset = {
+    mime: string;
+    /** `image`, `pdf`, or for download-only files `archive`, `font`, `text`, `spreadsheet`, `presentation` (#315). */
+    kind: string;
+    extension: string;
+    is_download_only: boolean;
+    bytes: number;
+    width: number | null;
+    height: number | null;
+    alt: string | null;
+    caption: string | null;
+    url: string;
+    download_url: string;
+    used_in: Array<{ title: string; stable_key: string }>;
+};
+
 export type Item = {
     id: string;
     stable_key: string;
@@ -83,6 +102,8 @@ export type Item = {
     summary: string | null;
     /** Generated-block markers in the file, e.g. `qiick-standards` with its note (#295). */
     generated_blocks: Array<{ source: string; note: string }>;
+    /** Set for an image or a PDF (#311): metadata and the URL the app serves it from. */
+    asset: ItemAsset | null;
     area: string;
     type: string;
     visibility: string;
@@ -168,6 +189,40 @@ function BlockView({ block }: { block: Block }) {
     return (
         <p className="text-sm text-muted-foreground">
             {t('brain.reading.unknownBlock', { type: block.type })}
+        </p>
+    );
+}
+
+/**
+ * A section's content: the server-rendered markdown, else its structured blocks, else the plain body
+ * of a section stored before markdown was kept. Stored markdown that is only a heading renders to
+ * '' and shows nothing: the plain body would repeat the heading as `# Title` (#326).
+ */
+function SectionContent({ section }: { section: Section }) {
+    if (section.html !== '') {
+        return <BrainMarkdown html={section.html} />;
+    }
+
+    if (section.blocks.length > 0) {
+        return (
+            <div className="space-y-3">
+                {section.blocks.map((block, index) => (
+                    <BlockView
+                        key={`${section.anchor}-${index}`}
+                        block={block}
+                    />
+                ))}
+            </div>
+        );
+    }
+
+    if (section.markdown !== null) {
+        return null;
+    }
+
+    return (
+        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            {section.body}
         </p>
     );
 }
@@ -276,22 +331,7 @@ export function ItemReader({
                                 ) : null}
                             </div>
 
-                            {section.html !== '' ? (
-                                <BrainMarkdown html={section.html} />
-                            ) : section.blocks.length > 0 ? (
-                                <div className="space-y-3">
-                                    {section.blocks.map((block, index) => (
-                                        <BlockView
-                                            key={`${section.anchor}-${index}`}
-                                            block={block}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                                    {section.body}
-                                </p>
-                            )}
+                            <SectionContent section={section} />
                         </section>
                     ))
                 )}

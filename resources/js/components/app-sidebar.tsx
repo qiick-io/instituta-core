@@ -8,6 +8,7 @@ import {
     LayoutGrid,
     PanelRight,
     ScrollText,
+    Settings,
     Sparkles,
     Users,
     UsersRound,
@@ -47,6 +48,7 @@ import { index as activityIndex } from '@/routes/activity';
 import { graph } from '@/routes';
 import { index as explorerIndex } from '@/routes/explorer';
 import { index as clientsIndex } from '@/routes/clients';
+import { edit as editProfile } from '@/routes/profile';
 import { index as reviewIndex } from '@/routes/review';
 import groups from '@/routes/groups';
 import users from '@/routes/users';
@@ -113,6 +115,13 @@ export function AppSidebar() {
                   },
               ]
             : []),
+        // Last of the Platform group, as in the app-ui shell (#319); every settings page keeps it active.
+        {
+            title: t('nav.settings'),
+            href: editProfile(),
+            icon: Settings,
+            activePrefix: '/settings',
+        },
     ];
 
     // Docs site is not public yet; keep the repository link only.

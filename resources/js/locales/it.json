@@ -26,7 +26,8 @@
         "users": "Utenti",
         "openCount_one": ", {{count}} da rivedere",
         "openCount_other": ", {{count}} da rivedere",
-        "groups": "Gruppi"
+        "groups": "Gruppi",
+        "settings": "Impostazioni"
     },
     "ai": {
         "fabDescription": "Drawer rapido dell'assistente. Apri la pagina completa per la cronologia.",
@@ -943,6 +944,25 @@
             "replace": "Sostituisci immagine",
             "remove": "Rimuovi",
             "hint": "PNG, JPEG o WebP, fino a 1 MB. Senza, compaiono le iniziali."
+        },
+        "asset": {
+            "download": "Scarica",
+            "openOriginal": "Apri originale",
+            "format": "Formato",
+            "size": "Peso",
+            "dimensions": "Dimensioni",
+            "alt": "Testo alternativo",
+            "usedIn": "Usato in",
+            "notUsed": "Nessun documento incorpora o collega ancora questo file.",
+            "kinds": {
+                "archive": "Archivio {{format}}",
+                "font": "Font {{format}}",
+                "text": "Documento {{format}}",
+                "spreadsheet": "Foglio di calcolo {{format}}",
+                "presentation": "Presentazione {{format}}"
+            },
+            "extractedText": "Testo",
+            "extractedTextHint": "Letto dal file durante il sync, così ricerca e agenti possono usarlo."
         }
     },
     "activity": {

@@ -26,7 +26,8 @@
         "users": "Users",
         "openCount_one": ", {{count}} open",
         "openCount_other": ", {{count}} open",
-        "groups": "Groups"
+        "groups": "Groups",
+        "settings": "Settings"
     },
     "ai": {
         "fabDescription": "Quick assistant drawer. Open the full page for history.",
@@ -943,6 +944,25 @@
             "replace": "Replace image",
             "remove": "Remove",
             "hint": "PNG, JPEG or WebP, up to 1 MB. Without one, the initials show."
+        },
+        "asset": {
+            "download": "Download",
+            "openOriginal": "Open original",
+            "format": "Format",
+            "size": "Size",
+            "dimensions": "Dimensions",
+            "alt": "Alt text",
+            "usedIn": "Used in",
+            "notUsed": "No document embeds or links this file yet.",
+            "kinds": {
+                "archive": "{{format}} archive",
+                "font": "{{format}} font",
+                "text": "{{format}} document",
+                "spreadsheet": "{{format}} spreadsheet",
+                "presentation": "{{format}} presentation"
+            },
+            "extractedText": "Text",
+            "extractedTextHint": "Read from the file at sync time, so search and agents can use it."
         }
     },
     "activity": {

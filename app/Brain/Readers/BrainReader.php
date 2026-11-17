@@ -41,6 +41,7 @@ final class BrainReader
     public function __construct(
         private readonly DenylistScanner $denylistScanner = new DenylistScanner,
         private readonly SecretPiiScanner $secretPiiScanner = new SecretPiiScanner,
+        private readonly AssetReader $assetReader = new AssetReader,
         ?array $adapters = null,
     ) {
         $this->adapters = $adapters ?? [
@@ -101,9 +102,25 @@ final class BrainReader
                 continue;
             }
 
-            if ($this->isBinaryWithoutSidecar($absolute, $relative)) {
-                $skipped[] = new SkippedFileData($relative, 'binary_without_sidecar');
+            // Images and PDFs enter as assets with metadata only (#311); their sidecars go with them.
+            if (AssetReader::supports($relative)) {
+                $asset = $this->assetReader->read($absolute, $relative, $request, $manifest, PathHelper::areaFromPath(...));
 
+                if ($asset['item'] !== null) {
+                    $items[] = $asset['item'];
+
+                    // The file is in, its text is not: reported like a skip, without the match (#317).
+                    if ($asset['text_withheld'] !== null) {
+                        $skipped[] = new SkippedFileData($relative, 'text_withheld:'.$asset['text_withheld']);
+                    }
+                } else {
+                    $skipped[] = new SkippedFileData($relative, $asset['skip_reason'] ?? 'unreadable');
+                }
+
+                continue;
+            }
+
+            if (AssetReader::isSidecar($relative)) {
                 continue;
             }
 
@@ -299,18 +316,6 @@ final class BrainReader
         $ext = PathHelper::extension($relativePath);
 
         return in_array($ext, ['md', 'json', 'yml', 'yaml', 'txt'], true);
-    }
-
-    private function isBinaryWithoutSidecar(string $absolutePath, string $relativePath): bool
-    {
-        $ext = PathHelper::extension($relativePath);
-        if (! in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'svg'], true)) {
-            return false;
-        }
-
-        return ! is_file($absolutePath.'.meta.yml')
-            && ! is_file($absolutePath.'.meta.yaml')
-            && ! is_file($absolutePath.'.md');
     }
 
     private function looksBinary(string $contents): bool

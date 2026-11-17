@@ -34,8 +34,9 @@ beforeEach(function (): void {
     File::put($this->brainPath.'/rules/old-voice.md', "---\ntitle: Old voice\narea: rules\nstatus: superseded\nsuperseded_by: rules/no-such-voice\n---\n\n# Old voice\n\nFormal.\n");
     File::put($this->brainPath.'/rules/coding-copy.md', "---\ntitle: Coding copy\narea: rules\nresolution_key: rules.coding\n---\n\n# Coding copy\n\nAnother take.\n");
     File::put($this->brainPath.'/rules/stale.md', "---\ntitle: Stale\narea: rules\nreview_date: '2020-01-01'\n---\n\n# Stale\n\nOld rule.\n");
-    File::put($this->brainPath.'/rules/diagram-one.png', "\x89PNG\r\n\x1a\n\0\0binary");
-    File::put($this->brainPath.'/rules/diagram-two.png', "\x89PNG\r\n\x1a\n\0\0binary");
+    // Two files the sync always skips (a private key in the body), reported once as a group.
+    File::put($this->brainPath.'/rules/leaked-one.md', "# Leaked\n\n-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n");
+    File::put($this->brainPath.'/rules/leaked-two.md', "# Leaked too\n\n-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n");
     File::put($this->brainPath.'/rules/broken.md', "---\ntitle: [unclosed\n---\n\n# Broken\n");
 
     $this->organisation = Organisation::factory()->create();
@@ -84,7 +85,7 @@ it('finds each kind of problem with its item, path and a suggested fix', functio
         ->and(collect($byCode['duplicate_resolution_key'])->pluck('path')->sort()->values()->all())->toBe(['rules/coding-copy.md', 'rules/coding.md'])
         ->and(collect($byCode['review_overdue'])->pluck('path')->all())->toContain('rules/stale.md')
         ->and(collect($byCode['reader_issue'])->pluck('path')->all())->toContain('rules/broken.md')
-        ->and(collect($byCode['skipped_file'] ?? [])->pluck('message')->filter(fn (string $message): bool => str_contains($message, 'diagram-one.png') || str_contains($message, 'diagram-two.png'))->count())->toBe(1)
+        ->and(collect($byCode['skipped_file'] ?? [])->pluck('message')->filter(fn (string $message): bool => str_contains($message, 'leaked-one.md') || str_contains($message, 'leaked-two.md'))->count())->toBe(1)
         ->and($health['issues'][0]['suggested_fix'])->not->toBe('')
         ->and($health['error_count'] + $health['warning_count'])->toBe(count($health['issues']));
 });
