@@ -1,0 +1,3 @@
+{
+    "resources/js/components/layout/page-layout.tsx": "Ahead of the pin: compact list pagination from app-ui develop (qiick-io/app-ui#151 and #152), released after v0.7.0. Drop this entry when the pin moves to the release that carries it (instituta-core#297)."
+}
