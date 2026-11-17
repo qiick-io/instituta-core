@@ -68,10 +68,24 @@ it('issues the fleet token format and stores SHA-256 of the full token', functio
     $key = $issued['key'];
 
     expect($plain)->toMatch(ApiKeyIssuerService::TOKEN_PATTERN)
-        ->and($key->key_prefix)->toMatch('/^ins_test_[A-Za-z0-9]{8}$/')
+        ->and($key->key_prefix)->toMatch('/^ins_test_[A-Za-z0-9]{8}$/D')
         ->and($key->key_hash)->toBe(hash('sha256', $plain))
         ->and($key->key_prefix)->not->toBe(substr($plain, -8))
         ->and($key->scopes)->toBe([ApiKeyScopeEnum::BrainRead->value]);
+});
+
+it('refuses a token with a trailing newline at the validation boundary', function (): void {
+    $issued = baselineIssueKey();
+    $issuer = app(ApiKeyIssuerService::class);
+    $withNewline = $issued['plain']."\n";
+
+    expect(preg_match(ApiKeyIssuerService::TOKEN_PATTERN, $withNewline))->toBe(0)
+        ->and($issuer->publicPartFromToken($withNewline))->toBeNull()
+        ->and($issuer->findByPlainSecret($withNewline))->toBeNull();
+
+    $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer '.$withNewline])
+        ->assertUnauthorized()
+        ->assertJsonPath('error', 'invalid_token');
 });
 
 it('never writes the plaintext into the activity log or model attributes', function (): void {

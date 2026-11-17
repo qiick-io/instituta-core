@@ -21,7 +21,7 @@ final class ApiKeyIssuerService
     private const string ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
     /** Full-token shape for scanners and auth parsing. */
-    public const string TOKEN_PATTERN = '/^(ins)_(live|test)_([A-Za-z0-9]{8})([A-Za-z0-9]{32,})$/';
+    public const string TOKEN_PATTERN = '/^(ins)_(live|test)_([A-Za-z0-9]{8})([A-Za-z0-9]{32,})$/D';
 
     /**
      * @return Collection<int, ApiKey>

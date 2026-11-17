@@ -136,7 +136,9 @@ final class AuthenticateApiKeyMiddleware
             return null;
         }
 
-        $token = trim(substr($header, 7));
+        // Do not trim: whitespace (including a trailing newline) must fail the
+        // token pattern itself, not be silently stripped before validation.
+        $token = substr($header, 7);
 
         return $token !== '' ? $token : null;
     }
