@@ -961,7 +961,9 @@
                 "text": "Documento {{format}}",
                 "spreadsheet": "Foglio di calcolo {{format}}",
                 "presentation": "Presentazione {{format}}"
-            }
+            },
+            "extractedText": "Testo",
+            "extractedTextHint": "Letto dal file durante il sync, così ricerca e agenti possono usarlo."
         }
     },
     "activity": {

@@ -961,7 +961,9 @@
                 "text": "{{format}} document",
                 "spreadsheet": "{{format}} spreadsheet",
                 "presentation": "{{format}} presentation"
-            }
+            },
+            "extractedText": "Text",
+            "extractedTextHint": "Read from the file at sync time, so search and agents can use it."
         }
     },
     "activity": {

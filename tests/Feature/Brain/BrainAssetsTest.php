@@ -35,6 +35,10 @@ beforeEach(function (): void {
     File::put($this->brainPath.'/brand/logo.png', (string) ob_get_clean());
     File::put($this->brainPath.'/brand/mark.svg', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>alert(1)</script></svg>');
     File::put($this->brainPath.'/notes/kit.zip', "PK\x03\x04fake");
+    $docx = new ZipArchive;
+    $docx->open($this->brainPath.'/notes/spec.docx', ZipArchive::CREATE);
+    $docx->addFromString('word/document.xml', '<w:document><w:body><w:p><w:r><w:t>Ship on Fridays.</w:t></w:r></w:p></w:body></w:document>');
+    $docx->close();
     File::put($this->brainPath.'/notes/brand.md', "# Brand\n\nOur logo:\n\n![The logo](../brand/logo.png)\n");
 
     $this->organisation = Organisation::factory()->create();
@@ -130,4 +134,17 @@ it('always sends download-only files as attachments', function (): void {
         ->assertOk()
         ->assertHeader('Content-Type', 'application/zip')
         ->assertHeader('Content-Disposition', 'attachment; filename=kit.zip');
+});
+
+it('stores the text of an Office file as a section the Explorer shows', function (): void {
+    $spec = Item::query()->where('path', 'notes/spec.docx')->firstOrFail();
+
+    expect($spec->sections()->value('body'))->toBe('Ship on Fridays.');
+
+    $this->actingAs($this->user)
+        ->get(route('explorer.show', 'notes/spec.docx'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('item.asset.kind', 'text')
+            ->where('item.sections.0.body', 'Ship on Fridays.'));
 });

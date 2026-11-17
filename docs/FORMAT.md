@@ -146,6 +146,8 @@ Images (`png`, `jpg`, `jpeg`, `gif`, `webp`, `avif`, `svg`) and PDFs are **asset
 - The sync keeps a content-addressed copy of the bytes in the app's private storage, so people can view and download the file in the Explorer (inside their perimeter only; SVGs served under a sandboxing CSP).
 - Files over **20 MB** are skipped (`asset_too_large`): the brain holds references, not media archives.
 
+**Text of documents** (#317). The text of Office and OpenDocument files (`docx`, `pptx`, `xlsx`, `odt`, `odp`, `ods`) is read **locally at sync time** (no file leaves the app, no model involved) and stored as sections: one per slide for presentations, one for the rest. Search and agents read it like any other section, inside the same perimeter and visibility. The text passes the same secret / PII scan as markdown: on a hit the file stays (downloadable) and its text is withheld, reported as `text_withheld:<reason>` without the match. Legacy binary formats (`doc`, `xls`, `ppt`) are not read. PDF text is not read yet (it needs a PDF parser).
+
 A **sidecar** is optional. `<file>.meta.yml` (or `.meta.yaml`) next to the asset adds:
 
 ```yaml
