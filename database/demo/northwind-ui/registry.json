@@ -1,0 +1,40 @@
+{
+    "name": "northwind-ui",
+    "items": [
+        {
+            "name": "button",
+            "type": "registry:ui",
+            "title": "Button",
+            "description": "Primary, secondary, ghost and destructive buttons on the control-size scale.",
+            "categories": ["forms"]
+        },
+        {
+            "name": "card",
+            "type": "registry:ui",
+            "title": "Card",
+            "description": "Surface for grouped content with header, body and footer.",
+            "categories": ["layout"]
+        },
+        {
+            "name": "data-table",
+            "type": "registry:component",
+            "title": "Data table",
+            "description": "Server-driven table with sorting, filters and pagination.",
+            "categories": ["data"]
+        },
+        {
+            "name": "booking-calendar",
+            "type": "registry:block",
+            "title": "Booking calendar",
+            "description": "Accessible week view with time slots, used in client booking flows.",
+            "categories": ["blocks"]
+        },
+        {
+            "name": "theme-tokens",
+            "type": "registry:style",
+            "title": "Theme tokens",
+            "description": "Colour, radius and spacing tokens every client theme sets.",
+            "categories": ["theme"]
+        }
+    ]
+}

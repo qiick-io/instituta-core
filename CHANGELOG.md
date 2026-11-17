@@ -27,14 +27,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - In-app notification centre (issue #129): database notifications, sidebar bell and drawer (`@qiick/notifications`), sound preference on the profile page; events for sync finished/failed, proposal opened/resolved, API key about to expire, and freeze activated (organisation-scoped).
 - Optional command palette (issue #130): `@qiick/command-palette` + `keyboard-shortcuts` in `qiick-standards.json` `patterns`; ⌘K search of navigation, perimeter-scoped brain item titles, and allowed actions.
 
+- Agent contract additions (#232–#239): embeddings of new and changed sections after every sync (when embeddings are on), a stable machine code on every contract error, batch section reads (`POST /api/v1/sections`, `instituta_get_sections`), a token estimate on every read, a ready-to-use context pack for a task (`GET /api/v1/context`), what changed since a date or version (`GET /api/v1/changes`), gap and contradiction reports from agents (`POST /api/v1/gaps`), and the brain's health after each sync (`GET /api/v1/health/brain`).
+- Explorer (#260): a filesystem view of the brain (sources, folders, files) with the reading view beside it, replacing Map and Tree; a fixed file header with Propose change, generated-block notices (`<!-- name:begin -->` markers) and a mini-graph of the item's neighbours (#292, #296).
+- Whole-brain graph (#261, #272–#291): a canvas graph of every item and link, laid out by d3-force in a Web Worker; nodes float, beams run along links, labels never overlap. Select to light neighbours with a preview card, Shift-click to trace the path between two items, drag nodes, minimap, pan and zoom, Constellations (grouped by area), Area and Review filters, colour by area or freshness, review signals, keyboard navigation with a list alternative, save as image; the view lives in the URL.
+- Review inbox (#262): proposals and gaps as tabs under Review, with counts in the sidebar.
+- Agent calls as an Activity tab with a standard detail panel (#263); client avatars and aligned client pages (#264).
+- User groups like externa-core (#266), with brain access per group (#268).
+- Brain assets (#314, #316): images (`png`, `jpg`, `gif`, `webp`, `avif`, `svg`) and PDFs enter the brain as files with metadata only (an optional `<file>.meta.yml` adds alt text, caption, tags), served inside the perimeter only (SVGs under a sandboxing CSP), previewed in the Explorer with Download and Used in, and shown where documents embed them; zip archives, fonts and Office files enter as download-only files. 20 MB limit; not a file manager.
+- Document text (#318, #322): the text of PDFs (per page) and Office / OpenDocument files is read locally at sync time into searchable sections, through the same secret / PII scan as markdown (on a hit the text is withheld, the file stays). New dependency `smalot/pdfparser` (LGPL-3.0).
+- Instituta's own logo and the Salvia theme preset by default (#271).
+- `DemoAgencySeeder` (#323): a fictional agency, "Northwind Studio", for demos and screenshots.
+
 ### Changed
 
 - `docs/FORMAT.md` and `docs/CONTRACTS.md` are the approved working contract (issue #50). Until `v1.0.0-beta.1` they may still change in PRs labelled `area:contract` with a CHANGELOG entry and updated tests; from `v1.0.0-beta.1` they freeze (additive only).
 - `docs/CONTRACTS.md` documents write proposal operations (§3.10–§3.12); keys may hold `brain:write` only when a write kill switch is on and the role is owner/member.
 
+- Pages moved out of `/brain` (#259): `/explorer`, `/graph`, `/review`, `/clients`, `/activity`; repositories and API keys under Settings; old `/brain/*` links redirect.
+- Header (#300, #304): the command palette opens from a search icon next to the sidebar toggle; both show a tooltip with their shortcut. Settings is the last item of the sidebar's Platform group (#320).
+- Icon segmented controls show the icon only, the name in a tooltip (#306, #307); the list pagination keeps a compact page window at large page counts (#298).
+- app-ui pins moved to v0.9.0 (#302, #309).
+
 ### Fixed
 
 - Graph UI now returns 404 for an explicit item id outside the session perimeter (issue #75), matching reading-view behaviour.
+
+- Brain pages follow the app-ui page pattern; section markdown renders in the reading view; wiki links resolve by title as well as file name (#245–#251).
+- The Explorer header no longer repeats the summary or the title the breadcrumb shows (#294, #304); HTML comments are not shown as text.
 
 ### Security
 
