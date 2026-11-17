@@ -2,7 +2,7 @@
  * Mini-graph of an item's linked neighbours in the Explorer reading aside (#289).
  * Uses the same area colours as the big graph (`legendColour` / `AREA_TOKENS`).
  */
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { AREA_TOKENS, areaIndex } from '@/lib/brain-graph-render';
 import { graph } from '@/routes';
@@ -91,6 +91,16 @@ export function ItemNeighbourhood({ centre, neighbourhood }: Props) {
                                         neighbour.stable_key,
                                     )}
                                     aria-label={neighbour.title}
+                                    className="focus-visible:outline-2 focus-visible:outline-ring"
+                                    onClick={(event) => {
+                                        // An Inertia visit, not a full page load.
+                                        event.preventDefault();
+                                        router.visit(
+                                            explorerShow.url(
+                                                neighbour.stable_key,
+                                            ),
+                                        );
+                                    }}
                                 >
                                     <title>{neighbour.title}</title>
                                     <circle
