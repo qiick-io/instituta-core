@@ -26,7 +26,8 @@
         "users": "Benutzer",
         "openCount_one": ", {{count}} offen",
         "openCount_other": ", {{count}} offen",
-        "groups": "Gruppen"
+        "groups": "Gruppen",
+        "settings": "Einstellungen"
     },
     "ai": {
         "fabDescription": "Schnelle Assistenten-Schublade. Öffnen Sie die Vollseite für den Verlauf.",

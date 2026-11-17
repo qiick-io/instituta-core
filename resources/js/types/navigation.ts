@@ -13,4 +13,6 @@ export type NavItem = {
     isActive?: boolean;
     /** A count shown next to the item (open items to review); hidden when zero. */
     badgeCount?: number;
+    /** The path whose pages keep the item active, when it differs from `href` (Settings: `/settings`). */
+    activePrefix?: string;
 };

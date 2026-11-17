@@ -26,7 +26,8 @@
         "users": "Users",
         "openCount_one": ", {{count}} open",
         "openCount_other": ", {{count}} open",
-        "groups": "Groups"
+        "groups": "Groups",
+        "settings": "Settings"
     },
     "ai": {
         "fabDescription": "Quick assistant drawer. Open the full page for history.",
