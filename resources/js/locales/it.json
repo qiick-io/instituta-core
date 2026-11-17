@@ -26,7 +26,8 @@
         "users": "Utenti",
         "openCount_one": ", {{count}} da rivedere",
         "openCount_other": ", {{count}} da rivedere",
-        "groups": "Gruppi"
+        "groups": "Gruppi",
+        "settings": "Impostazioni"
     },
     "ai": {
         "fabDescription": "Drawer rapido dell'assistente. Apri la pagina completa per la cronologia.",

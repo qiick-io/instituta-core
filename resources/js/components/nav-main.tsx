@@ -35,7 +35,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
                             <SidebarMenuButton
                                 asChild
                                 isActive={isCurrentUrl(
-                                    item.href,
+                                    item.activePrefix ?? item.href,
                                     undefined,
                                     shouldMatchPrefix,
                                 )}
