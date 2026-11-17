@@ -58,11 +58,7 @@ final class BrainTablesService
         /** @var Item|null $item */
         $item = Item::query()
             ->withinPerimeter($perimeter)
-            ->where(static function ($query) use ($itemId): void {
-                $query->where('id', $itemId)
-                    ->orWhere('stable_key', $itemId)
-                    ->orWhere('path', $itemId);
-            })
+            ->matchingReference($itemId)
             ->first();
 
         if ($item === null) {
