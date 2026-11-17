@@ -62,6 +62,8 @@ const PULSE_DURATION = 1.1;
 const LAYOUT_GLIDE = 1.1;
 /** Faint specks behind the graph that drift with a little parallax. */
 const DUST_COUNT = 70;
+/** The width the side card (w-80 plus its margin) takes from the left of the canvas. */
+const SIDE_CARD_SPACE = 340;
 const MINIMAP_WIDTH = 176;
 const MINIMAP_HEIGHT = 116;
 const MINIMAP_MARGIN = 12;
@@ -180,19 +182,25 @@ function isShown(scene: Scene, index: number): boolean {
     return !scene.hiddenAreas.has(scene.nodeArea[index]);
 }
 
-/** The camera that shows every visible node at `xs`/`ys` (the laid out places by default). */
+/**
+ * The camera that shows every visible node at `xs`/`ys` (the laid out places by default), or only
+ * the traced path when there is one.
+ */
 function fitCamera(
     scene: Scene,
     xs: Float32Array = scene.bx,
     ys: Float32Array = scene.by,
 ): Camera {
+    const only =
+        scene.pathSet !== null && scene.pathSet.size > 1 ? scene.pathSet : null;
+
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
 
     scene.nodes.forEach((node, index) => {
-        if (!isShown(scene, index)) {
+        if (!isShown(scene, index) || (only !== null && !only.has(index))) {
             return;
         }
 
@@ -209,19 +217,25 @@ function fitCamera(
     }
 
     const padding = 56;
+    // With the side card open on a wide canvas, frame the nodes in the space to its right.
+    const cardSpace =
+        scene.width > 720 && (scene.selected !== null || only !== null)
+            ? SIDE_CARD_SPACE
+            : 0;
+    const width = scene.width - cardSpace;
     const k = Math.min(
         1.4,
         Math.max(
             MIN_ZOOM,
             Math.min(
-                (scene.width - padding * 2) / Math.max(1, maxX - minX),
+                (width - padding * 2) / Math.max(1, maxX - minX),
                 (scene.height - padding * 2) / Math.max(1, maxY - minY),
             ),
         ),
     );
 
     return {
-        x: scene.width / 2 - ((minX + maxX) / 2) * k,
+        x: cardSpace + width / 2 - ((minX + maxX) / 2) * k,
         y: scene.height / 2 - ((minY + maxY) / 2) * k,
         k,
     };
@@ -1309,7 +1323,7 @@ export function BrainGraphCanvas({
                 scene.fitted = true;
                 scene.introStart = time;
 
-                if (scene.selected !== null) {
+                if (scene.selected !== null && scene.pathSet === null) {
                     scene.camera = cameraOn(scene, scene.selected);
                 }
 

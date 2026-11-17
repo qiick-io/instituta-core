@@ -802,7 +802,6 @@
         },
         "graph": {
             "title": "Eingeschränkter Graph",
-            "description": "Alle Einträge in diesem Bereich und ihre Verknüpfungen. Klicke auf einen Eintrag für seine Verknüpfungen, Doppelklick öffnet ihn, Shift-Klick auf einen zweiten zeigt den Pfad; Einträge oder Ansicht ziehen, scrollen zum Zoomen.",
             "rootLabel": "Ausgangspunkt {{title}}",
             "empty": "Keine Einträge in diesem Umfang für den Graphen.",
             "depth1": "Tiefe 1",

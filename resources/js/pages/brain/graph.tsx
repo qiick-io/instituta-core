@@ -1,6 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { Network, Orbit } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -36,6 +36,13 @@ type Props = {
     edges: BrainGraphEdgeInput[];
     /** Stable key of the item to select first (`?focus=`). */
     focus: string | null;
+    /** The rest of the view from the query string (#279). */
+    view: {
+        areas: string[];
+        layout: 'free' | 'constellations';
+        /** Stable key of the item to trace a path to from `focus` (`?to=`). */
+        to: string | null;
+    };
 };
 
 /** The legend dot uses the same softened area colour as the canvas. */
@@ -55,24 +62,51 @@ export default function BrainGraph({
     nodes,
     edges,
     focus,
+    view,
 }: Props) {
     const { t } = useTranslation();
     const [search, setSearch] = useState('');
     const [matchIds, setMatchIds] = useState<string[] | null>(null);
     /** Areas picked in the Area filter; none picked shows every area. */
-    const [shownAreas, setShownAreas] = useState<string[]>([]);
+    const [shownAreas, setShownAreas] = useState<string[]>(() =>
+        view.areas.filter((area) => nodes.some((node) => node.area === area)),
+    );
     const [fitRequest, setFitRequest] = useState(0);
     const [selectedId, setSelectedId] = useState<string | null>(
         () => nodes.find((node) => node.stable_key === focus)?.id ?? null,
     );
     const [centreRequest, setCentreRequest] = useState<CentreRequest>(null);
-    const [grouped, setGrouped] = useState(false);
+    const [grouped, setGrouped] = useState(
+        () => view.layout === 'constellations',
+    );
     /** A traced path: its two ends and the chain between them (null when not connected). */
     const [trace, setTrace] = useState<{
         fromId: string;
         toId: string;
         ids: string[] | null;
-    } | null>(null);
+    } | null>(() => {
+        const from = nodes.find((node) => node.stable_key === focus);
+        const to = nodes.find((node) => node.stable_key === view.to);
+
+        if (from === undefined || to === undefined || from.id === to.id) {
+            return null;
+        }
+
+        const areaById = new Map(nodes.map((node) => [node.id, node.area]));
+
+        return {
+            fromId: from.id,
+            toId: to.id,
+            ids: shortestPath(from.id, to.id, edges, (id) => {
+                const area = areaById.get(id);
+
+                return (
+                    area !== undefined &&
+                    (view.areas.length === 0 || view.areas.includes(area))
+                );
+            }),
+        };
+    });
 
     const freeLayout = useMemo(
         () => layoutBrainGraph(nodes, edges),
@@ -172,6 +206,7 @@ export default function BrainGraph({
                     );
                 }),
             });
+            setFitRequest((request) => request + 1);
         },
         [selectedId, edges, nodesById, hiddenAreas],
     );
@@ -270,6 +305,53 @@ export default function BrainGraph({
     );
     const visibleAreas = areas.filter((area) => !hiddenAreas.includes(area));
 
+    const selectedKey = selected?.stable_key ?? null;
+    const traceToKey =
+        trace === null ? null : (nodesById.get(trace.toId)?.stable_key ?? null);
+
+    // The view lives in the query string (#279): a client-side replace keeps the URL (and the
+    // history entry Back returns to) in step without asking the server again.
+    useEffect(() => {
+        const query: Record<string, string> = {};
+
+        if (selectedKey !== null) {
+            query.focus = selectedKey;
+        }
+
+        if (traceToKey !== null) {
+            query.to = traceToKey;
+        }
+
+        if (shownAreas.length > 0) {
+            query.area = shownAreas.join(',');
+        }
+
+        if (grouped) {
+            query.layout = 'constellations';
+        }
+
+        const url = graph.url({ query });
+
+        if (url === `${window.location.pathname}${window.location.search}`) {
+            return;
+        }
+
+        router.replace({
+            url,
+            props: (current) => ({
+                ...current,
+                focus: selectedKey,
+                view: {
+                    areas: shownAreas,
+                    layout: grouped ? 'constellations' : 'free',
+                    to: traceToKey,
+                },
+            }),
+            preserveState: true,
+            preserveScroll: true,
+        });
+    }, [selectedKey, traceToKey, shownAreas, grouped]);
+
     const hasGraph = hasPerimeter && nodes.length > 0;
     const traceFrom = trace === null ? undefined : nodesById.get(trace.fromId);
     const traceEnd = trace === null ? undefined : nodesById.get(trace.toId);
@@ -281,7 +363,6 @@ export default function BrainGraph({
             <Head title={t('brain.nav.graph')} />
             <PageLayout
                 className="min-h-0"
-                description={t('brain.graph.description')}
                 filters={
                     hasGraph ? (
                         <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:flex-nowrap">

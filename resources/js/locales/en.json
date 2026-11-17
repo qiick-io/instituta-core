@@ -802,7 +802,6 @@
         },
         "graph": {
             "title": "Scoped graph",
-            "description": "Every item in this scope and the links between them. Click an item to see its links, double click to open it, Shift-click a second one to trace the path; drag items or the view, scroll to zoom.",
             "rootLabel": "Starting from {{title}}",
             "empty": "No items in this perimeter to graph yet.",
             "depth1": "Depth 1",

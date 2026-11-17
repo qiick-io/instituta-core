@@ -130,3 +130,32 @@ it('does not preview an item outside the perimeter', function (): void {
         ->getJson(route('graph.preview', ['item' => $other->stable_key]))
         ->assertNotFound();
 });
+
+it('reads the graph view from the query string', function (): void {
+    $seed = graphUiSeed();
+
+    $this->actingAs($seed['user'])
+        ->get(route('graph', [
+            'focus' => $seed['item']->stable_key,
+            'to' => $seed['neighbour']->stable_key,
+            'area' => 'rules, notes,,rules',
+            'layout' => 'constellations',
+        ]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('view.areas', ['rules', 'notes'])
+            ->where('view.layout', 'constellations')
+            ->where('view.to', $seed['neighbour']->stable_key));
+});
+
+it('falls back to the free layout for an unknown one', function (): void {
+    $seed = graphUiSeed();
+
+    $this->actingAs($seed['user'])
+        ->get(route('graph', ['layout' => 'spiral']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('view.areas', [])
+            ->where('view.layout', 'free')
+            ->where('view.to', null));
+});
