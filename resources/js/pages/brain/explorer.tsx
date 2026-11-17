@@ -55,6 +55,27 @@ function flattenFiles(nodes: BrainTreeNode[]): BrainFileNode[] {
  * sidebar-11 file tree), the open file's reading view on the right. On a phone the tree shows
  * until a file is open, then the file, with the breadcrumb leading back.
  */
+/** Whitespace-insensitive plain text, for comparing a summary with the body. */
+function flatten(text: string): string {
+    return markdownToPlainText(text).replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+/**
+ * Whether the header should show the summary (#293): only when the body does not already say
+ * it, as when the summary is the first paragraph.
+ */
+function summaryIsNew(item: Item): boolean {
+    const summary = flatten(item.summary ?? '');
+
+    if (summary === '') {
+        return false;
+    }
+
+    return !flatten(
+        item.sections.map((section) => section.body).join(' '),
+    ).includes(summary);
+}
+
 export default function BrainExplorer({
     nodes,
     total,
@@ -260,10 +281,10 @@ export default function BrainExplorer({
                             ) : (
                                 <div className="flex flex-col gap-6">
                                     <header className="flex flex-col gap-2">
-                                        {item.summary ? (
+                                        {summaryIsNew(item) ? (
                                             <p className="text-sm text-muted-foreground">
                                                 {markdownToPlainText(
-                                                    item.summary,
+                                                    item.summary ?? '',
                                                 )}
                                             </p>
                                         ) : null}
