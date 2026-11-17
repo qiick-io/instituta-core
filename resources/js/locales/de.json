@@ -210,13 +210,11 @@
             "personalTitle": "Ihr Erscheinungsbild",
             "personalDescription": "Hell, dunkel oder System für diesen Browser wählen",
             "themePresetTitle": "Theme-Voreinstellung",
-            "themePresetDescription": "Markenfarben für diese Instanz. Teal ist der Instituta-Standard, bis ein Instituta-Preset existiert.",
-            "themePresetTeal": "Teal",
-            "themePresetBlue": "Blau",
-            "themePresetIndigo": "Indigo",
-            "themePresetViolet": "Violett",
-            "themePresetRose": "Rosa",
-            "themePresetSlate": "Schiefer",
+            "themePresetDescription": "Markenfarben für diese Instanz. Salvia ist Institutas eigene Farbe und der Standard.",
+            "themePresetIndaco": "Indaco",
+            "themePresetAmetista": "Ametista",
+            "themePresetRobbia": "Robbia",
+            "themePresetArdesia": "Ardesia",
             "presetPreviewLight": "Hell",
             "presetPreviewDark": "Dunkel",
             "brandingTitle": "Markenfarbe",
@@ -230,7 +228,7 @@
             "defaultThemeTitle": "Standard-Theme",
             "defaultThemeDescription": "Für Besucher ohne persönliche Hell/Dunkel-Wahl (einschließlich der Anmeldeseite)",
             "defaultAppearance": "Standard-Erscheinungsbild",
-            "themePresetSalvia": "Salbei (Standard)"
+            "themePresetSalvia": "Salvia (Standard)"
         },
         "profile": {
             "breadcrumb": "Profileinstellungen",

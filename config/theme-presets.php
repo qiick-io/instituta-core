@@ -9,6 +9,10 @@
  * is merged over the base by ThemePresetService. The appearance page preview
  * gets the merged tokens from the server, so this file is the only source.
  *
+ * A preset's `name` is a translation key (resources/js/locales), never a display string.
+ * Only Instituta's own colour (Salvia) and generic presets are offered: a sibling product's
+ * brand colour is never a choice here (#310).
+ *
  * @see https://github.com/qiick-io/externa-core/issues/243
  */
 
@@ -93,7 +97,7 @@ return [
             // Instituta's product colour (#269): Salvia (sage), hue 138°, from the knowledge brand
             // kit (projects/qiick/instituta-brand.md). Accent #5C7653 takes white text (5.03:1),
             // never Snow; the mark #8BA782 takes Ink (6.85:1). AI stays violet.
-            'name' => 'Salvia (default)',
+            'name' => 'settings.appearance.themePresetSalvia',
             'ai_override' => false,
             'light' => [
                 'primary' => '#5C7653',
@@ -126,77 +130,8 @@ return [
                 'ai-border' => '#AD70E6',
             ],
         ],
-        'teal' => [
-            'name' => 'Teal',
-            'ai_override' => false,
-            'light' => [
-                'primary' => '#0E7C86',
-                'ring' => '#0E7C86',
-                'chart-1' => '#0E7C86',
-                'chart-2' => '#2571D4',
-                'sidebar-primary' => '#0E7C86',
-                'sidebar-accent' => '#ECFDFD',
-                'sidebar-accent-foreground' => '#074F5A',
-                'sidebar-ring' => '#0E7C86',
-                'ai' => '#7F35BB',
-                'ai-hover' => '#69279B',
-                'ai-bg' => '#F7F0FF',
-                'ai-text' => '#521B79',
-                'ai-border' => '#9650D3',
-            ],
-            'dark' => [
-                'primary' => '#2CB1BC',
-                'ring' => '#2CB1BC',
-                'chart-1' => '#2CB1BC',
-                'chart-2' => '#498FE4',
-                'sidebar-primary' => '#2CB1BC',
-                'sidebar-accent' => '#02252C',
-                'sidebar-accent-foreground' => '#A3EBF0',
-                'sidebar-ring' => '#2CB1BC',
-                'ai' => '#C497F2',
-                'ai-hover' => '#D8B8FA',
-                'ai-bg' => '#3A0F57',
-                'ai-text' => '#D8B8FA',
-                'ai-border' => '#AD70E6',
-            ],
-        ],
-        'blue' => [
-            // Excubia's brand blue: Refactoring UI "Light Blue Vivid" scale, primary = the logo #1375A7.
-            'name' => 'Blue',
-            'ai_override' => false,
-            'light' => [
-                'primary' => '#1375A7',
-                'ring' => '#1375A7',
-                'chart-1' => '#1375A7',
-                'chart-2' => '#0E7C86',
-                'sidebar-primary' => '#1375A7',
-                'sidebar-accent' => '#E3F8FF',
-                'sidebar-accent-foreground' => '#035388',
-                'sidebar-ring' => '#1375A7',
-                'ai' => '#7F35BB',
-                'ai-hover' => '#69279B',
-                'ai-bg' => '#F7F0FF',
-                'ai-text' => '#521B79',
-                'ai-border' => '#9650D3',
-            ],
-            'dark' => [
-                'primary' => '#2BB0ED',
-                'ring' => '#2BB0ED',
-                'chart-1' => '#2BB0ED',
-                'chart-2' => '#2CB1BC',
-                'sidebar-primary' => '#2BB0ED',
-                'sidebar-accent' => '#04364F',
-                'sidebar-accent-foreground' => '#81DEFD',
-                'sidebar-ring' => '#2BB0ED',
-                'ai' => '#C497F2',
-                'ai-hover' => '#D8B8FA',
-                'ai-bg' => '#3A0F57',
-                'ai-text' => '#D8B8FA',
-                'ai-border' => '#AD70E6',
-            ],
-        ],
-        'indigo' => [
-            'name' => 'Indigo',
+        'indaco' => [
+            'name' => 'settings.appearance.themePresetIndaco',
             'ai_override' => false,
             'light' => [
                 'primary' => '#6259C7',
@@ -229,8 +164,8 @@ return [
                 'ai-border' => '#AD70E6',
             ],
         ],
-        'violet' => [
-            'name' => 'Violet',
+        'ametista' => [
+            'name' => 'settings.appearance.themePresetAmetista',
             'ai_override' => true,
             'light' => [
                 'primary' => '#7E4BC0',
@@ -263,8 +198,8 @@ return [
                 'ai-border' => '#1A95A2',
             ],
         ],
-        'rose' => [
-            'name' => 'Rose',
+        'robbia' => [
+            'name' => 'settings.appearance.themePresetRobbia',
             'ai_override' => false,
             'light' => [
                 'primary' => '#AF3774',
@@ -297,8 +232,8 @@ return [
                 'ai-border' => '#AD70E6',
             ],
         ],
-        'slate' => [
-            'name' => 'Slate',
+        'ardesia' => [
+            'name' => 'settings.appearance.themePresetArdesia',
             'ai_override' => false,
             'light' => [
                 'primary' => '#48586D',
