@@ -35,9 +35,14 @@ it('reads a native instituta fixture with sections links and citations', functio
         ->and($coding->sections)->not->toBeEmpty()
         ->and($coding->edges)->not->toBeEmpty();
 
-    $logoSkip = collect($result->skipped)->first(fn ($skip) => str_contains($skip->path, 'logo.png'));
-    expect($logoSkip)->not->toBeNull()
-        ->and($logoSkip->reason)->toBe('binary_without_sidecar');
+    // Images enter as assets with metadata only, sidecar or not (#311).
+    $logo = collect($result->items)->first(fn ($item) => $item->path === 'rules/logo.png');
+    expect($logo)->not->toBeNull()
+        ->and($logo->adapter)->toBe('asset')
+        ->and($logo->type)->toBe('image')
+        ->and($logo->stableKey)->toBe('rules/logo.png')
+        ->and($logo->frontmatter['asset']['mime'])->toBe('image/png')
+        ->and(collect($result->skipped)->contains(fn ($skip) => str_contains($skip->path, 'logo.png')))->toBeFalse();
 });
 
 it('reads basic-memory observations and relation verbs', function (): void {

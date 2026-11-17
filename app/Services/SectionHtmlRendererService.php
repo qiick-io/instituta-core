@@ -35,6 +35,8 @@ final class SectionHtmlRendererService
 
         foreach ($urlsByLinkTarget as $target => $url) {
             $html = str_replace('href="'.e($target).'"', 'href="'.e($url).'"', $html);
+            // Pictures in the repo resolve to the served asset (#311).
+            $html = str_replace('src="'.e($target).'"', 'src="'.e($url).'"', $html);
         }
 
         return trim($html);

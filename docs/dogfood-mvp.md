@@ -22,7 +22,7 @@ Fail-closed ingest behaviour verified in `BrainReaderTest` / `SourceSyncTest`:
 
 | Skip / refusal | Example |
 | --- | --- |
-| `binary_without_sidecar` | `logo.png` without a text sidecar |
+| `asset_too_large` | an image or PDF over 20 MB (smaller ones are assets since #311, sidecar or not) |
 | `secret_pii:email_address` | Fixture email; match text is not stored in skip reasons |
 | `secret_pii:private_key` | PEM material in the secrets fixture |
 | Denylist path hit | Paths containing `klover` / `cybergrant` / `zerotredici` abort add/sync |

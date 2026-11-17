@@ -945,6 +945,16 @@
             "replace": "Replace image",
             "remove": "Remove",
             "hint": "PNG, JPEG or WebP, up to 1 MB. Without one, the initials show."
+        },
+        "asset": {
+            "download": "Download",
+            "openOriginal": "Open original",
+            "format": "Format",
+            "size": "Size",
+            "dimensions": "Dimensions",
+            "alt": "Alt text",
+            "usedIn": "Used in",
+            "notUsed": "No document embeds or links this file yet."
         }
     },
     "activity": {

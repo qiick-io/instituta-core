@@ -57,6 +57,7 @@ final class SourceSyncService
         private readonly QuotaEnforcementService $quotas = new QuotaEnforcementService,
         private readonly SearchIndexWriterService $searchIndex = new SearchIndexWriterService,
         private readonly MergedProposalDetectorService $mergedProposals = new MergedProposalDetectorService,
+        private readonly BrainAssetStorageService $assets = new BrainAssetStorageService,
     ) {}
 
     /**
@@ -534,6 +535,10 @@ final class SourceSyncService
 
         foreach ($repo->items as $itemData) {
             $item = $this->upsertItem($source, $itemData, $commit);
+
+            if ($itemData->adapter === 'asset') {
+                $this->assets->store(rtrim($repo->path, '/').'/'.$itemData->path, $this->assetHash($itemData));
+            }
             $isItemChanged = $item->wasChanged(['content_hash', 'title', 'summary', 'area', 'visibility', 'status', 'superseded_by', 'frontmatter']);
             $pathToItemId[$itemData->path] = $item->id;
             $items++;
@@ -639,7 +644,8 @@ final class SourceSyncService
                 'summary' => $itemData->summary,
                 'visibility' => $itemData->visibility,
                 'commit' => $itemData->citation->commit ?? $commit,
-                'content_hash' => hash('sha256', $itemData->path."\n".$itemData->body),
+                // An asset changes with its bytes, not with its description (#311).
+                'content_hash' => hash('sha256', $itemData->path."\n".($itemData->adapter === 'asset' ? $this->assetHash($itemData) : $itemData->body)),
                 'token_estimate' => $itemData->tokenEstimate(),
                 'frontmatter' => $itemData->frontmatter === [] ? null : $itemData->frontmatter,
                 'decision_date' => $itemData->decisionDate,
@@ -804,7 +810,11 @@ final class SourceSyncService
                 continue;
             }
 
-            $toId = $this->resolveLinkTarget($edge->target, $pathToItemId, $keysToItemId);
+            // A relative target first resolves against the linking file's folder (#311), so two
+            // `logo.png` in different folders never mix; then by path, name, title or key.
+            $relativePath = $this->pathRelativeTo($edge->fromPath, $edge->target);
+            $toId = ($relativePath !== null ? ($pathToItemId[$relativePath] ?? null) : null)
+                ?? $this->resolveLinkTarget($edge->target, $pathToItemId, $keysToItemId);
 
             ItemLink::query()->create([
                 'from_item_id' => $fromId,
@@ -852,5 +862,47 @@ final class SourceSyncService
         $key = mb_strtolower(preg_replace('/\.md$/i', '', $normalized) ?? $normalized);
 
         return $keysToItemId[$key] ?? $keysToItemId[mb_strtolower(basename($key))] ?? null;
+    }
+
+    /**
+     * The SHA-256 of an asset item's bytes, as the reader recorded it (#311).
+     */
+    private function assetHash(ItemData $itemData): string
+    {
+        $asset = $itemData->frontmatter['asset'] ?? null;
+
+        return is_array($asset) && is_string($asset['sha256'] ?? null) ? $asset['sha256'] : '';
+    }
+
+    /**
+     * A relative link target resolved against the linking file's folder (`../brand/logo.svg` from
+     * `notes/brand.md` is `brand/logo.svg`), or null for an absolute or external target.
+     */
+    private function pathRelativeTo(string $fromPath, string $target): ?string
+    {
+        $target = rawurldecode(trim(explode('#', explode('?', $target)[0])[0]));
+
+        if ($target === '' || str_starts_with($target, '/') || preg_match('#^[a-z][a-z\d+.-]*:#i', $target) === 1) {
+            return null;
+        }
+
+        $parts = [];
+        $folder = dirname($fromPath);
+
+        foreach (explode('/', ($folder === '.' ? '' : $folder.'/').$target) as $part) {
+            if ($part === '' || $part === '.') {
+                continue;
+            }
+
+            if ($part === '..') {
+                array_pop($parts);
+
+                continue;
+            }
+
+            $parts[] = $part;
+        }
+
+        return $parts === [] ? null : implode('/', $parts);
     }
 }

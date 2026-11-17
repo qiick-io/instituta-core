@@ -24,7 +24,7 @@ final class BrainTreeService
         $items = Item::query()
             ->withinPerimeter($perimeter)
             ->orderBy('path')
-            ->get(['id', 'source_id', 'title', 'path', 'stable_key', 'status'])
+            ->get(['id', 'source_id', 'title', 'path', 'stable_key', 'status', 'type'])
             ->all();
 
         $sourceNames = Source::query()
@@ -57,6 +57,7 @@ final class BrainTreeService
                 'path' => $item->path,
                 'stable_key' => $item->stable_key,
                 'status' => $item->status->value,
+                'type' => $item->type,
             ];
             unset($folder);
         }

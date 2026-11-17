@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Brain\Data\PerimeterData;
 use App\Brain\Enums\RoleEnum;
+use App\Brain\Readers\AssetReader;
 use App\Enums\GapReportStatusEnum;
 use App\Enums\ProposalStatusEnum;
 use App\Models\GapReport;
@@ -28,6 +29,7 @@ final class BrainGraphService
      * Unresolved links are left out (the health check lists them). Each node also says what waits
      * for review on it (#287): open proposals on the item, and for owners the open gap reports that
      * name it; and when its content last changed (the latest item change, else when it was added).
+     * Assets (images, PDFs) appear only when a document embeds or links them (#311).
      *
      * @return array{nodes: list<array{id: string, title: string, stable_key: string, area: string, status: string, degree: int, open_proposals: int, open_gaps: int, changed_at: string|null}>, edges: list<array{from: string, to: string}>}
      */
@@ -35,7 +37,7 @@ final class BrainGraphService
     {
         $items = Item::query()
             ->withinPerimeter($perimeter)
-            ->get(['id', 'title', 'stable_key', 'area', 'status', 'created_at'])
+            ->get(['id', 'title', 'stable_key', 'area', 'status', 'created_at', 'path', 'type'])
             ->keyBy('id');
 
         $edges = [];
@@ -61,6 +63,12 @@ final class BrainGraphService
         }
 
         $proposalsByKey = $this->openProposalsByKey($perimeter);
+        // Images and PDFs no document uses stay out of the graph (#311): hundreds of loose logos
+        // and screenshots would bury the brain; the ones a page embeds or links come with their links.
+        $items = $items->reject(static fn (Item $item): bool => in_array($item->type, ['image', 'document'], true)
+            && AssetReader::mimeType($item->path) !== null
+            && ($degrees[$item->id] ?? 0) === 0);
+
         $gapsByKey = $this->openGapsByKey($perimeter);
         $changedAt = $this->lastChangedAt($items->keys()->all());
 

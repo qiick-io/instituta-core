@@ -38,4 +38,21 @@ final class PathHelper
     {
         return pathinfo($path, PATHINFO_FILENAME) ?: basename($path);
     }
+
+    /**
+     * The brain area of a file from its top folder (`brand/` reads as `style`); anything else is a note.
+     * Shared by the markdown adapter and the asset reader, so a logo sits in the area of its folder.
+     */
+    public static function areaFromPath(string $relativePath): string
+    {
+        $parts = explode('/', str_replace('\\', '/', $relativePath));
+        $first = strtolower($parts[0]);
+
+        return match ($first) {
+            'rules', 'decisions', 'style', 'brand', 'glossary', 'plans', 'notes' => $first === 'brand' ? 'style' : $first,
+            'design-system', 'design_system', 'designsystem' => 'design-system',
+            'connected-systems', 'connected_systems' => 'connected-systems',
+            default => 'notes',
+        };
+    }
 }
