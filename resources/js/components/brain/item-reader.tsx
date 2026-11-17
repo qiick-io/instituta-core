@@ -81,6 +81,8 @@ export type Item = {
     stable_key: string;
     title: string;
     summary: string | null;
+    /** Generated-block markers in the file, e.g. `qiick-standards` with its note (#295). */
+    generated_blocks: Array<{ source: string; note: string }>;
     area: string;
     type: string;
     visibility: string;
@@ -197,7 +199,7 @@ export function ItemReader({
                         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                             {t('brain.reading.outline')}
                         </p>
-                        <ScrollArea className="h-[min(40vh,20rem)] pr-2">
+                        <ScrollArea className="max-h-[min(40vh,20rem)] pr-2 [&>[data-slot=scroll-area-viewport]]:max-h-[min(40vh,20rem)]">
                             <nav
                                 aria-label={t('brain.reading.outline')}
                                 className="space-y-1"

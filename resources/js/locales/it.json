@@ -501,7 +501,8 @@
             "citationSource": "Sorgente: {{source}}",
             "citationPath": "File: {{path}}",
             "citationCommit": "Commit: {{commit}}",
-            "citationSection": "Sezione: {{section}}"
+            "citationSection": "Sezione: {{section}}",
+            "generatedTitle": "Generato da {{source}}"
         },
         "resolved": {
             "title": "Vista risolta",

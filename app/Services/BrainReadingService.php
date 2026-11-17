@@ -52,6 +52,13 @@ final class BrainReadingService
                 'path' => $item->path,
                 'commit' => $item->commit,
             ],
+            'generated_blocks' => array_values(array_unique(
+                $item->sections
+                    ->sortBy('position')
+                    ->flatMap(static fn (ItemSection $section): array => SectionHtmlRendererService::generatedBlocks((string) $section->markdown))
+                    ->all(),
+                SORT_REGULAR,
+            )),
             'sections' => $item->sections
                 ->sortBy('position')
                 ->values()
