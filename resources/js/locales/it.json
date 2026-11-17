@@ -15,7 +15,9 @@
         "unreadCount": "{{count}} non lette",
         "selectAll": "Seleziona tutto",
         "selectRow": "Seleziona {{name}}",
-        "trashList": "Cestino"
+        "trashList": "Cestino",
+        "collapseSidebar": "Comprimi barra laterale",
+        "expandSidebar": "Espandi barra laterale"
     },
     "nav": {
         "appVersion": "v{{version}}",

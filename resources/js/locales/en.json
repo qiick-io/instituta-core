@@ -15,7 +15,9 @@
         "unreadCount": "{{count}} unread",
         "selectAll": "Select all",
         "selectRow": "Select {{name}}",
-        "trashList": "Trash"
+        "trashList": "Trash",
+        "collapseSidebar": "Collapse sidebar",
+        "expandSidebar": "Expand sidebar"
     },
     "nav": {
         "appVersion": "v{{version}}",

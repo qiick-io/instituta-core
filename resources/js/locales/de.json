@@ -15,7 +15,9 @@
         "unreadCount": "{{count}} ungelesen",
         "selectAll": "Alle auswählen",
         "selectRow": "{{name}} auswählen",
-        "trashList": "Papierkorb"
+        "trashList": "Papierkorb",
+        "collapseSidebar": "Seitenleiste einklappen",
+        "expandSidebar": "Seitenleiste ausklappen"
     },
     "nav": {
         "appVersion": "v{{version}}",
