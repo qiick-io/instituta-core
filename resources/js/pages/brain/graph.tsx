@@ -17,12 +17,13 @@ import { GraphPathCard } from '@/components/brain/graph-path-card';
 import { FilterSearch } from '@/components/layout/page-header';
 import { PageLayout } from '@/components/layout/page-layout';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Spinner } from '@/components/ui/spinner';
+import { useBrainLayout } from '@/hooks/use-brain-layout';
 import AppLayout from '@/layouts/app-layout';
 import {
     type BrainGraphEdgeInput,
     type BrainGraphNodeInput,
     type PlacedBrainNode,
-    layoutBrainGraph,
 } from '@/lib/brain-force-layout';
 import { shortestPath } from '@/lib/brain-graph-path';
 import { AREA_TOKENS, areaIndex } from '@/lib/brain-graph-render';
@@ -108,18 +109,8 @@ export default function BrainGraph({
         };
     });
 
-    const freeLayout = useMemo(
-        () => layoutBrainGraph(nodes, edges),
-        [nodes, edges],
-    );
-    const groupedLayout = useMemo(
-        () =>
-            grouped
-                ? layoutBrainGraph(nodes, edges, { groupByArea: true })
-                : null,
-        [grouped, nodes, edges],
-    );
-    const placedNodes = groupedLayout ?? freeLayout;
+    const layout = useBrainLayout(nodes, edges, grouped);
+    const placedNodes = useMemo(() => layout ?? [], [layout]);
     const nodesById = useMemo(
         () => new Map(placedNodes.map((node) => [node.id, node])),
         [placedNodes],
@@ -428,6 +419,14 @@ export default function BrainGraph({
                         title={t('brain.graph.empty')}
                         description={t('brain.graph.emptyDescription')}
                     />
+                ) : layout === null ? (
+                    <div
+                        className="flex min-h-[28rem] flex-1 items-center justify-center gap-2 rounded-xl border bg-card text-sm text-muted-foreground"
+                        role="status"
+                    >
+                        <Spinner />
+                        {t('brain.graph.layingOut')}
+                    </div>
                 ) : (
                     <div className="relative min-h-0 flex-1">
                         <BrainGraphCanvas

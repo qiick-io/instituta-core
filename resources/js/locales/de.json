@@ -842,7 +842,8 @@
             "areaFilterLabel": "Nach Bereich filtern",
             "layoutLabel": "Anordnung",
             "layoutFree": "Frei",
-            "layoutFreeHint": "Einträge nach ihren Verknüpfungen angeordnet"
+            "layoutFreeHint": "Einträge nach ihren Verknüpfungen angeordnet",
+            "layingOut": "Das Gehirn wird angeordnet…"
         },
         "propose": {
             "proposeChange": "Änderung vorschlagen",

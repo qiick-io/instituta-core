@@ -842,7 +842,8 @@
             "areaFilterLabel": "Filter by area",
             "layoutLabel": "Layout",
             "layoutFree": "Free",
-            "layoutFreeHint": "Items placed by their links"
+            "layoutFreeHint": "Items placed by their links",
+            "layingOut": "Laying out the brain…"
         },
         "propose": {
             "proposeChange": "Propose change",
