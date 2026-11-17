@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Network, RotateCcw } from 'lucide-react';
+import { Network, Orbit, RotateCcw } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageEmptyState } from '@/components/admin/page-empty-state';
@@ -8,6 +8,7 @@ import {
     type CentreRequest,
 } from '@/components/brain/brain-graph-canvas';
 import { GraphItemCard } from '@/components/brain/graph-item-card';
+import { GraphPathCard } from '@/components/brain/graph-path-card';
 import { FilterSearch } from '@/components/layout/page-header';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import {
     type PlacedBrainNode,
     layoutBrainGraph,
 } from '@/lib/brain-force-layout';
+import { shortestPath } from '@/lib/brain-graph-path';
 import { AREA_TOKENS, areaIndex } from '@/lib/brain-graph-render';
 import { cn } from '@/lib/utils';
 import { graph } from '@/routes';
@@ -37,9 +39,10 @@ function legendColour(area: string, areas: string[]): string {
 }
 
 /**
- * The brain as a graph (#254, #270, #273): every item in the perimeter and the links between them.
- * Clicking a node selects it and the side card previews its content, lists its linked items and
- * opens it; double click opens it straight away. The legend switches areas on and off; search
+ * The brain as a graph (#254, #270, #273, #275): every item in the perimeter and the links between
+ * them. Clicking a node selects it and the side card previews its content, lists its linked items
+ * and opens it; double click opens it straight away; Shift-click a second node traces how the two
+ * connect. The legend switches areas on and off, Constellations groups the nodes by area; search
  * highlights every match and centres the best one (selecting it when it is the only one).
  */
 export default function BrainGraph({
@@ -57,10 +60,29 @@ export default function BrainGraph({
         () => nodes.find((node) => node.stable_key === focus)?.id ?? null,
     );
     const [centreRequest, setCentreRequest] = useState<CentreRequest>(null);
+    const [grouped, setGrouped] = useState(false);
+    /** A traced path: its two ends and the chain between them (null when not connected). */
+    const [trace, setTrace] = useState<{
+        fromId: string;
+        toId: string;
+        ids: string[] | null;
+    } | null>(null);
 
-    const placedNodes = useMemo(
+    const freeLayout = useMemo(
         () => layoutBrainGraph(nodes, edges),
         [nodes, edges],
+    );
+    const groupedLayout = useMemo(
+        () =>
+            grouped
+                ? layoutBrainGraph(nodes, edges, { groupByArea: true })
+                : null,
+        [grouped, nodes, edges],
+    );
+    const placedNodes = groupedLayout ?? freeLayout;
+    const nodesById = useMemo(
+        () => new Map(placedNodes.map((node) => [node.id, node])),
+        [placedNodes],
     );
     const areas = useMemo(
         () => [...new Set(nodes.map((node) => node.area))].sort(),
@@ -101,9 +123,49 @@ export default function BrainGraph({
 
     const areaLabel = (area: string): string =>
         t(`brain.areas.${area}`, { defaultValue: area });
+    const areaLabels = useMemo(
+        () =>
+            grouped
+                ? areas.map((area) =>
+                      t(`brain.areas.${area}`, { defaultValue: area }),
+                  )
+                : null,
+        [grouped, areas, t],
+    );
+
+    const select = useCallback((id: string | null): void => {
+        setSelectedId(id);
+        setTrace(null);
+    }, []);
+
+    /** Shift-click: trace from the selected node to this one (or just select it). */
+    const traceTo = useCallback(
+        (id: string): void => {
+            if (selectedId === null || selectedId === id) {
+                setSelectedId(id);
+                setTrace(null);
+
+                return;
+            }
+
+            setTrace({
+                fromId: selectedId,
+                toId: id,
+                ids: shortestPath(selectedId, id, edges, (candidate) => {
+                    const node = nodesById.get(candidate);
+
+                    return (
+                        node !== undefined && !hiddenAreas.includes(node.area)
+                    );
+                }),
+            });
+        },
+        [selectedId, edges, nodesById, hiddenAreas],
+    );
 
     const selectAndCentre = (id: string): void => {
         setSelectedId(id);
+        setTrace(null);
         setCentreRequest({ id, nonce: Date.now() });
     };
 
@@ -135,6 +197,7 @@ export default function BrainGraph({
             selectAndCentre(matches[0].id);
         } else if (matches.length > 1) {
             setSelectedId(null);
+            setTrace(null);
             setCentreRequest({ id: matches[0].id, nonce: Date.now() });
         }
     };
@@ -147,6 +210,7 @@ export default function BrainGraph({
     const updateHiddenAreas = (hidden: string[]): void => {
         setHiddenAreas(hidden);
         setFitRequest((request) => request + 1);
+        setTrace(null);
 
         if (selected !== null && hidden.includes(selected.area)) {
             setSelectedId(null);
@@ -165,6 +229,8 @@ export default function BrainGraph({
         );
 
     const hasGraph = hasPerimeter && nodes.length > 0;
+    const traceFrom = trace === null ? undefined : nodesById.get(trace.fromId);
+    const traceEnd = trace === null ? undefined : nodesById.get(trace.toId);
 
     return (
         <AppLayout
@@ -248,6 +314,17 @@ export default function BrainGraph({
                                     {t('brain.graph.showAll')}
                                 </Button>
                             ) : null}
+                            <Button
+                                type="button"
+                                variant={grouped ? 'secondary' : 'ghost'}
+                                size="sm"
+                                aria-pressed={grouped}
+                                title={t('brain.graph.constellationsHint')}
+                                onClick={() => setGrouped((value) => !value)}
+                            >
+                                <Orbit />
+                                {t('brain.graph.constellations')}
+                            </Button>
                         </div>
                     ) : undefined
                 }
@@ -270,13 +347,18 @@ export default function BrainGraph({
                             areas={areas}
                             hiddenAreas={hiddenAreas}
                             matchIds={matchIds}
+                            pathIds={trace?.ids ?? null}
+                            areaLabels={areaLabels}
                             selectedId={selectedId}
-                            onSelect={setSelectedId}
+                            onSelect={select}
+                            onTrace={traceTo}
                             onOpen={open}
                             centreRequest={centreRequest}
                             fitRequest={fitRequest}
                         />
-                        {matchIds !== null && selected === null ? (
+                        {matchIds !== null &&
+                        selected === null &&
+                        trace === null ? (
                             <p
                                 className="absolute top-3 left-3 rounded-full border bg-card/90 px-3 py-1 text-xs text-muted-foreground shadow-sm backdrop-blur"
                                 aria-live="polite"
@@ -286,14 +368,33 @@ export default function BrainGraph({
                                 })}
                             </p>
                         ) : null}
-                        {selected ? (
+                        {traceFrom && traceEnd && trace !== null ? (
+                            <GraphPathCard
+                                from={traceFrom}
+                                to={traceEnd}
+                                steps={
+                                    trace.ids === null
+                                        ? null
+                                        : trace.ids.flatMap((id) => {
+                                              const node = nodesById.get(id);
+
+                                              return node ? [node] : [];
+                                          })
+                                }
+                                areaColour={(area) => legendColour(area, areas)}
+                                onFocus={(id) =>
+                                    setCentreRequest({ id, nonce: Date.now() })
+                                }
+                                onClose={() => setTrace(null)}
+                            />
+                        ) : selected ? (
                             <GraphItemCard
                                 item={selected}
                                 neighbours={neighbours}
                                 areaLabel={areaLabel}
                                 areaColour={(area) => legendColour(area, areas)}
                                 onSelectNeighbour={selectAndCentre}
-                                onClose={() => setSelectedId(null)}
+                                onClose={() => select(null)}
                             />
                         ) : null}
                     </div>

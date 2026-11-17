@@ -802,7 +802,7 @@
         },
         "graph": {
             "title": "Eingeschränkter Graph",
-            "description": "Alle Einträge in diesem Bereich und ihre Verknüpfungen. Klicke auf einen Eintrag, um seine Verknüpfungen zu sehen, Doppelklick öffnet ihn; ziehen zum Verschieben, scrollen zum Zoomen.",
+            "description": "Alle Einträge in diesem Bereich und ihre Verknüpfungen. Klicke auf einen Eintrag für seine Verknüpfungen, Doppelklick öffnet ihn, Shift-Klick auf einen zweiten zeigt den Pfad; Einträge oder Ansicht ziehen, scrollen zum Zoomen.",
             "rootLabel": "Ausgangspunkt {{title}}",
             "empty": "Keine Einträge in diesem Umfang für den Graphen.",
             "depth1": "Tiefe 1",
@@ -832,7 +832,16 @@
             "previewEmpty": "Dieser Eintrag hat noch keinen Inhalt.",
             "previewMore": "Öffne den Eintrag, um den Rest zu lesen.",
             "matches_one": "{{count}} Treffer",
-            "matches_other": "{{count}} Treffer"
+            "matches_other": "{{count}} Treffer",
+            "resetLayout": "Anordnung zurücksetzen",
+            "constellations": "Sternbilder",
+            "constellationsHint": "Einträge nach Bereich gruppieren",
+            "pathTitle": "Pfad",
+            "pathSteps_one": "{{count}} Schritt",
+            "pathSteps_other": "{{count}} Schritte",
+            "pathNone": "{{from}} und {{to}} sind nicht verbunden.",
+            "clearPath": "Pfad entfernen",
+            "pathHint": "Shift-Klick auf einen anderen Eintrag zeigt, wie sie verbunden sind."
         },
         "propose": {
             "proposeChange": "Änderung vorschlagen",
