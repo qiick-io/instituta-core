@@ -85,6 +85,52 @@ it('shows appearance with theme presets to managers', function (): void {
             ->has('appearance.theme_presets', count(ThemePresetEnum::cases())));
 });
 
+it('offers only Salvia and the generic presets, never a sibling product colour', function (): void {
+    $catalog = app(ThemePresetService::class)->catalog();
+
+    expect(array_column($catalog, 'slug'))->toBe(['salvia', 'indaco', 'ametista', 'robbia', 'ardesia'])
+        ->and(array_column($catalog, 'swatchLight'))->not->toContain('#0E7C86', '#1375A7');
+});
+
+it('names every preset with a translation key filled in every locale', function (): void {
+    $catalog = app(ThemePresetService::class)->catalog();
+
+    foreach (['en', 'it', 'de'] as $locale) {
+        $translations = json_decode((string) file_get_contents(resource_path("js/locales/{$locale}.json")), true);
+
+        foreach ($catalog as $preset) {
+            expect($preset['name'])->toStartWith('settings.appearance.themePreset')
+                ->and(data_get($translations, $preset['name']))->toBeString()->not->toBeEmpty();
+        }
+    }
+});
+
+it('keeps the colour values of the renamed presets', function (string $slug, string $primaryLight, string $primaryDark): void {
+    $themeCss = app(ThemePresetService::class)->resolve($slug, null, null);
+
+    expect($themeCss['themePreset'])->toBe($slug)
+        ->and($themeCss['light']['primary'])->toBe($primaryLight)
+        ->and($themeCss['dark']['primary'])->toBe($primaryDark);
+})->with([
+    'indaco (was indigo)' => ['indaco', '#6259C7', '#B1B7FF'],
+    'ametista (was violet)' => ['ametista', '#7E4BC0', '#C7ADFE'],
+    'robbia (was rose)' => ['robbia', '#AF3774', '#F79FC1'],
+    'ardesia (was slate)' => ['ardesia', '#48586D', '#B1BFD1'],
+]);
+
+it('falls back to Salvia for a removed sibling preset', function (string $removedSlug): void {
+    expect(app(ThemePresetService::class)->resolve($removedSlug, null, null)['themePreset'])->toBe('salvia');
+
+    $this->actingAs(settingsManager())
+        ->put(route('appearance.update'), [
+            'theme_preset' => $removedSlug,
+            'project_color' => '',
+            'project_color_dark' => '',
+            'default_appearance' => 'system',
+        ])
+        ->assertSessionHasErrors(['theme_preset']);
+})->with(['teal', 'blue']);
+
 it('shows personal appearance without instance form to readers', function (): void {
     $reader = User::factory()->create()->assignRole(RoleEnum::Reader->value);
 
@@ -283,7 +329,7 @@ it('saves the theme preset and brand colours', function (): void {
 
     $this->actingAs($manager)
         ->put(route('appearance.update'), [
-            'theme_preset' => 'indigo',
+            'theme_preset' => 'indaco',
             'project_color' => '#123456',
             'project_color_dark' => '',
             'default_appearance' => 'system',
@@ -293,13 +339,13 @@ it('saves the theme preset and brand colours', function (): void {
 
     $settings = app(SettingsRepositoryService::class);
 
-    expect($settings->themePreset())->toBe('indigo')
+    expect($settings->themePreset())->toBe('indaco')
         ->and($settings->projectColor())->toBe('#123456')
         ->and($settings->projectColorDark())->toBeNull();
 
     $this->actingAs($manager)->get(route('dashboard'))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('projectAppearance.themePreset', 'indigo')
+            ->where('projectAppearance.themePreset', 'indaco')
             ->where('projectAppearance.themeCss.brandPrimary', '#123456')
             ->where('projectAppearance.themeCss.brandPrimaryDark', '#123456'));
 });
@@ -319,27 +365,27 @@ it('rejects an unknown theme preset and invalid brand colours', function (): voi
 
 it('merges the shared base with the preset brand colours', function (): void {
     $default = app(ThemePresetService::class)->resolve(null, null, null);
-    $violet = app(ThemePresetService::class)->resolve('violet', null, null);
+    $ametista = app(ThemePresetService::class)->resolve('ametista', null, null);
 
     expect($default['themePreset'])->toBe('salvia')
         ->and($default['light']['primary'])->toBe('#5C7653')
         ->and($default['light']['sidebar'])->toBe(config('theme-presets.base.light.sidebar'))
-        ->and($violet['light']['ai'])->toBe(config('theme-presets.ai_override_light.ai'));
+        ->and($ametista['light']['ai'])->toBe(config('theme-presets.ai_override_light.ai'));
 });
 
 it('renders the theme variables of a non-default preset in the HTML', function (): void {
-    app(SettingsRepositoryService::class)->save(['theme_preset' => 'indigo']);
-    $indigo = config('theme-presets.presets.indigo');
+    app(SettingsRepositoryService::class)->save(['theme_preset' => 'indaco']);
+    $indaco = config('theme-presets.presets.indaco');
 
     $this->get(route('login'))
         ->assertSee('<style id="instance-theme-css">', false)
-        ->assertSee('--primary: '.$indigo['light']['primary'].';', false)
-        ->assertSee('--primary: '.$indigo['dark']['primary'].';', false)
+        ->assertSee('--primary: '.$indaco['light']['primary'].';', false)
+        ->assertSee('--primary: '.$indaco['dark']['primary'].';', false)
         ->assertDontSee('--brand-primary:', false);
 });
 
 it('keeps a contrast-safe focus ring for a low-contrast brand colour', function (): void {
-    $themeCss = app(ThemePresetService::class)->resolve('teal', '#0F172A', null);
+    $themeCss = app(ThemePresetService::class)->resolve('robbia', '#0F172A', null);
 
     expect($themeCss['light']['ring'])->toBe('#0F172A')
         ->and($themeCss['dark']['ring'])->toBe('var(--color-teal-400)');

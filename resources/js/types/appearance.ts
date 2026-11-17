@@ -2,16 +2,15 @@ import type { DefaultAppearance } from '@/types/instance-settings';
 
 export type ThemePresetSlug =
     | 'salvia'
-    | 'teal'
-    | 'blue'
-    | 'indigo'
-    | 'violet'
-    | 'rose'
-    | 'slate';
+    | 'indaco'
+    | 'ametista'
+    | 'robbia'
+    | 'ardesia';
 
 /** One preset offered by the Appearance picker (ThemePresetService::catalog()). */
 export type ThemePresetCatalogItem = {
     slug: ThemePresetSlug;
+    /** Translation key of the preset's name (config/theme-presets.php). */
     name: string;
     aiOverride: boolean;
     swatchLight: string;

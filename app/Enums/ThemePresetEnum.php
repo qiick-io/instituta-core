@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace App\Enums;
 
 /**
- * Built-in appearance theme presets (config/theme-presets.php), as in qiick-io/externa-core,
- * plus Instituta's own Salvia (#269), the default.
+ * Built-in appearance theme presets (config/theme-presets.php): Instituta's own Salvia (#269),
+ * the default, plus the generic presets, named after Italian pigments and stones (#310).
+ * A sibling product's brand colour (Externa's teal, Excubia's blue) is never offered here.
  */
 enum ThemePresetEnum: string
 {
     case Salvia = 'salvia';
-    case Teal = 'teal';
-    case Blue = 'blue';
-    case Indigo = 'indigo';
-    case Violet = 'violet';
-    case Rose = 'rose';
-    case Slate = 'slate';
+    case Indaco = 'indaco';
+    case Ametista = 'ametista';
+    case Robbia = 'robbia';
+    case Ardesia = 'ardesia';
 
     /**
      * @return list<string>
