@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Http\Responses\SsoLogoutResponse;
 use App\Models\User;
 use App\Services\SettingsRepositoryService;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -14,10 +15,12 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
+use Laravel\Fortify\Contracts\LogoutResponse;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 use Laravel\Passkeys\Contracts\PasskeyUser;
 use Laravel\Passkeys\Passkeys;
+use Qiick\Oidc\Services\SsoOnlyModeService;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -26,7 +29,7 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(LogoutResponse::class, SsoLogoutResponse::class);
     }
 
     /**
@@ -50,7 +53,9 @@ class FortifyServiceProvider extends ServiceProvider
     }
 
     /**
-     * Refuse inactive users on every local login path (password, two-factor and passkey).
+     * Refuse inactive users on every local login path (password, two-factor and passkey), and in
+     * SSO-only mode everyone but the break-glass accounts. Both callbacks bypass Auth::attempt(),
+     * so the package's own SSO-only listener never sees them: they must ask it here.
      */
     private function configureAuthentication(): void
     {
@@ -61,11 +66,13 @@ class FortifyServiceProvider extends ServiceProvider
                 return null;
             }
 
-            return $user;
+            return app(SsoOnlyModeService::class)->canUseLocalLogin($user) ? $user : null;
         });
 
         Passkeys::authorizeLoginUsing(
-            fn (Request $request, PasskeyUser $user): bool => $user instanceof User && $user->is_active,
+            fn (Request $request, PasskeyUser $user): bool => $user instanceof User
+                && $user->is_active
+                && app(SsoOnlyModeService::class)->canUseLocalLogin($user),
         );
     }
 
@@ -83,6 +90,7 @@ class FortifyServiceProvider extends ServiceProvider
                     && $settings->isRegistrationEnabled(),
                 'canManagePasskeys' => Features::canManagePasskeys(),
                 'status' => $request->session()->get('status'),
+                'oidc' => app(SsoOnlyModeService::class)->loginOptions($request)->toArray(),
             ]);
         });
 

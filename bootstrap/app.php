@@ -8,11 +8,13 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetLocaleMiddleware;
 use App\Http\Middleware\SetSecurityHeadersMiddleware;
 use App\Http\Responses\RenderHttpErrorResponse;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Qiick\Oidc\Http\Middleware\EnsureOidcSessionIsActiveMiddleware;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -46,6 +48,11 @@ return Application::configure(basePath: dirname(__DIR__))
             // Last so defense headers apply to the final HTML (app-ui security-headers.md).
             SetSecurityHeadersMiddleware::class,
         ]);
+
+        // qiick/laravel-oidc appends its back-channel logout check to `web`, but the priority
+        // list moves `auth` ahead of it: the first request after a logout at the identity
+        // provider would pass `auth` and reach the controller signed out. Run it before `auth`.
+        $middleware->prependToPriorityList(AuthenticatesRequests::class, EnsureOidcSessionIsActiveMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

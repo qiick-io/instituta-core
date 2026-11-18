@@ -26,4 +26,15 @@ export type InstanceSettingsForm = {
     login_lockout_minutes: number;
     registration_enabled: boolean;
     two_factor_required: boolean;
+    oidc_enabled: boolean;
+    oidc_issuer: string | null;
+    oidc_client_id: string | null;
+    /** The secret itself never reaches the page, only whether one is stored. */
+    has_oidc_client_secret: boolean;
+    oidc_button_label: string | null;
+    oidc_jit_provisioning: boolean;
+    oidc_auto_link: boolean;
+    oidc_only: boolean;
+    oidc_role_mapping_enabled: boolean;
+    oidc_organization: string | null;
 };

@@ -21,6 +21,7 @@
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
         "league/commonmark": "^2.10",
+        "qiick/laravel-oidc": "dev-develop",
         "smalot/pdfparser": "^2.13",
         "spatie/laravel-activitylog": "^5.1",
         "spatie/laravel-permission": "^8.5",
@@ -124,5 +125,12 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "name": "laravel-oidc",
+            "type": "vcs",
+            "url": "https://github.com/qiick-io/laravel-oidc"
+        }
+    ]
 }
