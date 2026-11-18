@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Instituta migrates on MySQL again: the `quotas` unique key on `scope_type`, `scope_id`, `metric` and `period` was 3164 bytes under utf8mb4, past InnoDB's 3072-byte limit; the three strings are now 64 characters and the key 872 bytes (#356).
 - `vitest` runs only the repo's own `resources/js` tests, no longer the example specs shipped in `vendor/`; the brain graph code uses full-word names, so `lint:standards` is green again (#313).
 - Graph UI now returns 404 for an explicit item id outside the session perimeter (issue #75), matching reading-view behaviour.
 

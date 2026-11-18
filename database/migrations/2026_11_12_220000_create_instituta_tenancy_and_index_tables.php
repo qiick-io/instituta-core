@@ -336,13 +336,19 @@ return new class extends Migration
             $table->index('called_at');
         });
 
+        /*
+         * The unique key spans three strings and a ULID. At string(255) they cost 3 × 1020 + 104
+         * bytes under utf8mb4, past InnoDB's 3072-byte limit (#356); at 64 characters the key is
+         * 3 × 256 + 104 = 872 bytes. The columns hold a ScopeTypeEnum value, a QuotaMetricEnum
+         * value and a period name, all short identifiers.
+         */
         Schema::create('quotas', function (Blueprint $table): void {
             $table->ulid('id')->primary();
-            $table->string('scope_type');
+            $table->string('scope_type', 64);
             $table->ulid('scope_id');
-            $table->string('metric');
+            $table->string('metric', 64);
             $table->unsignedBigInteger('limit_value');
-            $table->string('period');
+            $table->string('period', 64);
             $table->timestamps();
 
             $table->unique(['scope_type', 'scope_id', 'metric', 'period']);
