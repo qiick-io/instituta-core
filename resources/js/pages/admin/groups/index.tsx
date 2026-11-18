@@ -101,11 +101,14 @@ export default function AdminGroupsIndex({
     filters = {},
     roles,
     brainScopes = [],
+    brainAreas = [],
 }: {
     groups: LaravelPaginated<AdminGroupRow> | Paginated<AdminGroupRow>;
     filters?: Filters;
     roles: AdminRoleRef[];
     brainScopes?: AdminBrainScopeOption[];
+    /** Areas the group's brain access can be limited to (#334). */
+    brainAreas?: string[];
 }) {
     const groups = normalizePaginated(groupsProp);
     const { t } = useTranslation();
@@ -685,6 +688,7 @@ export default function AdminGroupsIndex({
                 <GroupFormDrawer
                     editing={editing}
                     brainScopes={brainScopes}
+                    brainAreas={brainAreas}
                     roles={roles}
                     open={drawerOpen}
                     readOnly={

@@ -159,8 +159,7 @@ final class BrainGraphService
         $counts = [];
 
         foreach (Proposal::query()
-            ->where('scope_type', $perimeter->scopeType)
-            ->where('scope_id', $perimeter->scopeId)
+            ->visibleIn($perimeter)
             ->where('status', ProposalStatusEnum::Open)
             ->pluck('stable_key') as $stableKey) {
             $counts[(string) $stableKey] = ($counts[(string) $stableKey] ?? 0) + 1;
@@ -183,11 +182,7 @@ final class BrainGraphService
 
         $counts = [];
 
-        foreach (GapReport::query()
-            ->where('scope_type', $perimeter->scopeType)
-            ->where('scope_id', $perimeter->scopeId)
-            ->where('status', GapReportStatusEnum::Open)
-            ->get(['related']) as $gap) {
+        foreach (app(GapReportQueryService::class)->visibleIn($perimeter, GapReport::query()->where('status', GapReportStatusEnum::Open)) as $gap) {
             $named = collect($gap->related ?? [])->pluck('stable_key')->unique();
 
             foreach ($named as $stableKey) {

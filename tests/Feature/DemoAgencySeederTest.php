@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Brain\Enums\ScopeTypeEnum;
 use App\Models\Company;
 use App\Models\ContractCall;
 use App\Models\GapReport;
@@ -9,6 +10,7 @@ use App\Models\Item;
 use App\Models\Product;
 use App\Models\Proposal;
 use App\Models\User;
+use App\Services\PerimeterResolverService;
 use Database\Seeders\DemoAgencySeeder;
 use Illuminate\Support\Facades\Storage;
 
@@ -32,4 +34,11 @@ it('seeds Northwind Studio with clients, brains, a review inbox and real agent c
     $this->actingAs(User::query()->where('email', DemoAgencySeeder::OWNER_EMAIL)->firstOrFail())
         ->get(route('explorer.show', 'rules/coding'))
         ->assertOk();
+    // Marketing (#334) reads brand, style and the glossary, never the rules.
+    $marketer = User::query()->where('email', 'giulia@northwind.example')->firstOrFail();
+    $this->actingAs($marketer)->get(route('explorer.show', 'rules/coding'))->assertNotFound();
+    $principal = $marketer->principals()->sole();
+    $perimeter = app(PerimeterResolverService::class)->fromGrants($principal, $principal->grants()->get(), ScopeTypeEnum::Organisation, $principal->organisation_id);
+    expect($perimeter->areas)->toBe(['brand', 'style', 'glossary'])
+        ->and(Item::query()->withinPerimeter($perimeter)->distinct()->pluck('area')->sort()->values()->all())->toBe(['glossary', 'style']);
 });

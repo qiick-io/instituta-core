@@ -13,8 +13,10 @@ export type InstitutaPerimeter = {
     scope_id: string;
     role: string;
     max_visibility: string;
-    path_prefix: string | null;
-    area: string | null;
+    /** Allowed folders (#334); empty: every path. */
+    path_prefixes: string[];
+    /** Allowed areas (#334); empty: every area. */
+    areas: string[];
 };
 
 export type InstitutaShared = {

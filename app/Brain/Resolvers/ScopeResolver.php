@@ -120,6 +120,7 @@ final class ScopeResolver
                 commit: $entry->commit,
             ),
             fromSharedSource: $entry->fromSharedSource,
+            area: $entry->area,
         );
     }
 }

@@ -10,7 +10,8 @@ use App\Brain\Enums\VisibilityEnum;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Single query scope that applies PerimeterData to models with scope columns.
+ * Single query scope that applies PerimeterData to models with scope columns: the scope, the
+ * visibility ceiling, and the area and path limits.
  *
  * @method static Builder<static> withinPerimeter(PerimeterData $perimeter)
  */
@@ -59,19 +60,36 @@ trait AppliesPerimeterScopeTrait
             array_map(static fn (VisibilityEnum $case): string => $case->value, $allowed),
         );
 
-        if ($perimeter->area !== null && $perimeter->area !== '') {
-            $query->where($query->qualifyColumn('area'), $perimeter->area);
+        // Area and path limits (#334): the same rule as PerimeterData::allowsLocation().
+        if ($perimeter->areas !== []) {
+            $query->whereIn($query->qualifyColumn('area'), $perimeter->areas);
         }
 
-        if ($perimeter->pathPrefix !== null && $perimeter->pathPrefix !== '') {
-            $prefix = ltrim(str_replace('\\', '/', $perimeter->pathPrefix), '/');
-            $query->where(function (Builder $builder) use ($prefix): void {
-                $column = $builder->qualifyColumn('path');
-                $builder->where($column, $prefix)
-                    ->orWhere($column, 'like', $prefix.'/%');
-            });
+        if ($perimeter->pathPrefixes !== []) {
+            self::wherePathWithin($query, $perimeter->pathPrefixes);
         }
 
         return $query;
+    }
+
+    /**
+     * Rows whose `path` is one of the folders or inside one. Shared with the rows that store a path
+     * without the item columns (proposals). The SQL names the column unqualified: no query of the
+     * app joins a second table with a `path`.
+     *
+     * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Builder<TModel>  $query
+     * @param  list<string>  $pathPrefixes
+     */
+    public static function wherePathWithin(Builder $query, array $pathPrefixes): void
+    {
+        $query->where(function (Builder $builder) use ($pathPrefixes): void {
+            foreach ($pathPrefixes as $pathPrefix) {
+                // A prefix comparison instead of LIKE, where `_` and `%` in a folder name would match anything.
+                $builder->orWhere('path', $pathPrefix)
+                    ->orWhereRaw('substr(path, 1, ?) = ?', [mb_strlen($pathPrefix) + 1, $pathPrefix.'/']);
+            }
+        });
     }
 }

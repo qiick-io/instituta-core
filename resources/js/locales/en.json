@@ -963,6 +963,15 @@
             },
             "extractedText": "Text",
             "extractedTextHint": "Read from the file at sync time, so search and agents can use it."
+        },
+        "access": {
+            "areasLabel": "Areas",
+            "areasHint": "Only these areas can be read. None checked: every area.",
+            "pathPrefixLabel": "Folder",
+            "pathPrefixPlaceholder": "e.g. rules/engineering",
+            "pathPrefixHint": "Optional: only items inside this folder of the brain.",
+            "maxVisibilityLabel": "Visibility",
+            "followsRole": "Follows the role"
         }
     },
     "activity": {
@@ -1462,7 +1471,7 @@
             "brainAccess": "Brain access",
             "noBrainAccess": "No brain access",
             "brainRole": "Role in the brain",
-            "brainAccessHint": "Every member gets this access to the organisation or client. A person's own access is kept when it differs."
+            "brainAccessHint": "Every member gets this access to the organisation or client. A person's own access stays and adds up with it."
         }
     }
 }

@@ -19,7 +19,20 @@ final class GroupBrainScopesService
 {
     public function __construct(
         private readonly BrainClientsService $clients,
+        private readonly BrainMapService $map,
     ) {}
+
+    /**
+     * The areas a group's access may be limited to (#334): those of the organisation the person owns.
+     *
+     * @return list<string>
+     */
+    public function areasFor(User $user): array
+    {
+        $organisationId = $this->clients->ownerOrganisationIdFor($user);
+
+        return $organisationId === null ? [] : $this->map->areasOf($organisationId);
+    }
 
     /**
      * @return list<array{value: string, label: string, organisation_id: string, scope_type: string, scope_id: string}>

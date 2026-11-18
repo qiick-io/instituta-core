@@ -3,6 +3,7 @@ import { KeyRound } from 'lucide-react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import KeysController from '@/actions/App/Http/Controllers/Settings/KeysController';
+import { AreaLimitsFields } from '@/components/brain/area-limits-fields';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -35,6 +36,9 @@ type ApiKeyForm = {
     max_visibility: string;
     can_write: boolean;
     expires_at: string;
+    /** None chosen: every area the owner reads (#334). */
+    areas: string[];
+    path_prefix: string;
 };
 
 const EMPTY_API_KEY_FORM: ApiKeyForm = {
@@ -45,19 +49,24 @@ const EMPTY_API_KEY_FORM: ApiKeyForm = {
     max_visibility: 'internal',
     can_write: false,
     expires_at: '',
+    areas: [],
+    path_prefix: '',
 };
 
 /**
  * Create-key dialog for owners (#201), copied from externa-core's API keys page: a header
  * primary button opens it, the plain secret comes back once on the list page. The key lives in
- * the current scope, for the owner or for a new agent principal they own.
+ * the current scope, for the owner or for a new agent principal they own, optionally limited to
+ * some areas and a folder (#334).
  */
 export function ApiKeyCreateDialog({
     open,
     onOpenChange,
+    areaOptions,
 }: {
     open: boolean;
     onOpenChange: (isOpen: boolean) => void;
+    areaOptions: string[];
 }) {
     const { t } = useTranslation();
     const form = useForm<ApiKeyForm>({ ...EMPTY_API_KEY_FORM });
@@ -258,6 +267,26 @@ export function ApiKeyCreateDialog({
                             </FieldDescription>
                             <FieldError>{form.errors.expires_at}</FieldError>
                         </Field>
+
+                        <AreaLimitsFields
+                            idPrefix="api_key"
+                            areaOptions={areaOptions}
+                            areas={form.data.areas}
+                            onAreasChange={(areas) =>
+                                form.setData('areas', areas)
+                            }
+                            pathPrefix={form.data.path_prefix}
+                            onPathPrefixChange={(pathPrefix) =>
+                                form.setData('path_prefix', pathPrefix)
+                            }
+                            areasError={
+                                form.errors.areas ??
+                                (form.errors as Record<string, string>)[
+                                    'areas.0'
+                                ]
+                            }
+                            pathPrefixError={form.errors.path_prefix}
+                        />
 
                         <Field orientation="horizontal">
                             <Checkbox

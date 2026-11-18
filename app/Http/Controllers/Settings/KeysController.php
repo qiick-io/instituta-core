@@ -43,8 +43,12 @@ final class KeysController extends Controller
 
         Gate::authorize('viewAny', ApiKey::class);
 
+        $perimeter = $this->sessions->optionalPerimeter($request);
+
         return Inertia::render('settings/api-keys', [
             ...$this->keys->listFor($user),
+            // The areas a new key can be limited to (#334).
+            'areaOptions' => $perimeter === null ? [] : $this->keys->areaOptionsFor($perimeter),
             'plainTextKey' => $request->session()->get(self::PLAIN_KEY_FLASH),
         ]);
     }

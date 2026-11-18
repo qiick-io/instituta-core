@@ -27,8 +27,7 @@ final class ProposalQueryService
     public function modelsInPerimeter(PerimeterData $perimeter, ?ProposalStatusEnum $status = null): Collection
     {
         return Proposal::query()
-            ->where('scope_type', $perimeter->scopeType)
-            ->where('scope_id', $perimeter->scopeId)
+            ->visibleIn($perimeter)
             ->when(
                 $status instanceof ProposalStatusEnum,
                 fn ($query) => $query->where('status', $status),
@@ -87,8 +86,7 @@ final class ProposalQueryService
     {
         return Proposal::query()
             ->whereKey($proposalId)
-            ->where('scope_type', $perimeter->scopeType)
-            ->where('scope_id', $perimeter->scopeId)
+            ->visibleIn($perimeter)
             ->first();
     }
 

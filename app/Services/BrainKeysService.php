@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Brain\Data\PerimeterData;
 use App\Brain\Enums\RoleEnum;
 use App\Enums\ApiKeyScopeEnum;
 use App\Models\ApiKey;
@@ -67,6 +68,8 @@ final class BrainKeysService
                 'scope_id' => $key->scope_id,
                 'role' => $key->role->value,
                 'max_visibility' => $key->max_visibility->value,
+                'areas' => $key->areas,
+                'path_prefixes' => $key->path_prefixes,
                 'rate_limit_per_minute' => $key->rate_limit_per_minute,
                 'last_used_at' => $key->last_used_at?->toIso8601String(),
                 'last_used_ip' => $key->last_used_ip,
@@ -77,5 +80,22 @@ final class BrainKeysService
         }
 
         return ['is_owner' => true, 'keys' => $rows];
+    }
+
+    /**
+     * The areas an owner can give a key in their current scope (#334): their own when they are
+     * limited, otherwise every area of the organisation.
+     *
+     * @return list<string>
+     */
+    public function areaOptionsFor(PerimeterData $perimeter): array
+    {
+        if ($perimeter->areas !== []) {
+            return $perimeter->areas;
+        }
+
+        $organisationId = app(PerimeterScopeColumnsService::class)->columnsFor($perimeter)[0];
+
+        return $organisationId === null ? [] : app(BrainMapService::class)->areasOf($organisationId);
     }
 }

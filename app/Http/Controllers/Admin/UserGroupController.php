@@ -73,6 +73,8 @@ class UserGroupController extends Controller
             'roles' => StoreUserRequest::assignableRoleOptionsFor($actor instanceof User ? $actor : null),
             // The organisation and clients the actor may give a group brain access to (#258).
             'brainScopes' => $actor instanceof User ? app(GroupBrainScopesService::class)->optionsFor($actor) : [],
+            // The areas that access can be limited to (#334).
+            'brainAreas' => $actor instanceof User ? app(GroupBrainScopesService::class)->areasFor($actor) : [],
         ]);
     }
 

@@ -33,7 +33,7 @@ final class BrainReadingService
         }
 
         $item->load(['sections', 'structuredTables.rows', 'source']);
-        $urlsByLinkTarget = $this->urlsByLinkTarget($item);
+        $urlsByLinkTarget = $this->urlsByLinkTarget($perimeter, $item);
 
         return [
             'id' => $item->id,
@@ -105,7 +105,7 @@ final class BrainReadingService
             return null;
         }
 
-        $urlsByLinkTarget = $this->urlsByLinkTarget($item);
+        $urlsByLinkTarget = $this->urlsByLinkTarget($perimeter, $item);
         $all = $item->sections()->orderBy('position')->get();
 
         $asset = self::isAsset($item) && is_array($item->frontmatter['asset'] ?? null) ? $item->frontmatter['asset'] : null;
@@ -149,15 +149,17 @@ final class BrainReadingService
     }
 
     /**
-     * Links the sync resolved open the target's reading view (#241).
+     * Links the sync resolved open the target's reading view (#241). Only targets inside the
+     * perimeter: a link to an item outside it (another area, #334) stays plain text, so the page
+     * never carries that item's id.
      *
      * @return array<string, string>
      */
-    private function urlsByLinkTarget(Item $item): array
+    private function urlsByLinkTarget(PerimeterData $perimeter, Item $item): array
     {
         $links = ItemLink::query()
             ->where('from_item_id', $item->id)
-            ->whereNotNull('to_item_id')
+            ->whereIn('to_item_id', Item::query()->withinPerimeter($perimeter)->select('id'))
             ->get(['target', 'to_item_id']);
         // A link or picture pointing at an asset opens the file itself (#311).
         $assetIds = Item::query()

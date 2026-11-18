@@ -8,6 +8,7 @@ use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Enums\ApiKeyScopeEnum;
+use App\Traits\HasAreaLimitsTrait;
 use App\Traits\LogsApplicationActivityTrait;
 use Database\Factories\ApiKeyFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -41,6 +42,8 @@ use Symfony\Component\HttpFoundation\IpUtils;
  * @property string $scope_id
  * @property RoleEnum $role
  * @property VisibilityEnum $max_visibility
+ * @property list<string> $areas Narrows the grant's areas (#334); empty: the grant's.
+ * @property list<string> $path_prefixes Narrows the grant's paths (#334); empty: the grant's.
  * @property list<string> $scopes
  * @property list<string>|null $ip_allowlist
  * @property int|null $rate_limit_per_minute
@@ -63,6 +66,8 @@ use Symfony\Component\HttpFoundation\IpUtils;
     'scope_id',
     'role',
     'max_visibility',
+    'areas',
+    'path_prefixes',
     'scopes',
     'ip_allowlist',
     'rate_limit_per_minute',
@@ -77,7 +82,7 @@ use Symfony\Component\HttpFoundation\IpUtils;
 class ApiKey extends Model
 {
     /** @use HasFactory<ApiKeyFactory> */
-    use HasFactory, HasUlids, LogsApplicationActivityTrait;
+    use HasAreaLimitsTrait, HasFactory, HasUlids, LogsApplicationActivityTrait;
 
     /** Three-letter product prefix in the fleet token format. */
     public const DEFAULT_PREFIX = 'ins';

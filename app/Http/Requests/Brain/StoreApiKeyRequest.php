@@ -6,6 +6,8 @@ namespace App\Http\Requests\Brain;
 
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\VisibilityEnum;
+use App\Http\Requests\Concerns\ValidatesAreaLimitsTrait;
+use App\Services\BrainKeysService;
 use App\Services\SessionPerimeterService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -15,6 +17,8 @@ use Illuminate\Validation\Rule;
  */
 class StoreApiKeyRequest extends FormRequest
 {
+    use ValidatesAreaLimitsTrait;
+
     public function authorize(): bool
     {
         return app(SessionPerimeterService::class)->optionalPerimeter($this)?->role === RoleEnum::Owner;
@@ -33,6 +37,18 @@ class StoreApiKeyRequest extends FormRequest
             'max_visibility' => ['required', Rule::enum(VisibilityEnum::class)],
             'can_write' => ['boolean'],
             'expires_at' => ['nullable', 'date', 'after:today'],
+            // Limits inside the owner's own (#334); the action refuses anything past them.
+            ...self::areaLimitRules('areas', 'path_prefix', $this->areaOptions()),
         ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function areaOptions(): array
+    {
+        $perimeter = app(SessionPerimeterService::class)->optionalPerimeter($this);
+
+        return $perimeter === null ? [] : app(BrainKeysService::class)->areaOptionsFor($perimeter);
     }
 }

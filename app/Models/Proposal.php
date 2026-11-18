@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Brain\Data\PerimeterData;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Enums\ProposalActionEnum;
 use App\Enums\ProposalMaterialisationStatusEnum;
@@ -145,5 +146,35 @@ class Proposal extends Model
     public function scopeOpen(Builder $query): Builder
     {
         return $query->where('status', ProposalStatusEnum::Open);
+    }
+
+    /**
+     * Proposals of the perimeter's own scope that stay inside its area and path limits (#334): a
+     * proposal's title, path and body describe an item, so one on an item outside the limits must
+     * not show. A proposal without an area counts as being in the area of the item it changes.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeVisibleIn(Builder $query, PerimeterData $perimeter): Builder
+    {
+        $query->where($query->qualifyColumn('scope_type'), $perimeter->scopeType)
+            ->where($query->qualifyColumn('scope_id'), $perimeter->scopeId);
+
+        if ($perimeter->areas !== []) {
+            $query->where(function (Builder $builder) use ($perimeter): void {
+                $builder->whereIn($builder->qualifyColumn('area'), $perimeter->areas)
+                    ->orWhere(function (Builder $withoutArea) use ($perimeter): void {
+                        $withoutArea->whereNull($withoutArea->qualifyColumn('area'))
+                            ->whereIn($withoutArea->qualifyColumn('stable_key'), Item::query()->withinPerimeter($perimeter)->select('stable_key'));
+                    });
+            });
+        }
+
+        if ($perimeter->pathPrefixes !== []) {
+            Item::wherePathWithin($query, $perimeter->pathPrefixes);
+        }
+
+        return $query;
     }
 }

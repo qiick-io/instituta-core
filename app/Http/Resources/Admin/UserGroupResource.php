@@ -39,11 +39,15 @@ class UserGroupResource extends JsonResource
             'users_count' => $group->users_count,
             'roles_count' => $group->roles_count,
             'deleted_at' => $group->deleted_at?->toIso8601String(),
-            // The group's brain access (#258) as the drawer's `scope_type:scope_id` value and role.
+            // The group's brain access (#258) as the drawer's `scope_type:scope_id` value and role,
+            // with its limits (#334).
             'brain_access' => $this->whenLoaded('brainAccess', fn (): array => $group->brainAccess
                 ->map(fn (UserGroupBrainAccess $access): array => [
                     'scope' => $access->scope_type->value.':'.$access->scope_id,
                     'role' => $access->role->value,
+                    'max_visibility' => $access->max_visibility?->value,
+                    'areas' => $access->areas,
+                    'path_prefixes' => $access->path_prefixes,
                 ])
                 ->values()
                 ->all(), []),

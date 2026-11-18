@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Brain\Enums\RoleEnum as BrainRoleEnum;
+use App\Brain\Enums\VisibilityEnum;
+use App\Http\Requests\Concerns\ValidatesAreaLimitsTrait;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserGroup;
@@ -24,6 +26,8 @@ use Illuminate\Validation\Rules\Unique;
  */
 class StoreUserGroupRequest extends FormRequest
 {
+    use ValidatesAreaLimitsTrait;
+
     public const NAME_MAX_LENGTH = 255;
 
     public const DESCRIPTION_MAX_LENGTH = 1000;
@@ -48,6 +52,9 @@ class StoreUserGroupRequest extends FormRequest
             // Brain access (#258): '' removes it; otherwise a scope the actor owns, with a role.
             'brain_scope' => ['sometimes', 'nullable', 'string', Rule::in(array_column($this->brainScopeOptions(), 'value'))],
             'brain_role' => ['required_with_all:brain_scope', 'nullable', Rule::enum(BrainRoleEnum::class)],
+            // Limits on that access (#334): no area and no prefix mean the whole scope.
+            'brain_max_visibility' => ['sometimes', 'nullable', Rule::enum(VisibilityEnum::class)],
+            ...self::areaLimitRules('brain_areas', 'brain_path_prefix', $this->brainAreaOptions()),
         ];
     }
 
@@ -74,7 +81,7 @@ class StoreUserGroupRequest extends FormRequest
     /**
      * The group's brain access when the payload has it: an empty list removes it, null keeps it.
      *
-     * @return list<array{organisation_id: string, scope_type: string, scope_id: string, role: string}>|null
+     * @return list<array{organisation_id: string, scope_type: string, scope_id: string, role: string, max_visibility: string|null, areas: list<string>, path_prefixes: list<string>}>|null
      */
     public function brainAccess(): ?array
     {
@@ -95,6 +102,9 @@ class StoreUserGroupRequest extends FormRequest
             'scope_type' => $option['scope_type'],
             'scope_id' => $option['scope_id'],
             'role' => $this->string('brain_role')->toString(),
+            'max_visibility' => $this->filled('brain_max_visibility') ? $this->string('brain_max_visibility')->toString() : null,
+            'areas' => array_values(array_map(strval(...), $this->array('brain_areas'))),
+            'path_prefixes' => $this->filled('brain_path_prefix') ? [$this->string('brain_path_prefix')->toString()] : [],
         ]];
     }
 
@@ -111,6 +121,16 @@ class StoreUserGroupRequest extends FormRequest
         $user = $this->user();
 
         return $user instanceof User ? app(GroupBrainScopesService::class)->optionsFor($user) : [];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function brainAreaOptions(): array
+    {
+        $user = $this->user();
+
+        return $user instanceof User ? app(GroupBrainScopesService::class)->areasFor($user) : [];
     }
 
     /**

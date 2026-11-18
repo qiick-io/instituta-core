@@ -110,8 +110,8 @@ final class ProposeBrainChangeAction
             'status' => ProposalStatusEnum::Open->value,
         ]);
 
-        app(NotifyOrganisationUsersService::class)->notify(
-            $organisationId,
+        app(NotifyOrganisationUsersService::class)->notifyAboutProposal(
+            $proposal,
             new ProposalOpenedNotification($proposal),
         );
 
@@ -170,6 +170,11 @@ final class ProposeBrainChangeAction
             ->first();
 
         if ($payload->action === ProposalActionEnum::Create) {
+            // A new item lands where the perimeter can read it, or nowhere (#334).
+            if (! $perimeter->allowsLocation($payload->area, $payload->path)) {
+                throw new ContractException(ContractErrorCodeEnum::OutOfPerimeter, 'The new item\'s area or path is outside your perimeter.');
+            }
+
             if ($payload->sectionAnchor !== null) {
                 throw new ContractException(ContractErrorCodeEnum::InvalidChange, 'section_anchor is only allowed on update.');
             }

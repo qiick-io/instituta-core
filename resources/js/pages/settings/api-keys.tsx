@@ -59,6 +59,8 @@ type Props = {
     keys: KeyRow[];
     /** The secret of the key just created, shown once (session flash). */
     plainTextKey: string | null;
+    /** Areas a new key can be limited to (#334). */
+    areaOptions?: string[];
 };
 
 /**
@@ -66,7 +68,12 @@ type Props = {
  * the new secret once in a warning with copy, revoke with confirmation. Registry items
  * from app-ui#175 replace the form and list row once they ship.
  */
-export default function ApiKeys({ is_owner, keys, plainTextKey }: Props) {
+export default function ApiKeys({
+    is_owner,
+    keys,
+    plainTextKey,
+    areaOptions = [],
+}: Props) {
     const { t } = useTranslation();
     const [search, setSearch] = useState('');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -325,6 +332,7 @@ export default function ApiKeys({ is_owner, keys, plainTextKey }: Props) {
                 <ApiKeyCreateDialog
                     open={isCreateOpen}
                     onOpenChange={setIsCreateOpen}
+                    areaOptions={areaOptions}
                 />
             ) : null}
 

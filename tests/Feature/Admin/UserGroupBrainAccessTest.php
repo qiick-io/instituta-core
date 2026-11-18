@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Actions\GrantOrganisationAccessAction;
 use App\Actions\SyncUserGroupsAction;
 use App\Brain\Enums\RoleEnum as BrainRoleEnum;
+use App\Brain\Enums\VisibilityEnum;
 use App\Enums\CompanyKindEnum;
 use App\Enums\RoleEnum;
 use App\Models\Company;
@@ -17,7 +18,8 @@ use Database\Seeders\RoleSeeder;
 
 /**
  * A group gives its members brain access (#258): grants follow membership and the group's
- * access, the widest role wins across groups, and a person's own grant is never touched.
+ * access, the widest role wins and the area limits add up across groups (#334), and a person's own
+ * grant is never touched: the group grant sits next to it.
  */
 beforeEach(function (): void {
     $this->withoutVite();
@@ -35,6 +37,19 @@ function groupGrantOf(User $user, string $scopeId): ?Grant
 {
     return Grant::query()
         ->whereIn('principal_id', $user->principals()->pluck('id'))
+        ->whereNotNull('user_group_id')
+        ->where('scope_id', $scopeId)
+        ->first();
+}
+
+/**
+ * The grant a user holds on their own on a scope, or null.
+ */
+function ownGrantOf(User $user, string $scopeId): ?Grant
+{
+    return Grant::query()
+        ->whereIn('principal_id', $user->principals()->pluck('id'))
+        ->whereNull('user_group_id')
         ->where('scope_id', $scopeId)
         ->first();
 }
@@ -88,11 +103,48 @@ it('keeps a person\'s own grant and gives the widest role across groups', functi
         ])->assertRedirect();
     }
 
-    $ownGrant = groupGrantOf($owner, $this->organisation->id);
-
-    expect($ownGrant?->role)->toBe(BrainRoleEnum::Owner)
-        ->and($ownGrant?->user_group_id)->toBeNull()
+    expect(ownGrantOf($owner, $this->organisation->id)?->role)->toBe(BrainRoleEnum::Owner)
+        ->and(groupGrantOf($owner, $this->organisation->id)?->role)->toBe(BrainRoleEnum::Member)
         ->and(groupGrantOf($carla, $this->organisation->id)?->role)->toBe(BrainRoleEnum::Member);
+});
+
+it('stores the group limits and adds them up across groups, a group without a limit lifting it', function (): void {
+    $erin = User::factory()->create();
+    $limits = [
+        'Developers' => ['brain_areas' => ['rules', 'decisions'], 'brain_path_prefix' => 'rules/engineering', 'brain_max_visibility' => 'public'],
+        'Writers' => ['brain_areas' => ['style'], 'brain_path_prefix' => '', 'brain_max_visibility' => ''],
+    ];
+
+    foreach ($limits as $name => $limit) {
+        $this->actingAs($this->admin)->post(route('groups.store'), [
+            'name' => $name,
+            'user_ids' => [$erin->id],
+            'brain_scope' => 'organisation:'.$this->organisation->id,
+            'brain_role' => 'member',
+            ...$limit,
+        ])->assertSessionHasNoErrors();
+    }
+
+    $access = UserGroup::query()->where('name', 'Developers')->sole()->brainAccess()->sole();
+    expect($access->areas)->toBe(['rules', 'decisions'])
+        ->and($access->path_prefixes)->toBe(['rules/engineering'])
+        ->and($access->max_visibility)->toBe(VisibilityEnum::Public);
+
+    // Writers has no folder limit and follows the member role (internal): both win.
+    $grant = groupGrantOf($erin, $this->organisation->id);
+    expect($grant?->areas)->toBe(['rules', 'decisions', 'style'])
+        ->and($grant?->path_prefixes)->toBe([])
+        ->and($grant?->max_visibility)->toBe(VisibilityEnum::Internal);
+});
+
+it('refuses an area the brain does not have and a folder that climbs out', function (): void {
+    $this->actingAs($this->admin)->post(route('groups.store'), [
+        'name' => 'Odd',
+        'brain_scope' => 'organisation:'.$this->organisation->id,
+        'brain_role' => 'member',
+        'brain_areas' => ['nowhere'],
+        'brain_path_prefix' => 'rules/../secrets',
+    ])->assertSessionHasErrors(['brain_areas.0', 'brain_path_prefix']);
 });
 
 it('follows the group when it is deleted and restored, and when a user leaves it from the user form', function (): void {

@@ -42,10 +42,12 @@ Snake_case JSON. Dates ISO-8601. Errors as Laravel JSON error responses.
   "scope_id": "ulid",
   "role": "owner|member|guest",
   "max_visibility": "public|internal|restricted",
-  "path_prefix": "string|null",
-  "area": "string|null"
+  "path_prefixes": ["string"],
+  "areas": ["string"]
 }
 ```
+
+`areas` and `path_prefixes` limit the perimeter inside its scope (#334): an item is readable only when its area is one of `areas` and its path is one of `path_prefixes` or inside one (folders, without slashes at either end). An empty list means no limit on that axis. Every surface applies them: lists, reads, search (hits and counts), `instituta_context`, the graph and neighbours, the resolved view, changes, proposals, gap reports and notifications. Several grants on one scope (a person's own and their groups') add up: the union of their areas and of their folders (a grant without a limit lifts it), with the widest role and visibility. An API key's own `areas` and `path_prefixes` only narrow what its grants allow; a key asking for none of them is refused.
 
 ### 2.3 Item summary (list / search)
 

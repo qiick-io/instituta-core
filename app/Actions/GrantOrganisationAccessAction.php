@@ -42,9 +42,11 @@ class GrantOrganisationAccessAction
             ['name' => $user->name],
         );
 
+        // The person's own grant: one a group gives sits next to it and is left alone (#334).
         Grant::query()->updateOrCreate(
             [
                 'principal_id' => $principal->id,
+                'user_group_id' => null,
                 'scope_type' => ScopeTypeEnum::Organisation,
                 'scope_id' => $organisation->id,
             ],

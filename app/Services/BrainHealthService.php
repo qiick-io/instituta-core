@@ -41,9 +41,10 @@ final class BrainHealthService
         $items = Item::query()->withinPerimeter($perimeter)->get();
 
         $issues = [
-            ...$this->sourceReportIssues($perimeter),
+            // Sync reports cover whole sources, paths in every area: not for a limited perimeter (#334).
+            ...($perimeter->isLimited() ? [] : $this->sourceReportIssues($perimeter)),
             ...$this->brokenLinks($items),
-            ...$this->missingSupersededBy($items),
+            ...$this->missingSupersededBy($perimeter, $items),
             ...$this->duplicateResolutionKeys($items),
             ...$this->overdueReviews($items),
         ];
@@ -150,7 +151,7 @@ final class BrainHealthService
      * @param  Collection<int, Item>  $items
      * @return list<array{code: string, severity: string, item: string|null, stable_key: string|null, path: string, message: string, suggested_fix: string}>
      */
-    private function missingSupersededBy(Collection $items): array
+    private function missingSupersededBy(PerimeterData $perimeter, Collection $items): array
     {
         $superseding = $items->filter(static fn (Item $item): bool => $item->superseded_by !== null);
 
@@ -158,7 +159,10 @@ final class BrainHealthService
             return [];
         }
 
+        // Under an area limit only the perimeter's own entries count, so the check never tells
+        // whether an entry outside it exists (#334).
         $existingKeys = Item::query()
+            ->when($perimeter->isLimited(), static fn ($query) => $query->withinPerimeter($perimeter))
             ->whereIn('organisation_id', $superseding->pluck('organisation_id')->unique()->all())
             ->whereIn('stable_key', $superseding->pluck('superseded_by')->unique()->all())
             ->pluck('stable_key')

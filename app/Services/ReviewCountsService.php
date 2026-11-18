@@ -6,9 +6,7 @@ namespace App\Services;
 
 use App\Brain\Data\PerimeterData;
 use App\Brain\Enums\RoleEnum;
-use App\Enums\GapReportStatusEnum;
 use App\Enums\ProposalStatusEnum;
-use App\Models\GapReport;
 use App\Models\Proposal;
 
 /**
@@ -28,16 +26,11 @@ final class ReviewCountsService
 
         return [
             'open_proposals' => Proposal::query()
-                ->where('scope_type', $perimeter->scopeType)
-                ->where('scope_id', $perimeter->scopeId)
+                ->visibleIn($perimeter)
                 ->where('status', ProposalStatusEnum::Open)
                 ->count(),
             'open_gaps' => $perimeter->role === RoleEnum::Owner
-                ? GapReport::query()
-                    ->where('scope_type', $perimeter->scopeType)
-                    ->where('scope_id', $perimeter->scopeId)
-                    ->where('status', GapReportStatusEnum::Open)
-                    ->count()
+                ? app(GapReportQueryService::class)->openCount($perimeter)
                 : 0,
         ];
     }
