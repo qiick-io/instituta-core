@@ -39,6 +39,10 @@ export default defineConfig({
             ],
         },
     },
+    test: {
+        // Our own tests only: the default glob also finds example specs shipped in vendor/ (#313).
+        include: ['resources/js/**/*.{test,spec}.{ts,tsx}'],
+    },
     lint: {
         ignorePatterns: [
             'vendor/**',

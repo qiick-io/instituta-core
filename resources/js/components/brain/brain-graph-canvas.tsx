@@ -204,9 +204,9 @@ function prefersReducedMotion(): boolean {
 
 /** A small deterministic hash, so ambient beams and dust need no state. */
 function hash(value: number): number {
-    const x = Math.sin(value * 12.9898) * 43758.5453;
+    const wave = Math.sin(value * 12.9898) * 43758.5453;
 
-    return x - Math.floor(x);
+    return wave - Math.floor(wave);
 }
 
 function isShown(scene: Scene, index: number): boolean {
@@ -264,12 +264,12 @@ function fitCamera(
             return;
         }
 
-        const x = xs[index] + scene.springs.ox[index];
-        const y = ys[index] + scene.springs.oy[index];
-        minX = Math.min(minX, x - node.radius);
-        minY = Math.min(minY, y - node.radius);
-        maxX = Math.max(maxX, x + node.radius);
-        maxY = Math.max(maxY, y + node.radius);
+        const nodeX = xs[index] + scene.springs.ox[index];
+        const nodeY = ys[index] + scene.springs.oy[index];
+        minX = Math.min(minX, nodeX - node.radius);
+        minY = Math.min(minY, nodeY - node.radius);
+        maxX = Math.max(maxX, nodeX + node.radius);
+        maxY = Math.max(maxY, nodeY + node.radius);
     });
 
     if (!Number.isFinite(minX) || scene.width === 0) {
@@ -305,10 +305,10 @@ function cameraOn(scene: Scene, index: number): Camera {
     const k = Math.max(scene.camera.k, 1.2);
     // The side card covers the top left: keep the node a little right of centre on wide canvases.
     const centreX = scene.width > 720 ? scene.width / 2 + 140 : scene.width / 2;
-    const x = scene.bx[index] + scene.springs.ox[index];
-    const y = scene.by[index] + scene.springs.oy[index];
+    const nodeX = scene.bx[index] + scene.springs.ox[index];
+    const nodeY = scene.by[index] + scene.springs.oy[index];
 
-    return { x: centreX - x * k, y: scene.height / 2 - y * k, k };
+    return { x: centreX - nodeX * k, y: scene.height / 2 - nodeY * k, k };
 }
 
 function linkKey(from: number, to: number): number {
@@ -399,12 +399,12 @@ function drawDust(
     for (let speck = 0; speck < DUST_COUNT; speck++) {
         const depth = 0.04 + hash(speck * 3.1) * 0.12;
         const span = Math.max(scene.width, scene.height) + 200;
-        const x =
+        const speckX =
             ((((hash(speck * 1.7) * span + scene.camera.x * depth) % span) +
                 span) %
                 span) -
             100;
-        const y =
+        const speckY =
             ((((hash(speck * 2.3) * span + scene.camera.y * depth) % span) +
                 span) %
                 span) -
@@ -413,7 +413,13 @@ function drawDust(
             0.5 + 0.5 * Math.sin(time * (0.4 + hash(speck) * 0.8) + speck);
 
         context.beginPath();
-        context.arc(x, y, 0.6 + hash(speck * 5.3) * 1.1, 0, Math.PI * 2);
+        context.arc(
+            speckX,
+            speckY,
+            0.6 + hash(speck * 5.3) * 1.1,
+            0,
+            Math.PI * 2,
+        );
         context.fillStyle = rgba(
             palette.mutedForeground,
             0.05 + twinkle * 0.12,
@@ -794,11 +800,11 @@ function draw(
 
         const radius = nodes[index].radius * scale[index];
         const dot = Math.max(2.5 / camera.k, radius * 0.32);
-        const x = px[index] + radius * Math.SQRT1_2;
-        const y = py[index] - radius * Math.SQRT1_2;
+        const badgeX = px[index] + radius * Math.SQRT1_2;
+        const badgeY = py[index] - radius * Math.SQRT1_2;
         const alpha = Math.max(0.35, emphasis[index]) * visible[index];
         context.beginPath();
-        context.arc(x, y, dot, 0, Math.PI * 2);
+        context.arc(badgeX, badgeY, dot, 0, Math.PI * 2);
         context.fillStyle = rgba(palette.warning, alpha);
         context.fill();
         context.lineWidth = 1.5 / camera.k;
@@ -960,10 +966,10 @@ function drawAreaLabels(
             continue;
         }
 
-        const x = (entry.x / entry.count) * camera.k + camera.x;
-        const y = entry.top * camera.k + camera.y - 14;
+        const labelX = (entry.x / entry.count) * camera.k + camera.x;
+        const labelY = entry.top * camera.k + camera.y - 14;
         context.fillStyle = rgba(palette.areas[area], 0.85 * entry.visible);
-        context.fillText(label.toUpperCase(), x, y);
+        context.fillText(label.toUpperCase(), labelX, labelY);
     }
 }
 
@@ -987,8 +993,8 @@ function drawLabels(
             candidates.push(index);
         }
     };
-    const byDegree = (a: number, b: number): number =>
-        nodes[b].degree - nodes[a].degree;
+    const byDegree = (first: number, second: number): number =>
+        nodes[second].degree - nodes[first].degree;
 
     add(scene.selected);
     add(scene.dragged);
@@ -1141,14 +1147,14 @@ function drawMinimap(
         (MINIMAP_WIDTH - inset * 2) / Math.max(1, maxX - minX),
         (MINIMAP_HEIGHT - inset * 2) / Math.max(1, maxY - minY),
     );
-    const x = MINIMAP_MARGIN;
-    const y = scene.height - MINIMAP_MARGIN - MINIMAP_HEIGHT;
+    const boxX = MINIMAP_MARGIN;
+    const boxY = scene.height - MINIMAP_MARGIN - MINIMAP_HEIGHT;
     // Centre the drawing inside the box.
     const worldX = minX - (MINIMAP_WIDTH / scale - (maxX - minX)) / 2;
     const worldY = minY - (MINIMAP_HEIGHT / scale - (maxY - minY)) / 2;
     scene.minimap = {
-        x,
-        y,
+        x: boxX,
+        y: boxY,
         width: MINIMAP_WIDTH,
         height: MINIMAP_HEIGHT,
         scale,
@@ -1158,7 +1164,7 @@ function drawMinimap(
 
     context.save();
     context.beginPath();
-    context.roundRect(x, y, MINIMAP_WIDTH, MINIMAP_HEIGHT, 10);
+    context.roundRect(boxX, boxY, MINIMAP_WIDTH, MINIMAP_HEIGHT, 10);
     context.fillStyle = rgba(palette.card, 0.85);
     context.fill();
     context.lineWidth = 1;
@@ -1176,8 +1182,8 @@ function drawMinimap(
 
         context.beginPath();
         context.arc(
-            x + (scene.bx[index] + scene.springs.ox[index] - worldX) * scale,
-            y + (scene.by[index] + scene.springs.oy[index] - worldY) * scale,
+            boxX + (scene.bx[index] + scene.springs.ox[index] - worldX) * scale,
+            boxY + (scene.by[index] + scene.springs.oy[index] - worldY) * scale,
             Math.min(4, Math.max(0.8, scene.nodes[index].radius * scale)),
             0,
             Math.PI * 2,
@@ -1187,8 +1193,8 @@ function drawMinimap(
     }
 
     const { camera } = scene;
-    const viewX = x + (-camera.x / camera.k - worldX) * scale;
-    const viewY = y + (-camera.y / camera.k - worldY) * scale;
+    const viewX = boxX + (-camera.x / camera.k - worldX) * scale;
+    const viewY = boxY + (-camera.y / camera.k - worldY) * scale;
     const viewWidth = (scene.width / camera.k) * scale;
     const viewHeight = (scene.height / camera.k) * scale;
     context.beginPath();
@@ -1366,7 +1372,9 @@ export function BrainGraphCanvas({
         scene.labelWidths = new Map();
         scene.byDegree = nodes
             .map((_, index) => index)
-            .sort((a, b) => nodes[b].degree - nodes[a].degree);
+            .sort(
+                (first, second) => nodes[second].degree - nodes[first].degree,
+            );
         scene.positionsVersion += 1;
         scene.introStart = null;
         scene.lastTime = null;
