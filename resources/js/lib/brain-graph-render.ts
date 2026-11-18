@@ -30,12 +30,12 @@ export function areaIndex(area: string, areas: string[]): number {
     return Math.max(0, areas.indexOf(area)) % AREA_TOKENS.length;
 }
 
-/** `amount` of `b` mixed into `a`, channel by channel. */
-export function mixRgb(a: Rgb, b: Rgb, amount: number): Rgb {
+/** `amount` of `target` mixed into `base`, channel by channel. */
+export function mixRgb(base: Rgb, target: Rgb, amount: number): Rgb {
     return [
-        Math.round(a[0] + (b[0] - a[0]) * amount),
-        Math.round(a[1] + (b[1] - a[1]) * amount),
-        Math.round(a[2] + (b[2] - a[2]) * amount),
+        Math.round(base[0] + (target[0] - base[0]) * amount),
+        Math.round(base[1] + (target[1] - base[1]) * amount),
+        Math.round(base[2] + (target[2] - base[2]) * amount),
     ];
 }
 
@@ -112,12 +112,16 @@ export function floatOffset(
 
 export type LabelBox = { x: number; y: number; width: number; height: number };
 
-export function boxesOverlap(a: LabelBox, b: LabelBox, gap = 4): boolean {
+export function boxesOverlap(
+    first: LabelBox,
+    second: LabelBox,
+    gap = 4,
+): boolean {
     return (
-        a.x < b.x + b.width + gap &&
-        b.x < a.x + a.width + gap &&
-        a.y < b.y + b.height + gap &&
-        b.y < a.y + a.height + gap
+        first.x < second.x + second.width + gap &&
+        second.x < first.x + first.width + gap &&
+        first.y < second.y + second.height + gap &&
+        second.y < first.y + first.height + gap
     );
 }
 
@@ -135,13 +139,13 @@ export function easeOutCubic(progress: number): number {
 
 /** Overshoots a little before settling: nodes "pop" into place. */
 export function easeOutBack(progress: number): number {
-    const p = clamp01(progress);
+    const clamped = clamp01(progress);
     const overshoot = 1.70158;
 
     return (
         1 +
-        (overshoot + 1) * Math.pow(p - 1, 3) +
-        overshoot * Math.pow(p - 1, 2)
+        (overshoot + 1) * Math.pow(clamped - 1, 3) +
+        overshoot * Math.pow(clamped - 1, 2)
     );
 }
 

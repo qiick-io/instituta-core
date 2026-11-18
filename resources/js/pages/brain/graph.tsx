@@ -167,7 +167,7 @@ export default function BrainGraph({
             .filter(
                 (node) => ids.has(node.id) && !hiddenAreas.includes(node.area),
             )
-            .sort((a, b) => b.degree - a.degree);
+            .sort((first, second) => second.degree - first.degree);
     }, [edges, placedNodes, selectedId, hiddenAreas]);
 
     const areaLabel = (area: string): string =>
@@ -239,7 +239,7 @@ export default function BrainGraph({
                     (node.title.toLowerCase().includes(needle) ||
                         node.stable_key.toLowerCase().includes(needle)),
             )
-            .sort((a, b) => b.degree - a.degree);
+            .sort((first, second) => second.degree - first.degree);
 
         setMatchIds(matches.map((node) => node.id));
 
