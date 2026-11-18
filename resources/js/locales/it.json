@@ -963,6 +963,15 @@
             },
             "extractedText": "Testo",
             "extractedTextHint": "Letto dal file durante il sync, così ricerca e agenti possono usarlo."
+        },
+        "access": {
+            "areasLabel": "Aree",
+            "areasHint": "Si possono leggere solo queste aree. Nessuna selezionata: tutte le aree.",
+            "pathPrefixLabel": "Cartella",
+            "pathPrefixPlaceholder": "es. rules/engineering",
+            "pathPrefixHint": "Facoltativa: solo gli elementi dentro questa cartella del brain.",
+            "maxVisibilityLabel": "Visibilità",
+            "followsRole": "Segue il ruolo"
         }
     },
     "activity": {
@@ -1462,7 +1471,7 @@
             "brainAccess": "Accesso al cervello",
             "noBrainAccess": "Nessun accesso al cervello",
             "brainRole": "Ruolo nel cervello",
-            "brainAccessHint": "Ogni membro riceve questo accesso all'organizzazione o al cliente. L'accesso personale, se diverso, resta."
+            "brainAccessHint": "Ogni membro riceve questo accesso all'organizzazione o al cliente. L'accesso personale resta e si somma a questo."
         }
     }
 }

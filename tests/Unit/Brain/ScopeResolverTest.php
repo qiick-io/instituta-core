@@ -243,8 +243,8 @@ it('case 10: perimeter applies visibility, area and path subtree together', func
         scopeId: 'prod-1',
         role: RoleEnum::Member,
         maxVisibility: VisibilityEnum::Internal,
-        pathPrefix: 'rules',
-        area: 'rules',
+        pathPrefixes: ['rules'],
+        areas: ['rules'],
     );
 
     $visible = $filter->filterResolved($perimeter, $resolved);

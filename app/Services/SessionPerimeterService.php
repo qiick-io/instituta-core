@@ -120,10 +120,9 @@ final class SessionPerimeterService
 
         if (is_string($type) && is_string($id) && $type !== '' && $id !== '') {
             try {
-                $scopeType = ScopeTypeEnum::from($type);
-                $grant = $this->grantCovering($principal, $scopeType, $id);
-                if ($grant !== null) {
-                    return $this->perimeterForScope($principal, $grant, $scopeType, $id);
+                $perimeter = $this->perimeterFor($principal, ScopeTypeEnum::from($type), $id);
+                if ($perimeter !== null) {
+                    return $perimeter;
                 }
             } catch (InvalidArgumentException) {
                 // Fall through to the first visible scope.
@@ -135,12 +134,7 @@ final class SessionPerimeterService
         $scopeId = (string) $first['scope_id'];
         $this->remember($request, $scopeType, $scopeId);
 
-        $grant = $this->grantCovering($principal, $scopeType, $scopeId);
-        if ($grant === null) {
-            return null;
-        }
-
-        return $this->perimeterForScope($principal, $grant, $scopeType, $scopeId);
+        return $this->perimeterFor($principal, $scopeType, $scopeId);
     }
 
     public function switchTo(Request $request, User $user, ScopeTypeEnum $scopeType, string $scopeId): PerimeterData
@@ -150,12 +144,11 @@ final class SessionPerimeterService
             throw new InvalidArgumentException('No active person principal.');
         }
 
-        $grant = $this->grantCovering($principal, $scopeType, $scopeId);
-        if ($grant === null) {
+        $perimeter = $this->perimeterFor($principal, $scopeType, $scopeId);
+        if ($perimeter === null) {
             throw new InvalidArgumentException('Scope is outside the principal grants.');
         }
 
-        $perimeter = $this->perimeterForScope($principal, $grant, $scopeType, $scopeId);
         $this->remember($request, $scopeType, $scopeId);
 
         return $perimeter;
@@ -200,70 +193,14 @@ final class SessionPerimeterService
         $request->session()->put(self::SESSION_SCOPE_ID, $scopeId);
     }
 
-    private function grantCovering(Principal $principal, ScopeTypeEnum $scopeType, string $scopeId): ?Grant
+    /**
+     * The perimeter every grant covering the scope gives together (#334), or null when none does.
+     */
+    private function perimeterFor(Principal $principal, ScopeTypeEnum $scopeType, string $scopeId): ?PerimeterData
     {
-        /** @var Grant|null $exact */
-        $exact = $principal->grants()
-            ->active()
-            ->where('scope_type', $scopeType->value)
-            ->where('scope_id', $scopeId)
-            ->first();
+        $grants = $this->perimeters->grantsCovering($principal, $scopeType, $scopeId);
 
-        if ($exact !== null) {
-            return $exact;
-        }
-
-        if ($scopeType === ScopeTypeEnum::Organisation) {
-            return null;
-        }
-
-        if ($scopeType === ScopeTypeEnum::Company) {
-            $organisationId = Company::query()->whereKey($scopeId)->value('organisation_id');
-        } else {
-            $organisationId = Product::query()
-                ->whereKey($scopeId)
-                ->with('company')
-                ->first()
-                ?->company
-                ?->organisation_id;
-        }
-
-        if (! is_string($organisationId) || $organisationId === '') {
-            return null;
-        }
-
-        /** @var Grant|null $orgOwner */
-        $orgOwner = $principal->grants()
-            ->active()
-            ->where('scope_type', ScopeTypeEnum::Organisation->value)
-            ->where('scope_id', $organisationId)
-            ->where('role', 'owner')
-            ->first();
-
-        return $orgOwner;
-    }
-
-    private function perimeterForScope(
-        Principal $principal,
-        Grant $grant,
-        ScopeTypeEnum $scopeType,
-        string $scopeId,
-    ): PerimeterData {
-        if ($grant->scope_type === $scopeType && $grant->scope_id === $scopeId) {
-            return $this->perimeters->fromGrant($principal, $grant);
-        }
-
-        // Owner org grant narrowed to a child company/product for the UI session.
-        return new PerimeterData(
-            principalId: $principal->id,
-            principalType: $principal->type,
-            scopeType: $scopeType,
-            scopeId: $scopeId,
-            role: $grant->role,
-            maxVisibility: $grant->max_visibility,
-            pathPrefix: $grant->path_prefix,
-            area: $grant->area,
-        );
+        return $grants->isEmpty() ? null : $this->perimeters->fromGrants($principal, $grants, $scopeType, $scopeId);
     }
 
     /**

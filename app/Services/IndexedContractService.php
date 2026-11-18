@@ -84,8 +84,8 @@ final class IndexedContractService
                 'scope_id' => $grant->scope_id,
                 'role' => $grant->role->value,
                 'max_visibility' => $grant->max_visibility->value,
-                'path_prefix' => $grant->path_prefix,
-                'area' => $grant->area,
+                'path_prefixes' => $grant->path_prefixes,
+                'areas' => $grant->areas,
             ])->values()->all(),
             ...$this->freezeMeta($perimeter),
         ];
@@ -1022,15 +1022,6 @@ final class IndexedContractService
      */
     private function layerPerimeter(PerimeterData $perimeter, array $layer): PerimeterData
     {
-        return new PerimeterData(
-            principalId: $perimeter->principalId,
-            principalType: $perimeter->principalType,
-            scopeType: ScopeTypeEnum::from($layer['scope_type']),
-            scopeId: $layer['scope_id'],
-            role: $perimeter->role,
-            maxVisibility: $perimeter->maxVisibility,
-            pathPrefix: $perimeter->pathPrefix,
-            area: $perimeter->area,
-        );
+        return $perimeter->forScope(ScopeTypeEnum::from($layer['scope_type']), $layer['scope_id']);
     }
 }

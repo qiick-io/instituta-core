@@ -36,6 +36,8 @@ final class BrainClientsService
 
         $ownerGrant = $principal->grants()
             ->active()
+            // Organisation-wide surfaces: an owner limited to some areas does not reach them (#334).
+            ->unlimited()
             ->where('role', RoleEnum::Owner->value)
             ->where('scope_type', 'organisation')
             ->orderBy('id')

@@ -15,6 +15,7 @@ final readonly class ResolvedEntryData
         public VisibilityEnum $visibility,
         public OriginData $origin,
         public bool $fromSharedSource = false,
+        public ?string $area = null,
     ) {}
 
     /**

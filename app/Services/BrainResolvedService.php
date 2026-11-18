@@ -183,15 +183,6 @@ final class BrainResolvedService
      */
     private function layerPerimeter(PerimeterData $perimeter, array $layer): PerimeterData
     {
-        return new PerimeterData(
-            principalId: $perimeter->principalId,
-            principalType: $perimeter->principalType,
-            scopeType: ScopeTypeEnum::from($layer['scope_type']),
-            scopeId: $layer['scope_id'],
-            role: $perimeter->role,
-            maxVisibility: $perimeter->maxVisibility,
-            pathPrefix: $perimeter->pathPrefix,
-            area: $perimeter->area,
-        );
+        return $perimeter->forScope(ScopeTypeEnum::from($layer['scope_type']), $layer['scope_id']);
     }
 }

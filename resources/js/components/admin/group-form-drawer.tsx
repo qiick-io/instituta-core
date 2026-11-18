@@ -6,6 +6,7 @@ import {
     RoleMultiSelect,
     withSelectedRoles,
 } from '@/components/admin/role-multi-select';
+import { AreaLimitsFields } from '@/components/brain/area-limits-fields';
 import { Button } from '@/components/ui/button';
 import {
     DrawerBody,
@@ -46,6 +47,11 @@ const EMPTY_GROUP_FORM = {
     /** '' gives no brain access (#258). */
     brain_scope: '',
     brain_role: 'member',
+    /** '' follows the role (#334). */
+    brain_max_visibility: '',
+    /** None chosen: every area (#334). */
+    brain_areas: [] as string[],
+    brain_path_prefix: '',
 };
 
 export type GroupFormDrawerProps = {
@@ -54,6 +60,8 @@ export type GroupFormDrawerProps = {
     roles: AdminRoleRef[];
     /** Scopes the current user may give the group brain access to (#258). */
     brainScopes: AdminBrainScopeOption[];
+    /** Areas the brain access can be limited to (#334). */
+    brainAreas?: string[];
     readOnly?: boolean;
     open?: boolean;
     onCancel?: () => void;
@@ -63,7 +71,8 @@ export type GroupFormDrawerProps = {
 /**
  * Drawer form for creating and editing user groups: name, description, the roles members
  * inherit and the members. Copied from externa-core; roles use Instituta's role picker
- * (names) and are sent as ids, members use the registry picker on `users.index`.
+ * (names) and are sent as ids, members use the registry picker on `users.index`. The brain
+ * access (#258) can be limited to areas, a folder and a visibility (#334).
  * @param {*} props - Component props.
  * @returns {JSX.Element}
  */
@@ -71,6 +80,7 @@ export function GroupFormDrawer({
     editing,
     roles,
     brainScopes,
+    brainAreas = [],
     readOnly = false,
     open = true,
     onCancel,
@@ -108,6 +118,11 @@ export function GroupFormDrawer({
                 user_ids: editing.user_ids,
                 brain_scope: editing.brain_access[0]?.scope ?? '',
                 brain_role: editing.brain_access[0]?.role ?? 'member',
+                brain_max_visibility:
+                    editing.brain_access[0]?.max_visibility ?? '',
+                brain_areas: editing.brain_access[0]?.areas ?? [],
+                brain_path_prefix:
+                    editing.brain_access[0]?.path_prefixes[0] ?? '',
             };
             form.setData(payload);
             form.setDefaults({ ...payload });
@@ -360,6 +375,75 @@ export function GroupFormDrawer({
                                         form.errors.brain_role}
                                 </FieldError>
                             </Field>
+                        ) : null}
+
+                        {brainScopes.length > 0 && form.data.brain_scope !== '' ? (
+                            <>
+                                <Field
+                                    data-invalid={
+                                        form.errors.brain_max_visibility
+                                            ? true
+                                            : undefined
+                                    }
+                                >
+                                    <FieldLabel htmlFor="group_brain_max_visibility">
+                                        {t('brain.access.maxVisibilityLabel')}
+                                    </FieldLabel>
+                                    <NativeSelect
+                                        id="group_brain_max_visibility"
+                                        value={form.data.brain_max_visibility}
+                                        disabled={readOnly}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'brain_max_visibility',
+                                                event.target.value,
+                                            )
+                                        }
+                                    >
+                                        <NativeSelectOption value="">
+                                            {t('brain.access.followsRole')}
+                                        </NativeSelectOption>
+                                        {(
+                                            ['public', 'internal', 'restricted'] as const
+                                        ).map((visibility) => (
+                                            <NativeSelectOption
+                                                key={visibility}
+                                                value={visibility}
+                                            >
+                                                {t(
+                                                    `brain.sources.visibilities.${visibility}`,
+                                                )}
+                                            </NativeSelectOption>
+                                        ))}
+                                    </NativeSelect>
+                                    <FieldError>
+                                        {form.errors.brain_max_visibility}
+                                    </FieldError>
+                                </Field>
+                                <AreaLimitsFields
+                                    idPrefix="group_brain"
+                                    areaOptions={brainAreas}
+                                    areas={form.data.brain_areas}
+                                    onAreasChange={(areas) =>
+                                        form.setData('brain_areas', areas)
+                                    }
+                                    pathPrefix={form.data.brain_path_prefix}
+                                    onPathPrefixChange={(pathPrefix) =>
+                                        form.setData(
+                                            'brain_path_prefix',
+                                            pathPrefix,
+                                        )
+                                    }
+                                    disabled={readOnly}
+                                    areasError={
+                                        form.errors.brain_areas ??
+                                        (form.errors as Record<string, string>)[
+                                            'brain_areas.0'
+                                        ]
+                                    }
+                                    pathPrefixError={form.errors.brain_path_prefix}
+                                />
+                            </>
                         ) : null}
                     </FieldGroup>
                 </DrawerBody>

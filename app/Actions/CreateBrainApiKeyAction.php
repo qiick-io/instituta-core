@@ -13,6 +13,7 @@ use App\Models\ApiKey;
 use App\Models\Grant;
 use App\Models\Principal;
 use App\Models\User;
+use App\Services\PerimeterResolverService;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -45,6 +46,14 @@ final class CreateBrainApiKeyAction
             $principal = $owner;
 
             if ($data->agentName !== null) {
+                // The agent's grant never reaches past the owner's areas and folders (#334).
+                $agentAreas = PerimeterResolverService::narrowAreas($perimeter->areas, $data->areas);
+                $agentPathPrefixes = PerimeterResolverService::narrowPathPrefixes($perimeter->pathPrefixes, $data->pathPrefixes);
+
+                if ($agentAreas === null || $agentPathPrefixes === null) {
+                    throw new InvalidArgumentException('The key\'s areas or folders are outside your access.');
+                }
+
                 $principal = Principal::query()->create([
                     'organisation_id' => $owner->organisation_id,
                     'type' => PrincipalTypeEnum::Agent,
@@ -58,6 +67,8 @@ final class CreateBrainApiKeyAction
                     'scope_id' => $perimeter->scopeId,
                     'role' => $data->role,
                     'max_visibility' => $data->maxVisibility,
+                    'areas' => $agentAreas,
+                    'path_prefixes' => $agentPathPrefixes,
                 ]);
             }
 
@@ -75,6 +86,8 @@ final class CreateBrainApiKeyAction
                 scopes: $scopes,
                 expiresAt: $data->expiresAt,
                 createdBy: $createdBy,
+                areas: $data->areas,
+                pathPrefixes: $data->pathPrefixes,
             );
         });
     }

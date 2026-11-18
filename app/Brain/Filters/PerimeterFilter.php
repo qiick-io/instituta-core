@@ -45,19 +45,7 @@ final class PerimeterFilter
             return false;
         }
 
-        if ($perimeter->area !== null && $entry->area !== null && $perimeter->area !== $entry->area) {
-            return false;
-        }
-
-        if ($perimeter->pathPrefix !== null && $perimeter->pathPrefix !== '') {
-            $prefix = ltrim(str_replace('\\', '/', $perimeter->pathPrefix), '/');
-            $path = ltrim(str_replace('\\', '/', $entry->path), '/');
-            if ($path !== $prefix && ! str_starts_with($path, $prefix.'/')) {
-                return false;
-            }
-        }
-
-        return true;
+        return $perimeter->allowsLocation($entry->area, $entry->path);
     }
 
     public function allowsResolved(PerimeterData $perimeter, ResolvedEntryData $entry): bool
@@ -66,15 +54,7 @@ final class PerimeterFilter
             return false;
         }
 
-        if ($perimeter->pathPrefix !== null && $perimeter->pathPrefix !== '') {
-            $prefix = ltrim(str_replace('\\', '/', $perimeter->pathPrefix), '/');
-            $path = ltrim(str_replace('\\', '/', $entry->origin->path), '/');
-            if ($path !== $prefix && ! str_starts_with($path, $prefix.'/')) {
-                return false;
-            }
-        }
-
-        return true;
+        return $perimeter->allowsLocation($entry->area, $entry->origin->path);
     }
 
     /**

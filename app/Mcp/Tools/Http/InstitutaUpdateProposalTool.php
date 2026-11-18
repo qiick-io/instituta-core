@@ -57,8 +57,7 @@ class InstitutaUpdateProposalTool extends Tool
         $perimeter = $this->brain->perimeter();
         $proposal = Proposal::query()
             ->whereKey((string) $request->get('id'))
-            ->where('scope_type', $perimeter->scopeType)
-            ->where('scope_id', $perimeter->scopeId)
+            ->visibleIn($perimeter)
             ->first();
 
         if ($proposal === null) {

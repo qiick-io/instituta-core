@@ -47,7 +47,8 @@ final class BrainSourcesService
                 'sync_status' => $source->sync_status->value,
                 'last_synced_commit' => $source->last_synced_commit,
                 'last_synced_at' => $source->last_synced_at?->toIso8601String(),
-                'last_sync_report' => $source->last_sync_report,
+                // The report covers the whole source (counts, skipped paths): not for a perimeter limited to some areas (#334).
+                'last_sync_report' => $perimeter->isLimited() ? null : $source->last_sync_report,
                 'scope_type' => $source->scope_type->value,
                 'remote_url' => $source->remote_url,
                 'local_path' => $source->local_path,

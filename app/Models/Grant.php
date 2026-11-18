@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
+use App\Traits\HasAreaLimitsTrait;
 use App\Traits\LogsApplicationActivityTrait;
 use Database\Factories\GrantFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -28,8 +29,8 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string $scope_id
  * @property RoleEnum $role
  * @property VisibilityEnum $max_visibility
- * @property string|null $path_prefix
- * @property string|null $area
+ * @property list<string> $path_prefixes Allowed folders (#334); empty: every path.
+ * @property list<string> $areas Allowed areas (#334); empty: every area.
  * @property Carbon|null $expires_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -41,14 +42,14 @@ use Spatie\Activitylog\Support\LogOptions;
     'scope_id',
     'role',
     'max_visibility',
-    'path_prefix',
-    'area',
+    'path_prefixes',
+    'areas',
     'expires_at',
 ])]
 class Grant extends Model
 {
     /** @use HasFactory<GrantFactory> */
-    use HasFactory, HasUlids, LogsApplicationActivityTrait;
+    use HasAreaLimitsTrait, HasFactory, HasUlids, LogsApplicationActivityTrait;
 
     public function getActivitylogOptions(): LogOptions
     {

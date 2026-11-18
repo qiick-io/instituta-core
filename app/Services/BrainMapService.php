@@ -42,6 +42,11 @@ final class BrainMapService
 
         $rows = [];
         foreach (self::AREAS as $area) {
+            // Under an area limit (#334) the map shows the allowed areas only, never a gap elsewhere.
+            if (! $perimeter->allowsArea($area)) {
+                continue;
+            }
+
             $count = (int) ($counts[$area] ?? 0);
             $rows[] = [
                 'area' => $area,
@@ -63,5 +68,24 @@ final class BrainMapService
         }
 
         return $rows;
+    }
+
+    /**
+     * The areas an access limit can name in an organisation (#334): the canonical ones, then any
+     * other area its items use, alphabetically.
+     *
+     * @return list<string>
+     */
+    public function areasOf(string $organisationId): array
+    {
+        /** @var list<string> $usedAreas */
+        $usedAreas = Item::query()
+            ->where('organisation_id', $organisationId)
+            ->distinct()
+            ->orderBy('area')
+            ->pluck('area')
+            ->all();
+
+        return array_values(array_unique([...self::AREAS, ...$usedAreas]));
     }
 }

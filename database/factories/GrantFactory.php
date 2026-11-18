@@ -29,8 +29,8 @@ class GrantFactory extends Factory
             'scope_id' => fn (array $attributes): mixed => Principal::query()->whereKey($attributes['principal_id'])->value('organisation_id'),
             'role' => RoleEnum::Member,
             'max_visibility' => VisibilityEnum::Internal,
-            'path_prefix' => null,
-            'area' => null,
+            'path_prefixes' => [],
+            'areas' => [],
             'expires_at' => null,
         ];
     }

@@ -28,7 +28,7 @@ class SaveUserGroupAction
     /**
      * @param  list<int>|null  $userIds  null keeps the current members
      * @param  list<int>|null  $roleIds  null keeps the current roles
-     * @param  list<array{organisation_id: string, scope_type: string, scope_id: string, role: string}>|null  $brainAccess  null keeps it; members' grants follow (#258)
+     * @param  list<array{organisation_id: string, scope_type: string, scope_id: string, role: string, max_visibility: string|null, areas: list<string>, path_prefixes: list<string>}>|null  $brainAccess  null keeps it; members' grants follow (#258), with its limits (#334)
      *
      * @throws ValidationException under `user_ids` when no active super-admin would be left
      */

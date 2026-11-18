@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Actions\CreateApiKeyAction;
 use App\Actions\GrantOrganisationAccessAction;
+use App\Actions\ReconcileGroupBrainAccessAction;
 use App\Brain\Enums\PrincipalTypeEnum;
 use App\Brain\Enums\RoleEnum as BrainRoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
@@ -100,6 +101,19 @@ final class DemoAgencySeeder extends Seeder
 
         $team = UserGroup::query()->create(['name' => 'Delivery team', 'description' => 'Developers who ship client releases']);
         $team->users()->attach([$marco->id, $priya->id]);
+
+        // Per-area access (#334): Giulia reads the brain only through Marketing, limited to its areas.
+        $giulia = $this->person('Giulia', 'Ferri', 'giulia@northwind.example', RoleEnum::Reader);
+        $marketing = UserGroup::query()->create(['name' => 'Marketing', 'description' => 'Brand, style and the glossary only']);
+        $marketing->users()->attach([$giulia->id]);
+        $marketing->brainAccess()->create([
+            'organisation_id' => $organisation->id,
+            'scope_type' => ScopeTypeEnum::Organisation,
+            'scope_id' => $organisation->id,
+            'role' => BrainRoleEnum::Member,
+            'areas' => ['brand', 'style', 'glossary'],
+        ]);
+        app(ReconcileGroupBrainAccessAction::class)->execute([$giulia]);
 
         $demo = database_path('demo');
         $handbook = $sources->add($organisation, 'northwind-handbook', SourceProviderEnum::Local, localPath: $demo.'/northwind-handbook', ref: null, isShared: true);

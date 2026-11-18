@@ -64,8 +64,17 @@ export type AdminGroupRow = {
     users: AdminGroupMember[];
     user_ids: number[];
     role_ids: number[];
-    /** Brain access the group gives its members (#258): `scope_type:scope_id` and a role. */
-    brain_access: { scope: string; role: string }[];
+    /**
+     * Brain access the group gives its members (#258): `scope_type:scope_id` and a role, with an
+     * optional visibility ceiling and area / path limits (#334; empty lists: no limit).
+     */
+    brain_access: {
+        scope: string;
+        role: string;
+        max_visibility: string | null;
+        areas: string[];
+        path_prefixes: string[];
+    }[];
     can_update: boolean;
     can_delete: boolean;
     can_restore: boolean;

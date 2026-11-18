@@ -109,8 +109,8 @@ final class UpdateProposalStatusAction
             $this->activity->proposalRejected($proposal, $causer, $properties);
         }
 
-        app(NotifyOrganisationUsersService::class)->notify(
-            $proposal->organisation_id,
+        app(NotifyOrganisationUsersService::class)->notifyAboutProposal(
+            $proposal,
             new ProposalResolvedNotification($proposal, $payload->status),
         );
 

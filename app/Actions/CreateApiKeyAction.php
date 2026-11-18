@@ -33,6 +33,8 @@ final class CreateApiKeyAction
     /**
      * @param  list<string>  $scopes
      * @param  list<string>|null  $ipAllowlist
+     * @param  list<string>  $areas  Narrows the grant's areas (#334); empty: the grant's.
+     * @param  list<string>  $pathPrefixes  Narrows the grant's folders (#334); empty: the grant's.
      * @return array{key: ApiKey, plain: string}
      */
     public function execute(
@@ -47,6 +49,8 @@ final class CreateApiKeyAction
         ?int $rateLimitPerMinute = null,
         ?\DateTimeInterface $expiresAt = null,
         ?User $createdBy = null,
+        array $areas = [],
+        array $pathPrefixes = [],
     ): array {
         $scopes = ApiKeyScopeEnum::normalize($scopes);
 
@@ -80,13 +84,15 @@ final class CreateApiKeyAction
             'scope_id' => $scopeId,
             'role' => $role,
             'max_visibility' => $maxVisibility,
+            'areas' => $areas,
+            'path_prefixes' => $pathPrefixes,
             'scopes' => $scopes,
             'ip_allowlist' => $ipAllowlist,
             'rate_limit_per_minute' => $rateLimitPerMinute,
             'expires_at' => $expiresAt,
         ]);
 
-        // Validate perimeter before persisting.
+        // Validate perimeter before persisting: role, visibility, areas and folders within the grants.
         $this->perimeters->fromApiKey($key->setRelation('principal', $principal));
         $key->save();
 
@@ -103,6 +109,8 @@ final class CreateApiKeyAction
                 'scope_type' => $scopeType->value,
                 'scope_id' => $scopeId,
                 'role' => $role->value,
+                'areas' => $key->areas,
+                'path_prefixes' => $key->path_prefixes,
             ])
             ->log('created');
 

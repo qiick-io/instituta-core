@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Per-area access (#334): grants carry `areas` and `path_prefixes` lists (a migration carries the old single `area` and `path_prefix` over), user groups and API keys can be limited to some areas, one folder and (groups) a visibility, and the grants on one scope add up. **Contract:** the perimeter's `area` and `path_prefix` become `areas` and `path_prefixes` (lists; empty means no limit). Proposals, gap reports, notifications, sync reports, health and link rendering now stay inside the limits too; organisation-wide owner pages (clients, exports, activity log, agent calls) need an owner without limits. The demo seeds a "Marketing" group limited to brand, style and the glossary.
 - Instance settings storage and admin pages (issue #123): `Setting` model + `SettingsRepositoryService`, General / Localization / Authentication & security, Appearance with Teal theme presets (copied from Signaculum/externa, trimmed).
 - Section embeddings via `laravel/ai` (issue #65): `AI_EMBEDDINGS_ENABLED` off by default, local OpenAI-compatible provider, `instituta:embed`, `GET /api/v1/similar` (perimeter-scoped), JSON vectors on `item_sections`, re-index when the model version changes. Tests use `Embeddings::fake()`.
 - Scoped brain graph at `/brain/graph/{item?}` via `@xyflow/react` with an in-app radial layout (issue #49).

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Data;
 
+use App\Brain\Data\PerimeterData;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\VisibilityEnum;
 use Carbon\CarbonImmutable;
@@ -14,6 +15,10 @@ use Carbon\CarbonImmutable;
  */
 readonly class CreateBrainApiKeyData
 {
+    /**
+     * @param  list<string>  $areas  Areas the key reads (#334); empty: all the owner's.
+     * @param  list<string>  $pathPrefixes  Folders the key reads (#334); empty: all the owner's.
+     */
     public function __construct(
         public string $name,
         public ?string $agentName,
@@ -21,6 +26,8 @@ readonly class CreateBrainApiKeyData
         public VisibilityEnum $maxVisibility,
         public bool $canWrite,
         public ?CarbonImmutable $expiresAt,
+        public array $areas = [],
+        public array $pathPrefixes = [],
     ) {}
 
     /**
@@ -41,6 +48,10 @@ readonly class CreateBrainApiKeyData
             expiresAt: isset($validated['expires_at']) && is_string($validated['expires_at']) && $validated['expires_at'] !== ''
                 ? CarbonImmutable::parse($validated['expires_at'])->endOfDay()
                 : null,
+            areas: array_values(array_map(strval(...), is_array($validated['areas'] ?? null) ? $validated['areas'] : [])),
+            pathPrefixes: isset($validated['path_prefix']) && is_string($validated['path_prefix']) && trim($validated['path_prefix']) !== ''
+                ? [PerimeterData::normalisePath(trim($validated['path_prefix']))]
+                : [],
         );
     }
 }
