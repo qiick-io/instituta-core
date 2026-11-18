@@ -16,10 +16,10 @@ export function shortestPath(
     }
 
     const adjacency = new Map<string, string[]>();
-    const connect = (a: string, b: string): void => {
-        const list = adjacency.get(a) ?? [];
-        list.push(b);
-        adjacency.set(a, list);
+    const connect = (fromItem: string, toItem: string): void => {
+        const list = adjacency.get(fromItem) ?? [];
+        list.push(toItem);
+        adjacency.set(fromItem, list);
     };
 
     for (const edge of edges) {
