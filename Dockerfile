@@ -34,8 +34,8 @@ WORKDIR /var/www/html
 # -----------------------------------------------------------------------------
 FROM php-base AS build
 
-COPY --from=node:24-bookworm /usr/local/bin/node /usr/local/bin/node
-COPY --from=node:24-bookworm /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=node:26-bookworm /usr/local/bin/node /usr/local/bin/node
+COPY --from=node:26-bookworm /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
@@ -57,8 +57,8 @@ RUN composer dump-autoload --optimize --no-dev \
 # -----------------------------------------------------------------------------
 FROM php-base AS vite
 
-COPY --from=node:24-bookworm /usr/local/bin/node /usr/local/bin/node
-COPY --from=node:24-bookworm /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=node:26-bookworm /usr/local/bin/node /usr/local/bin/node
+COPY --from=node:26-bookworm /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
