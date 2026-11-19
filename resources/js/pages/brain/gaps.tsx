@@ -1,6 +1,14 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import { Head, Link, router } from '@inertiajs/react';
-import { CircleHelp, FilePenLine, SearchX, X } from 'lucide-react';
+import {
+    CircleCheck,
+    CircleDot,
+    CircleHelp,
+    CircleX,
+    FilePenLine,
+    SearchX,
+    X,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HeaderIconButton } from '@/components/admin/header-icon-button';
@@ -18,7 +26,8 @@ import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Drawer } from '@/components/ui/drawer';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { SegmentedIconItem } from '@/components/admin/segmented-icon-item';
+import { ToggleGroup } from '@/components/ui/toggle-group';
 import AppLayout from '@/layouts/app-layout';
 import { ReviewTabs } from '@/components/brain/review-tabs';
 import { index as reviewIndex } from '@/routes/review';
@@ -94,6 +103,18 @@ export default function BrainGaps({
         );
     };
 
+    const clearFilters = (): void => {
+        setSearch('');
+
+        if (statusFilter !== 'open') {
+            router.get(
+                gapsIndex.url(),
+                { status: 'open' },
+                { preserveState: true, replace: true },
+            );
+        }
+    };
+
     const filteredGaps = useMemo(() => {
         const needle = search.trim().toLowerCase();
 
@@ -111,7 +132,8 @@ export default function BrainGaps({
         );
     }, [gaps, search]);
 
-    const hasActiveFilters = search.trim() !== '';
+    // A status other than the default is a filter too: the toolbar stays, so the user can go back (#364).
+    const hasActiveFilters = search.trim() !== '' || statusFilter !== 'open';
     const isListEmpty = filteredGaps.length === 0;
     const hideListChrome =
         !hasPerimeter || !isOwner || (gaps.length === 0 && !hasActiveFilters);
@@ -261,16 +283,22 @@ export default function BrainGaps({
                             variant="outline"
                             aria-label={t('brain.gaps.colStatus')}
                         >
-                            {(['open', 'converted', 'dismissed'] as const).map(
-                                (status) => (
-                                    <ToggleGroupItem
-                                        key={status}
-                                        value={status}
-                                    >
-                                        {t(`brain.gaps.status.${status}`)}
-                                    </ToggleGroupItem>
-                                ),
-                            )}
+                            {(
+                                [
+                                    ['open', CircleDot],
+                                    ['converted', CircleCheck],
+                                    ['dismissed', CircleX],
+                                ] as const
+                            ).map(([status, Icon]) => (
+                                <SegmentedIconItem
+                                    key={status}
+                                    value={status}
+                                    isActive={statusFilter === status}
+                                    label={t(`brain.gaps.status.${status}`)}
+                                >
+                                    <Icon />
+                                </SegmentedIconItem>
+                            ))}
                         </ToggleGroup>
                     )
                 }
@@ -300,10 +328,7 @@ export default function BrainGaps({
                         }
                         action={
                             hasActiveFilters ? (
-                                <Button
-                                    type="button"
-                                    onClick={() => setSearch('')}
-                                >
+                                <Button type="button" onClick={clearFilters}>
                                     {t('common.clearFilters')}
                                 </Button>
                             ) : undefined

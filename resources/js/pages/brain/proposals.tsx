@@ -1,6 +1,12 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import { Head, router } from '@inertiajs/react';
-import { FilePenLine, SearchX } from 'lucide-react';
+import {
+    CircleCheck,
+    CircleDot,
+    CircleX,
+    FilePenLine,
+    SearchX,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TruncatedText } from '@/components/admin/truncated-text';
@@ -11,7 +17,8 @@ import { EmptyStatus } from '@/components/empty-status';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { SegmentedIconItem } from '@/components/admin/segmented-icon-item';
+import { ToggleGroup } from '@/components/ui/toggle-group';
 import proposalRoutes from '@/routes/review/proposals';
 import type { BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
@@ -70,6 +77,18 @@ export default function BrainProposals({
         );
     };
 
+    const clearFilters = (): void => {
+        setSearch('');
+
+        if (statusFilter !== 'open') {
+            router.get(
+                proposalRoutes.index.url(),
+                { status: 'open' },
+                { preserveState: true, replace: true },
+            );
+        }
+    };
+
     const filteredProposals = useMemo(() => {
         const needle = search.trim().toLowerCase();
 
@@ -85,7 +104,8 @@ export default function BrainProposals({
         );
     }, [proposals, search]);
 
-    const hasActiveFilters = search.trim() !== '';
+    // A status other than the default is a filter too: the toolbar stays, so the user can go back (#364).
+    const hasActiveFilters = search.trim() !== '' || statusFilter !== 'open';
     const isListEmpty = filteredProposals.length === 0;
     const hideListChrome =
         !hasPerimeter || (proposals.length === 0 && !hasActiveFilters);
@@ -159,16 +179,24 @@ export default function BrainProposals({
                             variant="outline"
                             aria-label={t('brain.proposals.colStatus')}
                         >
-                            {(['open', 'accepted', 'rejected'] as const).map(
-                                (status) => (
-                                    <ToggleGroupItem
-                                        key={status}
-                                        value={status}
-                                    >
-                                        {t(`brain.proposals.status.${status}`)}
-                                    </ToggleGroupItem>
-                                ),
-                            )}
+                            {(
+                                [
+                                    ['open', CircleDot],
+                                    ['accepted', CircleCheck],
+                                    ['rejected', CircleX],
+                                ] as const
+                            ).map(([status, Icon]) => (
+                                <SegmentedIconItem
+                                    key={status}
+                                    value={status}
+                                    isActive={statusFilter === status}
+                                    label={t(
+                                        `brain.proposals.status.${status}`,
+                                    )}
+                                >
+                                    <Icon />
+                                </SegmentedIconItem>
+                            ))}
                         </ToggleGroup>
                     )
                 }
@@ -194,10 +222,7 @@ export default function BrainProposals({
                         }
                         action={
                             hasActiveFilters ? (
-                                <Button
-                                    type="button"
-                                    onClick={() => setSearch('')}
-                                >
+                                <Button type="button" onClick={clearFilters}>
                                     {t('common.clearFilters')}
                                 </Button>
                             ) : undefined
