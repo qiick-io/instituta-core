@@ -23,26 +23,39 @@ use App\Policies\UserGroupPolicy;
 use App\Services\ActivityEventLoggerService;
 use App\Services\ActivityOrganisationResolverService;
 use App\Services\Authorization\EffectivePermissionResolverService;
+use App\Services\BreakGlassPolicyService;
+use App\Services\OidcSettingsRepositoryService;
 use App\Services\Search\PgsqlFullTextSearchDriver;
 use App\Services\Search\SqliteFts5SearchDriver;
 use App\Services\Search\UnsupportedSearchDriver;
 use App\Services\SettingsRepositoryService;
+use App\Services\SsoUserProvisioningService;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Fortify\Events\TwoFactorAuthenticationDisabled;
 use Laravel\Fortify\Events\TwoFactorAuthenticationEnabled;
+use Qiick\Oidc\Contracts\BreakGlassPolicyContract;
+use Qiick\Oidc\Contracts\ProviderConfigurationRepositoryContract;
+use Qiick\Oidc\Contracts\UserProvisioningContract;
+use Qiick\Oidc\Exceptions\IdentityProviderRequestException;
+use Qiick\Oidc\Services\RoleMappingService;
+use Qiick\Oidc\Services\RpInitiatedLogoutService;
+use Qiick\Oidc\Services\SsoOnlyModeService;
+use Qiick\Oidc\Services\UserLinkingService;
 use Spatie\Activitylog\Facades\Activity as ActivityFacade;
 use Spatie\Permission\Models\Permission;
 
@@ -51,6 +64,12 @@ use Spatie\Permission\Models\Permission;
  */
 class AppServiceProvider extends ServiceProvider
 {
+    /**
+     * Request attribute with the identity provider's logout URL of an SSO session that just
+     * logged out (null for a local login), read by SsoLogoutResponse.
+     */
+    public const string IDENTITY_PROVIDER_LOGOUT_URL_ATTRIBUTE = 'oidc_end_session_url';
+
     /**
      * Register any application services.
      */
@@ -65,6 +84,29 @@ class AppServiceProvider extends ServiceProvider
                 default => new UnsupportedSearchDriver,
             };
         });
+
+        $this->registerSingleSignOn();
+    }
+
+    /**
+     * qiick/laravel-oidc with Instituta's contracts: settings from the settings table, the
+     * break-glass policy and JIT accounts with first and last name. The package provider is
+     * auto-discovered and registered first, so these bindings replace its defaults.
+     *
+     * Role synchronisation keeps the package's Spatie default (Instituta roles are Spatie
+     * roles) and the second factor keeps the Fortify default, configured in `config/oidc.php`.
+     */
+    protected function registerSingleSignOn(): void
+    {
+        $this->app->bind(ProviderConfigurationRepositoryContract::class, OidcSettingsRepositoryService::class);
+        $this->app->bind(BreakGlassPolicyContract::class, BreakGlassPolicyService::class);
+        $this->app->bind(UserProvisioningContract::class, SsoUserProvisioningService::class);
+
+        foreach ([UserLinkingService::class, SsoOnlyModeService::class, RoleMappingService::class] as $settingsDrivenService) {
+            $this->app->beforeResolving($settingsDrivenService, function (): void {
+                app(OidcSettingsRepositoryService::class)->applyToConfig(app(ConfigRepository::class));
+            });
+        }
     }
 
     /**
@@ -167,6 +209,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::listen(Logout::class, function (Logout $event): void {
+            $this->rememberIdentityProviderLogoutUrl(request());
+
             if (! $event->user instanceof User) {
                 return;
             }
@@ -192,6 +236,29 @@ class AppServiceProvider extends ServiceProvider
                 ])
                 ->log('Failed login attempt');
         });
+    }
+
+    /**
+     * Keeps the identity provider's logout URL of an SSO session for SsoLogoutResponse. It must
+     * be read here: the session still holds the SSO identity, and Fortify invalidates it right
+     * after the Logout event. An unreachable IdP never blocks the local logout.
+     */
+    protected function rememberIdentityProviderLogoutUrl(Request $request): void
+    {
+        if (! $request->hasSession()) {
+            return;
+        }
+
+        try {
+            $endSessionUrl = app(RpInitiatedLogoutService::class)->endSessionUrl($request->session());
+        } catch (IdentityProviderRequestException $exception) {
+            Log::warning('SSO logout: the identity provider could not be reached, only the local session ends.', [
+                'exception' => $exception->getMessage(),
+            ]);
+            $endSessionUrl = null;
+        }
+
+        $request->attributes->set(self::IDENTITY_PROVIDER_LOGOUT_URL_ATTRIBUTE, $endSessionUrl);
     }
 
     protected function registerTwoFactorActivityListeners(): void

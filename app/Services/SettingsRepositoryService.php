@@ -6,17 +6,22 @@ namespace App\Services;
 
 use App\Enums\ThemePresetEnum;
 use App\Models\Setting;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
 
 /**
  * Instance settings stored in the `settings` table, merged over defaults, with typed getters
  * for the code that uses them (login throttle, password rule, self-registration, required 2FA,
- * UI language, appearance and branding colours).
+ * single sign-on, UI language, appearance and branding colours).
  *
  * Copied from qiick-io/signaculum-core and trimmed (no email templates / branding file uploads).
  * Setting keys keep the externa-core / Excubia names (`project_color`, …) so the apps read the
  * same way; in Instituta "project" means this instance.
+ *
+ * Secrets (SECRET_KEYS: the OIDC client secret) are stored encrypted, never sent to the edit
+ * pages, and kept when a save leaves them empty. The `oidc_*` keys keep Excubia's names.
  *
  * Registered as a singleton; values are read once per instance and reloaded after a write.
  */
@@ -25,6 +30,8 @@ final class SettingsRepositoryService
     public const array PASSWORD_POLICIES = ['weak', 'medium', 'strong'];
 
     public const array APPEARANCES = ['system', 'light', 'dark'];
+
+    public const array SECRET_KEYS = ['oidc_client_secret'];
 
     /** @var array<string, mixed>|null */
     private ?array $values = null;
@@ -53,6 +60,16 @@ final class SettingsRepositoryService
             'registration_enabled' => false,
             'two_factor_required' => false,
             'activity_retention_days' => (int) config('activitylog.clean_after_days', 365),
+            'oidc_enabled' => false,
+            'oidc_issuer' => null,
+            'oidc_client_id' => null,
+            'oidc_client_secret' => null,
+            'oidc_button_label' => null,
+            'oidc_jit_provisioning' => false,
+            'oidc_auto_link' => false,
+            'oidc_only' => false,
+            'oidc_role_mapping_enabled' => false,
+            'oidc_organization' => null,
         ];
     }
 
@@ -70,23 +87,43 @@ final class SettingsRepositoryService
     }
 
     /**
-     * Only the given keys, for one settings page.
+     * Only the given keys, for one settings page. A secret never leaves the server: ask for
+     * `has_<key>` to learn whether one is stored.
      *
      * @param  list<string>  $keys
      * @return array<string, mixed>
      */
     public function forEditOnly(array $keys): array
     {
-        return array_intersect_key($this->all(), array_flip($keys));
+        $values = array_diff_key($this->all(), array_flip(self::SECRET_KEYS));
+
+        foreach (self::SECRET_KEYS as $secretKey) {
+            $values['has_'.$secretKey] = $this->string($secretKey) !== null;
+        }
+
+        return array_intersect_key($values, array_flip($keys));
     }
 
     /**
-     * Saves the given keys in one transaction.
+     * Saves the given keys in one transaction. A secret is encrypted; an empty one keeps the
+     * stored value, so the edit page can leave the field blank.
      *
      * @param  array<string, mixed>  $values
      */
     public function save(array $values): void
     {
+        foreach (self::SECRET_KEYS as $secretKey) {
+            if (! array_key_exists($secretKey, $values)) {
+                continue;
+            }
+
+            if (is_string($values[$secretKey]) && $values[$secretKey] !== '') {
+                $values[$secretKey] = Crypt::encryptString($values[$secretKey]);
+            } else {
+                unset($values[$secretKey]);
+            }
+        }
+
         DB::transaction(function () use ($values): void {
             foreach ($values as $key => $value) {
                 Setting::query()->updateOrCreate(['key' => $key], ['value' => $value]);
@@ -209,6 +246,95 @@ final class SettingsRepositoryService
     public function isTwoFactorRequired(): bool
     {
         return (bool) $this->all()['two_factor_required'];
+    }
+
+    /**
+     * Whether an administrator turned SSO on. The login is available only once the issuer and
+     * client id are set too ({@see OidcSettingsRepositoryService::isEnabled()}).
+     */
+    public function isOidcEnabled(): bool
+    {
+        return (bool) $this->all()['oidc_enabled'];
+    }
+
+    /**
+     * The issuer exactly as saved: the package compares it with the IdP's discovery document
+     * byte for byte, so no slash is added or removed here.
+     */
+    public function oidcIssuer(): ?string
+    {
+        return $this->string('oidc_issuer');
+    }
+
+    public function oidcClientId(): ?string
+    {
+        return $this->string('oidc_client_id');
+    }
+
+    /**
+     * The decrypted client secret, or null for a public client (PKCE only) or a value that no
+     * longer decrypts after an `APP_KEY` change.
+     */
+    public function oidcClientSecret(): ?string
+    {
+        $storedSecret = $this->string('oidc_client_secret');
+
+        if ($storedSecret === null) {
+            return null;
+        }
+
+        try {
+            $plainSecret = Crypt::decryptString($storedSecret);
+        } catch (DecryptException) {
+            return null;
+        }
+
+        return $plainSecret !== '' ? $plainSecret : null;
+    }
+
+    public function oidcButtonLabel(): ?string
+    {
+        return $this->string('oidc_button_label');
+    }
+
+    /**
+     * Create a local account on the first SSO login of an unknown person.
+     */
+    public function isOidcJitProvisioningEnabled(): bool
+    {
+        return (bool) $this->all()['oidc_jit_provisioning'];
+    }
+
+    /**
+     * Link an unknown SSO identity to the local account with the same verified email.
+     */
+    public function isOidcAutoLinkEnabled(): bool
+    {
+        return (bool) $this->all()['oidc_auto_link'];
+    }
+
+    /**
+     * SSO-only mode: local logins are refused except for break-glass accounts.
+     */
+    public function isOidcOnly(): bool
+    {
+        return (bool) $this->all()['oidc_only'];
+    }
+
+    /**
+     * Apply the organisation roles of the `orgs` claim to the local roles at every SSO login.
+     */
+    public function isOidcRoleMappingEnabled(): bool
+    {
+        return (bool) $this->all()['oidc_role_mapping_enabled'];
+    }
+
+    /**
+     * Id or slug of the Signaculum organisation whose roles map to this instance.
+     */
+    public function oidcOrganization(): ?string
+    {
+        return $this->string('oidc_organization');
     }
 
     /**
