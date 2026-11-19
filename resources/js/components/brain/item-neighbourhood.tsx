@@ -1,9 +1,15 @@
 /**
  * Mini-graph of an item's linked neighbours in the Explorer reading aside (#289).
  * Uses the same area colours as the big graph (`legendColour` / `AREA_TOKENS`).
+ * Every node names its item in a tooltip on hover and keyboard focus (#365).
  */
 import { Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { AREA_TOKENS, areaIndex } from '@/lib/brain-graph-render';
 import { graph } from '@/routes';
 import { show as explorerShow } from '@/routes/explorer';
@@ -42,6 +48,16 @@ const NEIGHBOUR_RADIUS = 7;
 /** Softened area fill, same mix as the big graph legend. */
 function areaColour(area: string, areas: string[]): string {
     return `color-mix(in oklab, var(${AREA_TOKENS[areaIndex(area, areas)]}) 78%, var(--card))`;
+}
+
+/** A node's tooltip: the item's title over a muted second line. */
+function NodeLabel({ title, detail }: { title: string; detail: string }) {
+    return (
+        <span className="flex max-w-56 flex-col gap-0.5">
+            <span className="font-medium">{title}</span>
+            <span className="opacity-70">{detail}</span>
+        </span>
+    );
 }
 
 /**
@@ -86,45 +102,66 @@ export function ItemNeighbourhood({ centre, neighbourhood }: Props) {
                                     className="stroke-border"
                                     strokeWidth={1}
                                 />
-                                <a
-                                    href={explorerShow.url(
-                                        neighbour.stable_key,
-                                    )}
-                                    aria-label={neighbour.title}
-                                    className="focus-visible:outline-2 focus-visible:outline-ring"
-                                    onClick={(event) => {
-                                        // An Inertia visit, not a full page load.
-                                        event.preventDefault();
-                                        router.visit(
-                                            explorerShow.url(
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <a
+                                            href={explorerShow.url(
                                                 neighbour.stable_key,
-                                            ),
-                                        );
-                                    }}
-                                >
-                                    <title>{neighbour.title}</title>
-                                    <circle
-                                        cx={neighbourX}
-                                        cy={neighbourY}
-                                        r={NEIGHBOUR_RADIUS}
-                                        fill={areaColour(neighbour.area, areas)}
-                                        className="stroke-border"
-                                        strokeWidth={1}
-                                    />
-                                </a>
+                                            )}
+                                            aria-label={neighbour.title}
+                                            className="group outline-none"
+                                            onClick={(event) => {
+                                                // An Inertia visit, not a full page load.
+                                                event.preventDefault();
+                                                router.visit(
+                                                    explorerShow.url(
+                                                        neighbour.stable_key,
+                                                    ),
+                                                );
+                                            }}
+                                        >
+                                            <circle
+                                                cx={neighbourX}
+                                                cy={neighbourY}
+                                                r={NEIGHBOUR_RADIUS}
+                                                fill={areaColour(
+                                                    neighbour.area,
+                                                    areas,
+                                                )}
+                                                className="stroke-border transition-[stroke-width] group-hover:stroke-foreground group-focus-visible:stroke-ring"
+                                                strokeWidth={1}
+                                            />
+                                        </a>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top">
+                                        <NodeLabel
+                                            title={neighbour.title}
+                                            detail={neighbour.stable_key}
+                                        />
+                                    </TooltipContent>
+                                </Tooltip>
                             </g>
                         );
                     })}
-                    <circle
-                        cx={CENTRE_X}
-                        cy={CENTRE_Y}
-                        r={CENTRE_RADIUS}
-                        fill={areaColour(centre.area, areas)}
-                        className="stroke-foreground/40"
-                        strokeWidth={1.5}
-                    >
-                        <title>{centre.title}</title>
-                    </circle>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <circle
+                                cx={CENTRE_X}
+                                cy={CENTRE_Y}
+                                r={CENTRE_RADIUS}
+                                fill={areaColour(centre.area, areas)}
+                                className="stroke-foreground/40"
+                                strokeWidth={1.5}
+                                aria-label={centre.title}
+                            />
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                            <NodeLabel
+                                title={centre.title}
+                                detail={t('brain.reading.currentItem')}
+                            />
+                        </TooltipContent>
+                    </Tooltip>
                 </svg>
             )}
 
