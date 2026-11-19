@@ -104,25 +104,22 @@ return new class extends Migration
         Schema::create('api_keys', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->string('name');
-            $table->string('key_prefix', 32)->unique();
-            $table->string('key_hash', 64);
+            $table->string('prefix');
+            $table->string('hash', 64)->unique();
+            $table->string('display_prefix', 12);
             $table->foreignUlid('principal_id')->constrained('principals')->cascadeOnDelete();
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('scope_type');
             $table->ulid('scope_id');
             $table->string('role');
             $table->string('max_visibility');
-            $table->json('scopes');
+            $table->json('abilities');
             $table->json('ip_allowlist')->nullable();
-            $table->unsignedInteger('rate_limit_per_minute')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('last_used_at')->nullable();
-            $table->string('last_used_ip', 45)->nullable();
             $table->timestamp('revoked_at')->nullable();
-            $table->string('previous_key_hash', 64)->nullable();
-            $table->timestamp('previous_key_valid_until')->nullable();
             $table->timestamps();
 
+            $table->index('display_prefix');
             $table->index(['scope_type', 'scope_id']);
             $table->index('revoked_at');
         });
@@ -336,19 +333,13 @@ return new class extends Migration
             $table->index('called_at');
         });
 
-        /*
-         * The unique key spans three strings and a ULID. At string(255) they cost 3 × 1020 + 104
-         * bytes under utf8mb4, past InnoDB's 3072-byte limit (#356); at 64 characters the key is
-         * 3 × 256 + 104 = 872 bytes. The columns hold a ScopeTypeEnum value, a QuotaMetricEnum
-         * value and a period name, all short identifiers.
-         */
         Schema::create('quotas', function (Blueprint $table): void {
             $table->ulid('id')->primary();
-            $table->string('scope_type', 64);
+            $table->string('scope_type');
             $table->ulid('scope_id');
-            $table->string('metric', 64);
+            $table->string('metric');
             $table->unsignedBigInteger('limit_value');
-            $table->string('period', 64);
+            $table->string('period');
             $table->timestamps();
 
             $table->unique(['scope_type', 'scope_id', 'metric', 'period']);

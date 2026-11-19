@@ -14,6 +14,8 @@ use Illuminate\Validation\Rules\Unique;
  */
 trait ProfileValidationRules
 {
+    use UsernameValidationRules;
+
     /**
      * Get the validation rules used to validate user profiles.
      *
@@ -24,6 +26,7 @@ trait ProfileValidationRules
         return [
             'first_name' => $this->nameRules(),
             'last_name' => ['nullable', 'string', 'max:255'],
+            'username' => self::usernameRules($userId),
             'email' => $this->emailRules($userId),
         ];
     }

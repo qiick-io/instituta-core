@@ -32,6 +32,7 @@ class UpdateUserRequest extends StoreUserRequest
         return [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
+            'username' => self::usernameRules($this->target()->id),
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($this->target())],
             'password' => ['nullable', 'string', Password::default()],
             'is_active' => ['boolean'],

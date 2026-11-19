@@ -472,7 +472,11 @@ it('carries a grant\'s single area and path prefix over to the lists', function 
         $this->markTestSkipped('Schema changes end the test transaction on MySQL and MariaDB.');
     }
 
-    $this->artisan('migrate:rollback', ['--step' => 1])->assertSuccessful();
+    // Target the migration under test: newer migrations (users.username) must not decide
+    // which schema change this rollback reverses.
+    $this->artisan('migrate:rollback', [
+        '--path' => 'database/migrations/2026_11_18_153541_add_area_limits_to_grants_keys_and_group_access.php',
+    ])->assertSuccessful();
     $principalId = $this->developerPrincipal->id;
     $grantId = (string) Str::ulid();
     DB::table('grants')->insert([

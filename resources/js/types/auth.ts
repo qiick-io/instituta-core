@@ -2,6 +2,7 @@ export type User = {
     id: number;
     first_name: string;
     last_name: string | null;
+    username: string | null;
     name: string;
     email: string;
     avatar?: string;

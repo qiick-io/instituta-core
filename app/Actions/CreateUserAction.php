@@ -33,6 +33,7 @@ class CreateUserAction
     public function execute(
         string $firstName,
         ?string $lastName,
+        ?string $username,
         string $email,
         string $password,
         array $roles,
@@ -41,10 +42,11 @@ class CreateUserAction
         BrainRoleEnum $brainRole = BrainRoleEnum::Member,
         ?array $groupIds = null,
     ): User {
-        return DB::transaction(function () use ($firstName, $lastName, $email, $password, $roles, $isActive, $organisation, $brainRole, $groupIds): User {
+        return DB::transaction(function () use ($firstName, $lastName, $username, $email, $password, $roles, $isActive, $organisation, $brainRole, $groupIds): User {
             $user = (new User)->forceFill([
                 'first_name' => $firstName,
                 'last_name' => $lastName,
+                'username' => $username,
                 'email' => $email,
                 'password' => $password,
                 'is_active' => $isActive,

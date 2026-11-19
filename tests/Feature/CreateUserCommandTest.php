@@ -59,6 +59,33 @@ it('defaults later users to the reader role', function (): void {
     expect($user->hasRole(RoleEnum::Reader->value))->toBeTrue();
 });
 
+it('normalizes and validates the optional CLI username', function (): void {
+    $this->artisan('instituta:create-user', [
+        '--first-name' => 'Ada',
+        '--last-name' => 'Lovelace',
+        '--username' => '  Ada.Lovelace  ',
+        '--email' => 'ada@example.com',
+        '--role' => 'reader',
+    ])
+        ->expectsQuestion('Password', 'correct-horse-battery')
+        ->assertSuccessful();
+
+    expect(User::query()->where('email', 'ada@example.com')->sole()->username)->toBe('ada.lovelace');
+
+    $this->artisan('instituta:create-user', [
+        '--first-name' => 'Grace',
+        '--last-name' => 'Hopper',
+        '--username' => 'ADA.LOVELACE',
+        '--email' => 'grace@example.com',
+        '--role' => 'reader',
+    ])
+        ->expectsQuestion('Password', 'correct-horse-battery')
+        ->expectsOutputToContain('The username has already been taken.')
+        ->assertFailed();
+
+    expect(User::query()->where('email', 'grace@example.com')->exists())->toBeFalse();
+});
+
 it('refuses a duplicate email from the CLI', function (): void {
     User::factory()->create(['email' => 'ada@example.com']);
 
