@@ -46,7 +46,8 @@ use Illuminate\Support\Facades\Hash;
  *
  * Every name and every line of content is invented; the brains live in `database/demo/`. Run on an
  * empty database only: `php artisan migrate:fresh && php artisan db:seed --class=DemoAgencySeeder`.
- * Sign in as ada@northwind.example / `password`.
+ * Sign in as ada@northwind.example / `password`, or as the development super admin from
+ * `config/super_admin.php` (#362), who owns the demo brain too.
  *
  * @side-effect Syncs the demo sources (copies demo assets to private storage) and issues API keys.
  */
@@ -98,6 +99,19 @@ final class DemoAgencySeeder extends Seeder
         $grantAccess->execute($marco, $organisation, BrainRoleEnum::Member);
         $priya = $this->person('Priya', 'Nair', 'priya@northwind.example', RoleEnum::Reader);
         $grantAccess->execute($priya, $organisation, BrainRoleEnum::Member);
+
+        // The development super admin of every qiick app (#362) owns the demo brain too.
+        $superAdminSeeder = new CreateSuperAdminSeeder;
+
+        if ($this->command !== null) {
+            $superAdminSeeder->setCommand($this->command);
+        }
+
+        $superAdmin = $superAdminSeeder->seedSuperAdmin();
+
+        if ($superAdmin !== null) {
+            $grantAccess->execute($superAdmin, $organisation, BrainRoleEnum::Owner);
+        }
 
         $team = UserGroup::query()->create(['name' => 'Delivery team', 'description' => 'Developers who ship client releases']);
         $team->users()->attach([$marco->id, $priya->id]);
@@ -157,7 +171,7 @@ final class DemoAgencySeeder extends Seeder
         $this->reviewInbox($organisation, $ownerPrincipal);
         $this->agentCalls($organisation, $companies, $createApiKey);
 
-        $this->command?->info('Demo agency ready. Sign in as '.self::OWNER_EMAIL.' / '.self::PASSWORD.'.');
+        $this->command?->info('Demo agency ready. Sign in as '.self::OWNER_EMAIL.' / '.self::PASSWORD.', or as the development super admin ('.config('super_admin.email').').');
     }
 
     private function person(string $firstName, string $lastName, string $email, RoleEnum $role): User
