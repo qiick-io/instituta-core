@@ -186,8 +186,8 @@ final class AuthenticateApiKeyMiddleware
     }
 
     /**
-     * REST answers `{message, code, error?}`; MCP a JSON-RPC error whose `data.code`
-     * carries the contract code (#227). RFC 6750 `error` is set on REST when given.
+     * REST answers `{message, error}`; MCP a JSON-RPC error whose `data.error`
+     * carries the contract code (#227). RFC 6750 `error` stays in WWW-Authenticate.
      */
     private function refuse(
         Request $request,

@@ -117,7 +117,7 @@ it('returns 401 without a bearer key when MCP is enabled', function (): void {
             'capabilities' => [],
             'clientInfo' => ['name' => 'test', 'version' => '0'],
         ],
-    ], $headers)->assertUnauthorized()->assertJsonPath('error.data.code', 'unauthenticated');
+    ], $headers)->assertUnauthorized()->assertJsonPath('error.data.error', 'unauthenticated');
 });
 
 it('lists only items inside the key perimeter and audits the call', function (): void {
