@@ -6,5 +6,7 @@
     "frontendRoots": ["resources/js"],
     "oxlint": true,
     "app": true,
-    "patterns": ["command-palette", "keyboard-shortcuts"]
+    "patterns": ["command-palette", "keyboard-shortcuts"],
+    "requiredItems": [],
+    "divergences": {}
 }
