@@ -111,7 +111,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('key_prefix', 32)->unique();
             $table->string('key_hash', 64);
-            $table->foreignUuid('principal_id')->constrained('principals')->cascadeOnDelete();
+            // Fleet: restrict (or null + revoke) — never cascade-erase keys with the principal.
+            $table->foreignUuid('owner_principal_id')->constrained('principals')->restrictOnDelete();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('scope_type');
             $table->uuid('scope_id');
@@ -122,12 +123,12 @@ return new class extends Migration
             $table->json('scopes');
             $table->json('ip_allowlist')->nullable();
             $table->unsignedInteger('rate_limit_per_minute')->nullable();
-            $table->timestamp('expires_at')->nullable();
+            $table->dateTime('expires_at')->nullable();
             $table->timestamp('last_used_at')->nullable();
             $table->string('last_used_ip', 45)->nullable();
             $table->timestamp('revoked_at')->nullable();
             $table->string('previous_key_hash', 64)->nullable();
-            $table->timestamp('previous_key_valid_until')->nullable();
+            $table->dateTime('previous_key_valid_until')->nullable();
             $table->timestamps();
 
             $table->index(['scope_type', 'scope_id']);

@@ -28,7 +28,7 @@ use Symfony\Component\HttpFoundation\IpUtils;
  *
  * The plaintext appears once on create/rotate. Storage holds the public
  * `key_prefix` (`ins_{env}_{id}`) and SHA-256 of the full token. Declared
- * divergences from the shared baseline: `principal_id` (keys act as Principals),
+ * divergences from the shared baseline: `owner_principal_id` (keys act as Principals),
  * `scope_type` / `scope_id` (multi-tenancy), `role` / `max_visibility` (graph
  * visibility ceiling), and uuid v7 primary keys.
  *
@@ -36,7 +36,7 @@ use Symfony\Component\HttpFoundation\IpUtils;
  * @property string $name
  * @property string $key_prefix
  * @property string $key_hash
- * @property string $principal_id
+ * @property string $owner_principal_id
  * @property int|null $created_by
  * @property ScopeTypeEnum $scope_type
  * @property string $scope_id
@@ -60,7 +60,7 @@ use Symfony\Component\HttpFoundation\IpUtils;
     'name',
     'key_prefix',
     'key_hash',
-    'principal_id',
+    'owner_principal_id',
     'created_by',
     'scope_type',
     'scope_id',
@@ -111,7 +111,7 @@ class ApiKey extends Model
      */
     public function principal(): BelongsTo
     {
-        return $this->belongsTo(Principal::class);
+        return $this->belongsTo(Principal::class, 'owner_principal_id');
     }
 
     /**

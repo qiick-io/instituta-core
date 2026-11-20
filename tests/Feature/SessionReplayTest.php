@@ -45,7 +45,7 @@ it('scopes session replay to the owner organisation and hides other tenants', fu
 
     $callA = ContractCall::factory()->create([
         'organisation_id' => $orgA->id,
-        'principal_id' => $principalA->id,
+        'owner_principal_id' => $principalA->id,
         'scope_type' => ScopeTypeEnum::Organisation,
         'scope_id' => $orgA->id,
         'tool_or_endpoint' => 'brain.search',
@@ -55,7 +55,7 @@ it('scopes session replay to the owner organisation and hides other tenants', fu
 
     ContractCall::factory()->create([
         'organisation_id' => $orgB->id,
-        'principal_id' => $principalB->id,
+        'owner_principal_id' => $principalB->id,
         'scope_type' => ScopeTypeEnum::Organisation,
         'scope_id' => $orgB->id,
         'tool_or_endpoint' => 'brain.get',
@@ -110,7 +110,7 @@ it('filters session replay by principal and tool', function (): void {
 
     ContractCall::factory()->create([
         'organisation_id' => $org->id,
-        'principal_id' => $principal->id,
+        'owner_principal_id' => $principal->id,
         'scope_type' => ScopeTypeEnum::Organisation,
         'scope_id' => $org->id,
         'tool_or_endpoint' => 'brain.search',
@@ -126,7 +126,7 @@ it('filters session replay by principal and tool', function (): void {
 
     $this->actingAs($user)
         ->get(route('activity.agent-calls', [
-            'principal_id' => $principal->id,
+            'owner_principal_id' => $principal->id,
             'tool_or_endpoint' => 'brain.search',
         ]))
         ->assertOk()

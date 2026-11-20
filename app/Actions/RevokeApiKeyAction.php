@@ -37,7 +37,8 @@ final class RevokeApiKeyAction
                 'scopes' => $key->scopes,
                 'key_prefix' => $key->key_prefix,
                 'organisation_id' => $key->principal?->organisation_id,
-                'principal_id' => $key->principal_id,
+                'api_key_id' => $key->id,
+                'owner_principal_id' => $key->owner_principal_id,
             ])
             ->log('revoked');
 

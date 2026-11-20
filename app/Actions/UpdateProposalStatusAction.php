@@ -122,7 +122,7 @@ final class UpdateProposalStatusAction
      */
     private function assertKeyMayAccept(ApiKey $apiKey, Proposal $proposal): void
     {
-        if ($proposal->api_key_id === $apiKey->id || $proposal->proposed_by_principal_id === $apiKey->principal_id) {
+        if ($proposal->api_key_id === $apiKey->id || $proposal->proposed_by_principal_id === $apiKey->owner_principal_id) {
             throw new ContractException(ContractErrorCodeEnum::SelfAcceptRefused, 'A proposal cannot be accepted by the key or principal that opened it.');
         }
 

@@ -136,13 +136,13 @@ it('erases client A content and keys without touching client B or own company', 
         'max_visibility' => VisibilityEnum::Internal,
     ]);
     $keyA = ApiKey::factory()->create([
-        'principal_id' => $agent->id,
+        'owner_principal_id' => $agent->id,
         'scope_type' => ScopeTypeEnum::Company,
         'scope_id' => $clientA->id,
         'revoked_at' => null,
     ]);
     $keyB = ApiKey::factory()->create([
-        'principal_id' => $agent->id,
+        'owner_principal_id' => $agent->id,
         'scope_type' => ScopeTypeEnum::Company,
         'scope_id' => $clientB->id,
         'revoked_at' => null,

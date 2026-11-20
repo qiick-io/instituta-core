@@ -20,7 +20,7 @@ test('instituta notify-expiring-keys notifies organisation users once per key', 
     ]);
 
     ApiKey::factory()->create([
-        'principal_id' => $principal->id,
+        'owner_principal_id' => $principal->id,
         'expires_at' => now()->addDays(7)->addHours(12),
         'revoked_at' => null,
     ]);

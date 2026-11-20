@@ -65,7 +65,7 @@ it('bootstraps org company owner principal and key from instituta:install', func
         expect($principal)->not->toBeNull();
 
         expect(Grant::query()->where('principal_id', $principal->id)->exists())->toBeTrue();
-        expect(ApiKey::query()->where('principal_id', $principal->id)->count())->toBe(1);
+        expect(ApiKey::query()->where('owner_principal_id', $principal->id)->count())->toBe(1);
 
         expect(Activity::query()->where('log_name', 'api-keys')->where('event', 'created')->exists())->toBeTrue();
     } finally {
