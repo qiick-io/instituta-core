@@ -16,6 +16,7 @@ use App\Models\Company;
 use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\User;
+use App\Services\InitialSuperAdminPasswordService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -49,8 +50,11 @@ class InstallCommand extends Command
 
     protected $description = 'First-run setup: write .env, migrate, bootstrap owner, optional npm build (CI: --no-interaction --force)';
 
-    public function handle(CreateApiKeyAction $createApiKey, GrantOrganisationAccessAction $grantOrganisationAccess): int
-    {
+    public function handle(
+        CreateApiKeyAction $createApiKey,
+        GrantOrganisationAccessAction $grantOrganisationAccess,
+        InitialSuperAdminPasswordService $passwordValidation,
+    ): int {
         $force = (bool) $this->option('force');
         $stack = (string) $this->option('stack');
 
@@ -122,7 +126,7 @@ class InstallCommand extends Command
         $this->call('db:seed', ['--class' => RoleSeeder::class, '--force' => true]);
 
         if (! $this->option('no-owner')) {
-            $boot = $this->bootstrapOwner($createApiKey, $grantOrganisationAccess);
+            $boot = $this->bootstrapOwner($createApiKey, $grantOrganisationAccess, $passwordValidation);
             if ($boot !== self::SUCCESS) {
                 return $boot;
             }
@@ -172,8 +176,11 @@ class InstallCommand extends Command
         return $env;
     }
 
-    private function bootstrapOwner(CreateApiKeyAction $createApiKey, GrantOrganisationAccessAction $grantOrganisationAccess): int
-    {
+    private function bootstrapOwner(
+        CreateApiKeyAction $createApiKey,
+        GrantOrganisationAccessAction $grantOrganisationAccess,
+        InitialSuperAdminPasswordService $passwordValidation,
+    ): int {
         if (Organisation::query()->exists()) {
             $this->warn('Organisation already exists; skipping owner bootstrap.');
 
@@ -189,6 +196,14 @@ class InstallCommand extends Command
         $plainPassword = is_string($passwordOption) && $passwordOption !== ''
             ? $passwordOption
             : Str::password(20);
+
+        $reason = $passwordValidation->failureReason($plainPassword, app()->environment());
+
+        if ($reason !== null) {
+            $this->error("Refusing: {$reason}");
+
+            return self::FAILURE;
+        }
 
         /** @var array{org: Organisation, company: Company, user: User, principal: Principal, plain: string} $created */
         $created = DB::transaction(function () use (

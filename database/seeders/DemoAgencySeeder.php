@@ -31,6 +31,7 @@ use App\Models\Proposal;
 use App\Models\Source;
 use App\Models\User;
 use App\Models\UserGroup;
+use App\Services\InitialSuperAdminPasswordService;
 use App\Services\SourceRegistryService;
 use App\Services\SourceSyncService;
 use Illuminate\Database\Seeder;
@@ -107,7 +108,7 @@ final class DemoAgencySeeder extends Seeder
             $superAdminSeeder->setCommand($this->command);
         }
 
-        $superAdmin = $superAdminSeeder->seedSuperAdmin();
+        $superAdmin = $superAdminSeeder->seedSuperAdmin(app(InitialSuperAdminPasswordService::class));
 
         if ($superAdmin !== null) {
             $grantAccess->execute($superAdmin, $organisation, BrainRoleEnum::Owner);

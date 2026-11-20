@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Initial super admin follows the shared fleet password rule: `local`/`testing` keep the `.env` password, while other environments create the admin only with an explicit, non-default password that passes `Password::defaults()`, and warn which condition failed when they skip. Seeding outside local/testing never modifies an existing user; `instituta:install` and `instituta:create-user` use the same check.
 - `docs/FORMAT.md` and `docs/CONTRACTS.md` are the approved working contract (issue #50). Until `v1.0.0-beta.1` they may still change in PRs labelled `area:contract` with a CHANGELOG entry and updated tests; from `v1.0.0-beta.1` they freeze (additive only).
 - `docs/CONTRACTS.md` documents write proposal operations (§3.10–§3.12); keys may hold `brain:write` only when a write kill switch is on and the role is owner/member.
 
