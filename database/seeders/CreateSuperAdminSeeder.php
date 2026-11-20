@@ -12,11 +12,9 @@ use Illuminate\Database\Seeder;
 /**
  * Creates the initial super admin from `config/super_admin.php` under the shared fleet rule.
  *
- * In `local` and `testing` the seeded login keeps its existing behaviour: the password comes from
- * `.env`, and an existing user with that email keeps their password but gets the role, a verified
- * email and the active flag back. Elsewhere a strong, explicitly configured password is required,
- * and an existing user is never modified: a server must never get a known-credential admin or
- * have an operator's account rewritten by a re-seed.
+ * In `local` and `testing` the password may be the known default. Elsewhere a strong,
+ * explicitly configured password is required. When the configured email already exists the
+ * seeder is a no-op in every environment: it never forceFills an existing user.
  */
 class CreateSuperAdminSeeder extends Seeder
 {
@@ -44,21 +42,24 @@ class CreateSuperAdminSeeder extends Seeder
             return null;
         }
 
-        $user = User::query()->firstOrNew(['email' => (string) config('super_admin.email')]);
+        $email = (string) config('super_admin.email');
+        $existing = User::query()->where('email', $email)->first();
 
-        if ($user->exists && ! in_array($environment, self::ENVIRONMENTS, true)) {
+        if ($existing !== null) {
             $this->command?->warn('Skipped the initial super admin: a user with the configured email already exists.');
 
             return null;
         }
 
-        if (! $user->exists) {
-            $user->first_name = (string) config('super_admin.first_name');
-            $user->last_name = (string) config('super_admin.last_name');
-            $user->password = (string) $password;
-        }
-
-        $user->forceFill(['email_verified_at' => $user->email_verified_at ?? now(), 'is_active' => true])->save();
+        $user = (new User)->forceFill([
+            'first_name' => (string) config('super_admin.first_name'),
+            'last_name' => (string) config('super_admin.last_name'),
+            'email' => $email,
+            'password' => (string) $password,
+            'email_verified_at' => now(),
+            'is_active' => true,
+        ]);
+        $user->save();
         $user->assignRole(RoleEnum::SuperAdmin->value);
 
         return $user;
