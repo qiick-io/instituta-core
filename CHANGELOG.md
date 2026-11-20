@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Core schema aligned with the fleet decisions (2026-11-19 / 2026-11-20): additive migrations folded into `create_` tables (`.frozen` removed until the first stable tag); tenancy and brain web primary keys and FKs switched from ULID to UUID v7; `activity_log` morph ids widened to `string(64)` and `organisation_id` to `string(36)`; users gain `public_id` (UUID v7), nullable unique lowercase `username`, and nullable `password`; settings use the scoped shape (`scope`, `scope_id`, `group`, `key`); API keys rename `principal_id` to `owner_principal_id` with fleet FK actions and `dateTime` expiry columns; machine JSON errors use `error` instead of `code`; the initial-admin seeder is a no-op when the email already exists; source webhook secrets and Fortify 2FA secrets stay encrypted at rest.
+
+### Removed
+
+- `database/migrations/.frozen` pre-tag baseline: additive migrations were folded into `create_` tables; the freeze blob returns at the first stable release (issue #74, superseded by the migrations-freeze-at-first-stable decision).
+
 ### Added
 
 - Per-area access (#334): grants carry `areas` and `path_prefixes` lists (a migration carries the old single `area` and `path_prefix` over), user groups and API keys can be limited to some areas, one folder and (groups) a visibility, and the grants on one scope add up. **Contract:** the perimeter's `area` and `path_prefix` become `areas` and `path_prefixes` (lists; empty means no limit). Proposals, gap reports, notifications, sync reports, health and link rendering now stay inside the limits too; organisation-wide owner pages (clients, exports, activity log, agent calls) need an owner without limits. The demo seeds a "Marketing" group limited to brand, style and the glossary.
@@ -24,7 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Per-tenant monthly quotas with enforcement on contract surfaces (issue #84).
 - Session replay over `contract_calls` for organisation owners (issue #85).
 - Auth-free `GET /health/live` and `GET /health/ready` probes with fail-closed readiness (issue #68).
-- `database/migrations/.frozen` blob baseline so `migrations-frozen` binds before the first tag (issue #74).
 - In-app notification centre (issue #129): database notifications, sidebar bell and drawer (`@qiick/notifications`), sound preference on the profile page; events for sync finished/failed, proposal opened/resolved, API key about to expire, and freeze activated (organisation-scoped).
 - Optional command palette (issue #130): `@qiick/command-palette` + `keyboard-shortcuts` in `qiick-standards.json` `patterns`; ⌘K search of navigation, perimeter-scoped brain item titles, and allowed actions.
 
@@ -68,9 +75,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 These notes are for the eventual `v1.0.0-beta.1` cut (the release PR moves this section under `[1.0.0-beta.1] - YYYY-MM-DD`).
 
-1. Run `php artisan instituta:upgrade` (migrate, sync permissions, clear caches). Do not re-run `composer create-project` to update.
-2. Optional embeddings: set `AI_EMBEDDINGS_ENABLED=true` and configure an OpenAI-compatible embeddings endpoint (`config/ai.php`); then run `php artisan instituta:embed`.
-3. Write proposals stay off until `INSTITUTA_API_WRITE_ENABLED` / `INSTITUTA_MCP_WRITE_ENABLED` (or the matching `config/instituta.php` kill switches) are enabled and keys hold `brain:write`.
+1. **Recreate the database.** This pre-stable alignment rewrites the `create_` migrations (ULID → UUID v7, folded additive migrations, scoped settings, users `public_id` / `username`). There is no forward migration path: run `php artisan migrate:fresh --seed` (or drop and reinstall). Do not upgrade an existing database in place.
+2. Run `php artisan instituta:upgrade` (migrate, sync permissions, clear caches). Do not re-run `composer create-project` to update.
+3. Optional embeddings: set `AI_EMBEDDINGS_ENABLED=true` and configure an OpenAI-compatible embeddings endpoint (`config/ai.php`); then run `php artisan instituta:embed`.
+4. Write proposals stay off until `INSTITUTA_API_WRITE_ENABLED` / `INSTITUTA_MCP_WRITE_ENABLED` (or the matching `config/instituta.php` kill switches) are enabled and keys hold `brain:write`.
 4. Search: PostgreSQL (tsvector) is the production driver; SQLite FTS5 for local/tests; MySQL search remains unsupported (501).
 5. After the first tag, migrations are forward-only (`database/migrations/.frozen` + `migrations-frozen` workflow). Schema changes need a new migration.
 6. Never-ingest denylist (#369): the built-in organisation names are gone. An install that relied on them must set `INSTITUTA_INGEST_DENYLIST` (comma-separated tokens matched case-insensitively on name, remote URL and path).
