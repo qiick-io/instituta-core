@@ -1117,7 +1117,8 @@
             "rolesPlaceholder": "Mindestens eine Rolle auswählen",
             "rolesLocked": "Sie können Ihre eigenen Rollen nicht ändern.",
             "groupsHint": "Gruppenrollen werden für Admin-Berechtigungen mit den direkten Rollen vereint.",
-            "groupsPlaceholder": "Gruppen auswählen"
+            "groupsPlaceholder": "Gruppen auswählen",
+            "username": "Benutzername"
         }
     },
     "roles": {

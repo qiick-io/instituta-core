@@ -46,7 +46,7 @@ class StoreUserGroupRequest extends FormRequest
             'name' => ['required', 'string', 'max:'.self::NAME_MAX_LENGTH, $this->uniqueNameRule()],
             'description' => ['nullable', 'string', 'max:'.self::DESCRIPTION_MAX_LENGTH],
             'user_ids' => ['sometimes', 'array'],
-            'user_ids.*' => ['integer', 'distinct', Rule::exists('users', 'id')],
+            'user_ids.*' => ['uuid', 'distinct', Rule::exists('users', 'public_id')],
             'role_ids' => ['sometimes', 'array'],
             'role_ids.*' => ['integer', 'distinct', Rule::in($this->grantableRoleIds())],
             // Brain access (#258): '' removes it; otherwise a scope the actor owns, with a role.
@@ -59,13 +59,24 @@ class StoreUserGroupRequest extends FormRequest
     }
 
     /**
-     * Member ids when the payload has them; null keeps the current members.
+     * Internal member ids when the payload has public UUIDs; null keeps the current members.
      *
      * @return list<int>|null
      */
     public function userIds(): ?array
     {
-        return $this->has('user_ids') ? array_values(array_map(intval(...), $this->array('user_ids'))) : null;
+        if (! $this->has('user_ids')) {
+            return null;
+        }
+
+        $publicIds = array_values(array_map(strval(...), $this->array('user_ids')));
+
+        return User::query()
+            ->whereIn('public_id', $publicIds)
+            ->pluck('id')
+            ->map(intval(...))
+            ->values()
+            ->all();
     }
 
     /**

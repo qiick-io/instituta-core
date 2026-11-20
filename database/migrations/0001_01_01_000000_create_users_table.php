@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Users baseline (fleet profile columns folded in before the first stable release).
+ *
+ * public_id is the UUID v7 exposed outside the database; internal id stays bigint.
+ * username is nullable, unique and stored lowercase. password is nullable for SSO/passwordless.
  */
 return new class extends Migration
 {
@@ -18,11 +21,13 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table): void {
             $table->id();
+            $table->uuid('public_id')->unique();
             $table->string('first_name')->default('User');
             $table->string('last_name')->nullable();
+            $table->string('username')->nullable()->unique();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password')->nullable();
             $table->text('two_factor_secret')->nullable();
             $table->text('two_factor_recovery_codes')->nullable();
             $table->timestamp('two_factor_confirmed_at')->nullable();

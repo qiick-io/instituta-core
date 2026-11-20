@@ -43,7 +43,7 @@ const EMPTY_GROUP_FORM = {
     name: '',
     description: '',
     role_ids: [] as number[],
-    user_ids: [] as number[],
+    user_ids: [] as string[],
     /** '' gives no brain access (#258). */
     brain_scope: '',
     brain_role: 'member',

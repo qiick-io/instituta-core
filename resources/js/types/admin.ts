@@ -23,9 +23,11 @@ export type AdminRoleRef = {
 
 /** One row of `App\Http\Resources\Admin\UserResource`. */
 export type AdminUserRow = {
-    id: number;
+    id: string;
+    public_id?: string;
     first_name: string;
     last_name: string | null;
+    username: string | null;
     /** First and last name. */
     name: string;
     email: string;
@@ -44,7 +46,8 @@ export type AdminUserRow = {
 
 /** A group member as `App\Http\Resources\Admin\UserGroupResource` lists it. */
 export type AdminGroupMember = {
-    id: number;
+    id: string;
+    public_id?: string;
     first_name: string;
     last_name: string | null;
     name: string;
@@ -62,7 +65,7 @@ export type AdminGroupRow = {
     deleted_at: string | null;
     roles: AdminRoleRef[];
     users: AdminGroupMember[];
-    user_ids: number[];
+    user_ids: string[];
     role_ids: number[];
     /**
      * Brain access the group gives its members (#258): `scope_type:scope_id` and a role, with an

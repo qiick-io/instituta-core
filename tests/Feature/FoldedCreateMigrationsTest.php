@@ -24,7 +24,7 @@ it('has only create_ migrations and no frozen baseline', function (): void {
 
 it('creates folded columns on a fresh migrate', function (): void {
     expect(Schema::hasColumns('users', [
-        'first_name',
+        'public_id', 'first_name', 'username',
         'last_name',
         'locale',
         'timezone',

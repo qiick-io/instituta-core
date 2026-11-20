@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Concerns\UsernameValidationRules;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Authorization\RoleGrantService;
@@ -21,9 +22,21 @@ use Illuminate\Validation\Rules\Password;
  */
 class StoreUserRequest extends FormRequest
 {
+    use UsernameValidationRules;
+
     public function authorize(): bool
     {
         return (bool) $this->user()?->can('create', User::class);
+    }
+
+    /**
+     * Normalize the username before validation so format and uniqueness see the stored form.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('username')) {
+            $this->merge(['username' => self::normalizeUsername($this->input('username'))]);
+        }
     }
 
     /**
@@ -34,6 +47,7 @@ class StoreUserRequest extends FormRequest
         return [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
+            'username' => self::usernameRules(),
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)],
             'password' => ['required', 'string', Password::default()],
             'is_active' => ['boolean'],

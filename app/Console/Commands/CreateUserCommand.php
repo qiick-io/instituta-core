@@ -7,16 +7,17 @@ namespace App\Console\Commands;
 use App\Actions\CreateUserAction;
 use App\Brain\Enums\PrincipalTypeEnum;
 use App\Brain\Enums\RoleEnum as BrainRoleEnum;
+use App\Concerns\UsernameValidationRules;
 use App\Enums\RoleEnum;
 use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\User;
-use App\Services\InitialSuperAdminPasswordService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Spatie\Permission\Models\Role;
 use Symfony\Component\Console\Attribute\AsCommand;
 
@@ -40,9 +41,12 @@ use function Laravel\Prompts\text;
 #[AsCommand(name: 'instituta:create-user')]
 class CreateUserCommand extends Command
 {
+    use UsernameValidationRules;
+
     protected $signature = 'instituta:create-user
         {--first-name= : First name}
         {--last-name= : Last name (optional)}
+        {--username= : Optional account name}
         {--email= : Login email}
         {--role= : Role name (default: super-admin for the first user, reader afterwards)}
         {--organisation= : Organisation UUID or slug the user gets access to (asked when there are several)}
@@ -50,7 +54,7 @@ class CreateUserCommand extends Command
 
     protected $description = 'Create a dashboard user (the password is prompted)';
 
-    public function handle(CreateUserAction $createUser, InitialSuperAdminPasswordService $passwordValidation): int
+    public function handle(CreateUserAction $createUser): int
     {
         // Built-in roles/permissions must exist even when seed was never run.
         $this->callSilently('instituta:sync-permissions');
@@ -62,6 +66,7 @@ class CreateUserCommand extends Command
         $input = [
             'first_name' => $this->option('first-name') ?? text('First name', required: true),
             'last_name' => $this->option('last-name') ?? text('Last name'),
+            'username' => self::normalizeUsername($this->option('username')),
             'email' => Str::lower((string) ($this->option('email') ?? text('Email', required: true))),
             'password' => password('Password', required: true),
             'role' => $this->option('role') ?? select('Role', $roles, default: $defaultRole),
@@ -70,8 +75,9 @@ class CreateUserCommand extends Command
         $validator = Validator::make($input, [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
+            'username' => self::usernameRules(),
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => $passwordValidation->rules(app()->environment()),
+            'password' => ['required', 'string', Password::default()],
             'role' => ['required', 'string', Rule::in($roles)],
         ]);
 
@@ -106,6 +112,7 @@ class CreateUserCommand extends Command
         $user = $createUser->execute(
             $validated['first_name'],
             ($validated['last_name'] ?? '') !== '' ? $validated['last_name'] : null,
+            $validated['username'],
             $validated['email'],
             $validated['password'],
             [$validated['role']],

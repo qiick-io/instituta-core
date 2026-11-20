@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Concerns\UsernameValidationRules;
 use App\Traits\LogsApplicationActivityTrait;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -25,11 +28,14 @@ use Spatie\Permission\Traits\HasRoles;
  * Authenticated application user (Fortify + passkeys + 2FA) with direct roles and user groups.
  *
  * Display name is composed from first_name / last_name like externa-core and excubia-app.
+ * public_id is the fleet UUID v7 exposed outside the database; the primary key stays bigint.
  *
  * @property int $id
+ * @property string $public_id
  * @property string $first_name
  * @property string|null $last_name
  * @property-read string $name
+ * @property string|null $username
  * @property string $email
  * @property Carbon|null $email_verified_at
  * @property string|null $password
@@ -49,6 +55,7 @@ use Spatie\Permission\Traits\HasRoles;
 #[Fillable([
     'first_name',
     'last_name',
+    'username',
     'email',
     'password',
     'locale',
@@ -62,7 +69,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, LogsApplicationActivityTrait, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasFactory, HasRoles, HasUuids, LogsApplicationActivityTrait, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable, UsernameValidationRules;
 
     /**
      * The full name travels with the user to the pages (avatar, menus).
@@ -81,6 +88,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     protected $attributes = [
         'is_active' => true,
         'last_name' => null,
+        'username' => null,
         'locale' => 'en',
         'timezone' => 'UTC',
         'notification_sound_enabled' => false,
@@ -91,6 +99,24 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         'two_factor_recovery_codes' => null,
         'two_factor_confirmed_at' => null,
     ];
+
+    /**
+     * Only `public_id` is a generated UUID; the primary key stays an auto-increment id.
+     *
+     * @return list<string>
+     */
+    public function uniqueIds(): array
+    {
+        return ['public_id'];
+    }
+
+    /**
+     * Route and Wayfinder bindings use the public UUID, never the bigint id.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'public_id';
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -107,6 +133,16 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'two_factor_confirmed_at' => 'datetime',
             'last_login_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Store the canonical username: trimmed, lowercase, and null when blank.
+     *
+     * @return Attribute<string|null, mixed>
+     */
+    protected function username(): Attribute
+    {
+        return Attribute::set(fn (mixed $value): ?string => self::normalizeUsername($value));
     }
 
     /**
