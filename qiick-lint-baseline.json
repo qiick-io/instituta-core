@@ -5,5 +5,27 @@
         "resources/js/components/admin/data-table-toolbar.tsx": 1,
         "resources/js/components/admin/paginated-multi-select.tsx": 1,
         "resources/js/components/passkey-register.tsx": 2
+    },
+    "eslint/max-lines": {
+        "resources/js/components/brain/brain-graph-canvas.tsx": 1,
+        "resources/js/pages/admin/groups/index.tsx": 1
+    },
+    "eslint/max-lines-per-function": {
+        "resources/js/components/admin/group-form-drawer.tsx": 1,
+        "resources/js/components/admin/user-form-drawer.tsx": 1,
+        "resources/js/components/brain/brain-graph-canvas.tsx": 2,
+        "resources/js/components/brain/propose-change-drawer.tsx": 1,
+        "resources/js/components/dashboard/dashboard-overview-panel.tsx": 1,
+        "resources/js/pages/activity/index.tsx": 1,
+        "resources/js/pages/admin/groups/index.tsx": 1,
+        "resources/js/pages/admin/users/index.tsx": 1,
+        "resources/js/pages/brain/clients.tsx": 1,
+        "resources/js/pages/brain/explorer.tsx": 1,
+        "resources/js/pages/brain/graph.tsx": 1,
+        "resources/js/pages/brain/session-replay.tsx": 1,
+        "resources/js/pages/brain/sources.tsx": 1,
+        "resources/js/pages/settings/appearance.tsx": 1,
+        "resources/js/pages/settings/instance/security.tsx": 2,
+        "resources/js/pages/settings/profile.tsx": 1
     }
 }

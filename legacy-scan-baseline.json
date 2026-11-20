@@ -1,0 +1,16 @@
+{
+    "scanner": "modern-web-guidance@1.0.1",
+    "findings": {
+        "form-fields-automatically-fit-contents": {
+            "resources/js/hooks/use-autosize-textarea.ts": 1
+        },
+        "ime-safe-enter-submit": {
+            "resources/js/components/command-palette.tsx": 1,
+            "resources/js/components/confirm-destructive-dialog.tsx": 1
+        },
+        "js/copying-array-methods": {
+            "resources/js/components/brain/brain-graph-canvas.tsx": 2,
+            "resources/js/components/keyboard-shortcuts.tsx": 3
+        }
+    }
+}

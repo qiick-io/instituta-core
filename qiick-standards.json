@@ -1,10 +1,12 @@
 {
     "$comment": "qiick standards pack: https://github.com/qiick-io/app-ui/tree/develop/standards. Sync: node <app-ui>/scripts/sync-standards.mjs --target .",
-    "ref": "v0.9.0",
+    "ref": "v0.11.0",
     "uiPreset": "Teal",
     "php": true,
     "frontendRoots": ["resources/js"],
     "oxlint": true,
     "app": true,
-    "patterns": ["command-palette", "keyboard-shortcuts"]
+    "patterns": ["command-palette", "keyboard-shortcuts"],
+    "requiredItems": [],
+    "divergences": {}
 }
