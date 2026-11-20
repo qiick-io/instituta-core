@@ -11,9 +11,10 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Every REST error carries a stable `code` next to its `message` (#227). Responses that set a
- * specific code keep it; the others (validation, throttling, missing routes, framework errors)
- * get the default code of their HTTP status, so an agent can always branch on `code`.
+ * Every REST error carries a stable `error` next to its `message` (fleet core hardening).
+ * Responses that set a specific error keep it; the others (validation, throttling, missing
+ * routes, framework errors) get the default of their HTTP status, so an agent can always
+ * branch on `error`.
  */
 final class AddContractErrorCodeMiddleware
 {
@@ -30,11 +31,11 @@ final class AddContractErrorCodeMiddleware
 
         $payload = $response->getData(true);
 
-        if (! is_array($payload) || array_key_exists('code', $payload) || array_key_exists('jsonrpc', $payload)) {
+        if (! is_array($payload) || array_key_exists('error', $payload) || array_key_exists('jsonrpc', $payload)) {
             return $response;
         }
 
-        $payload['code'] = ContractErrorCodeEnum::forStatus($response->getStatusCode())->value;
+        $payload['error'] = ContractErrorCodeEnum::forStatus($response->getStatusCode())->value;
 
         return $response->setData($payload);
     }

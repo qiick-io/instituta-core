@@ -31,7 +31,7 @@ final class RequireBrainWriteMiddleware
 
         $refusal = $this->writeGate->refusal($key, 'api');
         if ($refusal !== null) {
-            return response()->json(['message' => $refusal->getMessage(), 'code' => $refusal->errorCode->value], 403);
+            return response()->json(['message' => $refusal->getMessage(), 'error' => $refusal->errorCode->value], 403);
         }
 
         return $next($request);

@@ -124,7 +124,7 @@ it('refuses expired, revoked and unknown keys with RFC 6750 invalid_token', func
         $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer '.$token])
             ->assertUnauthorized()
             ->assertJsonPath('error', 'invalid_token')
-            ->assertJsonPath('code', 'unauthenticated')
+            ->assertJsonPath('error', 'unauthenticated')
             ->assertHeader('WWW-Authenticate', 'Bearer error="invalid_token"');
     }
 });
@@ -149,7 +149,7 @@ it('refuses an empty scope list and a missing brain:read with insufficient_scope
         ->assertForbidden()
         ->assertJsonPath('error', 'insufficient_scope')
         ->assertJsonPath('scope', 'brain:read')
-        ->assertJsonPath('code', 'ability_missing');
+        ->assertJsonPath('error', 'ability_missing');
 });
 
 it('lets brain:write satisfy brain:read and refuses write when only read is held', function (): void {
@@ -237,7 +237,7 @@ it('enforces rate_limit_per_minute and records last_used_ip', function (): void 
 
     $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer '.$issued['plain']])
         ->assertStatus(429)
-        ->assertJsonPath('code', 'rate_limited');
+        ->assertJsonPath('error', 'rate_limited');
 
     expect($issued['key']->fresh()->last_used_ip)->not->toBeNull()
         ->and($issued['key']->fresh()->last_used_at)->not->toBeNull();

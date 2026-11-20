@@ -149,7 +149,7 @@ it('returns the content hash and each section markdown and hash when reading an 
 });
 
 it('refuses updates without a base, with a stale base, on another path or as a duplicate create', function (array $payload, string $message, string $code): void {
-    proposeBrand($payload)->assertUnprocessable()->assertJsonPath('message', $message)->assertJsonPath('code', $code);
+    proposeBrand($payload)->assertUnprocessable()->assertJsonPath('message', $message)->assertJsonPath('error', $code);
 
     expect(Proposal::query()->count())->toBe(0);
 })->with([

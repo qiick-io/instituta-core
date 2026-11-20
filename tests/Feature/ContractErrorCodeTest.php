@@ -12,7 +12,7 @@ use App\Models\Organisation;
 use App\Models\Principal;
 
 /**
- * Every REST error carries a stable machine `code` next to its message (#227).
+ * Every REST error carries a stable machine `error` next to its message (fleet core hardening).
  */
 beforeEach(function (): void {
     $this->organisation = Organisation::factory()->create();
@@ -36,33 +36,33 @@ beforeEach(function (): void {
 });
 
 it('codes a missing or invalid key as unauthenticated', function (): void {
-    $this->getJson('/api/v1/scopes')->assertUnauthorized()->assertJsonPath('code', 'unauthenticated');
-    $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer nope'])->assertUnauthorized()->assertJsonPath('code', 'unauthenticated');
+    $this->getJson('/api/v1/scopes')->assertUnauthorized()->assertJsonPath('error', 'unauthenticated');
+    $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer nope'])->assertUnauthorized()->assertJsonPath('error', 'unauthenticated');
 });
 
 it('codes failed validation and keeps the field errors', function (): void {
     $this->getJson('/api/v1/search', ['Authorization' => 'Bearer '.$this->plainKey])
         ->assertUnprocessable()
-        ->assertJsonPath('code', 'validation_failed')
+        ->assertJsonPath('error', 'validation_failed')
         ->assertJsonValidationErrors(['q']);
 });
 
 it('codes an item outside the perimeter as not found', function (): void {
     $this->getJson('/api/v1/items/01JZZZZZZZZZZZZZZZZZZZZZZZ', ['Authorization' => 'Bearer '.$this->plainKey])
         ->assertNotFound()
-        ->assertJsonPath('code', 'not_found');
+        ->assertJsonPath('error', 'not_found');
 });
 
 it('codes the write gate refusals', function (): void {
     config(['instituta.api.write_enabled' => false]);
     $this->getJson('/api/v1/proposals', ['Authorization' => 'Bearer '.$this->plainKey])
         ->assertForbidden()
-        ->assertJsonPath('code', 'write_disabled');
+        ->assertJsonPath('error', 'write_disabled');
 
     config(['instituta.api.write_enabled' => true]);
     $this->getJson('/api/v1/proposals', ['Authorization' => 'Bearer '.$this->plainKey])
         ->assertForbidden()
-        ->assertJsonPath('code', 'ability_missing');
+        ->assertJsonPath('error', 'ability_missing');
 });
 
 it('codes disabled embeddings on the similar endpoint', function (): void {
@@ -70,5 +70,5 @@ it('codes disabled embeddings on the similar endpoint', function (): void {
 
     $this->getJson('/api/v1/similar?q=brand&scope='.$this->organisation->id, ['Authorization' => 'Bearer '.$this->plainKey])
         ->assertStatus(501)
-        ->assertJsonPath('code', 'embeddings_disabled');
+        ->assertJsonPath('error', 'embeddings_disabled');
 });

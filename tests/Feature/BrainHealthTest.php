@@ -93,7 +93,7 @@ it('finds each kind of problem with its item, path and a suggested fix', functio
 it('is for owners only, and never counts another tenant\'s problems', function (): void {
     $this->getJson('/api/v1/health/brain', ['Authorization' => 'Bearer '.healthKey($this->organisation, RoleEnum::Member)['plain']])
         ->assertForbidden()
-        ->assertJsonPath('code', 'forbidden');
+        ->assertJsonPath('error', 'forbidden');
 
     $cleanOrganisation = Organisation::factory()->create();
     $this->getJson('/api/v1/health/brain', ['Authorization' => 'Bearer '.healthKey($cleanOrganisation, RoleEnum::Owner)['plain']])

@@ -101,7 +101,7 @@ it('puts a product\'s resolved entries first and fits the larger sections in a l
 it('validates the budget and the scope', function (): void {
     $this->getJson('/api/v1/context?scope='.$this->organisation->id.'&q=teal&budget=100', $this->headers)
         ->assertUnprocessable()
-        ->assertJsonPath('code', 'validation_failed');
+        ->assertJsonPath('error', 'validation_failed');
 
     $this->getJson('/api/v1/context?scope=someone-else&q=teal', $this->headers)->assertNotFound();
 });

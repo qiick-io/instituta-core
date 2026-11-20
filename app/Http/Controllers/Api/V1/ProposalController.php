@@ -64,7 +64,7 @@ final class ProposalController extends Controller
         } catch (InvalidArgumentException $exception) {
             return (new ApiMessageResource([
                 'message' => $exception->getMessage(),
-                'code' => ContractException::codeOf($exception)->value,
+                'error' => ContractException::codeOf($exception)->value,
             ]))
                 ->response()
                 ->setStatusCode(422);
@@ -99,7 +99,7 @@ final class ProposalController extends Controller
         } catch (InvalidArgumentException $exception) {
             return (new ApiMessageResource([
                 'message' => $exception->getMessage(),
-                'code' => ContractException::codeOf($exception)->value,
+                'error' => ContractException::codeOf($exception)->value,
             ]))
                 ->response()
                 ->setStatusCode(422);

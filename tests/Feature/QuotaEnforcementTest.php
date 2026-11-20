@@ -111,6 +111,5 @@ it('returns 429 json for quota exceeded on api requests', function (): void {
 
     expect($response)->toBeInstanceOf(JsonResponse::class)
         ->and($response->getStatusCode())->toBe(429)
-        ->and($response->getData(true)['error'])->toBe('quota_exceeded')
-        ->and($response->getData(true)['code'])->toBe('quota_exceeded');
+        ->and($response->getData(true)['error'])->toBe('quota_exceeded');
 });

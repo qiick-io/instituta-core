@@ -96,7 +96,7 @@ it('refuses a key accepting the proposal it opened, over REST and MCP', function
     decideOverRest($proposalId, $agent['plain'], 'accepted')
         ->assertUnprocessable()
         ->assertJsonPath('message', 'A proposal cannot be accepted by the key or principal that opened it.')
-        ->assertJsonPath('code', 'self_accept_refused');
+        ->assertJsonPath('error', 'self_accept_refused');
 
     request()->attributes->set('instituta.api_key', $agent['key']->fresh('principal'));
     request()->attributes->set('instituta.perimeter', app(PerimeterResolverService::class)->fromApiKey($agent['key']->fresh('principal')));

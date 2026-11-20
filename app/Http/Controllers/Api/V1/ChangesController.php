@@ -42,7 +42,7 @@ final class ChangesController extends Controller
                 isset($validated['limit']) ? (int) $validated['limit'] : 50,
             )))->response();
         } catch (ContractException $exception) {
-            return (new ApiMessageResource(['message' => $exception->getMessage(), 'code' => $exception->errorCode->value]))
+            return (new ApiMessageResource(['message' => $exception->getMessage(), 'error' => $exception->errorCode->value]))
                 ->response()
                 ->setStatusCode($exception->errorCode === ContractErrorCodeEnum::NotFound ? 404 : 422);
         }

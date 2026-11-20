@@ -199,11 +199,8 @@ final class AuthenticateApiKeyMiddleware
         ?string $scope = null,
     ): Response {
         if ($this->isRestApi($request)) {
-            $payload = ['message' => $message, 'code' => $code->value];
-
-            if ($rfcError !== null) {
-                $payload['error'] = $rfcError;
-            }
+            // Fleet machine field is `error` (contract enum). RFC 6750 stays in WWW-Authenticate.
+            $payload = ['message' => $message, 'error' => $code->value];
 
             if ($scope !== null) {
                 $payload['scope'] = $scope;
@@ -218,10 +215,10 @@ final class AuthenticateApiKeyMiddleware
             return $response;
         }
 
-        $data = ['code' => $code->value];
+        $data = ['error' => $code->value];
 
         if ($rfcError !== null) {
-            $data['error'] = $rfcError;
+            $data['oauth_error'] = $rfcError;
         }
 
         if ($scope !== null) {

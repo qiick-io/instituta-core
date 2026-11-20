@@ -53,8 +53,8 @@ enum ContractErrorCodeEnum: string
     }
 
     /**
-     * The MCP tool error text: `[code] message`, so a client without structured errors can still
-     * read the code first.
+     * The MCP tool error text: `[error] message`, so a client without structured errors can still
+     * read the machine error first.
      */
     public function mcpText(string $message): string
     {

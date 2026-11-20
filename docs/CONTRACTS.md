@@ -301,7 +301,7 @@ The web dashboard shows the same list and counts to owners.
 
 ## 4. Errors
 
-Every error carries a stable machine **code**: REST answers `{"message": "…", "code": "…"}` (plus `errors` on validation), an MCP tool error starts with `[code]` (`[stale_base] The content changed …`), and the MCP transport's JSON-RPC auth errors carry it in `error.data.code`. Branch on the code, never on the message: messages may be reworded or translated, codes never change once released.
+Every error carries a stable machine **code**: REST answers `{"message": "…", "error": "…"}` (plus `errors` on validation), an MCP tool error starts with `[error]` (`[stale_base] The content changed …`), and the MCP transport's JSON-RPC auth errors carry it in `error.data.error`. Branch on the error, never on the message: messages may be reworded or translated, codes never change once released.
 
 | Code | HTTP | When | What the agent should do |
 |---|---|---|---|

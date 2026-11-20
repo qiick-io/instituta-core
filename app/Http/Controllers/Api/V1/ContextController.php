@@ -45,7 +45,7 @@ final class ContextController extends Controller
         } catch (RuntimeException $exception) {
             return (new ApiMessageResource([
                 'message' => $exception->getMessage(),
-                'code' => ContractErrorCodeEnum::SearchUnsupported->value,
+                'error' => ContractErrorCodeEnum::SearchUnsupported->value,
             ]))->response()->setStatusCode(501);
         }
     }

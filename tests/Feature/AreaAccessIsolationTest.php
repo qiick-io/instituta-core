@@ -313,7 +313,7 @@ it('refuses a new item proposed outside the areas', function (): void {
         'body' => '# Tone',
     ], developerWriteHeaders())
         ->assertUnprocessable()
-        ->assertJsonPath('code', 'out_of_perimeter');
+        ->assertJsonPath('error', 'out_of_perimeter');
 
     expect(Proposal::query()->count())->toBe(0);
 });
