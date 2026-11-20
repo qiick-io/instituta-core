@@ -23,6 +23,7 @@ use Inertia\Testing\AssertableInertia as Assert;
  */
 beforeEach(function (): void {
     $this->withoutVite();
+    config(['instituta.ingest.denylist' => ['acme', 'globex', 'initech']]);
     $this->organisation = Organisation::factory()->create();
     $this->owner = User::factory()->create();
     app(GrantOrganisationAccessAction::class)->execute($this->owner, $this->organisation, RoleEnum::Owner);
@@ -44,7 +45,7 @@ function githubSourcePayload(array $overrides = []): array
     return [
         'name' => 'Company brain',
         'provider' => 'github',
-        'remote_url' => 'https://github.com/acme/brain',
+        'remote_url' => 'https://github.com/example/brain',
         'ref' => 'main',
         'adapter' => 'instituta',
         'default_visibility' => 'internal',
@@ -77,7 +78,7 @@ it('validates the location and refuses denylisted sources', function (): void {
         ->assertSessionHasErrors('remote_url');
 
     $this->actingAs($this->owner)
-        ->post(route('repositories.store'), githubSourcePayload(['remote_url' => 'https://github.com/acme/klover-docs']))
+        ->post(route('repositories.store'), githubSourcePayload(['remote_url' => 'https://github.com/example/globex-docs']))
         ->assertSessionHasErrors('name');
 
     expect(Source::query()->count())->toBe(0);

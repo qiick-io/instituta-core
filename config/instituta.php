@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Services\DenylistGuardService;
+
 return [
 
     /*
@@ -53,18 +55,18 @@ return [
     | Ingest
     |--------------------------------------------------------------------------
     |
-    | The brain module reader also receives these tokens as ReadRequestData
-    | input; it never calls config() itself. The app layer copies this list
-    | when wiring ingest / CLI / MCP.
+    | Never-ingest tokens from INSTITUTA_INGEST_DENYLIST (comma-separated,
+    | trimmed, lowercased; empty entries dropped). Default is empty: installs
+    | that must refuse named organisations set the env. The brain module reader
+    | receives these as ReadRequestData input and never calls config() itself;
+    | the app layer copies this list when wiring ingest / CLI / MCP.
     |
     */
 
     'ingest' => [
-        'denylist' => [
-            'klover',
-            'cybergrant',
-            'zerotredici',
-        ],
+        'denylist' => DenylistGuardService::parseTokens(
+            (string) env('INSTITUTA_INGEST_DENYLIST', ''),
+        ),
 
         /*
          * Optional read-only GitHub token for the github provider.

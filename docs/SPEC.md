@@ -68,8 +68,8 @@ Connected-systems registry / Externa plugin, per-vendor plugins, marketplace lis
 
 - Security is core: scope isolation is a tested requirement.
 - One ACL everywhere via `PerimeterData`.
-- Never ingest Klover, Cybergrant, Zerotredici.
-- Never open those trees as fixtures or references.
+- Configurable never-ingest denylist (`INSTITUTA_INGEST_DENYLIST`); default empty.
+- Never open denylisted trees as fixtures or references.
 - Audit rows never store content or secrets.
 
 ## 6. Quality and delivery

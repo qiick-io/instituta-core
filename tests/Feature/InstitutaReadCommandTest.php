@@ -77,9 +77,11 @@ it('validates and refuses denylist paths', function (): void {
     ]))->toBe(0)
         ->and(Artisan::output())->toContain('issues');
 
+    config(['instituta.ingest.denylist' => ['acme', 'globex', 'initech']]);
+
     expect(Artisan::call('instituta:read', [
         'action' => 'list',
-        '--path' => fixturePath('denied-path/acme-klover-docs'),
+        '--path' => fixturePath('denied-path/acme-globex-docs'),
     ]))->not->toBe(0);
 });
 

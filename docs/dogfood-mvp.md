@@ -25,7 +25,7 @@ Fail-closed ingest behaviour verified in `BrainReaderTest` / `SourceSyncTest`:
 | `asset_too_large` | an image or PDF over 20 MB (smaller ones are assets since #311, sidecar or not) |
 | `secret_pii:email_address` | Fixture email; match text is not stored in skip reasons |
 | `secret_pii:private_key` | PEM material in the secrets fixture |
-| Denylist path hit | Paths containing `klover` / `cybergrant` / `zerotredici` abort add/sync |
+| Denylist path hit | Paths matching `INSTITUTA_INGEST_DENYLIST` tokens abort add/sync |
 
 Skipped rows appear in `last_sync_report.skipped` without echoing the secret payload.
 
