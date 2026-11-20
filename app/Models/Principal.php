@@ -107,7 +107,7 @@ class Principal extends Model
      */
     public function apiKeys(): HasMany
     {
-        return $this->hasMany(ApiKey::class);
+        return $this->hasMany(ApiKey::class, 'owner_principal_id');
     }
 
     /**

@@ -62,7 +62,7 @@ final class CreateBrainApiKeyAction
                 ]);
 
                 Grant::query()->create([
-                    'owner_principal_id' => $principal->id,
+                    'principal_id' => $principal->id,
                     'scope_type' => $perimeter->scopeType,
                     'scope_id' => $perimeter->scopeId,
                     'role' => $data->role,

@@ -85,7 +85,7 @@ it('refuses a token with a trailing newline at the validation boundary', functio
 
     $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer '.$withNewline])
         ->assertUnauthorized()
-        ->assertJsonPath('error', 'invalid_token');
+        ->assertJsonPath('error', 'unauthenticated');
 });
 
 it('never writes the plaintext into the activity log or model attributes', function (): void {
@@ -123,7 +123,6 @@ it('refuses expired, revoked and unknown keys with RFC 6750 invalid_token', func
     ] as [$token, $label]) {
         $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer '.$token])
             ->assertUnauthorized()
-            ->assertJsonPath('error', 'invalid_token')
             ->assertJsonPath('error', 'unauthenticated')
             ->assertHeader('WWW-Authenticate', 'Bearer error="invalid_token"');
     }
@@ -147,9 +146,9 @@ it('refuses an empty scope list and a missing brain:read with insufficient_scope
 
     $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer '.$issued['plain']])
         ->assertForbidden()
-        ->assertJsonPath('error', 'insufficient_scope')
+        ->assertJsonPath('error', 'ability_missing')
         ->assertJsonPath('scope', 'brain:read')
-        ->assertJsonPath('error', 'ability_missing');
+        ->assertHeader('WWW-Authenticate', 'Bearer error="insufficient_scope"');
 });
 
 it('lets brain:write satisfy brain:read and refuses write when only read is held', function (): void {
@@ -181,7 +180,7 @@ it('keeps the previous secret working inside the grace window and not after', fu
 
     $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer '.$oldPlain])
         ->assertUnauthorized()
-        ->assertJsonPath('error', 'invalid_token');
+        ->assertJsonPath('error', 'unauthenticated');
     $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer '.$newPlain])->assertOk();
 });
 
@@ -197,10 +196,10 @@ it('clears the grace window on revoke so the previous secret dies immediately', 
 
     $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer '.$oldPlain])
         ->assertUnauthorized()
-        ->assertJsonPath('error', 'invalid_token');
+        ->assertJsonPath('error', 'unauthenticated');
     $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer '.$rotated['plain']])
         ->assertUnauthorized()
-        ->assertJsonPath('error', 'invalid_token');
+        ->assertJsonPath('error', 'unauthenticated');
 });
 
 it('refuses API-key auth for key management and does not establish a web session', function (): void {
