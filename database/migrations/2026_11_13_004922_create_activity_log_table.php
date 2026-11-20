@@ -18,13 +18,13 @@ return new class extends Migration
             $table->string('organisation_id', 36)->nullable()->index();
             $table->string('log_name')->nullable()->index();
             $table->text('description');
-            // String morph ids: ApiKey/Principal/Source are UUIDs; User causer ids stringify.
+            // string(64) holds bigint, UUID and legacy ULID morph ids (fleet core schema).
             $table->string('subject_type')->nullable();
-            $table->string('subject_id', 36)->nullable();
+            $table->string('subject_id', 64)->nullable();
             $table->index(['subject_type', 'subject_id'], 'subject');
             $table->string('event')->nullable();
             $table->string('causer_type')->nullable();
-            $table->string('causer_id', 36)->nullable();
+            $table->string('causer_id', 64)->nullable();
             $table->index(['causer_type', 'causer_id'], 'causer');
             $table->json('attribute_changes')->nullable();
             $table->json('properties')->nullable();
