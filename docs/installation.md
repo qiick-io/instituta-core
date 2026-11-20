@@ -22,6 +22,8 @@ php artisan instituta:install --no-interaction --force
 
 Useful flags: `--app-name=…`, `--app-url=…`, `--stack=minimal|redis`, `--no-owner`, `--org-name=…`, `--owner-email=…`, `--owner-password=…`. See `php artisan instituta:install --help`.
 
+The first admin's password follows one fleet rule in `db:seed`, `instituta:install` and `instituta:create-user`. In `local` and `testing` the seeded password comes from `.env` (`password` in `.env.example`). Elsewhere it must be explicitly set, must not be `password` in any case, and must pass the instance password policy (`Password::defaults()`); a skipped seed warns which condition failed. Seeding outside local/testing never changes an existing user.
+
 ## Local development (Herd)
 
 ```bash

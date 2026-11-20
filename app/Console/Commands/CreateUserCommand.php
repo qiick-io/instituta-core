@@ -11,12 +11,12 @@ use App\Enums\RoleEnum;
 use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\User;
+use App\Services\InitialSuperAdminPasswordService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 use Spatie\Permission\Models\Role;
 use Symfony\Component\Console\Attribute\AsCommand;
 
@@ -50,7 +50,7 @@ class CreateUserCommand extends Command
 
     protected $description = 'Create a dashboard user (the password is prompted)';
 
-    public function handle(CreateUserAction $createUser): int
+    public function handle(CreateUserAction $createUser, InitialSuperAdminPasswordService $passwordValidation): int
     {
         // Built-in roles/permissions must exist even when seed was never run.
         $this->callSilently('instituta:sync-permissions');
@@ -71,7 +71,7 @@ class CreateUserCommand extends Command
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', Password::default()],
+            'password' => $passwordValidation->rules(app()->environment()),
             'role' => ['required', 'string', Rule::in($roles)],
         ]);
 

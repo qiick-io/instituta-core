@@ -108,7 +108,7 @@ if [[ -f artisan ]]; then
   fi
 
   if [[ "${RUN_SEED:-false}" == "true" ]]; then
-    echo "RUN_SEED=true — running db:seed --force (roles + INITIAL_SUPER_ADMIN_*)"
+    echo "RUN_SEED=true — running db:seed --force (roles; admin under the shared password rule)"
     php artisan db:seed --force
   fi
 

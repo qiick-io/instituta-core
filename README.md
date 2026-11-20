@@ -44,6 +44,8 @@ php artisan instituta:create-user
 
 The first user defaults to `super-admin`, later users to `reader`. The user also gets a brain perimeter in an organisation (picked automatically when there is only one): the organisation's first person becomes its brain `owner`, later ones `member`. Pass `--first-name`, `--last-name`, `--email`, `--role`, `--organisation` (ULID or slug) and `--brain-role` (`owner`, `member`, `guest`) for non-interactive use; the password is always prompted. Users created from the Users admin page join the creating admin's organisation as members.
 
+The initial super admin comes from `INITIAL_SUPER_ADMIN_*` in `.env`. In `local` and `testing`, `db:seed` uses those values as before (`password` in `.env.example` — change it before seeding anything shared). In any other environment the seeder creates the admin only when `INITIAL_SUPER_ADMIN_PASSWORD` is explicitly set, is not `password` in any case, and passes the instance password policy (`Password::defaults()`); otherwise it skips with a warning naming the failed condition. Outside local/testing an existing user with that email is never modified. `instituta:install` (owner password) and `instituta:create-user` apply the same check through one shared validation service.
+
 Health probes (auth-free): `GET /health/live` (process up) and `GET /health/ready` (database, and redis when cache/queue/session/broadcasting use it; `503` when a check fails).
 
 ### Docker (image build)

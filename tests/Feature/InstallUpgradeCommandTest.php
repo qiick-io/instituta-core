@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Models\User;
+use App\Services\InitialSuperAdminPasswordService;
 use Illuminate\Support\Facades\File;
 
 it('writes app name url and minimal stack from instituta:install', function (): void {
@@ -45,6 +47,35 @@ it('refuses an unknown install stack', function (): void {
         '--no-owner' => true,
         '--stack' => 'sail',
     ])->assertFailed();
+});
+
+it('uses the shared fleet password check for the owner', function (): void {
+    $envBackup = File::exists(base_path('.env')) ? File::get(base_path('.env')) : null;
+    app()->instance(InitialSuperAdminPasswordService::class, new class extends InitialSuperAdminPasswordService
+    {
+        public function failureReason(?string $password, string $environment): ?string
+        {
+            return 'INITIAL_SUPER_ADMIN_PASSWORD is the default password.';
+        }
+    });
+
+    try {
+        $this->artisan('instituta:install', [
+            '--force' => true,
+            '--no-npm' => true,
+            '--owner-password' => 'PASSWORD',
+        ])
+            ->expectsOutputToContain('INITIAL_SUPER_ADMIN_PASSWORD is the default password.')
+            ->assertFailed();
+
+        expect(User::query()->exists())->toBeFalse();
+    } finally {
+        if ($envBackup === null) {
+            File::delete(base_path('.env'));
+        } else {
+            File::put(base_path('.env'), $envBackup);
+        }
+    }
 });
 
 it('runs instituta:upgrade migrate permissions sync and cache clear without create-project', function (): void {
