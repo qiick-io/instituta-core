@@ -85,6 +85,9 @@ jobs:
       - name: qiick standards rules (ratchet)
         run: npm run lint:standards
 
+      - name: Legacy web platform patterns (ratchet)
+        run: npm run lint:legacy
+
   postgres-search:
     name: PostgreSQL 17 search
     runs-on: ubuntu-latest
