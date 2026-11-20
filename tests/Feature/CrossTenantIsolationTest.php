@@ -6,6 +6,7 @@ use App\Actions\CreateApiKeyAction;
 use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
+use App\Brain\Exceptions\DenylistHitException;
 use App\Enums\ProposalStatusEnum;
 use App\Mcp\Servers\HttpBrainServer;
 use App\Mcp\Tools\Http\InstitutaGetTool;
@@ -23,6 +24,7 @@ use App\Models\Proposal;
 use App\Models\Source;
 use App\Models\User;
 use App\Services\ClientExportService;
+use App\Services\DenylistGuardService;
 use App\Services\IndexedContractService;
 use App\Services\PerimeterResolverService;
 use Illuminate\Support\Facades\DB;
@@ -426,12 +428,15 @@ it('keeps proposals UI inside the organisation perimeter', function (): void {
         ->assertNotFound();
 });
 
-it('keeps the never-ingest denylist covering Klover Cybergrant and Zerotredici', function (): void {
-    $tokens = collect(config('instituta.ingest.denylist', []))
-        ->map(fn (string $token): string => mb_strtolower($token))
-        ->all();
+it('refuses denylist hits on name url and path when tokens are configured', function (): void {
+    config(['instituta.ingest.denylist' => ['acme', 'globex', 'initech']]);
+    $guard = app(DenylistGuardService::class);
 
-    expect($tokens)->toContain('klover')
-        ->and($tokens)->toContain('cybergrant')
-        ->and($tokens)->toContain('zerotredici');
+    expect(fn () => $guard->assertAllowed(name: 'Acme Docs'))->toThrow(DenylistHitException::class)
+        ->and(fn () => $guard->assertAllowed(remoteUrl: 'https://github.com/example/GLOBEX-docs.git'))->toThrow(DenylistHitException::class)
+        ->and(fn () => $guard->assertAllowed(localPath: '/tmp/initech-brain'))->toThrow(DenylistHitException::class);
+
+    config(['instituta.ingest.denylist' => []]);
+
+    $guard->assertAllowed(name: 'Acme Globex Initech Docs', remoteUrl: 'https://github.com/acme/globex.git', localPath: '/tmp/initech');
 });

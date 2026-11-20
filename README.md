@@ -79,7 +79,7 @@ Writes go through **proposals** (`brain:write`): kill switches `INSTITUTA_API_WR
 
 ## Security and tenancy
 
-Every read and write is scoped to an organisation perimeter (grants + API key scope). Cross-tenant isolation is covered by Pest; the never-ingest denylist refuses Klover, Cybergrant and Zerotredici. Do not expose a public install until HTTP security headers and a legal name clearance (`#76`) are settled.
+Every read and write is scoped to an organisation perimeter (grants + API key scope). Cross-tenant isolation is covered by Pest; a configurable never-ingest denylist (`INSTITUTA_INGEST_DENYLIST`) refuses matching organisations on name, remote URL and path. Do not expose a public install until HTTP security headers and a legal name clearance (`#76`) are settled.
 
 ## Licence
 

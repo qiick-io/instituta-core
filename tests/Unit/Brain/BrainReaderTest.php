@@ -110,13 +110,16 @@ it('skips secret and pii content without storing the match', function (): void {
 
 it('fails closed on denylist path hits', function (): void {
     $reader = BrainReader::withDefaults();
+    $denylist = ['acme', 'globex', 'initech'];
 
     expect(fn () => $reader->read(new ReadRequestData(
-        path: brainFixture('denied-path/acme-klover-docs'),
+        path: brainFixture('denied-path/acme-globex-docs'),
+        denylist: $denylist,
     )))->toThrow(DenylistHitException::class);
 
     $issues = $reader->validate(new ReadRequestData(
-        path: brainFixture('denied-path/acme-klover-docs'),
+        path: brainFixture('denied-path/acme-globex-docs'),
+        denylist: $denylist,
     ));
 
     expect($issues)->not->toBeEmpty()
@@ -126,12 +129,23 @@ it('fails closed on denylist path hits', function (): void {
 it('matches denylist tokens case-insensitively on haystacks', function (): void {
     $scanner = new DenylistScanner;
     $match = $scanner->firstMatch(
-        ['Klover', 'Cybergrant', 'Zerotredici'],
-        ['https://github.com/acme/cyberGrant-docs.git'],
+        ['Acme', 'Globex', 'Initech'],
+        ['https://github.com/example/globEX-docs.git'],
     );
 
     expect($match)->not->toBeNull()
-        ->and(strtolower($match['token']))->toBe('cybergrant');
+        ->and(strtolower($match['token']))->toBe('globex');
+});
+
+it('refuses nothing when the denylist is empty', function (): void {
+    $reader = BrainReader::withDefaults();
+
+    $result = $reader->read(new ReadRequestData(
+        path: brainFixture('denied-path/acme-globex-docs'),
+        denylist: [],
+    ));
+
+    expect($result->items)->not->toBeEmpty();
 });
 
 it('reports path hygiene skips for vendor and env files', function (): void {

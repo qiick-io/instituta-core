@@ -180,7 +180,7 @@ Everything below is in the schema from the first migration PR, even where the MV
 
 ### 3.6 Never ingest
 
-**Klover, Cybergrant and Zerotredici are never ingested.** Enforce it in code, not only in docs: a denylist in `config/instituta.php` (`ingest.denylist`, matched case-insensitively on repository owner / name, remote URL and path) that **refuses** to create or sync a source, in the brain module's reader too, with tests. If they are ever ingested, it is only as a separate client scope on a local install, and only after Luca says so; do not build that path now. You yourself never open, clone, read or copy anything from those projects, not even as fixtures.
+**A configurable never-ingest denylist (`INSTITUTA_INGEST_DENYLIST`) refuses matching organisations.** Enforce it in code, not only in docs: `config/instituta.php` `ingest.denylist` (comma-separated env, trimmed and lowercased, default empty; matched case-insensitively on repository owner / name, remote URL and path) that **refuses** to create or sync a source, in the brain module's reader too, with tests. Installs that must refuse named organisations set the env; do not hardcode real names in the repo. You yourself never open, clone, read or copy anything from denylisted projects, not even as fixtures.
 
 Ingest hygiene ([plan], minimal in the MVP): a secret / PII scanner on ingest (private keys, API tokens, `.env` content, passwords in URLs, e-mail addresses and phone numbers in bodies) that skips the file, records why in the sync report, and never stores the match. Add a rule list of what must not enter (chat dumps, generated files, `vendor/`, `node_modules/`, binaries without a sidecar).
 
@@ -490,7 +490,7 @@ Tokens come from the `@qiick/theme` registry item: one shared base (surfaces, th
 
 - Product: the two sentences of section 1, and the one-repo decision (section 0 box). Source of truth: the design note (section 0), `docs/FORMAT.md`, `docs/CONTRACTS.md`, `docs/SPEC.md`.
 - Anything marked `[plan]` in the note, or labelled `needs-decision`, is not approved: do not build it.
-- Never ingest Klover, Cybergrant or Zerotredici (section 3.6). Never proxy writes to other products (section 1).
+- Configurable never-ingest denylist via `INSTITUTA_INGEST_DENYLIST` (section 3.6). Never proxy writes to other products (section 1).
 - Working name: no public use, no registry or package publishing, repo private.
 - The brain module (`app/Brain`) uses nothing from the rest of the app (section 2.1, arch test). Its roles: `Reader`, `Adapter`, `Resolver`, `Scanner`, `Data` (readonly), `Enum`, `Contract`, `Exception`; MCP tools are `*Tool` (configure them in `tests/Arch/naming-architecture.php`).
 - `docs/CONTRACTS.md` and `docs/FORMAT.md` are public contracts: change them only when the issue says so, and update tests, README and CHANGELOG together.
@@ -549,7 +549,7 @@ Ask first, in Italian, and wait for his answer:
 - Extracting the brain module, or creating any second repo (a Composer SDK, a CLI): only when Luca says so, with a descriptive name, never a second "core".
 - Anything marked `[plan]` in the note, any feature from section 2.2 "Out", and every screen with no app-ui pattern (the reading view is already settled in "Decisions already taken").
 - A graph library, and anything "Decisions already taken" does not cover. Never ask again what that table answers.
-- Any access to Klover, Cybergrant or Zerotredici: never.
+- Any access to organisations on the never-ingest denylist: never.
 
 ## 11. How to report to Luca (Italian)
 

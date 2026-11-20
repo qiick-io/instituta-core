@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Schema;
 
 beforeEach(function (): void {
     config([
-        'instituta.ingest.denylist' => ['klover', 'cybergrant', 'zerotredici'],
+        'instituta.ingest.denylist' => ['acme', 'globex', 'initech'],
         'instituta.ingest.github_token' => null,
     ]);
 });
@@ -37,12 +37,27 @@ it('refuses to add a source that hits the denylist', function (): void {
 
     expect(fn () => app(SourceRegistryService::class)->add(
         organisation: $organisation,
-        name: 'Acme Klover Docs',
+        name: 'Acme Globex Docs',
         provider: SourceProviderEnum::Local,
         localPath: base_path('tests/Unit/Brain/Fixtures/native'),
     ))->toThrow(DenylistHitException::class);
 
     expect(Source::query()->count())->toBe(0);
+});
+
+it('allows sources when the denylist is empty', function (): void {
+    config(['instituta.ingest.denylist' => []]);
+    $organisation = Organisation::factory()->create();
+
+    $source = app(SourceRegistryService::class)->add(
+        organisation: $organisation,
+        name: 'Acme Globex Docs',
+        provider: SourceProviderEnum::Local,
+        localPath: base_path('tests/Unit/Brain/Fixtures/native'),
+    );
+
+    expect($source->id)->not->toBeNull()
+        ->and(Source::query()->count())->toBe(1);
 });
 
 it('syncs a local source and indexes fixture items', function (): void {

@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Initial super admin follows the shared fleet password rule: `local`/`testing` keep the `.env` password, while other environments create the admin only with an explicit, non-default password that passes `Password::defaults()`, and warn which condition failed when they skip. Seeding outside local/testing never modifies an existing user; `instituta:install` and `instituta:create-user` use the same check.
+- Never-ingest denylist is configurable via `INSTITUTA_INGEST_DENYLIST` (issue #369): comma-separated, trimmed, lowercased, default empty. Hardcoded organisation names removed from config, code defaults, docs and tests.
 - `docs/FORMAT.md` and `docs/CONTRACTS.md` are the approved working contract (issue #50). Until `v1.0.0-beta.1` they may still change in PRs labelled `area:contract` with a CHANGELOG entry and updated tests; from `v1.0.0-beta.1` they freeze (additive only).
 - `docs/CONTRACTS.md` documents write proposal operations (§3.10–§3.12); keys may hold `brain:write` only when a write kill switch is on and the role is owner/member.
 
@@ -61,7 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-- Isolation review pass (issue #75): extended cross-tenant coverage for graph UI, proposals UI, and never-ingest denylist tokens (`klover`, `cybergrant`, `zerotredici`). Follow-up: ship HTTP security headers middleware before public exposure.
+- Isolation review pass (issue #75): extended cross-tenant coverage for graph UI, proposals UI, and the never-ingest denylist. Follow-up: ship HTTP security headers middleware before public exposure.
 
 ### Upgrade notes
 
@@ -72,5 +73,6 @@ These notes are for the eventual `v1.0.0-beta.1` cut (the release PR moves this 
 3. Write proposals stay off until `INSTITUTA_API_WRITE_ENABLED` / `INSTITUTA_MCP_WRITE_ENABLED` (or the matching `config/instituta.php` kill switches) are enabled and keys hold `brain:write`.
 4. Search: PostgreSQL (tsvector) is the production driver; SQLite FTS5 for local/tests; MySQL search remains unsupported (501).
 5. After the first tag, migrations are forward-only (`database/migrations/.frozen` + `migrations-frozen` workflow). Schema changes need a new migration.
+6. Never-ingest denylist (#369): the built-in organisation names are gone. An install that relied on them must set `INSTITUTA_INGEST_DENYLIST` (comma-separated tokens matched case-insensitively on name, remote URL and path).
 
 [Unreleased]: https://github.com/qiick-io/instituta-core/compare/HEAD...HEAD

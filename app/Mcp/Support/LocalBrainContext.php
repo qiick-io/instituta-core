@@ -28,7 +28,7 @@ final class LocalBrainContext
         }
 
         /** @var list<string> $denylist */
-        $denylist = config('instituta.ingest.denylist', ['klover', 'cybergrant', 'zerotredici']);
+        $denylist = config('instituta.ingest.denylist', []);
 
         return new ReadRequestData(
             path: $path,

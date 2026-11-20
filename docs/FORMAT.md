@@ -24,11 +24,7 @@ There is no mandatory directory taxonomy beyond what adapters understand. Native
 
 ### 2.1 What is never ingested
 
-Matched case-insensitively on repository owner/name, remote URL, and path (enforced in app config and in the brain reader):
-
-- Klover
-- Cybergrant
-- Zerotredici
+A configurable never-ingest denylist (`INSTITUTA_INGEST_DENYLIST`, comma-separated tokens in `config/instituta.php` `ingest.denylist`) is matched case-insensitively on repository owner/name, remote URL, and path (enforced in the app layer and in the brain reader). The default list is empty; each install sets the organisations it must refuse.
 
 Also skipped by hygiene rules (minimal MVP scanner + path rules): `vendor/`, `node_modules/`, generated build output, chat dumps, binaries other than the assets of §7 (and assets over 20 MB, `asset_too_large`), and files that look like secrets / PII (private keys, API tokens, `.env` bodies, passwords in URLs, emails and phone numbers in bodies). Matches are never stored; the sync report records only that a file was skipped and why.
 

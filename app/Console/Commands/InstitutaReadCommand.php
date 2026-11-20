@@ -35,11 +35,15 @@ class InstitutaReadCommand extends Command
         }
 
         $action = (string) $this->argument('action');
+
+        /** @var list<string> $denylist */
+        $denylist = config('instituta.ingest.denylist', []);
+
         $request = new ReadRequestData(
             path: $path,
             source: is_string($this->option('source')) ? $this->option('source') : 'local',
             commit: is_string($this->option('commit')) && $this->option('commit') !== '' ? $this->option('commit') : null,
-            denylist: config('instituta.ingest.denylist', ['klover', 'cybergrant', 'zerotredici']),
+            denylist: $denylist,
         );
 
         try {

@@ -53,18 +53,19 @@ return [
     | Ingest
     |--------------------------------------------------------------------------
     |
-    | The brain module reader also receives these tokens as ReadRequestData
-    | input; it never calls config() itself. The app layer copies this list
-    | when wiring ingest / CLI / MCP.
+    | Never-ingest tokens from INSTITUTA_INGEST_DENYLIST (comma-separated,
+    | trimmed, lowercased; empty entries dropped). Default is empty: installs
+    | that must refuse named organisations set the env. The brain module reader
+    | receives these as ReadRequestData input and never calls config() itself;
+    | the app layer copies this list when wiring ingest / CLI / MCP.
     |
     */
 
     'ingest' => [
-        'denylist' => [
-            'klover',
-            'cybergrant',
-            'zerotredici',
-        ],
+        'denylist' => array_values(array_filter(array_map(
+            static fn (string $token): string => mb_strtolower(trim($token)),
+            explode(',', (string) env('INSTITUTA_INGEST_DENYLIST', '')),
+        ), static fn (string $token): bool => $token !== '')),
 
         /*
          * Optional read-only GitHub token for the github provider.

@@ -32,6 +32,7 @@ Search: PostgreSQL is the production FTS driver; SQLite FTS5 for local/tests; My
 | `INSTITUTA_AGENTS_CAN_ACCEPT_PROPOSALS` | `false` | Let agent and service keys accept write proposals (a key never accepts its own) |
 | `INSTITUTA_MCP_WRITE_ENABLED` | `false` | MCP write kill switch |
 | `INSTITUTA_GITHUB_TOKEN` | empty | Optional remote sync / proposal materialisation |
+| `INSTITUTA_INGEST_DENYLIST` | empty | Never-ingest tokens (comma-separated; matched case-insensitively on name, remote URL and path) |
 | `AI_ASSISTANT_ENABLED` | `false` | In-app assistant (ask the brain, proposal drafts); nothing calls a provider while off |
 | `AI_ASSISTANT_PROVIDER` | `openai-compatible` | `openai-compatible` (local Ollama / LM Studio at `OPENAI_COMPATIBLE_URL`), `anthropic`, `openai` or `gemini` (with their `*_API_KEY`) |
 | `AI_DAILY_PROMPT_LIMIT` | `0` | Prompts per user per day (chat and drafts); `0` = no limit |
@@ -44,7 +45,7 @@ Full shapes: [`CONTRACTS.md`](CONTRACTS.md), [`config/instituta.php`](../config/
 
 ## Tenancy and denylist
 
-Reads and writes are organisation-scoped (grants + API key perimeter). Ingest refuses denylist tokens `klover`, `cybergrant`, `zerotredici` (case-insensitive) on name, remote URL and path.
+Reads and writes are organisation-scoped (grants + API key perimeter). A configurable never-ingest denylist (`INSTITUTA_INGEST_DENYLIST`, comma-separated; default empty) refuses matching tokens case-insensitively on name, remote URL and path.
 
 ## Related
 
