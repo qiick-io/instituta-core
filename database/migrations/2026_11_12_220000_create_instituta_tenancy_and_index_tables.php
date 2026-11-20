@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
  * Forward-only schema for Instituta tenancy, ACL, index graph and ops hooks (kickoff §3.1–3.5).
+ *
+ * Additive beta migrations are folded here until the first stable release.
  */
 return new class extends Migration
 {
@@ -26,6 +29,7 @@ return new class extends Migration
             $table->string('slug');
             $table->string('name');
             $table->string('kind');
+            $table->string('logo_path')->nullable();
             $table->timestamps();
 
             $table->unique(['organisation_id', 'slug']);
@@ -36,6 +40,7 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->foreignUlid('company_id')->constrained('companies')->cascadeOnDelete();
             $table->string('slug');
+            $table->string('logo_path')->nullable();
             $table->string('name');
             $table->boolean('inherits_from_parent')->default(true);
             $table->timestamps();
@@ -92,8 +97,8 @@ return new class extends Migration
             $table->ulid('scope_id');
             $table->string('role');
             $table->string('max_visibility');
-            $table->string('path_prefix')->nullable();
-            $table->string('area')->nullable();
+            $table->json('areas')->nullable();
+            $table->json('path_prefixes')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
 
@@ -112,6 +117,8 @@ return new class extends Migration
             $table->ulid('scope_id');
             $table->string('role');
             $table->string('max_visibility');
+            $table->json('areas')->nullable();
+            $table->json('path_prefixes')->nullable();
             $table->json('scopes');
             $table->json('ip_allowlist')->nullable();
             $table->unsignedInteger('rate_limit_per_minute')->nullable();
@@ -148,6 +155,8 @@ return new class extends Migration
             $table->string('remote_url')->nullable();
             $table->string('local_path')->nullable();
             $table->string('ref')->nullable();
+            $table->unsignedSmallInteger('sync_interval_minutes')->nullable();
+            $table->text('webhook_secret')->nullable();
             $table->string('path')->nullable();
             $table->string('adapter');
             $table->string('default_visibility');
@@ -155,6 +164,7 @@ return new class extends Migration
             $table->string('last_synced_commit')->nullable();
             $table->string('sync_status')->default('idle');
             $table->timestamp('last_synced_at')->nullable();
+            $table->json('last_sync_report')->nullable();
             $table->timestamps();
 
             $table->index(['organisation_id', 'company_id', 'product_id']);
@@ -195,8 +205,11 @@ return new class extends Migration
             $table->string('title');
             $table->text('summary')->nullable();
             $table->string('visibility');
+            $table->string('status', 16)->default('active')->index();
+            $table->string('superseded_by')->nullable();
             $table->string('commit')->nullable();
             $table->string('content_hash');
+            $table->unsignedInteger('token_estimate')->default(0);
             $table->json('frontmatter')->nullable();
             $table->date('decision_date')->nullable();
             $table->date('effective_date')->nullable();
@@ -221,14 +234,21 @@ return new class extends Migration
             $table->unsignedTinyInteger('level');
             $table->unsignedInteger('position');
             $table->longText('body');
+            $table->text('markdown')->nullable();
+            $table->unsignedInteger('token_estimate')->default(0);
             $table->json('blocks')->nullable();
             $table->foreignUlid('embedding_model_id')->nullable()->constrained('embedding_models')->nullOnDelete();
             $table->timestamp('embedded_at')->nullable();
+            // ponytail: JSON scan is O(n) per query; upgrade path = pgvector + ANN when volume needs it.
+            $table->json('embedding_vector')->nullable();
+            $table->string('embedding_content_hash')->nullable();
             $table->timestamps();
 
             $table->unique(['item_id', 'anchor']);
             $table->index(['organisation_id', 'company_id', 'product_id']);
         });
+
+        $this->createSearchIndexes();
 
         Schema::create('structured_tables', function (Blueprint $table): void {
             $table->ulid('id')->primary();
@@ -390,6 +410,8 @@ return new class extends Migration
 
     public function down(): void
     {
+        $this->dropSearchIndexes();
+
         Schema::dropIfExists('connected_systems');
         Schema::dropIfExists('offboarding_requests');
         Schema::dropIfExists('quota_usages');
@@ -415,5 +437,75 @@ return new class extends Migration
         Schema::dropIfExists('products');
         Schema::dropIfExists('companies');
         Schema::dropIfExists('organisations');
+    }
+
+    /**
+     * Full-text search helpers for item_sections (Postgres tsvector with language-neutral
+     * `simple` config; SQLite FTS5). MySQL has no search index in v0.1.0.
+     */
+    private function createSearchIndexes(): void
+    {
+        $driver = Schema::getConnection()->getDriverName();
+
+        if ($driver === 'pgsql') {
+            DB::statement('ALTER TABLE item_sections ADD COLUMN IF NOT EXISTS search_vector tsvector');
+            DB::statement(<<<'SQL'
+                CREATE OR REPLACE FUNCTION instituta_item_sections_search_vector()
+                RETURNS trigger AS $$
+                BEGIN
+                    NEW.search_vector := to_tsvector(
+                        'simple',
+                        coalesce(NEW.heading, '') || ' ' || coalesce(NEW.body, '')
+                    );
+                    RETURN NEW;
+                END
+                $$ LANGUAGE plpgsql
+                SQL);
+            DB::statement('DROP TRIGGER IF EXISTS item_sections_search_vector_trigger ON item_sections');
+            DB::statement(<<<'SQL'
+                CREATE TRIGGER item_sections_search_vector_trigger
+                BEFORE INSERT OR UPDATE OF heading, body ON item_sections
+                FOR EACH ROW
+                EXECUTE FUNCTION instituta_item_sections_search_vector()
+                SQL);
+            DB::statement('CREATE INDEX IF NOT EXISTS item_sections_search_vector_gin ON item_sections USING GIN (search_vector)');
+
+            return;
+        }
+
+        if ($driver === 'sqlite') {
+            DB::statement('DROP TABLE IF EXISTS item_sections_fts');
+            DB::statement(<<<'SQL'
+                CREATE VIRTUAL TABLE item_sections_fts USING fts5(
+                    section_id UNINDEXED,
+                    item_id UNINDEXED,
+                    organisation_id UNINDEXED,
+                    company_id UNINDEXED,
+                    product_id UNINDEXED,
+                    title,
+                    summary,
+                    heading,
+                    body
+                )
+                SQL);
+        }
+    }
+
+    private function dropSearchIndexes(): void
+    {
+        $driver = Schema::getConnection()->getDriverName();
+
+        if ($driver === 'pgsql') {
+            DB::statement('DROP TRIGGER IF EXISTS item_sections_search_vector_trigger ON item_sections');
+            DB::statement('DROP FUNCTION IF EXISTS instituta_item_sections_search_vector()');
+            DB::statement('DROP INDEX IF EXISTS item_sections_search_vector_gin');
+            DB::statement('ALTER TABLE item_sections DROP COLUMN IF EXISTS search_vector');
+
+            return;
+        }
+
+        if ($driver === 'sqlite') {
+            DB::statement('DROP TABLE IF EXISTS item_sections_fts');
+        }
     }
 };

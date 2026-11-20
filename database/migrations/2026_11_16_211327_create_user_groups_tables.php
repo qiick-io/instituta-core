@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * User groups (#258): named sets of users that carry Spatie roles, so members inherit the
  * roles' permissions on top of their direct roles. Groups are soft-deleted; a trashed group
- * grants nothing.
+ * grants nothing. Brain access and grant linkage are folded in before the first stable release.
  *
  * Schema copied from externa-core.
  */
@@ -45,10 +45,34 @@ return new class extends Migration
                 ->on(config('permission.table_names.roles', 'roles'))
                 ->cascadeOnDelete();
         });
+
+        Schema::create('user_group_brain_access', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_group_id')->constrained('user_groups')->cascadeOnDelete();
+            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->string('scope_type', 16);
+            $table->ulid('scope_id');
+            $table->string('role', 16);
+            $table->string('max_visibility', 16)->nullable();
+            $table->json('areas')->nullable();
+            $table->json('path_prefixes')->nullable();
+            $table->timestamps();
+
+            $table->unique(['user_group_id', 'scope_type', 'scope_id']);
+        });
+
+        Schema::table('grants', function (Blueprint $table): void {
+            $table->foreignId('user_group_id')->nullable()->after('principal_id')->constrained('user_groups')->cascadeOnDelete();
+        });
     }
 
     public function down(): void
     {
+        Schema::table('grants', function (Blueprint $table): void {
+            $table->dropConstrainedForeignId('user_group_id');
+        });
+
+        Schema::dropIfExists('user_group_brain_access');
         Schema::dropIfExists('user_group_role');
         Schema::dropIfExists('user_group_user');
         Schema::dropIfExists('user_groups');
