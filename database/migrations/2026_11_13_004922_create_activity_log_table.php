@@ -15,10 +15,10 @@ return new class extends Migration
     {
         Schema::create('activity_log', function (Blueprint $table): void {
             $table->id();
-            $table->string('organisation_id', 26)->nullable()->index();
+            $table->string('organisation_id', 36)->nullable()->index();
             $table->string('log_name')->nullable()->index();
             $table->text('description');
-            // String morph ids: ApiKey/Principal/Source are ULIDs; User causer ids stringify.
+            // String morph ids: ApiKey/Principal/Source are UUIDs; User causer ids stringify.
             $table->string('subject_type')->nullable();
             $table->string('subject_id', 36)->nullable();
             $table->index(['subject_type', 'subject_id'], 'subject');

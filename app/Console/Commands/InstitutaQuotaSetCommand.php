@@ -16,7 +16,7 @@ class InstitutaQuotaSetCommand extends Command
 {
     protected $signature = 'instituta:quota:set
         {scope_type : organisation|company}
-        {scope_id : Scope ULID}
+        {scope_id : Scope UUID}
         {metric : contract_calls|source_syncs}
         {limit : Monthly limit (integer)}';
 

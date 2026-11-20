@@ -17,15 +17,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('organisations', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
+            $table->uuid('id')->primary();
             $table->string('slug')->unique();
             $table->string('name');
             $table->timestamps();
         });
 
         Schema::create('companies', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
             $table->string('slug');
             $table->string('name');
             $table->string('kind');
@@ -37,8 +37,8 @@ return new class extends Migration
         });
 
         Schema::create('products', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('company_id')->constrained('companies')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('company_id')->constrained('companies')->cascadeOnDelete();
             $table->string('slug');
             $table->string('logo_path')->nullable();
             $table->string('name');
@@ -49,8 +49,8 @@ return new class extends Migration
         });
 
         Schema::create('product_groups', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
             $table->string('slug');
             $table->string('name');
             $table->timestamps();
@@ -59,20 +59,20 @@ return new class extends Migration
         });
 
         Schema::create('product_group_product', function (Blueprint $table): void {
-            $table->foreignUlid('product_group_id')->constrained('product_groups')->cascadeOnDelete();
-            $table->foreignUlid('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignUuid('product_group_id')->constrained('product_groups')->cascadeOnDelete();
+            $table->foreignUuid('product_id')->constrained('products')->cascadeOnDelete();
             $table->timestamps();
 
             $table->primary(['product_group_id', 'product_id']);
         });
 
         Schema::create('principals', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
             $table->string('type');
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            // Self-FK added after create: PostgreSQL rejects inline self-references on ULID PKs.
-            $table->ulid('owner_principal_id')->nullable();
+            // Self-FK added after create: PostgreSQL rejects inline self-references on UUID PKs.
+            $table->uuid('owner_principal_id')->nullable();
             $table->string('name');
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('deactivated_at')->nullable();
@@ -91,10 +91,10 @@ return new class extends Migration
         });
 
         Schema::create('grants', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('principal_id')->constrained('principals')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('principal_id')->constrained('principals')->cascadeOnDelete();
             $table->string('scope_type');
-            $table->ulid('scope_id');
+            $table->uuid('scope_id');
             $table->string('role');
             $table->string('max_visibility');
             $table->json('areas')->nullable();
@@ -107,14 +107,14 @@ return new class extends Migration
         });
 
         Schema::create('api_keys', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
+            $table->uuid('id')->primary();
             $table->string('name');
             $table->string('key_prefix', 32)->unique();
             $table->string('key_hash', 64);
-            $table->foreignUlid('principal_id')->constrained('principals')->cascadeOnDelete();
+            $table->foreignUuid('principal_id')->constrained('principals')->cascadeOnDelete();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('scope_type');
-            $table->ulid('scope_id');
+            $table->uuid('scope_id');
             $table->string('role');
             $table->string('max_visibility');
             $table->json('areas')->nullable();
@@ -135,7 +135,7 @@ return new class extends Migration
         });
 
         Schema::create('embedding_models', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
+            $table->uuid('id')->primary();
             $table->string('name');
             $table->string('version');
             $table->unsignedInteger('dimensions');
@@ -145,10 +145,10 @@ return new class extends Migration
         });
 
         Schema::create('sources', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
-            $table->foreignUlid('company_id')->nullable()->constrained('companies')->nullOnDelete();
-            $table->foreignUlid('product_id')->nullable()->constrained('products')->nullOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->foreignUuid('company_id')->nullable()->constrained('companies')->nullOnDelete();
+            $table->foreignUuid('product_id')->nullable()->constrained('products')->nullOnDelete();
             $table->string('scope_type');
             $table->string('name');
             $table->string('provider');
@@ -172,8 +172,8 @@ return new class extends Migration
         });
 
         Schema::create('source_versions', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('source_id')->constrained('sources')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('source_id')->constrained('sources')->cascadeOnDelete();
             $table->string('label');
             $table->string('commit');
             $table->timestamps();
@@ -182,10 +182,10 @@ return new class extends Migration
         });
 
         Schema::create('source_references', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('product_id')->constrained('products')->cascadeOnDelete();
-            $table->foreignUlid('source_id')->constrained('sources')->cascadeOnDelete();
-            $table->foreignUlid('source_version_id')->nullable()->constrained('source_versions')->nullOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignUuid('source_id')->constrained('sources')->cascadeOnDelete();
+            $table->foreignUuid('source_version_id')->nullable()->constrained('source_versions')->nullOnDelete();
             $table->string('pinned_commit')->nullable();
             $table->timestamps();
 
@@ -193,11 +193,11 @@ return new class extends Migration
         });
 
         Schema::create('items', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
-            $table->foreignUlid('company_id')->nullable()->constrained('companies')->nullOnDelete();
-            $table->foreignUlid('product_id')->nullable()->constrained('products')->nullOnDelete();
-            $table->foreignUlid('source_id')->constrained('sources')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->foreignUuid('company_id')->nullable()->constrained('companies')->nullOnDelete();
+            $table->foreignUuid('product_id')->nullable()->constrained('products')->nullOnDelete();
+            $table->foreignUuid('source_id')->constrained('sources')->cascadeOnDelete();
             $table->string('path');
             $table->string('stable_key');
             $table->string('type');
@@ -224,11 +224,11 @@ return new class extends Migration
         });
 
         Schema::create('item_sections', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('item_id')->constrained('items')->cascadeOnDelete();
-            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
-            $table->foreignUlid('company_id')->nullable()->constrained('companies')->nullOnDelete();
-            $table->foreignUlid('product_id')->nullable()->constrained('products')->nullOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('item_id')->constrained('items')->cascadeOnDelete();
+            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->foreignUuid('company_id')->nullable()->constrained('companies')->nullOnDelete();
+            $table->foreignUuid('product_id')->nullable()->constrained('products')->nullOnDelete();
             $table->string('anchor');
             $table->string('heading');
             $table->unsignedTinyInteger('level');
@@ -237,7 +237,7 @@ return new class extends Migration
             $table->text('markdown')->nullable();
             $table->unsignedInteger('token_estimate')->default(0);
             $table->json('blocks')->nullable();
-            $table->foreignUlid('embedding_model_id')->nullable()->constrained('embedding_models')->nullOnDelete();
+            $table->foreignUuid('embedding_model_id')->nullable()->constrained('embedding_models')->nullOnDelete();
             $table->timestamp('embedded_at')->nullable();
             // ponytail: JSON scan is O(n) per query; upgrade path = pgvector + ANN when volume needs it.
             $table->json('embedding_vector')->nullable();
@@ -251,11 +251,11 @@ return new class extends Migration
         $this->createSearchIndexes();
 
         Schema::create('structured_tables', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('item_id')->constrained('items')->cascadeOnDelete();
-            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
-            $table->foreignUlid('company_id')->nullable()->constrained('companies')->nullOnDelete();
-            $table->foreignUlid('product_id')->nullable()->constrained('products')->nullOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('item_id')->constrained('items')->cascadeOnDelete();
+            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->foreignUuid('company_id')->nullable()->constrained('companies')->nullOnDelete();
+            $table->foreignUuid('product_id')->nullable()->constrained('products')->nullOnDelete();
             $table->string('table_key');
             $table->json('columns');
             $table->unsignedInteger('position')->default(0);
@@ -266,12 +266,12 @@ return new class extends Migration
         });
 
         Schema::create('structured_rows', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('structured_table_id')->constrained('structured_tables')->cascadeOnDelete();
-            $table->foreignUlid('item_id')->constrained('items')->cascadeOnDelete();
-            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
-            $table->foreignUlid('company_id')->nullable()->constrained('companies')->nullOnDelete();
-            $table->foreignUlid('product_id')->nullable()->constrained('products')->nullOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('structured_table_id')->constrained('structured_tables')->cascadeOnDelete();
+            $table->foreignUuid('item_id')->constrained('items')->cascadeOnDelete();
+            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->foreignUuid('company_id')->nullable()->constrained('companies')->nullOnDelete();
+            $table->foreignUuid('product_id')->nullable()->constrained('products')->nullOnDelete();
             $table->json('values');
             $table->unsignedInteger('position')->default(0);
             $table->timestamps();
@@ -281,12 +281,12 @@ return new class extends Migration
         });
 
         Schema::create('item_links', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('from_item_id')->constrained('items')->cascadeOnDelete();
-            $table->foreignUlid('to_item_id')->nullable()->constrained('items')->nullOnDelete();
-            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
-            $table->foreignUlid('company_id')->nullable()->constrained('companies')->nullOnDelete();
-            $table->foreignUlid('product_id')->nullable()->constrained('products')->nullOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('from_item_id')->constrained('items')->cascadeOnDelete();
+            $table->foreignUuid('to_item_id')->nullable()->constrained('items')->nullOnDelete();
+            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->foreignUuid('company_id')->nullable()->constrained('companies')->nullOnDelete();
+            $table->foreignUuid('product_id')->nullable()->constrained('products')->nullOnDelete();
             $table->string('target');
             $table->string('relation');
             $table->timestamps();
@@ -296,8 +296,8 @@ return new class extends Migration
         });
 
         Schema::create('vault_versions', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
             $table->string('label');
             $table->json('source_commits');
             $table->string('signature')->nullable();
@@ -307,13 +307,13 @@ return new class extends Migration
         });
 
         Schema::create('context_freezes', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
-            $table->foreignUlid('company_id')->nullable()->constrained('companies')->nullOnDelete();
-            $table->foreignUlid('product_id')->nullable()->constrained('products')->nullOnDelete();
-            $table->foreignUlid('vault_version_id')->constrained('vault_versions')->restrictOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->foreignUuid('company_id')->nullable()->constrained('companies')->nullOnDelete();
+            $table->foreignUuid('product_id')->nullable()->constrained('products')->nullOnDelete();
+            $table->foreignUuid('vault_version_id')->constrained('vault_versions')->restrictOnDelete();
             $table->text('reason');
-            $table->foreignUlid('frozen_by_principal_id')->constrained('principals')->restrictOnDelete();
+            $table->foreignUuid('frozen_by_principal_id')->constrained('principals')->restrictOnDelete();
             $table->timestamp('frozen_at');
             $table->timestamp('lifted_at')->nullable();
             $table->timestamps();
@@ -323,11 +323,11 @@ return new class extends Migration
         });
 
         Schema::create('agent_sessions', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('api_key_id')->constrained('api_keys')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('api_key_id')->constrained('api_keys')->cascadeOnDelete();
             $table->string('scope_type');
-            $table->ulid('scope_id');
-            $table->foreignUlid('vault_version_id')->constrained('vault_versions')->restrictOnDelete();
+            $table->uuid('scope_id');
+            $table->foreignUuid('vault_version_id')->constrained('vault_versions')->restrictOnDelete();
             $table->timestamp('started_at');
             $table->timestamp('invalidated_at')->nullable();
             $table->timestamps();
@@ -337,16 +337,16 @@ return new class extends Migration
         });
 
         Schema::create('contract_calls', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('principal_id')->nullable()->constrained('principals')->nullOnDelete();
-            $table->foreignUlid('api_key_id')->nullable()->constrained('api_keys')->nullOnDelete();
-            $table->foreignUlid('agent_session_id')->nullable()->constrained('agent_sessions')->nullOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('principal_id')->nullable()->constrained('principals')->nullOnDelete();
+            $table->foreignUuid('api_key_id')->nullable()->constrained('api_keys')->nullOnDelete();
+            $table->foreignUuid('agent_session_id')->nullable()->constrained('agent_sessions')->nullOnDelete();
             $table->string('tool_or_endpoint');
             $table->string('scope_type');
-            $table->ulid('scope_id');
-            $table->foreignUlid('organisation_id')->nullable()->constrained('organisations')->nullOnDelete();
-            $table->foreignUlid('company_id')->nullable()->constrained('companies')->nullOnDelete();
-            $table->foreignUlid('product_id')->nullable()->constrained('products')->nullOnDelete();
+            $table->uuid('scope_id');
+            $table->foreignUuid('organisation_id')->nullable()->constrained('organisations')->nullOnDelete();
+            $table->foreignUuid('company_id')->nullable()->constrained('companies')->nullOnDelete();
+            $table->foreignUuid('product_id')->nullable()->constrained('products')->nullOnDelete();
             $table->json('item_ids')->nullable();
             $table->unsignedInteger('token_estimate')->nullable();
             $table->timestamp('called_at');
@@ -357,15 +357,15 @@ return new class extends Migration
         });
 
         /*
-         * The unique key spans three strings and a ULID. At string(255) they cost 3 × 1020 + 104
+         * The unique key spans three strings and a UUID. At string(255) they cost 3 × 1020 + 144
          * bytes under utf8mb4, past InnoDB's 3072-byte limit (#356); at 64 characters the key is
-         * 3 × 256 + 104 = 872 bytes. The columns hold a ScopeTypeEnum value, a QuotaMetricEnum
+         * 3 × 256 + 144 = 872 bytes. The columns hold a ScopeTypeEnum value, a QuotaMetricEnum
          * value and a period name, all short identifiers.
          */
         Schema::create('quotas', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
+            $table->uuid('id')->primary();
             $table->string('scope_type', 64);
-            $table->ulid('scope_id');
+            $table->uuid('scope_id');
             $table->string('metric', 64);
             $table->unsignedBigInteger('limit_value');
             $table->string('period', 64);
@@ -375,8 +375,8 @@ return new class extends Migration
         });
 
         Schema::create('quota_usages', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('quota_id')->constrained('quotas')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('quota_id')->constrained('quotas')->cascadeOnDelete();
             $table->unsignedBigInteger('used')->default(0);
             $table->timestamp('period_start');
             $table->timestamp('period_end');
@@ -386,8 +386,8 @@ return new class extends Migration
         });
 
         Schema::create('offboarding_requests', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('company_id')->constrained('companies')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('company_id')->constrained('companies')->cascadeOnDelete();
             $table->string('status');
             $table->string('export_path')->nullable();
             $table->timestamp('requested_at');
@@ -398,8 +398,8 @@ return new class extends Migration
         });
 
         Schema::create('connected_systems', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('product_id')->constrained('products')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('product_id')->constrained('products')->cascadeOnDelete();
             $table->string('system');
             $table->string('base_url');
             $table->timestamps();

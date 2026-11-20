@@ -14,7 +14,7 @@ use Database\Factories\ApiKeyFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,7 +30,7 @@ use Symfony\Component\HttpFoundation\IpUtils;
  * `key_prefix` (`ins_{env}_{id}`) and SHA-256 of the full token. Declared
  * divergences from the shared baseline: `principal_id` (keys act as Principals),
  * `scope_type` / `scope_id` (multi-tenancy), `role` / `max_visibility` (graph
- * visibility ceiling), and ulid primary keys.
+ * visibility ceiling), and uuid v7 primary keys.
  *
  * @property string $id
  * @property string $name
@@ -82,7 +82,7 @@ use Symfony\Component\HttpFoundation\IpUtils;
 class ApiKey extends Model
 {
     /** @use HasFactory<ApiKeyFactory> */
-    use HasAreaLimitsTrait, HasFactory, HasUlids, LogsApplicationActivityTrait;
+    use HasAreaLimitsTrait, HasFactory, HasUuids, LogsApplicationActivityTrait;
 
     /** Three-letter product prefix in the fleet token format. */
     public const DEFAULT_PREFIX = 'ins';

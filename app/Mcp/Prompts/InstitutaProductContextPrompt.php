@@ -29,7 +29,7 @@ class InstitutaProductContextPrompt extends Prompt
     public function arguments(): array
     {
         return [
-            new Argument('product_id', 'Product ULID (see instituta_scopes)', required: true),
+            new Argument('product_id', 'Product UUID (see instituta_scopes)', required: true),
             new Argument('area', 'Optional area to narrow the context (rules, decisions, design-system, …)'),
         ];
     }

@@ -45,7 +45,6 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Str;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Illuminate\Testing\TestResponse;
 
@@ -467,22 +466,15 @@ it('matches a folder by prefix, never by LIKE wildcards', function (): void {
         ->and($underscoreFolder->allowsPath('rules/handbook.md'))->toBeFalse();
 });
 
-it('carries a grant\'s single area and path prefix over to the lists', function (): void {
-    if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
-        $this->markTestSkipped('Schema changes end the test transaction on MySQL and MariaDB.');
-    }
-
-    $this->artisan('migrate:rollback', ['--step' => 1])->assertSuccessful();
-    $principalId = $this->developerPrincipal->id;
-    $grantId = (string) Str::ulid();
-    DB::table('grants')->insert([
-        'id' => $grantId, 'principal_id' => $principalId, 'scope_type' => 'organisation', 'scope_id' => $this->organisation->id,
-        'role' => 'member', 'max_visibility' => 'internal', 'area' => 'rules', 'path_prefix' => 'rules/engineering',
+it('stores grant area and path limits as lists', function (): void {
+    $grant = Grant::factory()->create([
+        'principal_id' => $this->developerPrincipal->id,
+        'scope_type' => 'organisation',
+        'scope_id' => $this->organisation->id,
+        'areas' => ['rules'],
+        'path_prefixes' => ['rules/engineering'],
     ]);
-    $this->artisan('migrate')->assertSuccessful();
 
-    $migrated = Grant::query()->findOrFail($grantId);
-
-    expect($migrated->areas)->toBe(['rules'])
-        ->and($migrated->path_prefixes)->toBe(['rules/engineering']);
+    expect($grant->fresh()->areas)->toBe(['rules'])
+        ->and($grant->fresh()->path_prefixes)->toBe(['rules/engineering']);
 });

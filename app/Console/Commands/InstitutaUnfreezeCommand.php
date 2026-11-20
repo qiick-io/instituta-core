@@ -12,7 +12,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 #[AsCommand(name: 'instituta:unfreeze')]
 class InstitutaUnfreezeCommand extends Command
 {
-    protected $signature = 'instituta:unfreeze {freeze : Context freeze ULID}';
+    protected $signature = 'instituta:unfreeze {freeze : Context freeze UUID}';
 
     protected $description = 'Lift an active context freeze';
 

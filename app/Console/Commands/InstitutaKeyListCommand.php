@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 
 class InstitutaKeyListCommand extends Command
 {
-    protected $signature = 'instituta:key:list {principal : Principal ULID}';
+    protected $signature = 'instituta:key:list {principal : Principal UUID}';
 
     protected $description = 'List API keys for a principal (never shows the hash or plain secret)';
 

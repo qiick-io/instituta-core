@@ -15,11 +15,11 @@ use Symfony\Component\Console\Attribute\AsCommand;
 class InstitutaFreezeCommand extends Command
 {
     protected $signature = 'instituta:freeze
-        {vault : Vault version ULID}
-        {--principal= : Principal ULID that freezes}
+        {vault : Vault version UUID}
+        {--principal= : Principal UUID that freezes}
         {--reason= : Why the freeze was raised}
-        {--company= : Optional company ULID scope}
-        {--product= : Optional product ULID scope}';
+        {--company= : Optional company UUID scope}
+        {--product= : Optional product UUID scope}';
 
     protected $description = 'Freeze a scope to a vault version (emergency pin)';
 

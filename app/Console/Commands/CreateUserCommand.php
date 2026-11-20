@@ -45,7 +45,7 @@ class CreateUserCommand extends Command
         {--last-name= : Last name (optional)}
         {--email= : Login email}
         {--role= : Role name (default: super-admin for the first user, reader afterwards)}
-        {--organisation= : Organisation ULID or slug the user gets access to (asked when there are several)}
+        {--organisation= : Organisation UUID or slug the user gets access to (asked when there are several)}
         {--brain-role= : Brain role in that organisation: owner, member or guest (default: owner for its first person, member afterwards)}';
 
     protected $description = 'Create a dashboard user (the password is prompted)';
@@ -125,7 +125,7 @@ class CreateUserCommand extends Command
     }
 
     /**
-     * The organisation from `--organisation` (ULID or slug), the only one, or a prompt.
+     * The organisation from `--organisation` (UUID or slug), the only one, or a prompt.
      * Null when none exists yet; false (after printing the error) when the option matches none.
      */
     private function resolveOrganisation(): Organisation|false|null

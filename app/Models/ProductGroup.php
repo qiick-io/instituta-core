@@ -6,7 +6,7 @@ namespace App\Models;
 
 use Database\Factories\ProductGroupFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,7 +27,7 @@ use Illuminate\Support\Carbon;
 class ProductGroup extends Model
 {
     /** @use HasFactory<ProductGroupFactory> */
-    use HasFactory, HasUlids;
+    use HasFactory, HasUuids;
 
     /**
      * @return BelongsTo<Organisation, $this>

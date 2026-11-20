@@ -6,7 +6,7 @@ namespace App\Models;
 
 use Database\Factories\OrganisationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -25,7 +25,7 @@ use Illuminate\Support\Carbon;
 class Organisation extends Model
 {
     /** @use HasFactory<OrganisationFactory> */
-    use HasFactory, HasUlids;
+    use HasFactory, HasUuids;
 
     /**
      * @return HasMany<Company, $this>

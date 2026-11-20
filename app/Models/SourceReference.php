@@ -6,7 +6,7 @@ namespace App\Models;
 
 use Database\Factories\SourceReferenceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,7 +27,7 @@ use Illuminate\Support\Carbon;
 class SourceReference extends Model
 {
     /** @use HasFactory<SourceReferenceFactory> */
-    use HasFactory, HasUlids;
+    use HasFactory, HasUuids;
 
     /**
      * @return BelongsTo<Product, $this>

@@ -15,13 +15,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('proposals', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
-            $table->foreignUlid('company_id')->nullable()->constrained('companies')->nullOnDelete();
-            $table->foreignUlid('product_id')->nullable()->constrained('products')->nullOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->foreignUuid('company_id')->nullable()->constrained('companies')->nullOnDelete();
+            $table->foreignUuid('product_id')->nullable()->constrained('products')->nullOnDelete();
             $table->string('scope_type');
-            $table->ulid('scope_id');
-            $table->foreignUlid('source_id')->nullable()->constrained('sources')->nullOnDelete();
+            $table->uuid('scope_id');
+            $table->foreignUuid('source_id')->nullable()->constrained('sources')->nullOnDelete();
             $table->string('status');
             $table->text('decision_note')->nullable();
             $table->string('action');
@@ -29,8 +29,8 @@ return new class extends Migration
             $table->string('title');
             $table->string('path');
             $table->string('area')->nullable();
-            $table->foreignUlid('proposed_by_principal_id')->constrained('principals')->cascadeOnDelete();
-            $table->foreignUlid('api_key_id')->nullable()->constrained('api_keys')->nullOnDelete();
+            $table->foreignUuid('proposed_by_principal_id')->constrained('principals')->cascadeOnDelete();
+            $table->foreignUuid('api_key_id')->nullable()->constrained('api_keys')->nullOnDelete();
             $table->longText('body')->nullable();
             $table->json('frontmatter_changes')->nullable();
             $table->string('base_content_hash', 64)->nullable();

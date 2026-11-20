@@ -24,7 +24,7 @@ class InstitutaResolveTool extends Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'product_id' => $schema->string()->description('Product ULID')->required(),
+            'product_id' => $schema->string()->description('Product UUID')->required(),
             'area' => $schema->string()->description('Optional area filter')->nullable(),
             'include_inactive' => $schema->boolean()->description('Also let draft, deprecated and superseded entries win (default false: they show only when no active entry exists)')->nullable(),
         ];

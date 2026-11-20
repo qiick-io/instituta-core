@@ -49,7 +49,7 @@ Out of MVP (schema must not block): teams inside a product, mergers, per-country
 
 **In**
 
-- Data model (ULIDs, scope columns on content rows): organisations, companies (`own`|`client`), products, product groups, principals, grants, API keys, sources / versions / references, items / sections / structured tables / links, search drivers, vault versions, freezes, agent sessions, contract call audit, quotas, proposals, gap reports, offboarding.
+- Data model (UUIDs, scope columns on content rows): organisations, companies (`own`|`client`), products, product groups, principals, grants, API keys, sources / versions / references, items / sections / structured tables / links, search drivers, vault versions, freezes, agent sessions, contract call audit, quotas, proposals, gap reports, offboarding.
 - Brain module + Artisan reader CLI + stdio MCP over a local folder.
 - Read-only ingest from `local`, `git` and `github` sources, on a schedule or a push webhook. Never-ingest denylist and a secret/PII scanner that fails closed. Images, PDFs, archives, fonts and Office files enter as **assets** with metadata only; the text of PDFs and Office files is read locally into sections (`FORMAT.md` §7). Brain health after each sync.
 - MCP (HTTP) and REST implementing `CONTRACTS.md`: search, items, outlines, sections (single and batch), tables, neighbours, resolved product view, context packs, changes since, gap reports, brain health; token estimates and stable error codes.

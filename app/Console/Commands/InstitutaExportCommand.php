@@ -14,7 +14,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 class InstitutaExportCommand extends Command
 {
     protected $signature = 'instituta:export
-        {company : Company ULID or slug}
+        {company : Company UUID or slug}
         {--path= : Destination directory (default under storage/instituta/exports)}';
 
     protected $description = 'Export a client company subtree (manifest + index JSON)';

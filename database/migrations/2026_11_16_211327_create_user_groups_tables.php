@@ -49,9 +49,9 @@ return new class extends Migration
         Schema::create('user_group_brain_access', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('user_group_id')->constrained('user_groups')->cascadeOnDelete();
-            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
             $table->string('scope_type', 16);
-            $table->ulid('scope_id');
+            $table->uuid('scope_id');
             $table->string('role', 16);
             $table->string('max_visibility', 16)->nullable();
             $table->json('areas')->nullable();

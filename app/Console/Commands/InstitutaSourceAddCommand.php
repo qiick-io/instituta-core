@@ -19,7 +19,7 @@ class InstitutaSourceAddCommand extends Command
 {
     protected $signature = 'instituta:source:add
         {name : Source display name}
-        {--organisation= : Organisation ULID}
+        {--organisation= : Organisation UUID}
         {--provider=local : local|git|github}
         {--remote-url= : Git / GitHub remote URL}
         {--local-path= : Absolute local path}
@@ -29,8 +29,8 @@ class InstitutaSourceAddCommand extends Command
         {--visibility=internal : public|internal|restricted}
         {--shared : Mark as org-level shared source}
         {--scope-type=organisation : organisation|company|product}
-        {--company-id= : Company ULID when scoped}
-        {--product-id= : Product ULID when scoped}
+        {--company-id= : Company UUID when scoped}
+        {--product-id= : Product UUID when scoped}
         {--sync-interval= : Minutes between scheduled syncs (default 15 for git/github, off for local; 0 = off)}';
 
     protected $description = 'Register a read-only ingest source (denylist enforced)';
