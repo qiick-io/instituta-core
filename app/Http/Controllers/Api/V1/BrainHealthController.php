@@ -32,7 +32,7 @@ final class BrainHealthController extends Controller
         $perimeter = $this->perimeter($request);
 
         if ($perimeter->role !== RoleEnum::Owner) {
-            return (new ApiMessageResource(['message' => 'Brain health is for owner keys.', 'code' => ContractErrorCodeEnum::Forbidden->value]))
+            return (new ApiMessageResource(['message' => 'Brain health is for owner keys.', 'error' => ContractErrorCodeEnum::Forbidden->value]))
                 ->response()
                 ->setStatusCode(403);
         }

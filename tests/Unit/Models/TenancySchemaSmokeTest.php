@@ -29,7 +29,7 @@ it('factories create tenancy graph and index rows', function (): void {
         'organisation_id' => $organisation->id,
     ]);
     $apiKey = ApiKey::factory()->create([
-        'principal_id' => $principal->id,
+        'owner_principal_id' => $principal->id,
         'scope_id' => $organisation->id,
     ]);
     $source = Source::factory()->create([

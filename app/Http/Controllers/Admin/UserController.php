@@ -45,7 +45,7 @@ class UserController extends Controller
         $sort = $request->sortColumn(self::SORTABLE_COLUMNS, 'created_at');
         $direction = $request->sortDirection('desc');
 
-        $query = $request->applySearch(User::query(), ['first_name', 'last_name', 'email']);
+        $query = $request->applySearch(User::query(), ['first_name', 'last_name', 'username', 'email']);
         $query->with(['roles:id,name', 'groups:id,name']);
 
         if ($sort === 'name') {
@@ -99,6 +99,7 @@ class UserController extends Controller
         $createUser->execute(
             $request->string('first_name')->toString(),
             $request->filled('last_name') ? $request->string('last_name')->toString() : null,
+            $request->filled('username') ? $request->string('username')->toString() : null,
             $request->string('email')->toString(),
             $request->string('password')->toString(),
             $request->roles(),
@@ -118,6 +119,7 @@ class UserController extends Controller
             $user,
             $request->string('first_name')->toString(),
             $request->filled('last_name') ? $request->string('last_name')->toString() : null,
+            $request->filled('username') ? $request->string('username')->toString() : null,
             $request->string('email')->toString(),
             $request->filled('password') ? $request->string('password')->toString() : null,
             $request->roles(),

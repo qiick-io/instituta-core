@@ -8,7 +8,7 @@ use App\Brain\Enums\ScopeTypeEnum;
 use App\Enums\GapReportKindEnum;
 use App\Enums\GapReportStatusEnum;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -56,7 +56,7 @@ use Illuminate\Support\Carbon;
 ])]
 class GapReport extends Model
 {
-    use HasUlids;
+    use HasUuids;
 
     /**
      * @return array<string, string>

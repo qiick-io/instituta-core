@@ -36,7 +36,7 @@ class InstitutaUpdateProposalTool extends Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'id' => $schema->string()->description('Proposal ULID')->required(),
+            'id' => $schema->string()->description('Proposal UUID')->required(),
             'status' => $schema->string()->description('accepted|rejected')->required(),
         ];
     }

@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 
 class InstitutaKeyRevokeCommand extends Command
 {
-    protected $signature = 'instituta:key:revoke {key : API key ULID}';
+    protected $signature = 'instituta:key:revoke {key : API key UUID}';
 
     protected $description = 'Revoke an API key';
 

@@ -99,10 +99,10 @@ it('lets a read-only agent key report a gap and notifies the organisation', func
 it('refuses a related item outside the perimeter and an invalid kind', function (): void {
     reportGap(['related' => [['item' => $this->otherTenantItemId]]])
         ->assertUnprocessable()
-        ->assertJsonPath('code', 'not_found');
+        ->assertJsonPath('error', 'not_found');
 
     reportGap(['related' => [['item' => 'rules/coding', 'anchor' => 'nope']]])->assertUnprocessable();
-    reportGap(['kind' => 'rant'])->assertUnprocessable()->assertJsonPath('code', 'validation_failed');
+    reportGap(['kind' => 'rant'])->assertUnprocessable()->assertJsonPath('error', 'validation_failed');
 
     expect(GapReport::query()->count())->toBe(0);
 });

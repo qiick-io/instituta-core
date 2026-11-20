@@ -1117,7 +1117,8 @@
             "rolesPlaceholder": "Seleziona almeno un ruolo",
             "rolesLocked": "Non puoi cambiare i tuoi ruoli.",
             "groupsHint": "I ruoli dei gruppi si sommano ai ruoli diretti per i permessi di amministrazione.",
-            "groupsPlaceholder": "Seleziona gruppi"
+            "groupsPlaceholder": "Seleziona gruppi",
+            "username": "Nome utente"
         }
     },
     "roles": {

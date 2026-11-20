@@ -24,6 +24,8 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        $input['username'] = self::normalizeUsername($input['username'] ?? null);
+
         if (! Features::enabled(Features::registration())
             || ! app(SettingsRepositoryService::class)->isRegistrationEnabled()) {
             abort(403);
@@ -37,6 +39,7 @@ class CreateNewUser implements CreatesNewUsers
         return User::create([
             'first_name' => $input['first_name'],
             'last_name' => $input['last_name'] ?? null,
+            'username' => $input['username'],
             'email' => $input['email'],
             'password' => $input['password'],
         ]);

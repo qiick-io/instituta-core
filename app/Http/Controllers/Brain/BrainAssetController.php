@@ -36,7 +36,7 @@ final class BrainAssetController extends Controller
         Gate::authorize('viewAny', Item::class);
 
         /** @var Item|null $asset */
-        $asset = Item::query()->withinPerimeter($perimeter)->whereKey($item)->first();
+        $asset = Item::query()->withinPerimeter($perimeter)->matchingReference($item)->first();
         $metadata = $asset?->frontmatter['asset'] ?? null;
         $mime = $asset !== null ? AssetReader::mimeType($asset->path) : null;
         $sha256 = is_array($metadata) && is_string($metadata['sha256'] ?? null) ? $metadata['sha256'] : '';

@@ -46,7 +46,7 @@ final class BrainKeysService
         /** @var list<ApiKey> $keys */
         $keys = ApiKey::query()
             ->with('principal')
-            ->whereIn('principal_id', $principalIds)
+            ->whereIn('owner_principal_id', $principalIds)
             ->orderByDesc('created_at')
             ->get()
             ->all();

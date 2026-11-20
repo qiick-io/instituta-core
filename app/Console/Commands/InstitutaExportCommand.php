@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Models\Company;
 use App\Services\ClientExportService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Symfony\Component\Console\Attribute\AsCommand;
 
@@ -14,7 +15,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 class InstitutaExportCommand extends Command
 {
     protected $signature = 'instituta:export
-        {company : Company ULID or slug}
+        {company : Company UUID or slug}
         {--path= : Destination directory (default under storage/instituta/exports)}';
 
     protected $description = 'Export a client company subtree (manifest + index JSON)';
@@ -23,8 +24,13 @@ class InstitutaExportCommand extends Command
     {
         $ref = (string) $this->argument('company');
         $company = Company::query()
-            ->where('id', $ref)
-            ->orWhere('slug', $ref)
+            ->where(function ($query) use ($ref): void {
+                $query->where('slug', $ref);
+
+                if (Str::isUuid($ref)) {
+                    $query->orWhere('id', $ref);
+                }
+            })
             ->first();
 
         if ($company === null) {

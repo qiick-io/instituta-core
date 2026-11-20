@@ -12,7 +12,6 @@ use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\Source;
 use App\Models\User;
-use App\Services\InitialSuperAdminPasswordService;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -58,6 +57,33 @@ it('defaults later users to the reader role', function (): void {
     $user = User::query()->where('email', 'bob@example.com')->firstOrFail();
 
     expect($user->hasRole(RoleEnum::Reader->value))->toBeTrue();
+});
+
+it('normalizes and validates the optional CLI username', function (): void {
+    $this->artisan('instituta:create-user', [
+        '--first-name' => 'Ada',
+        '--last-name' => 'Lovelace',
+        '--username' => '  Ada.Lovelace  ',
+        '--email' => 'ada@example.com',
+        '--role' => 'reader',
+    ])
+        ->expectsQuestion('Password', 'correct-horse-battery')
+        ->assertSuccessful();
+
+    expect(User::query()->where('email', 'ada@example.com')->sole()->username)->toBe('ada.lovelace');
+
+    $this->artisan('instituta:create-user', [
+        '--first-name' => 'Grace',
+        '--last-name' => 'Hopper',
+        '--username' => 'ADA.LOVELACE',
+        '--email' => 'grace@example.com',
+        '--role' => 'reader',
+    ])
+        ->expectsQuestion('Password', 'correct-horse-battery')
+        ->expectsOutputToContain('The username has already been taken.')
+        ->assertFailed();
+
+    expect(User::query()->where('email', 'grace@example.com')->exists())->toBeFalse();
 });
 
 it('refuses a duplicate email from the CLI', function (): void {
@@ -203,26 +229,4 @@ it('warns that a user created before any organisation has no perimeter', functio
         ->assertSuccessful();
 
     expect(Principal::query()->count())->toBe(0);
-});
-
-it('uses the shared fleet password check', function (): void {
-    app()->instance(InitialSuperAdminPasswordService::class, new class extends InitialSuperAdminPasswordService
-    {
-        public function failureReason(?string $password, string $environment): ?string
-        {
-            return 'INITIAL_SUPER_ADMIN_PASSWORD is the default password.';
-        }
-    });
-
-    $this->artisan('instituta:create-user', [
-        '--first-name' => 'Ada',
-        '--last-name' => 'Lovelace',
-        '--email' => 'ada@example.com',
-        '--role' => 'reader',
-    ])
-        ->expectsQuestion('Password', 'PASSWORD')
-        ->expectsOutputToContain('INITIAL_SUPER_ADMIN_PASSWORD is the default password.')
-        ->assertFailed();
-
-    expect(User::query()->exists())->toBeFalse();
 });

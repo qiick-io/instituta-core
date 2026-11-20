@@ -801,7 +801,7 @@ components:
             name: id
             in: path
             required: true
-            description: Item ULID, stable_key, or path
+            description: Item UUID, stable_key, or path
             schema:
                 type: string
     responses:

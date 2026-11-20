@@ -16,7 +16,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 class InstitutaEraseCommand extends Command
 {
     protected $signature = 'instituta:erase
-        {offboarding : Offboarding request ULID (must be exported)}';
+        {offboarding : Offboarding request UUID (must be exported)}';
 
     protected $description = 'Erase a client company subtree after export (index, replay, keys)';
 

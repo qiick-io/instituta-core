@@ -32,7 +32,7 @@ final class GapReportController extends Controller
                 'api',
             );
         } catch (ContractException $exception) {
-            return (new ApiMessageResource(['message' => $exception->getMessage(), 'code' => $exception->errorCode->value]))
+            return (new ApiMessageResource(['message' => $exception->getMessage(), 'error' => $exception->errorCode->value]))
                 ->response()
                 ->setStatusCode(422);
         }

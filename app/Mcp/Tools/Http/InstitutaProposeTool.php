@@ -41,7 +41,7 @@ class InstitutaProposeTool extends Tool
             'path' => $schema->string()->description('Repository-relative path')->required(),
             'area' => $schema->string()->description('Optional area')->nullable(),
             'body' => $schema->string()->description('Proposed markdown: the whole file, or with section_anchor the new markdown of that section, heading line included (not audited)')->nullable(),
-            'source_id' => $schema->string()->description('Optional source ULID')->nullable(),
+            'source_id' => $schema->string()->description('Optional source UUID')->nullable(),
             'base_content_hash' => $schema->string()->description('origin.content_hash of the item you read; required for a whole-file update or delete')->nullable(),
             'section_anchor' => $schema->string()->description('Edit only this section (update only); body is its new markdown')->nullable(),
             'frontmatter' => $schema->object()->description('Update only: frontmatter keys to set, null removes one (status, superseded_by, review_date, title, visibility, tags, …). Alone or with a body / section edit.')->nullable(),

@@ -56,6 +56,7 @@ it('estimates characters divided by four, rounded up', function (): void {
 });
 
 it('gives the same estimates on the outline, each section, the item and its search hits', function (): void {
+    skipUnlessKeywordSearchSupported();
     $item = Item::query()->where('stable_key', 'rules/brand')->sole();
     $colours = "## Colours\n\nPrimary: teal, used for actions and links.";
 

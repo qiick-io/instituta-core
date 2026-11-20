@@ -1117,7 +1117,8 @@
             "rolesPlaceholder": "Select at least one role",
             "rolesLocked": "You cannot change your own roles.",
             "groupsHint": "Group roles are added to the direct roles for admin permissions.",
-            "groupsPlaceholder": "Select groups"
+            "groupsPlaceholder": "Select groups",
+            "username": "Username"
         }
     },
     "roles": {

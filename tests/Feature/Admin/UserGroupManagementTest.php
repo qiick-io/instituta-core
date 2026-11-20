@@ -72,7 +72,7 @@ it('lists groups with search, members and the trash filter', function (): void {
             ->component('admin/groups/index')
             ->has('groups.data', 1)
             ->where('groups.data.0.name', 'Editors')
-            ->where('groups.data.0.user_ids', [$member->id])
+            ->where('groups.data.0.user_ids', [$member->public_id])
             ->has('groups.data.0.users', 1)
             ->where('filters.search', 'editor')
             ->where('filters.trashed', false));
@@ -115,7 +115,7 @@ it('creates, updates and soft deletes a group with members and roles', function 
     $this->post(route('groups.store'), [
         'name' => 'Content',
         'description' => 'Content editors',
-        'user_ids' => [$member->id],
+        'user_ids' => [$member->public_id],
         'role_ids' => [$reader->id],
     ])->assertRedirect(route('groups.index'));
 
@@ -203,7 +203,7 @@ it('rejects roles the group manager could not grant', function (): void {
     $this->actingAs($manager)
         ->post(route('groups.store'), [
             'name' => 'Escalation',
-            'user_ids' => [$manager->id, $member->id],
+            'user_ids' => [$manager->public_id, $member->public_id],
             'role_ids' => [Role::findByName(RoleEnum::Admin->value)->id],
         ])
         ->assertSessionHasErrors('role_ids.0');
@@ -211,7 +211,7 @@ it('rejects roles the group manager could not grant', function (): void {
     expect(UserGroup::query()->where('name', 'Escalation')->exists())->toBeFalse();
 
     $this->actingAs($manager)
-        ->put(route('groups.update', $superAdminGroup), ['name' => 'Mine now', 'user_ids' => [$manager->id]])
+        ->put(route('groups.update', $superAdminGroup), ['name' => 'Mine now', 'user_ids' => [$manager->public_id]])
         ->assertForbidden();
 
     $this->actingAs($manager)

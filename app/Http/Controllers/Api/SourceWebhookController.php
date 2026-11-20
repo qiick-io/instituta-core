@@ -10,6 +10,7 @@ use App\Models\Source;
 use App\Services\SourceWebhookService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /**
  * Receives push webhooks (GitHub or any sender signing like it) and queues a sync of that
@@ -24,6 +25,8 @@ final class SourceWebhookController extends Controller
 
     public function __invoke(Request $request, string $source): JsonResponse
     {
+        // Native UUID columns reject non-UUID binds on PostgreSQL; unknown shapes are 404.
+        abort_unless(Str::isUuid($source), 404);
         $model = Source::query()->find($source);
         abort_if($model === null || $model->webhook_secret === null, 404);
 

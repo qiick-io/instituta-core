@@ -176,6 +176,8 @@ it('honours an active freeze by serving only pinned commits', function (): void 
 });
 
 it('searches inside the perimeter over REST', function (): void {
+    skipUnlessKeywordSearchSupported();
+
     $seed = restSeedOwnerKey();
 
     $item = Item::factory()->create([

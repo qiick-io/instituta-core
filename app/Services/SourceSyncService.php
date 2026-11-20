@@ -539,7 +539,11 @@ final class SourceSyncService
             if ($itemData->adapter === 'asset') {
                 $this->assets->store(rtrim($repo->path, '/').'/'.$itemData->path, $this->assetHash($itemData));
             }
-            $isItemChanged = $item->wasChanged(['content_hash', 'title', 'summary', 'area', 'visibility', 'status', 'superseded_by', 'frontmatter']);
+            // MySQL/MariaDB JSON columns often report frontmatter dirty after a no-op
+            // round-trip; compare the decoded value so unchanged items stay quiet.
+            $isItemChanged = $item->wasChanged(['content_hash', 'title', 'summary', 'area', 'visibility', 'status', 'superseded_by'])
+                || ($item->wasChanged('frontmatter')
+                    && json_encode($item->getOriginal('frontmatter')) !== json_encode($item->frontmatter));
             $pathToItemId[$itemData->path] = $item->id;
             $items++;
             ['count' => $sectionCount, 'changed_anchors' => $changedAnchors] = $this->upsertSections($source, $item, $itemData->sections);

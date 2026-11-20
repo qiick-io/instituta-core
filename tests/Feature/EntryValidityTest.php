@@ -86,6 +86,8 @@ it('reads status and superseded_by at sync and exposes validity in reads', funct
 });
 
 it('lists active entries before superseded ones in search', function (): void {
+    skipUnlessKeywordSearchSupported();
+
     syncValidityBrain($this->organisation, [
         'rules/old-naming.md' => "---\ntitle: Naming abbreviations naming\nstatus: superseded\nsuperseded_by: rules/naming\n---\n\n# Naming abbreviations naming\n\nNaming naming naming: abbreviations are fine.\n",
         'rules/naming.md' => "---\ntitle: Naming\n---\n\n# Naming\n\nFull words.\n",

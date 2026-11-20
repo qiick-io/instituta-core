@@ -47,9 +47,9 @@ class ApiKeyPolicy
     {
         $userPrincipalIds = $user->principals()->pluck('id');
 
-        return $userPrincipalIds->contains($apiKey->principal_id)
+        return $userPrincipalIds->contains($apiKey->owner_principal_id)
             || Principal::query()
-                ->whereKey($apiKey->principal_id)
+                ->whereKey($apiKey->owner_principal_id)
                 ->whereIn('owner_principal_id', $userPrincipalIds)
                 ->exists();
     }

@@ -72,6 +72,7 @@ function contextPack(array $query): array
 }
 
 it('returns the relevant sections already read, active entries first, within the budget', function (): void {
+    skipUnlessKeywordSearchSupported();
     $pack = contextPack(['q' => 'teal', 'budget' => 500]);
 
     expect($pack['token_estimate'])->toBeLessThanOrEqual(500)
@@ -89,6 +90,7 @@ it('returns the relevant sections already read, active entries first, within the
 });
 
 it('puts a product\'s resolved entries first and fits the larger sections in a larger budget', function (): void {
+    skipUnlessKeywordSearchSupported();
     $pack = contextPack(['q' => 'teal', 'product_id' => $this->product->id, 'budget' => 4000]);
 
     expect($pack['resolved'])->not->toBeEmpty()
@@ -101,12 +103,13 @@ it('puts a product\'s resolved entries first and fits the larger sections in a l
 it('validates the budget and the scope', function (): void {
     $this->getJson('/api/v1/context?scope='.$this->organisation->id.'&q=teal&budget=100', $this->headers)
         ->assertUnprocessable()
-        ->assertJsonPath('code', 'validation_failed');
+        ->assertJsonPath('error', 'validation_failed');
 
     $this->getJson('/api/v1/context?scope=someone-else&q=teal', $this->headers)->assertNotFound();
 });
 
 it('serves the context pack over MCP and gives it to the assistant first', function (): void {
+    skipUnlessKeywordSearchSupported();
     request()->attributes->set('instituta.api_key', $this->key->fresh('principal'));
     request()->attributes->set('instituta.perimeter', app(PerimeterResolverService::class)->fromApiKey($this->key->fresh('principal')));
 
@@ -121,6 +124,8 @@ it('serves the context pack over MCP and gives it to the assistant first', funct
 });
 
 it('lists a resolved entry that does not fit the budget as omitted', function (): void {
+    skipUnlessKeywordSearchSupported();
+
     $pack = contextPack(['q' => 'teal', 'product_id' => $this->product->id, 'budget' => 500]);
 
     expect(array_column($pack['resolved'], 'resolution_key'))->not->toContain('rules.handbook')
@@ -128,6 +133,8 @@ it('lists a resolved entry that does not fit the budget as omitted', function ()
 });
 
 it('answers the assistant tool with the pack as JSON', function (): void {
+    skipUnlessKeywordSearchSupported();
+
     $perimeter = app(PerimeterResolverService::class)->fromApiKey($this->key->fresh('principal'));
 
     $answer = json_decode((new BrainContextTool($perimeter))->handle(new Request(['q' => 'teal', 'product_id' => $this->product->id, 'area' => 'rules'])), true);

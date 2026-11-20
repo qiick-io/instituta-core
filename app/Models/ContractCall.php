@@ -7,7 +7,7 @@ namespace App\Models;
 use App\Brain\Enums\ScopeTypeEnum;
 use Database\Factories\ContractCallFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -49,7 +49,7 @@ use Illuminate\Support\Carbon;
 class ContractCall extends Model
 {
     /** @use HasFactory<ContractCallFactory> */
-    use HasFactory, HasUlids;
+    use HasFactory, HasUuids;
 
     /**
      * @return array<string, string>

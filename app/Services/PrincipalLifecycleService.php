@@ -30,7 +30,7 @@ final class PrincipalLifecycleService
                 ->all();
 
             ApiKey::query()
-                ->whereIn('principal_id', [$principal->id, ...$ownedIds])
+                ->whereIn('owner_principal_id', [$principal->id, ...$ownedIds])
                 ->whereNull('revoked_at')
                 ->update(['revoked_at' => $now]);
 

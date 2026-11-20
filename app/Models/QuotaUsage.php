@@ -6,7 +6,7 @@ namespace App\Models;
 
 use Database\Factories\QuotaUsageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,7 +27,7 @@ use Illuminate\Support\Carbon;
 class QuotaUsage extends Model
 {
     /** @use HasFactory<QuotaUsageFactory> */
-    use HasFactory, HasUlids;
+    use HasFactory, HasUuids;
 
     /**
      * @return array<string, string>

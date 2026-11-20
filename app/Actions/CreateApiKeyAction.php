@@ -78,7 +78,7 @@ final class CreateApiKeyAction
             'name' => $name,
             'key_prefix' => $secret['key_prefix'],
             'key_hash' => $secret['hash'],
-            'principal_id' => $principal->id,
+            'owner_principal_id' => $principal->id,
             'created_by' => $createdBy !== null ? $createdBy->id : $principal->user_id,
             'scope_type' => $scopeType,
             'scope_id' => $scopeId,
@@ -101,11 +101,12 @@ final class CreateApiKeyAction
             ->causedBy($createdBy ?? $principal->user)
             ->event('created')
             ->withProperties([
+                'api_key_id' => $key->id,
                 'name' => $key->name,
                 'scopes' => $key->scopes,
                 'key_prefix' => $key->key_prefix,
                 'organisation_id' => $principal->organisation_id,
-                'principal_id' => $principal->id,
+                'owner_principal_id' => $principal->id,
                 'scope_type' => $scopeType->value,
                 'scope_id' => $scopeId,
                 'role' => $role->value,

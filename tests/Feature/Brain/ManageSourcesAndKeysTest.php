@@ -130,7 +130,7 @@ it('creates a key for a new agent, shows the secret once and stores only its has
     expect($agent->owner_principal_id)->toBe($this->owner->principals()->sole()->id)
         ->and($agent->name)->toBe('Cursor')
         ->and(Grant::query()->where('principal_id', $agent->id)->sole()->role)->toBe(RoleEnum::Member)
-        ->and($key->principal_id)->toBe($agent->id)
+        ->and($key->owner_principal_id)->toBe($agent->id)
         ->and($key->scopes)->toBe([ApiKeyScopeEnum::BrainRead->value])
         ->and($key->expires_at)->not->toBeNull();
 
@@ -157,7 +157,7 @@ it('hands the new secret to the keys page through the session', function (): voi
         ->assertSessionHas('plain_text_api_key', fn (string $plain): bool => str_starts_with($plain, ApiKey::DEFAULT_PREFIX)
             && ! str_contains((string) ApiKey::query()->sole()->key_hash, $plain));
 
-    expect(ApiKey::query()->sole()->principal_id)->toBe($this->owner->principals()->sole()->id);
+    expect(ApiKey::query()->sole()->owner_principal_id)->toBe($this->owner->principals()->sole()->id);
 });
 
 it('refuses a write key while writes are switched off, and members entirely', function (): void {

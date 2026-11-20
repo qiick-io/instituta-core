@@ -80,5 +80,5 @@ test('a model-not-found 404 shares auth so the app layout can render', function 
         ->assertNotFound()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('errors/error-page')
-            ->where('auth.user.id', $user->id));
+            ->where('auth.user.id', $user->public_id));
 });

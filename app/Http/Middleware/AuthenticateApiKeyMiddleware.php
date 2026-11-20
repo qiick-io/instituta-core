@@ -186,8 +186,8 @@ final class AuthenticateApiKeyMiddleware
     }
 
     /**
-     * REST answers `{message, code, error?}`; MCP a JSON-RPC error whose `data.code`
-     * carries the contract code (#227). RFC 6750 `error` is set on REST when given.
+     * REST answers `{message, error}`; MCP a JSON-RPC error whose `data.error`
+     * carries the contract code (#227). RFC 6750 `error` stays in WWW-Authenticate.
      */
     private function refuse(
         Request $request,
@@ -199,11 +199,8 @@ final class AuthenticateApiKeyMiddleware
         ?string $scope = null,
     ): Response {
         if ($this->isRestApi($request)) {
-            $payload = ['message' => $message, 'code' => $code->value];
-
-            if ($rfcError !== null) {
-                $payload['error'] = $rfcError;
-            }
+            // Fleet machine field is `error` (contract enum). RFC 6750 stays in WWW-Authenticate.
+            $payload = ['message' => $message, 'error' => $code->value];
 
             if ($scope !== null) {
                 $payload['scope'] = $scope;
@@ -218,10 +215,10 @@ final class AuthenticateApiKeyMiddleware
             return $response;
         }
 
-        $data = ['code' => $code->value];
+        $data = ['error' => $code->value];
 
         if ($rfcError !== null) {
-            $data['error'] = $rfcError;
+            $data['oauth_error'] = $rfcError;
         }
 
         if ($scope !== null) {

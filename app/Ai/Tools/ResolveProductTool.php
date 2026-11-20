@@ -35,7 +35,7 @@ final class ResolveProductTool implements Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'product_id' => $schema->string()->description('Product ULID')->required(),
+            'product_id' => $schema->string()->description('Product UUID')->required(),
             'area' => $schema->string()->description('Optional area filter'),
         ];
     }

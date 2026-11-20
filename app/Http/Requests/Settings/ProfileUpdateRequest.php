@@ -23,6 +23,10 @@ class ProfileUpdateRequest extends FormRequest
         if (config('fortify.lowercase_usernames') && is_string($this->input('email'))) {
             $this->merge(['email' => Str::lower($this->input('email'))]);
         }
+
+        if ($this->has('username')) {
+            $this->merge(['username' => self::normalizeUsername($this->input('username'))]);
+        }
     }
 
     /**

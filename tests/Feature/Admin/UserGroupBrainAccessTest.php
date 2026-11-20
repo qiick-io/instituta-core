@@ -59,7 +59,7 @@ it('gives every member the group brain access and takes it back', function (): v
 
     $this->actingAs($this->admin)->post(route('groups.store'), [
         'name' => 'Acme team',
-        'user_ids' => [$alice->id, $bruno->id],
+        'user_ids' => [$alice->public_id, $bruno->public_id],
         'brain_scope' => 'company:'.$this->client->id,
         'brain_role' => 'member',
     ])->assertRedirect();
@@ -74,7 +74,7 @@ it('gives every member the group brain access and takes it back', function (): v
     // Bruno leaves: only his grant goes.
     $this->actingAs($this->admin)->put(route('groups.update', $group), [
         'name' => 'Acme team',
-        'user_ids' => [$alice->id],
+        'user_ids' => [$alice->public_id],
     ])->assertRedirect();
 
     expect(groupGrantOf($bruno, $this->client->id))->toBeNull()
@@ -97,7 +97,7 @@ it('keeps a person\'s own grant and gives the widest role across groups', functi
     foreach (['Guests' => 'guest', 'Members' => 'member'] as $name => $role) {
         $this->actingAs($this->admin)->post(route('groups.store'), [
             'name' => $name,
-            'user_ids' => [$owner->id, $carla->id],
+            'user_ids' => [$owner->public_id, $carla->public_id],
             'brain_scope' => 'organisation:'.$this->organisation->id,
             'brain_role' => $role,
         ])->assertRedirect();
@@ -118,7 +118,7 @@ it('stores the group limits and adds them up across groups, a group without a li
     foreach ($limits as $name => $limit) {
         $this->actingAs($this->admin)->post(route('groups.store'), [
             'name' => $name,
-            'user_ids' => [$erin->id],
+            'user_ids' => [$erin->public_id],
             'brain_scope' => 'organisation:'.$this->organisation->id,
             'brain_role' => 'member',
             ...$limit,
@@ -152,7 +152,7 @@ it('follows the group when it is deleted and restored, and when a user leaves it
 
     $this->actingAs($this->admin)->post(route('groups.store'), [
         'name' => 'Readers',
-        'user_ids' => [$dario->id],
+        'user_ids' => [$dario->public_id],
         'brain_scope' => 'organisation:'.$this->organisation->id,
         'brain_role' => 'guest',
     ])->assertRedirect();

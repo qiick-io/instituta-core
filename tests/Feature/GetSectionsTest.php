@@ -81,7 +81,7 @@ it('reads several sections in one call and reports each missing one on its own e
 it('refuses an empty or oversized batch', function (array $sections): void {
     $this->postJson('/api/v1/sections', ['sections' => $sections], ['Authorization' => 'Bearer '.$this->plain])
         ->assertUnprocessable()
-        ->assertJsonPath('code', 'validation_failed');
+        ->assertJsonPath('error', 'validation_failed');
 })->with([
     'empty' => [[]],
     'over 20' => [array_fill(0, 21, ['item' => 'rules/brand', 'anchor' => 'brand/colours'])],

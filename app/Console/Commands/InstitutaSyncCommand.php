@@ -13,7 +13,7 @@ use Illuminate\Support\Collection;
 class InstitutaSyncCommand extends Command
 {
     protected $signature = 'instituta:sync
-        {source? : Source ULID (omit to sync every source)}
+        {source? : Source UUID (omit to sync every source)}
         {--queue : Dispatch SyncSourceJob instead of running inline}';
 
     protected $description = 'Read-only sync of registered sources into the index';

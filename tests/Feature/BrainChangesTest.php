@@ -127,11 +127,11 @@ it('pages the feed and never shows another tenant\'s changes', function (): void
 it('refuses a bad since and an unknown version', function (): void {
     $this->getJson('/api/v1/changes?'.http_build_query(['scope' => $this->organisation->id, 'since' => 'last tuesday-ish!!']), $this->headers)
         ->assertUnprocessable()
-        ->assertJsonPath('code', 'validation_failed');
+        ->assertJsonPath('error', 'validation_failed');
 
     $this->getJson('/api/v1/changes?'.http_build_query(['scope' => $this->organisation->id, 'since' => 'instituta@v999']), $this->headers)
         ->assertNotFound()
-        ->assertJsonPath('code', 'not_found');
+        ->assertJsonPath('error', 'not_found');
 });
 
 it('serves the change feed over MCP', function (): void {

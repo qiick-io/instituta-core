@@ -17,12 +17,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('item_changes', function (Blueprint $table): void {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('organisation_id')->constrained('organisations')->cascadeOnDelete();
-            $table->foreignUlid('company_id')->nullable()->constrained('companies')->cascadeOnDelete();
-            $table->foreignUlid('product_id')->nullable()->constrained('products')->cascadeOnDelete();
-            $table->foreignUlid('source_id')->constrained('sources')->cascadeOnDelete();
-            $table->ulid('item_id');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->foreignUuid('company_id')->nullable()->constrained('companies')->cascadeOnDelete();
+            $table->foreignUuid('product_id')->nullable()->constrained('products')->cascadeOnDelete();
+            $table->foreignUuid('source_id')->constrained('sources')->cascadeOnDelete();
+            $table->uuid('item_id');
             $table->string('kind', 16);
             $table->string('stable_key');
             $table->string('path');

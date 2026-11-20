@@ -41,14 +41,25 @@ it('seeds a verified, active super admin with the configured password', function
         ->and(User::query()->count())->toBe(1);
 });
 
-it('keeps an existing password and seeds only once', function (): void {
+it('is a no-op when the email already exists in every environment', function (): void {
     $this->seed(DatabaseSeeder::class);
-    User::query()->where('email', 'superadmin@example.com')->sole()->update(['password' => 'changed-locally']);
+    $existing = User::query()->where('email', 'superadmin@example.com')->sole();
+    $existing->forceFill([
+        'password' => 'changed-locally',
+        'is_active' => false,
+        'email_verified_at' => null,
+        'first_name' => 'Existing',
+    ])->save();
 
     $this->seed(CreateSuperAdminSeeder::class);
 
+    $existing->refresh();
+
     expect(User::query()->where('email', 'superadmin@example.com')->count())->toBe(1)
-        ->and(Hash::check('changed-locally', User::query()->where('email', 'superadmin@example.com')->sole()->password))->toBeTrue();
+        ->and($existing->first_name)->toBe('Existing')
+        ->and($existing->is_active)->toBeFalse()
+        ->and($existing->email_verified_at)->toBeNull()
+        ->and(Hash::check('changed-locally', $existing->password))->toBeTrue();
 });
 
 it('seeds the local default password in local and testing', function (string $environment): void {

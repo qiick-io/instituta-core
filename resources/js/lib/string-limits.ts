@@ -7,5 +7,6 @@ export const STRING_LIMITS = {
     GROUP_NAME: 100,
     PROJECT_NAME: 100,
     EMAIL: 255,
+    USERNAME: 32,
     DESCRIPTION: 1000,
 } as const;

@@ -27,12 +27,13 @@ class UpdateUserAction
      *
      * @throws ValidationException when the change would leave no active super-admin
      */
-    public function execute(User $user, string $firstName, ?string $lastName, string $email, ?string $password, array $roles, bool $isActive, ?array $groupIds = null): User
+    public function execute(User $user, string $firstName, ?string $lastName, ?string $username, string $email, ?string $password, array $roles, bool $isActive, ?array $groupIds = null): User
     {
-        return $this->superAdminGuard->preventLosingLastSuperAdmin(function () use ($user, $firstName, $lastName, $email, $password, $roles, $isActive, $groupIds): User {
+        return $this->superAdminGuard->preventLosingLastSuperAdmin(function () use ($user, $firstName, $lastName, $username, $email, $password, $roles, $isActive, $groupIds): User {
             $user->forceFill([
                 'first_name' => $firstName,
                 'last_name' => $lastName,
+                'username' => $username,
                 'email' => $email,
                 'is_active' => $isActive,
             ]);

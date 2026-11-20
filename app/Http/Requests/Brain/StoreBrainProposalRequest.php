@@ -26,7 +26,7 @@ class StoreBrainProposalRequest extends ProposeBrainChangeRequest
             ...parent::rules(),
             'title' => ['required', 'string', 'max:255'],
             // The gap report this proposal answers (#229): stored proposals close it.
-            'gap_report_id' => ['nullable', 'string', 'ulid'],
+            'gap_report_id' => ['nullable', 'string', 'uuid'],
         ];
     }
 }

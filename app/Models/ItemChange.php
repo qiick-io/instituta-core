@@ -9,7 +9,7 @@ use App\Brain\Enums\VisibilityEnum;
 use App\Enums\ItemChangeKindEnum;
 use App\Models\Concerns\AppliesPerimeterScopeTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
@@ -55,7 +55,7 @@ use Illuminate\Support\Carbon;
 ])]
 class ItemChange extends Model
 {
-    use AppliesPerimeterScopeTrait, HasUlids;
+    use AppliesPerimeterScopeTrait, HasUuids;
 
     public $timestamps = false;
 

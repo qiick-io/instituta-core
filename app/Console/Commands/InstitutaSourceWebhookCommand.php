@@ -17,7 +17,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 class InstitutaSourceWebhookCommand extends Command
 {
     protected $signature = 'instituta:source:webhook
-        {source : Source ULID}
+        {source : Source UUID}
         {--disable : Remove the secret; the webhook URL then answers 404}';
 
     protected $description = 'Create or rotate the push webhook secret of a source and print the URL';

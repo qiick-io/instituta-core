@@ -10,6 +10,7 @@ use App\Enums\PermissionEnum;
 use App\Models\Item;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Command palette server search: brain item titles inside the session perimeter only.
@@ -67,12 +68,14 @@ final class GlobalSearchService
      */
     private function items(PerimeterData $perimeter, string $pattern): array
     {
+        $likeOperator = $this->caseInsensitiveLikeOperator();
+
         return array_values(Item::query()
             ->withinPerimeter($perimeter)
-            ->where(function (Builder $query) use ($pattern): void {
-                $query->where('title', 'like', $pattern)
-                    ->orWhere('stable_key', 'like', $pattern)
-                    ->orWhere('path', 'like', $pattern);
+            ->where(function (Builder $query) use ($pattern, $likeOperator): void {
+                $query->where('title', $likeOperator, $pattern)
+                    ->orWhere('stable_key', $likeOperator, $pattern)
+                    ->orWhere('path', $likeOperator, $pattern);
             })
             ->orderBy('title')
             ->limit(self::LIMIT_PER_GROUP)
@@ -91,12 +94,14 @@ final class GlobalSearchService
      */
     private function users(string $pattern): array
     {
+        $likeOperator = $this->caseInsensitiveLikeOperator();
+
         return array_values(User::query()
             ->where('is_active', true)
-            ->where(function (Builder $query) use ($pattern): void {
-                $query->where('first_name', 'like', $pattern)
-                    ->orWhere('last_name', 'like', $pattern)
-                    ->orWhere('email', 'like', $pattern);
+            ->where(function (Builder $query) use ($pattern, $likeOperator): void {
+                $query->where('first_name', $likeOperator, $pattern)
+                    ->orWhere('last_name', $likeOperator, $pattern)
+                    ->orWhere('email', $likeOperator, $pattern);
             })
             ->orderBy('first_name')
             ->limit(self::LIMIT_PER_GROUP)
@@ -108,5 +113,13 @@ final class GlobalSearchService
                 url: route('users.index', absolute: false),
             ))
             ->all());
+    }
+
+    /**
+     * PostgreSQL `LIKE` is case-sensitive; SQLite/MySQL treat ASCII case-insensitively.
+     */
+    private function caseInsensitiveLikeOperator(): string
+    {
+        return DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
     }
 }

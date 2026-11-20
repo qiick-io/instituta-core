@@ -84,9 +84,9 @@ it('shows an owner the content, sources, proposals, keys and activity of their o
 
     Proposal::factory()->create(['proposed_by_principal_id' => $ownerPrincipal->id, 'title' => 'Add a naming rule']);
     Proposal::factory()->accepted()->create(['proposed_by_principal_id' => $ownerPrincipal->id]);
-    ApiKey::factory()->create(['principal_id' => $ownerPrincipal->id]);
-    ApiKey::factory()->create(['principal_id' => $ownerPrincipal->id, 'expires_at' => now()->addDays(10)]);
-    ApiKey::factory()->revoked()->create(['principal_id' => $ownerPrincipal->id]);
+    ApiKey::factory()->create(['owner_principal_id' => $ownerPrincipal->id]);
+    ApiKey::factory()->create(['owner_principal_id' => $ownerPrincipal->id, 'expires_at' => now()->addDays(10)]);
+    ApiKey::factory()->revoked()->create(['owner_principal_id' => $ownerPrincipal->id]);
     activity('keys')
         ->causedBy($owner)
         ->event('created')

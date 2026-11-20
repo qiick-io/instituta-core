@@ -15,10 +15,10 @@ use InvalidArgumentException;
 class InstitutaKeyCreateCommand extends Command
 {
     protected $signature = 'instituta:key:create
-        {principal : Principal ULID}
+        {principal : Principal UUID}
         {--name= : Key display name}
         {--scope-type=organisation : organisation|company|product}
-        {--scope-id= : Scope ULID}
+        {--scope-id= : Scope UUID}
         {--role=member : owner|member|guest}
         {--max-visibility=internal : public|internal|restricted}
         {--expires-at= : Optional ISO-8601 expiry}';

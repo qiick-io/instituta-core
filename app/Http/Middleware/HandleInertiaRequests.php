@@ -55,7 +55,10 @@ class HandleInertiaRequests extends Middleware
             'name' => $settings->appName(),
             'appVersion' => app(AppVersionService::class)->current(),
             'auth' => [
-                'user' => $user,
+                // Never expose the bigint primary key; shared `id` is the public UUID.
+                'user' => $user instanceof User
+                    ? array_merge($user->makeHidden(['id'])->toArray(), ['id' => $user->public_id])
+                    : $user,
                 // Only hides UI: the server still checks every request.
                 'permissions' => $user instanceof User ? $permissionResolver->permissionsFor($user) : [],
                 'roleNames' => $user instanceof User ? $permissionResolver->roleNamesFor($user) : [],

@@ -45,7 +45,6 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Str;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Illuminate\Testing\TestResponse;
 
@@ -85,7 +84,7 @@ beforeEach(function (): void {
     $this->developer = User::factory()->create()->assignRole(RoleEnum::Reader->value);
     $this->actingAs($this->admin)->post(route('groups.store'), [
         'name' => 'Developers',
-        'user_ids' => [$this->developer->id],
+        'user_ids' => [$this->developer->public_id],
         'brain_scope' => 'organisation:'.$this->organisation->id,
         'brain_role' => 'member',
         'brain_areas' => ['rules', 'decisions', 'design-system'],
@@ -314,7 +313,7 @@ it('refuses a new item proposed outside the areas', function (): void {
         'body' => '# Tone',
     ], developerWriteHeaders())
         ->assertUnprocessable()
-        ->assertJsonPath('code', 'out_of_perimeter');
+        ->assertJsonPath('error', 'out_of_perimeter');
 
     expect(Proposal::query()->count())->toBe(0);
 });
@@ -371,7 +370,7 @@ it('keeps an owner limited to some areas out of the organisation-wide owner page
     $lead = User::factory()->create();
     $this->actingAs($this->admin)->post(route('groups.store'), [
         'name' => 'Leads',
-        'user_ids' => [$lead->id],
+        'user_ids' => [$lead->public_id],
         'brain_scope' => 'organisation:'.$this->organisation->id,
         'brain_role' => 'owner',
         'brain_areas' => ['rules'],
@@ -437,7 +436,7 @@ it('creates an agent key from the keys page limited to the chosen area and folde
     ])->assertSessionHasNoErrors()->assertRedirect();
 
     $key = ApiKey::query()->where('name', 'Rules agent')->sole();
-    $agentGrant = Grant::query()->where('principal_id', $key->principal_id)->sole();
+    $agentGrant = Grant::query()->where('principal_id', $key->owner_principal_id)->sole();
     $perimeter = app(PerimeterResolverService::class)->fromApiKey($key->fresh('principal'));
 
     expect($agentGrant->areas)->toBe(['rules'])
@@ -467,22 +466,15 @@ it('matches a folder by prefix, never by LIKE wildcards', function (): void {
         ->and($underscoreFolder->allowsPath('rules/handbook.md'))->toBeFalse();
 });
 
-it('carries a grant\'s single area and path prefix over to the lists', function (): void {
-    if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
-        $this->markTestSkipped('Schema changes end the test transaction on MySQL and MariaDB.');
-    }
-
-    $this->artisan('migrate:rollback', ['--step' => 1])->assertSuccessful();
-    $principalId = $this->developerPrincipal->id;
-    $grantId = (string) Str::ulid();
-    DB::table('grants')->insert([
-        'id' => $grantId, 'principal_id' => $principalId, 'scope_type' => 'organisation', 'scope_id' => $this->organisation->id,
-        'role' => 'member', 'max_visibility' => 'internal', 'area' => 'rules', 'path_prefix' => 'rules/engineering',
+it('stores grant area and path limits as lists', function (): void {
+    $grant = Grant::factory()->create([
+        'principal_id' => $this->developerPrincipal->id,
+        'scope_type' => 'organisation',
+        'scope_id' => $this->organisation->id,
+        'areas' => ['rules'],
+        'path_prefixes' => ['rules/engineering'],
     ]);
-    $this->artisan('migrate')->assertSuccessful();
 
-    $migrated = Grant::query()->findOrFail($grantId);
-
-    expect($migrated->areas)->toBe(['rules'])
-        ->and($migrated->path_prefixes)->toBe(['rules/engineering']);
+    expect($grant->fresh()->areas)->toBe(['rules'])
+        ->and($grant->fresh()->path_prefixes)->toBe(['rules/engineering']);
 });

@@ -31,7 +31,7 @@ final class SimilarSearchController extends Controller
         if (! config('ai.embeddings.enabled')) {
             return (new ApiMessageResource([
                 'message' => 'embeddings disabled',
-                'code' => ContractErrorCodeEnum::EmbeddingsDisabled->value,
+                'error' => ContractErrorCodeEnum::EmbeddingsDisabled->value,
             ]))->response()->setStatusCode(501);
         }
 

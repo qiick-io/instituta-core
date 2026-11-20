@@ -32,7 +32,7 @@ function keysSeed(): array
 
     ApiKey::factory()->create([
         'name' => 'dogfood',
-        'principal_id' => $principal->id,
+        'owner_principal_id' => $principal->id,
         'scope_type' => ScopeTypeEnum::Organisation,
         'scope_id' => $org->id,
         'role' => RoleEnum::Owner,

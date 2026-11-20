@@ -57,7 +57,8 @@ class UserGroupResource extends JsonResource
                 ->all(), []),
             'users' => $this->whenLoaded('users', fn (): array => $group->users
                 ->map(fn (User $user): array => [
-                    'id' => $user->id,
+                    'id' => $user->public_id,
+                    'public_id' => $user->public_id,
                     'first_name' => $user->first_name,
                     'last_name' => $user->last_name,
                     'name' => $user->name,
@@ -65,7 +66,7 @@ class UserGroupResource extends JsonResource
                 ])
                 ->values()
                 ->all(), []),
-            'user_ids' => $this->whenLoaded('users', fn (): array => $group->users->pluck('id')->values()->all(), []),
+            'user_ids' => $this->whenLoaded('users', fn (): array => $group->users->pluck('public_id')->values()->all(), []),
             'role_ids' => $this->whenLoaded('roles', fn (): array => $group->roles->pluck('id')->values()->all(), []),
             'can_update' => Gate::allows('update', $group),
             'can_delete' => Gate::allows('delete', $group),

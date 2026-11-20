@@ -17,7 +17,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Profile settings: name, email, locale and timezone.
+ * Profile settings: name, email, username, locale and timezone.
  */
 class ProfileController extends Controller
 {

@@ -30,7 +30,7 @@ class ProposeBrainChangeRequest extends FormRequest
             'path' => ['required', 'string', 'max:512'],
             'area' => ['nullable', 'string', 'max:64'],
             'body' => ['nullable', 'string'],
-            'source_id' => ['nullable', 'string', 'ulid'],
+            'source_id' => ['nullable', 'string', 'uuid'],
             'base_content_hash' => ['nullable', 'string', 'size:64'],
             'section_anchor' => ['nullable', 'string', 'max:255'],
             'base_section_hash' => ['nullable', 'string', 'size:64'],

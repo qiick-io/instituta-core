@@ -51,7 +51,7 @@ class UserGroupController extends Controller
 
         $query = $request->applySearch(UserGroup::query(), ['name', 'description'])
             ->withCount(['users', 'roles'])
-            ->with(['roles:id,name', 'users:id,first_name,last_name,email', 'brainAccess']);
+            ->with(['roles:id,name', 'users:id,public_id,first_name,last_name,email', 'brainAccess']);
 
         if ($isTrashed) {
             $query->onlyTrashed();

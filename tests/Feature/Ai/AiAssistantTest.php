@@ -143,6 +143,8 @@ it('answers 404 to a user without a brain perimeter', function (): void {
 });
 
 it('lets the brain tools read only inside the user perimeter', function (): void {
+    skipUnlessKeywordSearchSupported();
+
     $source = Source::factory()->create(['organisation_id' => $this->organisation->id]);
     $own = Item::factory()->create(['organisation_id' => $this->organisation->id, 'source_id' => $source->id, 'title' => 'Teal brand colour', 'visibility' => VisibilityEnum::Internal]);
     $foreign = Organisation::factory()->create();
