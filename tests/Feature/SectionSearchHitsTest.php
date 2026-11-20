@@ -68,6 +68,7 @@ afterEach(function (): void {
 });
 
 it('returns the matching section with its anchor, heading and cited section', function (): void {
+    skipUnlessKeywordSearchSupported();
     $this->getJson('/api/v1/search?scope='.$this->scope.'&q=Inter', ['Authorization' => 'Bearer '.$this->plain])
         ->assertOk()
         ->assertJsonPath('results.0.anchor', 'brand/typography')
@@ -77,6 +78,8 @@ it('returns the matching section with its anchor, heading and cited section', fu
 });
 
 it('lists at most two sections of the same item', function (): void {
+    skipUnlessKeywordSearchSupported();
+
     $response = $this->getJson('/api/v1/search?scope='.$this->scope.'&q=teal', ['Authorization' => 'Bearer '.$this->plain])->assertOk();
 
     $brandHits = collect($response->json('results'))->where('citation.path', 'rules/brand.md');
@@ -86,6 +89,7 @@ it('lists at most two sections of the same item', function (): void {
 });
 
 it('finds a section that contains only some of the words (#217)', function (): void {
+    skipUnlessKeywordSearchSupported();
     $this->getJson('/api/v1/search?scope='.$this->scope.'&q=Inter%20nonexistentword', ['Authorization' => 'Bearer '.$this->plain])
         ->assertOk()
         ->assertJsonPath('mode', 'keyword')
@@ -93,6 +97,7 @@ it('finds a section that contains only some of the words (#217)', function (): v
 });
 
 it('merges keyword and semantic hits when embeddings are on, and searches by meaning alone on request (#217)', function (): void {
+    skipUnlessKeywordSearchSupported();
     config(['ai.embeddings.enabled' => true, 'ai.embeddings.dimensions' => 2]);
     // Every section and the query embed to the same vector: semantic search ranks all sections.
     Embeddings::fake(fn () => [[1.0, 0.0]]);
@@ -116,6 +121,7 @@ it('merges keyword and semantic hits when embeddings are on, and searches by mea
 });
 
 it('falls back to keyword search when semantic search is asked for but embeddings are off (#217)', function (): void {
+    skipUnlessKeywordSearchSupported();
     $this->getJson('/api/v1/search?scope='.$this->scope.'&q=Inter&mode=semantic', ['Authorization' => 'Bearer '.$this->plain])
         ->assertOk()
         ->assertJsonPath('mode', 'keyword');

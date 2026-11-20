@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /*
@@ -58,3 +59,13 @@ expect()->extend('toBeOne', function () {
 | global functions to help you to reduce the number of lines of code in your test files.
 |
 */
+
+/**
+ * Keyword / FTS search is SQLite + PostgreSQL only; MySQL and MariaDB answer 501 (#313).
+ */
+function skipUnlessKeywordSearchSupported(): void
+{
+    if (! in_array(DB::connection()->getDriverName(), ['sqlite', 'pgsql'], true)) {
+        test()->markTestSkipped('Keyword search runs on SQLite and PostgreSQL only (#313).');
+    }
+}

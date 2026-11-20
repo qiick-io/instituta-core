@@ -27,7 +27,6 @@ use App\Services\ClientExportService;
 use App\Services\DenylistGuardService;
 use App\Services\IndexedContractService;
 use App\Services\PerimeterResolverService;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -276,7 +275,7 @@ it('keeps REST list and get inside the API key perimeter', function (): void {
 });
 
 it('keeps search hits inside the API key perimeter', function (): void {
-    expect(in_array(DB::connection()->getDriverName(), ['sqlite', 'pgsql'], true))->toBeTrue();
+    skipUnlessKeywordSearchSupported();
 
     $seed = isolationSeed();
     $perimeter = app(PerimeterResolverService::class)->fromApiKey($seed['keyA']->fresh('principal'));

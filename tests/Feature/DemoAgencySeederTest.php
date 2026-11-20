@@ -12,6 +12,7 @@ use App\Models\Proposal;
 use App\Models\User;
 use App\Services\PerimeterResolverService;
 use Database\Seeders\DemoAgencySeeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -29,7 +30,12 @@ it('seeds Northwind Studio with clients, brains, a review inbox and real agent c
         ->and(Item::query()->where('type', 'image')->count())->toBe(1)
         ->and(Proposal::query()->count())->toBe(3)
         ->and(GapReport::query()->count())->toBe(1)
-        ->and(ContractCall::query()->distinct()->pluck('tool_or_endpoint')->all())->toContain('instituta_search', 'instituta_context');
+        ->and(ContractCall::query()->distinct()->pluck('tool_or_endpoint')->all())->toContain('instituta_search', 'instituta_get', 'instituta_outline');
+
+    // instituta_context needs keyword search; MySQL/MariaDB answer 501 and never audit it (#313).
+    if (in_array(DB::connection()->getDriverName(), ['sqlite', 'pgsql'], true)) {
+        expect(ContractCall::query()->distinct()->pluck('tool_or_endpoint')->all())->toContain('instituta_context');
+    }
 
     $this->actingAs(User::query()->where('email', DemoAgencySeeder::OWNER_EMAIL)->firstOrFail())
         ->get(route('explorer.show', 'rules/coding'))

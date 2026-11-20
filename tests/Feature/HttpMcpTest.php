@@ -241,6 +241,8 @@ it('honours an active freeze by serving only pinned commits', function (): void 
 });
 
 it('searches inside the perimeter over HTTP MCP', function (): void {
+    skipUnlessKeywordSearchSupported();
+
     config(['instituta.mcp.enabled' => true]);
     $seed = seedOwnerKey();
 

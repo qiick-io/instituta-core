@@ -18,7 +18,6 @@ use App\Models\Source;
 use App\Services\IndexedContractService;
 use App\Services\PerimeterResolverService;
 use App\Services\Search\UnsupportedSearchDriver;
-use Illuminate\Support\Facades\DB;
 
 function searchSeed(): array
 {
@@ -91,8 +90,7 @@ function searchIndexItem(array $seed, string $title, string $body, string $path)
 }
 
 it('ranks matching items inside the perimeter on the active driver', function (): void {
-    $driver = DB::connection()->getDriverName();
-    expect(in_array($driver, ['sqlite', 'pgsql'], true))->toBeTrue();
+    skipUnlessKeywordSearchSupported();
 
     $seed = searchSeed();
     $hit = searchIndexItem($seed, 'Brand voice', 'Use a calm teal brand voice in every product.', 'rules/brand.md');
