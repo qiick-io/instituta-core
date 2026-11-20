@@ -37,7 +37,6 @@ final class QuotaExceededException extends Exception
         return response()->json([
             'message' => $this->getMessage(),
             'error' => ContractErrorCodeEnum::QuotaExceeded->value,
-            'error' => 'quota_exceeded',
             'metric' => $this->metric->value,
             'limit' => $this->limitValue,
             'used' => $this->used,

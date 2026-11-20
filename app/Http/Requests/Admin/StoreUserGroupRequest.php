@@ -71,12 +71,10 @@ class StoreUserGroupRequest extends FormRequest
 
         $publicIds = array_values(array_map(strval(...), $this->array('user_ids')));
 
-        return User::query()
-            ->whereIn('public_id', $publicIds)
-            ->pluck('id')
-            ->map(intval(...))
-            ->values()
-            ->all();
+        return array_values(array_map(
+            intval(...),
+            User::query()->whereIn('public_id', $publicIds)->pluck('id')->all(),
+        ));
     }
 
     /**

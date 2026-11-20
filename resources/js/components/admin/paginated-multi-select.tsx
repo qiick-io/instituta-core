@@ -26,7 +26,7 @@ import { cn } from '@/lib/utils';
 
 /** One option: a record id and its label; the name parts and email are for user rows. */
 export type PickerOption = {
-    id: number;
+    id: string | number;
     label: string;
     first_name?: string;
     last_name?: string | null;
@@ -55,8 +55,8 @@ function formatUserDisplayName(
 }
 
 export type PaginatedMultiSelectProps = {
-    value?: number[];
-    onChange?: (value: number[]) => void;
+    value?: Array<string | number>;
+    onChange?: (value: Array<string | number>) => void;
     fetchUrl: string;
     placeholder?: string;
     disabled?: boolean;
@@ -77,7 +77,7 @@ export type PaginatedMultiSelectProps = {
 function mapResponse(data: unknown): PickerPage {
     const payload = data as {
         data: Array<{
-            id: number;
+            id: string | number;
             name?: string;
             label?: string;
             first_name?: string;
@@ -246,7 +246,7 @@ export function PaginatedMultiSelect({
         void fetchPage(1, true);
     }, [open, debouncedSearch, fetchPage]);
 
-    const toggle = (id: number): void => {
+    const toggle = (id: string | number): void => {
         if (!multiple) {
             onChange?.(value.includes(id) ? [] : [id]);
 

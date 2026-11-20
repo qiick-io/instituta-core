@@ -398,7 +398,10 @@ export function UserFormDrawer({
                                 <UserGroupMultiSelect
                                     value={form.data.group_ids}
                                     onChange={(groupIds) =>
-                                        form.setData('group_ids', groupIds)
+                                        form.setData(
+                                            'group_ids',
+                                            groupIds.map(Number),
+                                        )
                                     }
                                     initialGroups={editing?.groups}
                                     disabled={readOnly || isRolesLocked}

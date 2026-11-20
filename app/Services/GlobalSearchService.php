@@ -10,6 +10,7 @@ use App\Enums\PermissionEnum;
 use App\Models\Item;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Command palette server search: brain item titles inside the session perimeter only.
@@ -119,6 +120,6 @@ final class GlobalSearchService
      */
     private function caseInsensitiveLikeOperator(): string
     {
-        return Item::query()->getConnection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+        return DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
     }
 }

@@ -290,7 +290,10 @@ export function GroupFormDrawer({
                                     fetchUrl={users.index.url()}
                                     value={form.data.user_ids}
                                     onChange={(userIds) =>
-                                        form.setData('user_ids', userIds)
+                                        form.setData(
+                                            'user_ids',
+                                            userIds.map(String),
+                                        )
                                     }
                                     initialOptions={memberOptions}
                                     showUserDetails

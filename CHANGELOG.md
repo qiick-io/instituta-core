@@ -79,8 +79,8 @@ These notes are for the eventual `v1.0.0-beta.1` cut (the release PR moves this 
 2. Run `php artisan instituta:upgrade` (migrate, sync permissions, clear caches). Do not re-run `composer create-project` to update.
 3. Optional embeddings: set `AI_EMBEDDINGS_ENABLED=true` and configure an OpenAI-compatible embeddings endpoint (`config/ai.php`); then run `php artisan instituta:embed`.
 4. Write proposals stay off until `INSTITUTA_API_WRITE_ENABLED` / `INSTITUTA_MCP_WRITE_ENABLED` (or the matching `config/instituta.php` kill switches) are enabled and keys hold `brain:write`.
-4. Search: PostgreSQL (tsvector) is the production driver; SQLite FTS5 for local/tests; MySQL search remains unsupported (501).
-5. After the first tag, migrations are forward-only (`database/migrations/.frozen` + `migrations-frozen` workflow). Schema changes need a new migration.
-6. Never-ingest denylist (#369): the built-in organisation names are gone. An install that relied on them must set `INSTITUTA_INGEST_DENYLIST` (comma-separated tokens matched case-insensitively on name, remote URL and path).
+5. Search: PostgreSQL (tsvector) is the production driver; SQLite FTS5 for local/tests; MySQL search remains unsupported (501).
+6. After the first tag, migrations are forward-only (`database/migrations/.frozen` + `migrations-frozen` workflow). Schema changes need a new migration.
+7. Never-ingest denylist (#369): the built-in organisation names are gone. An install that relied on them must set `INSTITUTA_INGEST_DENYLIST` (comma-separated tokens matched case-insensitively on name, remote URL and path).
 
 [Unreleased]: https://github.com/qiick-io/instituta-core/compare/HEAD...HEAD
