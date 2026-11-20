@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Spatie activity log with string morph ids and organisation perimeter.
+ *
+ * public_id is the UUID exposed by ActivityLogResource; the primary key stays bigint.
  */
 return new class extends Migration
 {
@@ -15,6 +17,7 @@ return new class extends Migration
     {
         Schema::create('activity_log', function (Blueprint $table): void {
             $table->id();
+            $table->uuid('public_id')->nullable()->unique();
             $table->string('organisation_id', 36)->nullable()->index();
             $table->string('log_name')->nullable()->index();
             $table->text('description');

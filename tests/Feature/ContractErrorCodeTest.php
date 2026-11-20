@@ -40,6 +40,12 @@ it('codes a missing or invalid key as unauthenticated', function (): void {
     $this->getJson('/api/v1/scopes', ['Authorization' => 'Bearer nope'])->assertUnauthorized()->assertJsonPath('error', 'unauthenticated');
 });
 
+it('codes an unmatched API route as JSON without an Accept header', function (): void {
+    $this->get('/api/v1/does-not-exist')
+        ->assertNotFound()
+        ->assertJsonPath('error', 'not_found');
+});
+
 it('codes failed validation and keeps the field errors', function (): void {
     $this->getJson('/api/v1/search', ['Authorization' => 'Bearer '.$this->plainKey])
         ->assertUnprocessable()

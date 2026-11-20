@@ -70,6 +70,7 @@ final readonly class ReportGapAction
         $this->activity->gapReport('reported', $gapReport, $causer instanceof User ? $causer : null, [
             'organisation_id' => $organisationId,
             'gap_report_id' => $gapReport->id,
+            'api_key_id' => $apiKey?->id,
             'kind' => $payload->kind->value,
         ]);
 
