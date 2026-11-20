@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\ThemePresetEnum;
 use App\Models\Setting;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
 
@@ -13,6 +14,10 @@ use Illuminate\Validation\Rules\Password;
  * Instance settings stored in the `settings` table, merged over defaults, with typed getters
  * for the code that uses them (login throttle, password rule, self-registration, required 2FA,
  * UI language, appearance and branding colours).
+ *
+ * Storage is scoped (fleet / externa-core shape): every setting lives at scope=`instance`,
+ * scope_id=`''` (empty string, never NULL — PostgreSQL/MySQL unique indexes treat NULLs as
+ * distinct; signaculum-core #205), group=`app`. Public method signatures stay flat-keyed.
  *
  * Copied from qiick-io/signaculum-core and trimmed (no email templates / branding file uploads).
  * Setting keys keep the externa-core / Excubia names (`project_color`, …) so the apps read the
@@ -22,6 +27,13 @@ use Illuminate\Validation\Rules\Password;
  */
 final class SettingsRepositoryService
 {
+    public const string SCOPE_INSTANCE = 'instance';
+
+    /** Empty string sentinel for instance scope (NOT NULL; see signaculum-core #205). */
+    public const string SCOPE_ID_INSTANCE = '';
+
+    public const string GROUP_APP = 'app';
+
     public const array PASSWORD_POLICIES = ['weak', 'medium', 'strong'];
 
     public const array APPEARANCES = ['system', 'light', 'dark'];
@@ -65,7 +77,7 @@ final class SettingsRepositoryService
     {
         return $this->values ??= array_merge(
             $this->defaults(),
-            Setting::query()->pluck('value', 'key')->all(),
+            $this->instanceAppQuery()->pluck('value', 'key')->all(),
         );
     }
 
@@ -87,9 +99,27 @@ final class SettingsRepositoryService
      */
     public function save(array $values): void
     {
+        $this->setMany($values);
+    }
+
+    /**
+     * Saves the given keys in one transaction under the instance/app scope.
+     *
+     * @param  array<string, mixed>  $values
+     */
+    public function setMany(array $values): void
+    {
         DB::transaction(function () use ($values): void {
             foreach ($values as $key => $value) {
-                Setting::query()->updateOrCreate(['key' => $key], ['value' => $value]);
+                Setting::query()->updateOrCreate(
+                    [
+                        'scope' => self::SCOPE_INSTANCE,
+                        'scope_id' => self::SCOPE_ID_INSTANCE,
+                        'group' => self::GROUP_APP,
+                        'key' => $key,
+                    ],
+                    ['value' => $value],
+                );
             }
         });
 
@@ -217,6 +247,17 @@ final class SettingsRepositoryService
     public function activityRetentionDays(): int
     {
         return $this->integer('activity_retention_days', 1, 3650);
+    }
+
+    /**
+     * @return Builder<Setting>
+     */
+    private function instanceAppQuery(): Builder
+    {
+        return Setting::query()
+            ->where('scope', self::SCOPE_INSTANCE)
+            ->where('scope_id', self::SCOPE_ID_INSTANCE)
+            ->where('group', self::GROUP_APP);
     }
 
     /**
