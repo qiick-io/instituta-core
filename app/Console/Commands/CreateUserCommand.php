@@ -141,8 +141,13 @@ class CreateUserCommand extends Command
 
         if (is_string($option) && $option !== '') {
             $organisation = Organisation::query()
-                ->where('id', $option)
-                ->orWhere('slug', $option)
+                ->where(function ($query) use ($option): void {
+                    $query->where('slug', $option);
+
+                    if (Str::isUuid($option)) {
+                        $query->orWhere('id', $option);
+                    }
+                })
                 ->first();
 
             if (! $organisation instanceof Organisation) {

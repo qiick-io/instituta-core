@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Models\Company;
 use App\Services\ClientExportService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Symfony\Component\Console\Attribute\AsCommand;
 
@@ -23,8 +24,13 @@ class InstitutaExportCommand extends Command
     {
         $ref = (string) $this->argument('company');
         $company = Company::query()
-            ->where('id', $ref)
-            ->orWhere('slug', $ref)
+            ->where(function ($query) use ($ref): void {
+                $query->where('slug', $ref);
+
+                if (Str::isUuid($ref)) {
+                    $query->orWhere('id', $ref);
+                }
+            })
             ->first();
 
         if ($company === null) {

@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * Indexed brain document carrying denormalised scope columns for isolation.
@@ -168,13 +169,27 @@ class Item extends Model
      */
     public function scopeMatchingReference(Builder $query, string $reference): Builder
     {
+        // PostgreSQL (and MySQL uuid columns) reject non-UUID binds on id; only compare id when the
+        // reference is a UUID, otherwise match stable_key / path alone.
+        $isUuid = Str::isUuid($reference);
+
         return $query
-            ->where(function (Builder $builder) use ($reference): void {
-                $builder->whereKey($reference)
-                    ->orWhere($builder->qualifyColumn('stable_key'), $reference)
+            ->where(function (Builder $builder) use ($reference, $isUuid): void {
+                if ($isUuid) {
+                    $builder->whereKey($reference)
+                        ->orWhere($builder->qualifyColumn('stable_key'), $reference)
+                        ->orWhere($builder->qualifyColumn('path'), $reference);
+
+                    return;
+                }
+
+                $builder->where($builder->qualifyColumn('stable_key'), $reference)
                     ->orWhere($builder->qualifyColumn('path'), $reference);
             })
-            ->orderByRaw('CASE WHEN items.id = ? THEN 0 ELSE 1 END', [$reference])
+            ->when(
+                $isUuid,
+                fn (Builder $ordered): Builder => $ordered->orderByRaw('CASE WHEN items.id = ? THEN 0 ELSE 1 END', [$reference]),
+            )
             ->widestScopeFirst();
     }
 
