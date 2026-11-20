@@ -17,6 +17,19 @@ final class DenylistGuardService
     ) {}
 
     /**
+     * Pure parse of a comma-separated denylist string (trim, lowercase, drop empties).
+     *
+     * @return list<string>
+     */
+    public static function parseTokens(string $raw): array
+    {
+        return array_values(array_filter(array_map(
+            static fn (string $token): string => mb_strtolower(trim($token)),
+            explode(',', $raw),
+        ), static fn (string $token): bool => $token !== ''));
+    }
+
+    /**
      * @return list<string>
      */
     public function tokens(): array

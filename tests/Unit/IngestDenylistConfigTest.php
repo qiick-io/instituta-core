@@ -2,48 +2,37 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Env;
+use App\Services\DenylistGuardService;
 
 /**
- * Env → config parsing for the never-ingest denylist (#369).
- *
- * Writes through Env's repository so the value is visible after bootstrap
- * (putenv / $_ENV alone are ignored once the key has been read).
+ * Never-ingest denylist parsing and config wiring (#369).
  */
-it('parses INSTITUTA_INGEST_DENYLIST with trim lowercase and empty entries dropped', function (): void {
-    $repository = Env::getRepository();
-    $previous = $repository->has('INSTITUTA_INGEST_DENYLIST')
-        ? $repository->get('INSTITUTA_INGEST_DENYLIST')
-        : false;
-
-    $repository->set('INSTITUTA_INGEST_DENYLIST', ' Acme , GLOBEX,, Initech ');
-
-    $config = require config_path('instituta.php');
-
-    expect($config['ingest']['denylist'])->toBe(['acme', 'globex', 'initech']);
-
-    if ($previous === false) {
-        $repository->clear('INSTITUTA_INGEST_DENYLIST');
-    } else {
-        $repository->set('INSTITUTA_INGEST_DENYLIST', $previous);
-    }
+it('parses a comma-separated denylist with trim lowercase and empty entries dropped', function (): void {
+    expect(DenylistGuardService::parseTokens(' Acme , GLOBEX,, Initech '))
+        ->toBe(['acme', 'globex', 'initech']);
 });
 
-it('defaults the denylist to an empty list when the env is blank', function (): void {
-    $repository = Env::getRepository();
-    $previous = $repository->has('INSTITUTA_INGEST_DENYLIST')
-        ? $repository->get('INSTITUTA_INGEST_DENYLIST')
-        : false;
+it('parses a blank denylist string as an empty list', function (): void {
+    expect(DenylistGuardService::parseTokens(''))->toBe([])
+        ->and(DenylistGuardService::parseTokens('  , , '))->toBe([]);
+});
 
-    $repository->set('INSTITUTA_INGEST_DENYLIST', '');
+it('reads denylist tokens from config without touching process env', function (): void {
+    config([
+        'instituta.ingest.denylist' => DenylistGuardService::parseTokens(' Acme , GLOBEX,, Initech '),
+    ]);
 
-    $config = require config_path('instituta.php');
+    expect(app(DenylistGuardService::class)->tokens())->toBe(['acme', 'globex', 'initech']);
+});
 
-    expect($config['ingest']['denylist'])->toBe([]);
+it('refuses nothing when the configured denylist is empty', function (): void {
+    config(['instituta.ingest.denylist' => []]);
 
-    if ($previous === false) {
-        $repository->clear('INSTITUTA_INGEST_DENYLIST');
-    } else {
-        $repository->set('INSTITUTA_INGEST_DENYLIST', $previous);
-    }
+    app(DenylistGuardService::class)->assertAllowed(
+        name: 'Acme Globex Initech Docs',
+        remoteUrl: 'https://github.com/acme/globex.git',
+        localPath: '/tmp/initech',
+    );
+
+    expect(app(DenylistGuardService::class)->tokens())->toBe([]);
 });

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Services\DenylistGuardService;
+
 return [
 
     /*
@@ -62,10 +64,9 @@ return [
     */
 
     'ingest' => [
-        'denylist' => array_values(array_filter(array_map(
-            static fn (string $token): string => mb_strtolower(trim($token)),
-            explode(',', (string) env('INSTITUTA_INGEST_DENYLIST', '')),
-        ), static fn (string $token): bool => $token !== '')),
+        'denylist' => DenylistGuardService::parseTokens(
+            (string) env('INSTITUTA_INGEST_DENYLIST', ''),
+        ),
 
         /*
          * Optional read-only GitHub token for the github provider.
