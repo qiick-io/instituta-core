@@ -130,6 +130,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'notification_sound_enabled' => 'boolean',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            // two_factor_* are encrypted by Fortify before persist (not an Eloquent cast; casting would double-encrypt).
             'two_factor_confirmed_at' => 'datetime',
             'last_login_at' => 'datetime',
         ];
