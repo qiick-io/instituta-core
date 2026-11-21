@@ -242,26 +242,69 @@ return [
     },
 
     'assertErasure' => static function () use ($assert): void {
+        $email = 'erasure-conformance@example.test';
+        $username = 'erasure_conformance';
+        $firstName = 'Erasure';
+        $lastName = 'Conformance';
+        $ip = '203.0.113.77';
+
         $user = User::factory()->create([
-            'email' => 'erasure-conformance@example.test',
-            'username' => 'erasure_conformance',
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $email,
+            'username' => $username,
+            'last_login_ip' => $ip,
         ]);
-        $principal = Principal::factory()->create(['user_id' => $user->id]);
+        $principal = Principal::factory()->create([
+            'user_id' => $user->id,
+            'name' => $firstName.' '.$lastName,
+        ]);
         $apiKey = ApiKey::factory()->create([
             'owner_principal_id' => $principal->id,
             'created_by' => $user->id,
+            'name' => $firstName.' key',
         ]);
 
-        activity()
-            ->causedBy($user)
-            ->performedOn($user)
-            ->withProperties(['email' => $user->email, 'username' => $user->username])
-            ->log('conformance erasure');
+        DB::table('sessions')->insert([
+            'id' => 'sess-erasure-conformance',
+            'user_id' => $user->id,
+            'ip_address' => $ip,
+            'user_agent' => 'test',
+            'payload' => 'payload',
+            'last_activity' => now()->timestamp,
+        ]);
+        DB::table('password_reset_tokens')->insert([
+            'email' => $email,
+            'token' => 'token',
+            'created_at' => now(),
+        ]);
+        DB::table('notifications')->insert([
+            'id' => (string) \Illuminate\Support\Str::uuid(),
+            'type' => 'App\\Notifications\\TestNotification',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $user->id,
+            'data' => json_encode(['email' => $email, 'name' => $firstName.' '.$lastName]),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        activity()->causedBy($user)->performedOn($user)->withProperties([
+            'attributes' => ['email' => $email, 'first_name' => $firstName, 'last_login_ip' => $ip],
+            'old' => ['email' => 'old@example.test', 'first_name' => 'Old'],
+        ])->log('c17 user row');
+
+        activity()->performedOn($principal)->withProperties([
+            'attributes' => ['name' => $firstName.' '.$lastName],
+            'old' => ['name' => 'Old name'],
+        ])->log('c17 principal row');
+
+        activity()->performedOn($apiKey)->withProperties([
+            'attributes' => ['name' => $firstName.' key'],
+            'old' => ['name' => 'Old key'],
+        ])->log('c17 key row');
 
         $databaseKey = $user->getKey();
         $publicId = $user->public_id;
-        $email = $user->email;
-        $username = $user->username;
         $principalId = $principal->id;
         $apiKeyId = $apiKey->id;
 
@@ -281,13 +324,44 @@ return [
         $erasedKey = ApiKey::query()->findOrFail($apiKeyId);
         $assert($erasedKey->revoked_at !== null, 'Erasure must revoke keys owned by deactivated principals.');
 
-        $activity = Activity::query()->where('description', 'conformance erasure')->firstOrFail();
-        $activityProperties = $activity->properties?->toArray() ?? [];
-        $assert((string) $activity->causer_id === (string) $databaseKey, 'Erasure must keep the activity causer id on the soft-deleted user.');
-        $assert((string) $activity->subject_id === (string) $databaseKey, 'Erasure must keep the activity subject id on the soft-deleted user.');
-        $assert($activity->description === 'conformance erasure', 'Erasure must keep the activity row.');
-        $assert(! array_key_exists('email', $activityProperties), 'Erasure must remove email from activity.');
-        $assert(! array_key_exists('username', $activityProperties), 'Erasure must remove username from activity.');
+        $needles = [$email, $username, $firstName, $lastName, $ip];
+        $driver = DB::connection()->getDriverName();
+        foreach (Schema::getTables() as $table) {
+            $tableName = $table['name'] ?? $table['name'] ?? null;
+            if (! is_string($tableName) || $tableName === '') {
+                continue;
+            }
+
+            foreach (Schema::getColumns($tableName) as $column) {
+                $columnName = $column['name'] ?? null;
+                $type = strtolower((string) ($column['type_name'] ?? $column['type'] ?? ''));
+                if (! is_string($columnName) || $columnName === '') {
+                    continue;
+                }
+
+                $isText = str_contains($type, 'char') || str_contains($type, 'text') || str_contains($type, 'json') || $type === 'clob';
+                if (! $isText) {
+                    continue;
+                }
+
+                foreach ($needles as $needle) {
+                    $query = DB::table($tableName);
+                    $wrapped = $query->getGrammar()->wrap($columnName);
+                    if (str_contains($type, 'json')) {
+                        $expression = match ($driver) {
+                            'pgsql' => $wrapped.'::text',
+                            'mysql', 'mariadb' => 'CAST('.$wrapped.' AS CHAR)',
+                            default => $wrapped,
+                        };
+                        $exists = $query->whereRaw($expression.' LIKE ?', ['%'.$needle.'%'])->exists();
+                    } else {
+                        $exists = $query->where($columnName, 'like', '%'.$needle.'%')->exists();
+                    }
+
+                    $assert(! $exists, "Erasure left {$needle} in {$tableName}.{$columnName}.");
+                }
+            }
+        }
 
         $replacement = User::factory()->create([
             'email' => $email,
@@ -392,6 +466,14 @@ return [
             'max_visibility' => VisibilityEnum::Restricted,
         ]);
 
+        $source = \App\Models\Source::factory()->create(['organisation_id' => $organisation->id]);
+        \App\Models\Item::factory()->count(2)->create([
+            'source_id' => $source->id,
+            'organisation_id' => $organisation->id,
+            'company_id' => null,
+            'product_id' => null,
+        ]);
+
         $issued = app(CreateApiKeyAction::class)->execute(
             principal: $principal,
             name: 'conformance-list',
@@ -402,7 +484,7 @@ return [
             scopes: [ApiKeyScopeEnum::BrainRead->value],
         );
 
-        $response = $sendRequest('GET', '/api/v1/proposals', [], [
+        $response = $sendRequest('GET', '/api/v1/items?scope='.rawurlencode($organisation->id).'&limit=1', [], [
             'Accept' => 'application/json',
             'Authorization' => 'Bearer '.$issued['plain'],
         ]);
@@ -410,7 +492,21 @@ return [
         $assert($response->getStatusCode() === 200, 'The paginated API list must answer 200.');
 
         $body = $decode($response);
-        $assert(array_key_exists('proposals', $body), 'The API list must return its collection.');
+        $assert(array_key_exists('items', $body), 'The API list must return its collection.');
+        $assert(array_key_exists('next_cursor', $body), 'The API list must return a next_cursor key.');
+        $assert(is_string($body['next_cursor']) && $body['next_cursor'] !== '', 'A limited list with more rows must return a next_cursor.');
+
+        $second = $sendRequest('GET', '/api/v1/items?scope='.rawurlencode($organisation->id).'&limit=1&cursor='.rawurlencode((string) $body['next_cursor']), [], [
+            'Accept' => 'application/json',
+            'Authorization' => 'Bearer '.$issued['plain'],
+        ]);
+
+        $assert($second->getStatusCode() === 200, 'The paginated API list must answer 200 for the next cursor.');
+        $secondBody = $decode($second);
+        $assert(array_key_exists('items', $secondBody), 'The next page must return its collection.');
+        $assert(array_key_exists('next_cursor', $secondBody), 'The next page must return a next_cursor key.');
+
+        $assert(array_key_exists('data', $body) && array_key_exists('links', $body) && array_key_exists('meta', $body), 'Paginated API lists must use the data/links/meta envelope shape.');
     },
 
     'assertThrottleHeaders' => static function () use ($assert, $sendRequest): void {
@@ -457,7 +553,7 @@ return [
             'user_id' => $user->id,
         ]);
 
-        $grantA = Grant::factory()->create([
+        Grant::factory()->create([
             'principal_id' => $principalA->id,
             'scope_type' => ScopeTypeEnum::Organisation,
             'scope_id' => $organisationA->id,
@@ -468,14 +564,30 @@ return [
             'principal_id' => $principalB->id,
             'scope_type' => ScopeTypeEnum::Organisation,
             'scope_id' => $organisationB->id,
-            'role' => App\Brain\Enums\RoleEnum::Member,
-            'max_visibility' => VisibilityEnum::Internal,
+            'role' => App\Brain\Enums\RoleEnum::Owner,
+            'max_visibility' => VisibilityEnum::Restricted,
         ]);
 
-        $assert($principalA->organisation_id !== $principalB->organisation_id, 'The same user must have distinct principals per organisation.');
-        $assert(! $organisationB->principals()->whereKey($principalA->id)->exists(), 'A principal from organisation A must not be visible in organisation B.');
-        $assert(! $principalB->grants()->whereKey($grantA->id)->exists(), 'A grant from organisation A must not be usable by organisation B.');
-        $assert($principalA->grants()->whereKey($grantA->id)->exists(), 'Organisation A grant must remain usable by its own principal.');
+        $proposalB = \App\Models\Proposal::factory()->create([
+            'organisation_id' => $organisationB->id,
+            'company_id' => null,
+            'product_id' => null,
+            'scope_type' => ScopeTypeEnum::Organisation,
+            'scope_id' => $organisationB->id,
+            'proposed_by_principal_id' => $principalB->id,
+        ]);
+
+        $resolver = app(\App\Services\PerimeterResolverService::class);
+        $grantsForB = $resolver->grantsCovering($principalA, ScopeTypeEnum::Organisation, $organisationB->id);
+        $assert($grantsForB->isEmpty(), 'A principal from organisation A must not receive grants covering organisation B.');
+
+        $threw = false;
+        try {
+            $resolver->fromGrants($principalA, $grantsForB, ScopeTypeEnum::Organisation, $organisationB->id);
+        } catch (\Throwable) {
+            $threw = true;
+        }
+        $assert($threw, 'Resolving organisation B with organisation A grants must fail.');
 
         $issued = app(CreateApiKeyAction::class)->execute(
             principal: $principalA,
@@ -487,9 +599,20 @@ return [
             scopes: [ApiKeyScopeEnum::BrainRead->value],
         );
 
-        $perimeter = app(\App\Services\PerimeterResolverService::class)->fromApiKey($issued['key']->fresh('principal'));
-        $assert($perimeter->scopeId === $organisationA->id, 'A key for organisation A must resolve to organisation A scope.');
-        $assert($perimeter->scopeId !== $organisationB->id, 'A key for organisation A must not resolve to organisation B scope.');
+        $perimeterA = $resolver->fromApiKey($issued['key']->fresh('principal'));
+        $assert($perimeterA->scopeId === $organisationA->id, 'A key for organisation A must resolve to organisation A scope.');
+
+        $visible = \App\Models\Proposal::query()->visibleIn($perimeterA)->whereKey($proposalB->id)->exists();
+        $assert(! $visible, 'A proposal in organisation B must not be visible in organisation A perimeter.');
+
+        $list = app(\App\Services\ProposalQueryService::class)->list(
+            $perimeterA,
+            $issued['key']->fresh('principal'),
+            null,
+            'api',
+        );
+        $ids = array_column($list['proposals'], 'id');
+        $assert(! in_array($proposalB->id, $ids, true), 'The proposal list for organisation A must not include organisation B proposals.');
     },
 
     'assertApiResourcesHideBigints' => static function () use ($assert, $resolveResource): void {
