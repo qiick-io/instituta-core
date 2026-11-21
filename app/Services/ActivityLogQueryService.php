@@ -98,7 +98,7 @@ final class ActivityLogQueryService
     {
         $query = Activity::query()
             ->forOrganisation($organisationId)
-            ->with(['causer', 'subject'])
+            ->with(['causer' => fn ($query) => $query->withTrashed(), 'subject'])
             ->latest('id');
 
         if ($filters['causer_id'] !== null) {

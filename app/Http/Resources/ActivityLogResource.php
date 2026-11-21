@@ -39,8 +39,8 @@ class ActivityLogResource extends JsonResource
             'created_at' => $this->created_at?->toIso8601String(),
             'causer' => $this->whenLoaded('causer', fn () => $this->causer instanceof User ? [
                 'id' => $this->publicIdFor($this->causer),
-                'name' => $this->causer->name,
-                'email' => $this->causer->email,
+                'name' => $this->causer->trashed() ? 'Deleted user' : $this->causer->name,
+                'email' => $this->causer->trashed() ? null : $this->causer->email,
             ] : null),
             'subject' => $this->whenLoaded('subject', fn () => $this->subject !== null ? [
                 'type' => class_basename((string) $this->subject_type),
