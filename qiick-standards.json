@@ -23,33 +23,38 @@
     },
     "divergences": {
         "C2": {
-            "reason": "Instituta has no user-organisation membership pivot: users reach organisations through principals. Adding a second membership table would create two sources of truth; organisations already use UUID primary keys.",
+            "reason": "principals is the membership table (unique org+user); there is no separate membership table. Note: principals.organisation_id is NOT NULL while the decision says nullable (orchestrator is asking Luca).",
             "decision": "knowledge/decisions/2026-11-19-fleet-core-schema",
             "review_by": "2027-01-19"
         },
         "C3": {
-            "reason": "Instituta authenticates local users and receives federation data through Brain principals; it has no user_identities table and no users.oidc_sub column.",
+            "reason": "SSO (#355, qiick/laravel-oidc) is not merged yet, so Instituta has no user_identities table and no users.oidc_sub column.",
             "decision": "knowledge/decisions/2026-11-19-fleet-core-schema",
             "review_by": "2027-01-19"
         },
         "C11": {
-            "reason": "api_keys uses its UUID primary key `id` as the public identifier; a separate `uuid` column would duplicate the key identifier. Every other C11 column and the dateTime types are present.",
-            "decision": "knowledge/decisions/2026-11-20-core-hardening",
+            "reason": "Instituta follows the full-UUID decision (knowledge/decisions/2026-11-19-fleet-core-schema): api_keys uses its UUID primary key `id` as the public identifier, so a separate `uuid` column would duplicate it.",
+            "decision": "knowledge/decisions/2026-11-19-fleet-core-schema",
             "review_by": "2027-01-19"
         },
         "C21": {
-            "reason": "Content-Language negotiation is not implemented; locale is stored per user and UI strings are translated on the client.",
-            "decision": "knowledge/decisions/2026-11-20-core-hardening",
+            "reason": "There is no Content-Language negotiation today; locale is stored per user and translated client-side.",
+            "decision": "knowledge/decisions/2026-11-20-fleet-contracts",
+            "review_by": "2027-01-19"
+        },
+        "C22": {
+            "reason": "API v1 lists use cursor pagination or collection envelopes (for example items/next_cursor or proposals), not the data/links/meta page envelope.",
+            "decision": "knowledge/decisions/2026-11-20-fleet-contracts",
             "review_by": "2027-01-19"
         },
         "C24": {
-            "reason": "X-Request-Id middleware is not implemented; request tracing currently relies on Laravel's request id in logs.",
-            "decision": "knowledge/decisions/2026-11-20-core-hardening",
+            "reason": "There is no X-Request-Id middleware today; request tracing relies on Laravel's request id in logs.",
+            "decision": "knowledge/decisions/2026-11-20-fleet-contracts",
             "review_by": "2027-01-19"
         },
         "C25": {
-            "reason": "Idempotency-Key replay is not implemented for retryable API creates; callers currently rely on natural-key uniqueness.",
-            "decision": "knowledge/decisions/2026-11-20-core-hardening",
+            "reason": "There is no Idempotency-Key replay today; callers rely on natural-key uniqueness.",
+            "decision": "knowledge/decisions/2026-11-20-fleet-contracts",
             "review_by": "2027-01-19"
         },
         "C27": {
@@ -61,11 +66,6 @@
             "reason": "Instituta's outbound HTTP calls still use Laravel Http/curl directly and do not yet route through the fleet SSRF pinning helper. Temporary security divergence; every call site is enumerated in https://github.com/qiick-io/instituta-core/issues/385.",
             "decision": "knowledge/decisions/2026-11-19-shared-packages-for-api-keys-and-outbound-http",
             "review_by": "2026-12-20"
-        },
-        "C29": {
-            "reason": "Instituta does not use Spatie teams: organisation switching changes the principal scope and resolver context rather than a Spatie team id.",
-            "decision": "knowledge/decisions/2026-11-20-core-hardening",
-            "review_by": "2027-01-19"
         }
     }
 }

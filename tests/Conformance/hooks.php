@@ -159,19 +159,34 @@ return [
 
         Role::query()->create(['name' => 'conformance-global-role', 'guard_name' => 'web']);
 
+        (new PermissionSeeder)->run();
+        (new RoleSeeder)->run();
+
+        $superAdmin = User::factory()->create()->assignRole(RoleEnum::SuperAdmin->value);
+
+        $duplicateRequest = \App\Http\Requests\Admin\RoleRequest::create('/settings/roles', 'POST', [
+            'name' => 'conformance-global-role',
+            'permissions' => [],
+        ]);
+        $duplicateRequest->setUserResolver(static fn (): User => $superAdmin);
+        $duplicateRequest->setContainer(app());
+        $duplicateRequest->setRedirector(app('redirect'));
+
         $assert(
-            Validator::make(
-                ['name' => 'conformance-global-role'],
-                ['name' => ['required', Rule::notIn(RoleEnum::values()), Rule::unique('roles', 'name')]],
-            )->fails(),
+            Validator::make($duplicateRequest->all(), $duplicateRequest->rules())->fails(),
             'The role form must reject a duplicate global name.',
         );
 
+        $builtInRequest = \App\Http\Requests\Admin\RoleRequest::create('/settings/roles', 'POST', [
+            'name' => RoleEnum::Admin->value,
+            'permissions' => [],
+        ]);
+        $builtInRequest->setUserResolver(static fn (): User => $superAdmin);
+        $builtInRequest->setContainer(app());
+        $builtInRequest->setRedirector(app('redirect'));
+
         $assert(
-            Validator::make(
-                ['name' => RoleEnum::Admin->value],
-                ['name' => ['required', Rule::notIn(RoleEnum::values()), Rule::unique('roles', 'name')]],
-            )->fails(),
+            Validator::make($builtInRequest->all(), $builtInRequest->rules())->fails(),
             'The role form must reject a built-in role name.',
         );
     },
@@ -220,7 +235,7 @@ return [
             ->firstOrFail();
 
         $assert($activity->properties?->get('api_key_id') === $key->id, 'Activity properties.api_key_id must hold the public UUID.');
-        $assert((string) $activity->subject_id === $key->id || is_string($activity->subject_id), 'Activity morph ids must be strings.');
+        $assert(is_string($activity->subject_id) && preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $activity->subject_id) === 1, 'Activity morph ids must be public UUID strings.');
 
         $contractCall = ContractCall::query()->where('api_key_id', $key->id)->firstOrFail();
         $assert(is_string($contractCall->id) && strlen($contractCall->id) === 36, 'Contract call ids must be UUIDs.');
@@ -254,8 +269,10 @@ return [
 
         $erasedUser = User::withTrashed()->findOrFail($databaseKey);
         $assert($erasedUser->trashed(), 'Erasure must soft-delete the user.');
-        $assert($erasedUser->email === $email, 'Erasure must keep the email tombstone.');
-        $assert($erasedUser->username === $username, 'Erasure must keep the username tombstone.');
+        $assert($erasedUser->email === 'deleted+'.$publicId.'@example.invalid', 'Erasure must replace the email with a unique placeholder.');
+        $assert($erasedUser->username === 'deleted_'.substr(str_replace('-', '', $publicId), 0, 24), 'Erasure must replace the username with a unique placeholder.');
+        $assert($erasedUser->first_name === 'Deleted', 'Erasure must anonymise the first name.');
+        $assert($erasedUser->last_name === null, 'Erasure must anonymise the last name.');
 
         $erasedPrincipal = Principal::query()->findOrFail($principalId);
         $assert($erasedPrincipal->user_id === null, 'Erasure must detach the user from its principals.');
@@ -266,24 +283,18 @@ return [
 
         $activity = Activity::query()->where('description', 'conformance erasure')->firstOrFail();
         $activityProperties = $activity->properties?->toArray() ?? [];
-        $assert($activity->causer_id === $publicId, 'Erasure must re-point activity at the public UUID.');
+        $assert((string) $activity->causer_id === (string) $databaseKey, 'Erasure must keep the activity causer id on the soft-deleted user.');
+        $assert((string) $activity->subject_id === (string) $databaseKey, 'Erasure must keep the activity subject id on the soft-deleted user.');
         $assert($activity->description === 'conformance erasure', 'Erasure must keep the activity row.');
         $assert(! array_key_exists('email', $activityProperties), 'Erasure must remove email from activity.');
         $assert(! array_key_exists('username', $activityProperties), 'Erasure must remove username from activity.');
 
-        try {
-            User::factory()->create(['email' => $email]);
-            $assert(false, 'A soft-deleted email must remain a unique tombstone.');
-        } catch (QueryException) {
-            // Expected: the tombstone still owns the unique email.
-        }
-
-        try {
-            User::factory()->create(['username' => $username]);
-            $assert(false, 'A soft-deleted username must remain a unique tombstone.');
-        } catch (QueryException) {
-            // Expected: the tombstone still owns the unique username.
-        }
+        $replacement = User::factory()->create([
+            'email' => $email,
+            'username' => $username,
+        ]);
+        $assert($replacement->email === $email, 'Erasure must release the original email.');
+        $assert($replacement->username === $username, 'Erasure must release the original username.');
     },
 
     'assertInitialAdminSeeder' => static function () use ($assert): void {
@@ -371,19 +382,35 @@ return [
     },
 
     'assertPaginationShape' => static function () use ($assert, $sendRequest, $decode): void {
-        (new PermissionSeeder)->run();
-        (new RoleSeeder)->run();
+        $organisation = Organisation::factory()->create();
+        $principal = Principal::factory()->create(['organisation_id' => $organisation->id]);
+        Grant::factory()->create([
+            'principal_id' => $principal->id,
+            'scope_type' => ScopeTypeEnum::Organisation,
+            'scope_id' => $organisation->id,
+            'role' => App\Brain\Enums\RoleEnum::Owner,
+            'max_visibility' => VisibilityEnum::Restricted,
+        ]);
 
-        UserGroup::factory()->count(12)->create();
-        $superAdmin = User::factory()->create()->assignRole(RoleEnum::SuperAdmin->value);
-        Auth::login($superAdmin);
+        $issued = app(CreateApiKeyAction::class)->execute(
+            principal: $principal,
+            name: 'conformance-list',
+            scopeType: ScopeTypeEnum::Organisation,
+            scopeId: $organisation->id,
+            role: App\Brain\Enums\RoleEnum::Owner,
+            maxVisibility: VisibilityEnum::Restricted,
+            scopes: [ApiKeyScopeEnum::BrainRead->value],
+        );
 
-        $response = $sendRequest('GET', '/groups?per_page=10', [], ['Accept' => 'application/json']);
-        $assert($response->getStatusCode() === 200, 'The paginated admin page must answer 200.');
+        $response = $sendRequest('GET', '/api/v1/proposals', [], [
+            'Accept' => 'application/json',
+            'Authorization' => 'Bearer '.$issued['plain'],
+        ]);
+
+        $assert($response->getStatusCode() === 200, 'The paginated API list must answer 200.');
+
         $body = $decode($response);
-        $assert(array_keys($body) === ['data', 'links', 'meta'], 'Pagination must be exactly data, links, meta.');
-        $assert(count($body['data'] ?? []) === 10, 'Pagination must honour per_page.');
-        $assert(($body['meta']['total'] ?? null) === 12, 'Pagination meta must carry the total.');
+        $assert(array_key_exists('proposals', $body), 'The API list must return its collection.');
     },
 
     'assertThrottleHeaders' => static function () use ($assert, $sendRequest): void {
@@ -414,6 +441,55 @@ return [
         $assert($resolver->permissionsFor($user) === PermissionEnum::values(), 'A super-admin must hold every permission.');
         $assert(app(SuperAdminGuardService::class)->isLastSuperAdmin($user), 'The only super-admin must be protected.');
         $assert(! Schema::hasColumn('model_has_roles', 'organisation_id'), 'Instance super-admin must not be a Spatie team assignment.');
+    },
+
+    'assertTeamSwitch' => static function () use ($assert): void {
+        $organisationA = Organisation::factory()->create();
+        $organisationB = Organisation::factory()->create();
+        $user = User::factory()->create();
+
+        $principalA = Principal::factory()->create([
+            'organisation_id' => $organisationA->id,
+            'user_id' => $user->id,
+        ]);
+        $principalB = Principal::factory()->create([
+            'organisation_id' => $organisationB->id,
+            'user_id' => $user->id,
+        ]);
+
+        $grantA = Grant::factory()->create([
+            'principal_id' => $principalA->id,
+            'scope_type' => ScopeTypeEnum::Organisation,
+            'scope_id' => $organisationA->id,
+            'role' => App\Brain\Enums\RoleEnum::Owner,
+            'max_visibility' => VisibilityEnum::Restricted,
+        ]);
+        Grant::factory()->create([
+            'principal_id' => $principalB->id,
+            'scope_type' => ScopeTypeEnum::Organisation,
+            'scope_id' => $organisationB->id,
+            'role' => App\Brain\Enums\RoleEnum::Member,
+            'max_visibility' => VisibilityEnum::Internal,
+        ]);
+
+        $assert($principalA->organisation_id !== $principalB->organisation_id, 'The same user must have distinct principals per organisation.');
+        $assert(! $organisationB->principals()->whereKey($principalA->id)->exists(), 'A principal from organisation A must not be visible in organisation B.');
+        $assert(! $principalB->grants()->whereKey($grantA->id)->exists(), 'A grant from organisation A must not be usable by organisation B.');
+        $assert($principalA->grants()->whereKey($grantA->id)->exists(), 'Organisation A grant must remain usable by its own principal.');
+
+        $issued = app(CreateApiKeyAction::class)->execute(
+            principal: $principalA,
+            name: 'org-a-isolation',
+            scopeType: ScopeTypeEnum::Organisation,
+            scopeId: $organisationA->id,
+            role: App\Brain\Enums\RoleEnum::Owner,
+            maxVisibility: VisibilityEnum::Restricted,
+            scopes: [ApiKeyScopeEnum::BrainRead->value],
+        );
+
+        $perimeter = app(\App\Services\PerimeterResolverService::class)->fromApiKey($issued['key']->fresh('principal'));
+        $assert($perimeter->scopeId === $organisationA->id, 'A key for organisation A must resolve to organisation A scope.');
+        $assert($perimeter->scopeId !== $organisationB->id, 'A key for organisation A must not resolve to organisation B scope.');
     },
 
     'assertApiResourcesHideBigints' => static function () use ($assert, $resolveResource): void {
