@@ -3,10 +3,15 @@
     "ref": "v0.12.0",
     "uiPreset": "Teal",
     "php": true,
-    "frontendRoots": ["resources/js"],
+    "frontendRoots": [
+        "resources/js"
+    ],
     "oxlint": true,
     "app": true,
-    "patterns": ["command-palette", "keyboard-shortcuts"],
+    "patterns": [
+        "command-palette",
+        "keyboard-shortcuts"
+    ],
     "requiredItems": [],
     "conformance": {
         "userModel": "App\\Models\\User",
@@ -43,8 +48,8 @@
             "review_by": "2027-01-19"
         },
         "C22": {
-            "reason": "API v1 lists use cursor pagination or collection envelopes (for example items/next_cursor or proposals), not the data/links/meta page envelope.",
-            "decision": "knowledge/decisions/2026-11-20-fleet-contracts",
+            "reason": "API lists use next_cursor pagination, documented in OpenAPI.",
+            "decision": "knowledge/decisions/2026-11-20-fleet-contracts.md",
             "review_by": "2027-01-19"
         },
         "C24": {
