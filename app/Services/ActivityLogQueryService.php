@@ -30,21 +30,16 @@ final class ActivityLogQueryService
         $principal = $user->principals()
             ->active()
             ->where('type', 'person')
+            ->whereHas('grants', function (Builder $query): void {
+                $query->active()
+                    // Organisation-wide surfaces: an owner limited to some areas does not reach them (#334).
+                    ->unlimited()
+                    ->where('role', RoleEnum::Owner->value);
+            })
             ->orderBy('id')
             ->first();
 
         if (! $principal instanceof Principal) {
-            return null;
-        }
-
-        $isOwner = $principal->grants()
-            ->active()
-            // Organisation-wide surfaces: an owner limited to some areas does not reach them (#334).
-            ->unlimited()
-            ->where('role', RoleEnum::Owner->value)
-            ->exists();
-
-        if (! $isOwner) {
             return null;
         }
 

@@ -14,6 +14,8 @@ use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\Product;
 use App\Models\Source;
+use App\Models\User;
+use App\Services\ActivityLogQueryService;
 use App\Services\PerimeterResolverService;
 use App\Services\PrincipalLifecycleService;
 
@@ -210,4 +212,38 @@ it('refuses brain:write ability on issue', function (): void {
         maxVisibility: VisibilityEnum::Restricted,
         scopes: ['brain:write'],
     ))->toThrow(InvalidArgumentException::class);
+});
+
+it('resolves an owner organisation from the qualifying principal only', function (): void {
+    $limitedOrganisation = Organisation::factory()->create();
+    $ownerOrganisation = Organisation::factory()->create();
+    $user = User::factory()->create();
+
+    $limitedPrincipal = Principal::factory()->create([
+        'organisation_id' => $limitedOrganisation->id,
+        'user_id' => $user->id,
+    ]);
+    Grant::factory()->create([
+        'principal_id' => $limitedPrincipal->id,
+        'scope_type' => ScopeTypeEnum::Organisation,
+        'scope_id' => $limitedOrganisation->id,
+        'role' => RoleEnum::Owner,
+        'max_visibility' => VisibilityEnum::Restricted,
+        'areas' => ['rules'],
+    ]);
+
+    $ownerPrincipal = Principal::factory()->create([
+        'organisation_id' => $ownerOrganisation->id,
+        'user_id' => $user->id,
+    ]);
+    Grant::factory()->create([
+        'principal_id' => $ownerPrincipal->id,
+        'scope_type' => ScopeTypeEnum::Organisation,
+        'scope_id' => $ownerOrganisation->id,
+        'role' => RoleEnum::Owner,
+        'max_visibility' => VisibilityEnum::Restricted,
+    ]);
+
+    expect(app(ActivityLogQueryService::class)->organisationIdForOwner($user))
+        ->toBe($ownerOrganisation->id);
 });
