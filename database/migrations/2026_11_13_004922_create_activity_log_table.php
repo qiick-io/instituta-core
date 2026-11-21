@@ -17,7 +17,7 @@ return new class extends Migration
     {
         Schema::create('activity_log', function (Blueprint $table): void {
             $table->id();
-            $table->uuid('public_id')->nullable()->unique();
+            $table->uuid('public_id')->unique();
             $table->string('organisation_id', 36)->nullable()->index();
             $table->string('log_name')->nullable()->index();
             $table->text('description');
