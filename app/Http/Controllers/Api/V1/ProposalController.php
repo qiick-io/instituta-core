@@ -48,6 +48,8 @@ final class ProposalController extends Controller
                 $this->apiKey($request),
                 $status,
                 'api',
+                $validated['cursor'] ?? null,
+                isset($validated['limit']) ? (int) $validated['limit'] : 25,
             ),
         ))->response();
     }

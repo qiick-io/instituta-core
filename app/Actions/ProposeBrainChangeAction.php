@@ -105,6 +105,7 @@ final class ProposeBrainChangeAction
         $this->activity->proposalOpened($proposal, $actor ?? $apiKey?->principal?->user, [
             'organisation_id' => $organisationId,
             'proposal_id' => $proposal->id,
+            'api_key_id' => $apiKey?->id,
             'action' => $payload->action->value,
             'stable_key' => $payload->stableKey,
             'status' => ProposalStatusEnum::Open->value,

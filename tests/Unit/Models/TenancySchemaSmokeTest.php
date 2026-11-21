@@ -10,6 +10,8 @@ use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\Product;
 use App\Models\Source;
+use App\Models\User;
+use Illuminate\Database\QueryException;
 
 it('factories create tenancy graph and index rows', function (): void {
     $organisation = Organisation::factory()->create();
@@ -56,3 +58,18 @@ it('factories create tenancy graph and index rows', function (): void {
         'source_id' => $source->id,
     ]);
 });
+
+it('refuses a second principal for the same user in the same organisation', function (): void {
+    $organisation = Organisation::factory()->create();
+    $user = User::factory()->create();
+
+    Principal::factory()->person()->create([
+        'organisation_id' => $organisation->id,
+        'user_id' => $user->id,
+    ]);
+
+    Principal::factory()->person()->create([
+        'organisation_id' => $organisation->id,
+        'user_id' => $user->id,
+    ]);
+})->throws(QueryException::class);

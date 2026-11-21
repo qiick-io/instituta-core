@@ -10,6 +10,7 @@ use App\Enums\ApiKeyScopeEnum;
 use App\Enums\ProposalMaterialisationStatusEnum;
 use App\Enums\ProposalStatusEnum;
 use App\Jobs\MaterialiseProposalJob;
+use App\Models\Activity;
 use App\Models\ApiKey;
 use App\Models\ContractCall;
 use App\Models\Grant;
@@ -140,6 +141,9 @@ it('creates lists and accepts proposals without exposing body in responses or au
 
     $proposalId = $create->json('id');
     expect(Proposal::query()->whereKey($proposalId)->value('body'))->toBe('# Do not leak this');
+
+    $activity = Activity::query()->where('description', 'proposal.opened')->where('subject_id', $proposalId)->firstOrFail();
+    expect($activity->properties?->get('api_key_id'))->toBe($seed['key']->id);
 
     $this->getJson('/api/v1/proposals', writeAuth($seed))
         ->assertOk()

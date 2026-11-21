@@ -34,8 +34,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => EnsureUserHasPermissionMiddleware::class,
         ]);
 
-        // Outermost on the API so rendered exceptions get their contract code too (#227).
-        $middleware->api(prepend: [AddContractErrorCodeMiddleware::class]);
+        // Global so unmatched API routes and rendered exceptions get their contract code too (#227).
+        $middleware->append(AddContractErrorCodeMiddleware::class);
 
         $middleware->web(append: [
             HandleAppearance::class,
