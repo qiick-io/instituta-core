@@ -31,6 +31,8 @@ class InstitutaListProposalsTool extends Tool
     {
         return [
             'status' => $schema->string()->description('Optional filter: open|accepted|rejected')->nullable(),
+            'cursor' => $schema->string()->description('Pagination cursor from a previous response')->nullable(),
+            'limit' => $schema->integer()->description('Maximum proposals to return (default 25, max 100)')->nullable(),
         ];
     }
 
@@ -50,12 +52,17 @@ class InstitutaListProposalsTool extends Tool
             return Response::error(ContractErrorCodeEnum::ValidationFailed->mcpText('status must be open, accepted, or rejected.'));
         }
 
+        $cursor = $request->get('cursor');
+        $limit = $request->get('limit');
+
         return Response::structured(
             $this->queries->list(
                 $this->brain->perimeter(),
                 $this->brain->apiKey(),
                 $status,
                 'mcp',
+                is_string($cursor) && $cursor !== '' ? $cursor : null,
+                is_numeric($limit) ? max(1, min(100, (int) $limit)) : 25,
             ),
         );
     }
