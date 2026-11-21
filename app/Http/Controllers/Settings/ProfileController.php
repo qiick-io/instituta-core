@@ -76,9 +76,9 @@ class ProfileController extends Controller
         $user = $request->user();
         abort_unless($user instanceof User, 403);
 
-        Auth::logout();
-
         $deleteUser->execute($user);
+
+        Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

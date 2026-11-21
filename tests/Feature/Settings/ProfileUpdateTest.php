@@ -113,6 +113,7 @@ it('email verification status is unchanged when the email address is unchanged',
 it('user can delete their account', function (): void {
     $user = User::factory()->create();
     $email = $user->email;
+    $publicId = $user->public_id;
 
     $response = $this
         ->actingAs($user)
@@ -126,7 +127,11 @@ it('user can delete their account', function (): void {
 
     $this->assertGuest();
     $this->assertSoftDeleted($user);
-    $this->assertSame($email, User::withTrashed()->findOrFail($user->id)->email);
+
+    $erasedUser = User::withTrashed()->findOrFail($user->id);
+    $this->assertSame('deleted+'.$publicId.'@example.invalid', $erasedUser->email);
+    $this->assertSame('Deleted', $erasedUser->first_name);
+    $this->assertNull($erasedUser->last_name);
 });
 
 it('correct password must be provided to delete account', function (): void {

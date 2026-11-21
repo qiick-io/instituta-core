@@ -12,10 +12,10 @@ use App\Services\Authorization\SuperAdminGuardService;
 /**
  * Erases a dashboard user without destroying the evidence of what they did.
  *
- * A soft delete keeps email and username as unique tombstones. Principals are
- * detached and deactivated, their API keys are revoked rather than cascaded
- * away, and activity rows keep their audit link through the user's public UUID
- * after identifying properties have been removed.
+ * The account is soft-deleted and anonymised: email and username become unique
+ * placeholders, personal data is cleared, principals are detached and deactivated,
+ * and keys owned by those principals are revoked. The user stays only soft-deleted,
+ * so activity rows keep their bigint causer and subject ids but lose identifying payload.
  */
 class DeleteUserAction
 {
@@ -56,13 +56,32 @@ class DeleteUserAction
             }
 
             $this->anonymiseActivity($user);
+            $this->anonymiseUser($user);
 
             $user->delete();
         }, 'user');
     }
 
     /**
-     * Re-point user activity at the public UUID and remove identifying payload.
+     * Replace personal data with unique placeholders so the original values can be reused.
+     */
+    private function anonymiseUser(User $user): void
+    {
+        $publicId = $user->public_id;
+
+        $user->forceFill([
+            'first_name' => 'Deleted',
+            'last_name' => null,
+            'email' => 'deleted+'.$publicId.'@example.invalid',
+            'username' => 'deleted_'.substr(str_replace('-', '', $publicId), 0, 24),
+            'email_verified_at' => null,
+            'last_login_ip' => null,
+            'remember_token' => null,
+        ])->saveQuietly();
+    }
+
+    /**
+     * Remove identifying payload from the user's activity without rewriting its ids.
      */
     private function anonymiseActivity(User $user): void
     {
@@ -79,14 +98,6 @@ class DeleteUserAction
             ->unique('id');
 
         foreach ($activities as $activity) {
-            if ($activity->causer_type === User::class && (string) $activity->causer_id === $databaseKey) {
-                $activity->causer_id = $user->public_id;
-            }
-
-            if ($activity->subject_type === User::class && (string) $activity->subject_id === $databaseKey) {
-                $activity->subject_id = $user->public_id;
-            }
-
             $activity->properties = collect($activity->properties?->toArray() ?? [])
                 ->except(self::SENSITIVE_PROPERTY_KEYS);
             $activity->attribute_changes = collect($activity->attribute_changes?->toArray() ?? [])
