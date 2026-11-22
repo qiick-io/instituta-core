@@ -40,12 +40,14 @@ class InstitutaSourceWebhookCommand extends Command
         }
 
         $secret = $webhooks->rotateSecret($source);
+        $standardSecret = $webhooks->standardWebhookSecret($source->fresh() ?? $source)->serialized();
 
-        $this->info("Webhook ready for {$source->name}. Store the secret now; it will not be shown again.");
-        $this->line('Payload URL:  '.route('webhooks.sources', $source->id));
-        $this->line('Content type: application/json');
-        $this->line('Secret:       '.$secret);
-        $this->line('Events:       push');
+        $this->info("Webhook ready for {$source->name}. Store the secrets now; they will not be shown again.");
+        $this->line('Payload URL:             '.route('webhooks.sources', $source->id));
+        $this->line('Content type:            application/json');
+        $this->line('GitHub/Gitea secret:     '.$secret);
+        $this->line('Standard Webhooks secret: '.$standardSecret);
+        $this->line('Events:                  push');
 
         return self::SUCCESS;
     }

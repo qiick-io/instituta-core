@@ -21,6 +21,7 @@ use App\Services\SourceSyncService;
 use App\Services\SourceWebhookService;
 use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Process\PendingProcess;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
@@ -29,6 +30,7 @@ use Qiick\Outbound\Testing\FakeSeenWebhookIdStore;
 use Qiick\Outbound\Webhooks\SeenWebhookIdStore;
 use Qiick\Outbound\Webhooks\StandardWebhookSigner;
 use Qiick\Outbound\Webhooks\StandardWebhookVerifier;
+use Qiick\Outbound\Webhooks\WebhookException;
 use Qiick\Outbound\Webhooks\WebhookSecret;
 
 /**
@@ -179,6 +181,86 @@ it('rejects a replayed delivery id without queuing another sync', function (): v
     Queue::assertPushed(SyncSourceJob::class, 1);
 });
 
+it('treats the same delivery id with a different body as a duplicate', function (): void {
+    Queue::fake();
+    $source = Source::factory()->create();
+    $secret = app(SourceWebhookService::class)->rotateSecret($source);
+    $url = route('webhooks.sources', $source->id);
+
+    $firstPayload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
+    $this->call('POST', $url, [], [], [], [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_X_HUB_SIGNATURE_256' => 'sha256='.hash_hmac('sha256', $firstPayload, $secret),
+        'HTTP_X_GITHUB_DELIVERY' => 'delivery-same-id',
+        'HTTP_X_GITHUB_EVENT' => 'push',
+    ], $firstPayload)->assertAccepted();
+
+    $secondPayload = json_encode(['ref' => 'refs/heads/release'], JSON_THROW_ON_ERROR);
+    $this->call('POST', $url, [], [], [], [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_X_HUB_SIGNATURE_256' => 'sha256='.hash_hmac('sha256', $secondPayload, $secret),
+        'HTTP_X_GITHUB_DELIVERY' => 'delivery-same-id',
+        'HTTP_X_GITHUB_EVENT' => 'push',
+    ], $secondPayload)->assertOk()->assertJson(['status' => 'duplicate']);
+
+    Queue::assertPushed(SyncSourceJob::class, 1);
+});
+
+it('releases the body hash claim when the delivery-id claim fails', function (): void {
+    Queue::fake();
+    $source = Source::factory()->create();
+    $secret = app(SourceWebhookService::class)->rotateSecret($source);
+    $payload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
+    $signature = 'sha256='.hash_hmac('sha256', $payload, $secret);
+    $url = route('webhooks.sources', $source->id);
+    $headers = [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_X_HUB_SIGNATURE_256' => $signature,
+        'HTTP_X_GITHUB_DELIVERY' => 'delivery-id-fails',
+        'HTTP_X_GITHUB_EVENT' => 'push',
+    ];
+
+    $store = new class implements SeenWebhookIdStore
+    {
+        /** @var array<string, true> */
+        public array $claims = [];
+
+        private bool $deliveryClaimShouldFail = true;
+
+        public function claim(string $scope, string $webhookId, int $ttlSeconds): bool
+        {
+            $key = $scope."\0".$webhookId;
+            if (isset($this->claims[$key])) {
+                return false;
+            }
+
+            if (! str_ends_with($scope, ':payload') && $this->deliveryClaimShouldFail) {
+                $this->deliveryClaimShouldFail = false;
+
+                throw new WebhookException('store down', 0, new RuntimeException('boom'));
+            }
+
+            $this->claims[$key] = true;
+
+            return true;
+        }
+
+        public function release(string $scope, string $webhookId): void
+        {
+            unset($this->claims[$scope."\0".$webhookId]);
+        }
+    };
+
+    app()->instance(SeenWebhookIdStore::class, $store);
+    app()->forgetInstance(SourceWebhookService::class);
+    app()->forgetInstance(StandardWebhookVerifier::class);
+
+    $this->call('POST', $url, [], [], [], $headers, $payload)->assertStatus(503);
+
+    $this->call('POST', $url, [], [], [], $headers, $payload)->assertAccepted();
+    Queue::assertPushed(SyncSourceJob::class, 1);
+});
+
 it('treats an identical signed body with a new delivery id as a duplicate on the HMAC path', function (): void {
     Queue::fake();
     $source = Source::factory()->create();
@@ -317,7 +399,7 @@ it('accepts a valid Standard Webhook and rejects expired timestamps and replays'
     $secret = app(SourceWebhookService::class)->rotateSecret($source);
     $payload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
     $signer = new StandardWebhookSigner;
-    $derivedKey = hash_hmac('sha256', 'instituta-standard-webhooks-v1', $secret, true);
+    $derivedKey = hash_hmac('sha256', $secret, 'instituta-standard-webhooks-v1', true);
     $webhookSecret = WebhookSecret::parse('whsec_'.base64_encode($derivedKey));
     $url = route('webhooks.sources', $source->id);
 
@@ -356,9 +438,15 @@ it('does not accept a captured Standard Webhook signature replayed through the G
     $timestamp = (string) now()->getTimestamp();
     $signedContent = $webhookId.'.'.$timestamp.'.'.$body;
 
-    $derivedKey = hash_hmac('sha256', 'instituta-standard-webhooks-v1', $secret, true);
-    $capturedStandardSignature = base64_encode(hash_hmac('sha256', $signedContent, $derivedKey, true));
-    $replayedGitHubSignature = 'sha256='.bin2hex(base64_decode($capturedStandardSignature));
+    // Build the captured signature the way a real Standard Webhooks sender does: sign with the
+    // documented derived whsec_ secret. Reverting B1 (using the raw source secret for Standard)
+    // makes this replay accepted by the GitHub HMAC path, so this test goes red.
+    $signer = new StandardWebhookSigner;
+    $derivedKey = hash_hmac('sha256', $secret, 'instituta-standard-webhooks-v1', true);
+    $standardWebhookSecret = WebhookSecret::parse('whsec_'.base64_encode($derivedKey));
+    $signed = $signer->sign($webhookId, (int) $timestamp, $body, [$standardWebhookSecret]);
+    [, $capturedStandardSignature] = explode(',', $signed->headers['webhook-signature'], 2);
+    $replayedGitHubSignature = 'sha256='.bin2hex(base64_decode((string) $capturedStandardSignature, true) ?: '');
 
     $this->call('POST', route('webhooks.sources', $source->id), [], [], [], [
         'CONTENT_TYPE' => 'application/json',
@@ -402,7 +490,7 @@ it('prefers Standard Webhooks when both header sets are present', function (): v
     $secret = app(SourceWebhookService::class)->rotateSecret($source);
     $payload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
     $signer = new StandardWebhookSigner;
-    $derivedKey = hash_hmac('sha256', 'instituta-standard-webhooks-v1', $secret, true);
+    $derivedKey = hash_hmac('sha256', $secret, 'instituta-standard-webhooks-v1', true);
     $webhookSecret = WebhookSecret::parse('whsec_'.base64_encode($derivedKey));
     $signed = $signer->sign('msg_prefer_1', now()->getTimestamp(), $payload, [$webhookSecret]);
 
@@ -424,7 +512,7 @@ it('does not burn a Standard Webhook id when the signature is invalid', function
     $secret = app(SourceWebhookService::class)->rotateSecret($source);
     $payload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
     $signer = new StandardWebhookSigner;
-    $derivedKey = hash_hmac('sha256', 'instituta-standard-webhooks-v1', $secret, true);
+    $derivedKey = hash_hmac('sha256', $secret, 'instituta-standard-webhooks-v1', true);
     $validSecret = WebhookSecret::parse('whsec_'.base64_encode($derivedKey));
     $invalidSecret = WebhookSecret::parse('whsec_'.base64_encode(hash_hmac('sha256', 'wrong', $secret, true)));
     $timestamp = now()->getTimestamp();
@@ -454,7 +542,7 @@ it('fails closed with 503 when the Standard Webhook replay store cannot claim an
     $secret = app(SourceWebhookService::class)->rotateSecret($source);
     $payload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
     $signer = new StandardWebhookSigner;
-    $derivedKey = hash_hmac('sha256', 'instituta-standard-webhooks-v1', $secret, true);
+    $derivedKey = hash_hmac('sha256', $secret, 'instituta-standard-webhooks-v1', true);
     $webhookSecret = WebhookSecret::parse('whsec_'.base64_encode($derivedKey));
     $signed = $signer->sign('msg_store_503', now()->getTimestamp(), $payload, [$webhookSecret]);
 
@@ -478,7 +566,7 @@ it('releases the Standard Webhook replay claim when dispatch fails', function ()
     $secret = app(SourceWebhookService::class)->rotateSecret($source);
     $payload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
     $signer = new StandardWebhookSigner;
-    $derivedKey = hash_hmac('sha256', 'instituta-standard-webhooks-v1', $secret, true);
+    $derivedKey = hash_hmac('sha256', $secret, 'instituta-standard-webhooks-v1', true);
     $webhookSecret = WebhookSecret::parse('whsec_'.base64_encode($derivedKey));
     $signed = $signer->sign('msg_dispatch_fail', now()->getTimestamp(), $payload, [$webhookSecret]);
     $headers = [
@@ -527,14 +615,14 @@ it('releases the Standard Webhook replay claim when dispatch fails', function ()
     Queue::assertPushed(SyncSourceJob::class, 1);
 });
 
-it('honours outbound.webhooks.allow_raw_legacy_secret for Standard Webhooks', function (): void {
+it('accepts Standard Webhooks when outbound.webhooks.allow_raw_legacy_secret is disabled', function (): void {
     Queue::fake();
     config(['outbound.webhooks.allow_raw_legacy_secret' => false]);
     $source = Source::factory()->create();
     $secret = app(SourceWebhookService::class)->rotateSecret($source);
     $payload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
     $signer = new StandardWebhookSigner;
-    $derivedKey = hash_hmac('sha256', 'instituta-standard-webhooks-v1', $secret, true);
+    $derivedKey = hash_hmac('sha256', $secret, 'instituta-standard-webhooks-v1', true);
     $webhookSecret = WebhookSecret::parse('whsec_'.base64_encode($derivedKey));
     $signed = $signer->sign('msg_legacy_off', now()->getTimestamp(), $payload, [$webhookSecret]);
 
@@ -554,7 +642,7 @@ it('claims Standard Webhook replay ids with the source scope, not default', func
     $secret = app(SourceWebhookService::class)->rotateSecret($source);
     $payload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
     $signer = new StandardWebhookSigner;
-    $derivedKey = hash_hmac('sha256', 'instituta-standard-webhooks-v1', $secret, true);
+    $derivedKey = hash_hmac('sha256', $secret, 'instituta-standard-webhooks-v1', true);
     $webhookSecret = WebhookSecret::parse('whsec_'.base64_encode($derivedKey));
     $signed = $signer->sign('msg_scope_1', now()->getTimestamp(), $payload, [$webhookSecret]);
     $claims = [];
@@ -611,14 +699,20 @@ it('fails closed with 503 when the replay store cannot claim a delivery id', fun
 it('creates, stores encrypted and disables the webhook secret from the CLI', function (): void {
     $source = Source::factory()->create();
 
-    $this->artisan('instituta:source:webhook', ['source' => $source->id])
-        ->expectsOutputToContain(route('webhooks.sources', $source->id))
-        ->expectsOutputToContain('Secret:')
-        ->assertSuccessful();
+    $exitCode = Artisan::call('instituta:source:webhook', ['source' => $source->id]);
+    $output = Artisan::output();
 
+    $source = $source->fresh();
     $stored = DB::table('sources')->where('id', $source->id)->value('webhook_secret');
-    expect($source->fresh()->webhook_secret)->toHaveLength(48)
-        ->and($stored)->not->toBe($source->fresh()->webhook_secret);
+    $standardSecret = app(SourceWebhookService::class)->standardWebhookSecret($source)->serialized();
+
+    expect($exitCode)->toBe(0)
+        ->and($output)->toContain(route('webhooks.sources', $source->id))
+        ->and($output)->toContain('GitHub/Gitea secret:     '.$source->webhook_secret)
+        ->and($output)->toContain('Standard Webhooks secret: '.$standardSecret)
+        ->and($source->webhook_secret)->toHaveLength(48)
+        ->and($stored)->not->toBe($source->webhook_secret)
+        ->and($standardSecret)->toStartWith('whsec_');
 
     $this->artisan('instituta:source:webhook', ['source' => $source->id, '--disable' => true])->assertSuccessful();
     expect($source->fresh()->webhook_secret)->toBeNull();

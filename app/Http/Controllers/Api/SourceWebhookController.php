@@ -98,12 +98,22 @@ final class SourceWebhookController extends Controller
 
         try {
             $payloadClaimed = $this->webhooks->claimPayloadHash($source, $payload);
-            $deliveryClaimed = $payloadClaimed && $this->webhooks->claimDeliveryId($source, $deliveryId);
+            if (! $payloadClaimed) {
+                return response()->json(['status' => 'duplicate']);
+            }
+
+            $deliveryClaimed = $this->webhooks->claimDeliveryId($source, $deliveryId);
         } catch (WebhookException) {
+            if (isset($payloadClaimed)) {
+                $this->webhooks->releasePayloadHash($source, $payload);
+            }
+
             return response()->json(['message' => 'Webhook replay store unavailable.'], 503);
         }
 
-        if (! $payloadClaimed || ! $deliveryClaimed) {
+        if (! $deliveryClaimed) {
+            $this->webhooks->releasePayloadHash($source, $payload);
+
             return response()->json(['status' => 'duplicate']);
         }
 

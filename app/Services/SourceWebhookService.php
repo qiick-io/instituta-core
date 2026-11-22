@@ -155,7 +155,7 @@ final class SourceWebhookService
      *
      * @throws WebhookException when the source secret cannot be represented as a webhook secret
      */
-    private function standardWebhookSecret(Source $source): WebhookSecret
+    public function standardWebhookSecret(Source $source): WebhookSecret
     {
         $secret = $source->webhook_secret;
 
@@ -163,7 +163,7 @@ final class SourceWebhookService
             throw new WebhookException('Webhook secret is missing.');
         }
 
-        $derivedKey = hash_hmac('sha256', 'instituta-standard-webhooks-v1', $secret, true);
+        $derivedKey = hash_hmac('sha256', $secret, 'instituta-standard-webhooks-v1', true);
 
         return WebhookSecret::parse('whsec_'.base64_encode($derivedKey));
     }
