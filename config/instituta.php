@@ -75,4 +75,19 @@ return [
         'github_token' => env('INSTITUTA_GITHUB_TOKEN'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Source webhooks
+    |--------------------------------------------------------------------------
+    |
+    | Inbound push webhooks are authenticated by signature and replay-protected
+    | by delivery id. The replay TTL covers the window in which a delivery id is
+    | refused as a duplicate.
+    |
+    */
+
+    'webhooks' => [
+        'replay_ttl_seconds' => (int) env('INSTITUTA_WEBHOOK_REPLAY_TTL_SECONDS', 86400),
+    ],
+
 ];

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bf502882661705c9eee18d2fc2db2d8d",
+    "content-hash": "45929af99e4191caaaa2e4ccff9bd10e",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -4631,6 +4631,79 @@
             },
             "time": "2026-08-07T12:47:11+00:00",
             "published-time": "2026-08-07T12:47:27+00:00"
+        },
+        {
+            "name": "qiick/laravel-outbound",
+            "version": "v0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/qiick-io/laravel-outbound.git",
+                "reference": "ccdc47e5d3c93726ef8adb5489c00e536feb1261"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/qiick-io/laravel-outbound/zipball/ccdc47e5d3c93726ef8adb5489c00e536feb1261",
+                "reference": "ccdc47e5d3c93726ef8adb5489c00e536feb1261",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-intl": "*",
+                "ext-mbstring": "*",
+                "guzzlehttp/guzzle": "^7.8 || ^8.0",
+                "illuminate/contracts": "^12.0 || ^13.0",
+                "illuminate/http": "^12.0 || ^13.0",
+                "illuminate/support": "^12.0 || ^13.0",
+                "php": "^8.3"
+            },
+            "require-dev": {
+                "larastan/larastan": "^3.3.1",
+                "laravel/pint": "^1.30.4 <1.31.0",
+                "nunomaduro/collision": "^8.5",
+                "orchestra/testbench": "^10.0 || ^11.0",
+                "pestphp/pest": "^4.0",
+                "pestphp/pest-plugin-mutate": "^4.0",
+                "phpstan/phpstan": "^2.1.11"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Qiick\\Outbound\\Laravel\\OutboundServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Qiick\\Outbound\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Qiick",
+                    "homepage": "https://qiick.io"
+                }
+            ],
+            "description": "SSRF-safe outbound HTTP and Standard Webhooks signing for qiick Laravel products.",
+            "homepage": "https://github.com/qiick-io/laravel-outbound",
+            "keywords": [
+                "laravel",
+                "outbound",
+                "qiick",
+                "ssrf",
+                "standard-webhooks",
+                "webhooks"
+            ],
+            "support": {
+                "issues": "https://github.com/qiick-io/laravel-outbound/issues",
+                "source": "https://github.com/qiick-io/laravel-outbound"
+            },
+            "time": "2026-11-22T08:43:23+00:00",
+            "published-time": "2026-11-22T08:48:29+00:00"
         },
         {
             "name": "ramsey/collection",
