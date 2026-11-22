@@ -9,6 +9,7 @@ use App\Traits\LogsApplicationActivityTrait;
 use Database\Factories\UserGroupFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -17,11 +18,15 @@ use Illuminate\Support\Carbon;
 /**
  * Named group of users that carries attached Spatie roles: members inherit those roles (and
  * their permissions) on top of their direct roles ({@see EffectivePermissionResolverService}).
- * A soft-deleted group grants nothing until it is restored.
+ * Organisation groups have {@see $organisation_id}; the instance super-admin group has
+ * `is_instance=true` and a null organisation_id. A soft-deleted group grants nothing until
+ * it is restored.
  *
- * Copied from externa-core.
+ * Copied from externa-core; organisation_id / is_instance are Instituta's team hardening.
  *
  * @property int $id
+ * @property string|null $organisation_id
+ * @property bool $is_instance
  * @property string $name
  * @property string|null $description
  * @property int|null $users_count
@@ -42,6 +47,24 @@ class UserGroup extends Model
         'name',
         'description',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_instance' => 'boolean',
+        ];
+    }
+
+    /**
+     * @return BelongsTo<Organisation, $this>
+     */
+    public function organisation(): BelongsTo
+    {
+        return $this->belongsTo(Organisation::class);
+    }
 
     /**
      * @return BelongsToMany<User, $this, UserGroupUser>

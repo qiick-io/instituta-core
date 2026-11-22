@@ -14,9 +14,10 @@ use Spatie\Permission\PermissionRegistrar;
  * Grants and revokes instance-wide super-admin through a fixed user group.
  *
  * With Spatie teams on, `model_has_roles.organisation_id` is NOT NULL, so an instance
- * super-admin cannot be a direct Spatie assignment (core hardening). The group is
- * instance-level; {@see EffectivePermissionResolverService::isSuperAdmin()} reads it
- * without the team filter.
+ * super-admin cannot be a direct Spatie assignment (core hardening). The group is marked
+ * `is_instance=true` with a null `organisation_id` — attributes no organisation admin can
+ * set through the UI — and {@see EffectivePermissionResolverService::isSuperAdmin()} reads
+ * that flag, not the display name.
  */
 final class InstanceSuperAdminGroupService
 {
@@ -28,14 +29,23 @@ final class InstanceSuperAdminGroupService
     ) {}
 
     /**
-     * Ensures the instance group exists and carries the super-admin role definition.
+     * Ensures the instance group exists (`is_instance`, no organisation) and carries the
+     * super-admin role definition.
      */
     public function ensureGroup(): UserGroup
     {
-        $group = UserGroup::query()->firstOrCreate(
-            ['name' => self::GROUP_NAME],
-            ['description' => 'Instance-wide super-admin membership. Not a Spatie team assignment.'],
-        );
+        $group = UserGroup::query()->where('is_instance', true)->first();
+
+        if ($group === null) {
+            $group = new UserGroup;
+        }
+
+        $group->forceFill([
+            'name' => self::GROUP_NAME,
+            'organisation_id' => null,
+            'is_instance' => true,
+            'description' => 'Instance-wide super-admin membership. Not a Spatie team assignment.',
+        ])->save();
 
         $this->permissionRegistrar->forgetCachedPermissions();
 
@@ -63,7 +73,7 @@ final class InstanceSuperAdminGroupService
      */
     public function revoke(User $user): void
     {
-        $group = UserGroup::query()->where('name', self::GROUP_NAME)->first();
+        $group = UserGroup::query()->where('is_instance', true)->first();
 
         if ($group !== null) {
             $group->users()->detach($user->getKey());

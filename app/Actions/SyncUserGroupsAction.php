@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\User;
+use App\Services\Authorization\EffectivePermissionResolverService;
 
 /**
  * Replaces the user groups of a user and logs a `groups_synced` activity (memberships are not
@@ -16,6 +17,7 @@ class SyncUserGroupsAction
 {
     public function __construct(
         private ReconcileGroupBrainAccessAction $reconcileBrainAccess,
+        private EffectivePermissionResolverService $permissionResolver,
     ) {}
 
     /**
@@ -24,8 +26,7 @@ class SyncUserGroupsAction
     public function execute(User $user, array $groupIds): void
     {
         $user->groups()->sync($groupIds);
-        // Group roles count for the user's permissions: drop the stale loaded relation.
-        $user->unsetRelation('groups');
+        $this->permissionResolver->forget($user);
         // The user's group-given brain grants follow their groups (#258).
         $this->reconcileBrainAccess->execute([$user]);
 

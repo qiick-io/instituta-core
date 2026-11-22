@@ -126,7 +126,7 @@ return [
         $resolver = app(EffectivePermissionResolverService::class);
         $user = User::factory()->create();
         app(InstanceSuperAdminGroupService::class)->grant($user);
-        $group = UserGroup::query()->where('name', InstanceSuperAdminGroupService::GROUP_NAME)->sole();
+        $group = UserGroup::query()->where('is_instance', true)->sole();
 
         $assert($resolver->isSuperAdmin($user), 'The instance super-admin group must grant super-admin.');
         $assert($resolver->permissionsFor($user) === PermissionEnum::values(), 'The instance super-admin group must grant every permission.');

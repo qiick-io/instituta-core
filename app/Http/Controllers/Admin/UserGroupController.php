@@ -14,6 +14,7 @@ use App\Http\Requests\Admin\UpdateUserGroupRequest;
 use App\Http\Resources\Admin\UserGroupResource;
 use App\Models\User;
 use App\Models\UserGroup;
+use App\Services\Authorization\EffectivePermissionResolverService;
 use App\Services\GroupBrainScopesService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -52,6 +53,12 @@ class UserGroupController extends Controller
         $query = $request->applySearch(UserGroup::query(), ['name', 'description'])
             ->withCount(['users', 'roles'])
             ->with(['roles:id,name', 'users:id,public_id,first_name,last_name,email', 'brainAccess']);
+
+        // Organisation admins only see groups of the current team; instance SA sees all.
+        if ($actor instanceof User && ! app(EffectivePermissionResolverService::class)->isSuperAdmin($actor)) {
+            $teamId = getPermissionsTeamId();
+            $query->where('is_instance', false)->where('organisation_id', is_string($teamId) ? $teamId : '');
+        }
 
         if ($isTrashed) {
             $query->onlyTrashed();

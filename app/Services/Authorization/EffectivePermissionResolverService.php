@@ -109,16 +109,16 @@ class EffectivePermissionResolverService
      * Whether the user is a member of the instance super-admin group.
      *
      * With Spatie teams on, direct `model_has_roles` rows are always organisation-scoped,
-     * so instance super-admin is never read from `$user->roles` (team-filtered). Only the
-     * fixed {@see InstanceSuperAdminGroupService::GROUP_NAME} group bypasses the team filter;
-     * any other group that happens to carry the super-admin role does not.
+     * so instance super-admin is never read from `$user->roles` (team-filtered). Membership
+     * in a group with `is_instance=true` (and null organisation_id) is the only bypass; the
+     * display name alone never grants it.
      */
     public function isSuperAdmin(User $user): bool
     {
         $user->loadMissing(['groups']);
 
         return $user->groups->contains(
-            static fn (UserGroup $group): bool => $group->name === InstanceSuperAdminGroupService::GROUP_NAME,
+            static fn (UserGroup $group): bool => $group->is_instance === true,
         );
     }
 
@@ -166,12 +166,16 @@ class EffectivePermissionResolverService
 
         return $user->groups
             ->filter(function (UserGroup $group) use ($teamId): bool {
-                if ($group->name === InstanceSuperAdminGroupService::GROUP_NAME) {
+                if ($group->is_instance) {
                     return false;
                 }
 
                 if ($teamId === null) {
                     return false;
+                }
+
+                if (is_string($group->organisation_id) && $group->organisation_id !== '') {
+                    return $group->organisation_id === $teamId;
                 }
 
                 return $group->brainAccess

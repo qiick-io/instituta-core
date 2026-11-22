@@ -71,7 +71,10 @@ test('a group admin role in organisation A does not grant permissions in organis
     $user = User::factory()->create();
     $teamContext = app(PermissionsTeamContextService::class);
 
-    $group = UserGroup::factory()->create(['name' => 'Org A admins']);
+    $group = UserGroup::factory()->create([
+        'name' => 'Org A admins',
+        'organisation_id' => $organisationA->id,
+    ]);
     $group->roles()->attach(Role::findByName(RoleEnum::Admin->value));
     $group->brainAccess()->create([
         'organisation_id' => $organisationA->id,
@@ -105,19 +108,70 @@ test('a group with an admin role and no organisation grants nothing under a team
     expect(Gate::forUser($user)->allows(PermissionEnum::CanDeleteUsers->value))->toBeFalse();
 });
 
-test('only the instance super-admin group grants isSuperAdmin', function (): void {
+test('only an is_instance group grants isSuperAdmin, not a role on an organisation group', function (): void {
     $resolver = app(EffectivePermissionResolverService::class);
     $user = User::factory()->create();
 
-    $imposter = UserGroup::factory()->create(['name' => 'Not the instance group']);
+    $imposter = UserGroup::factory()->create(['name' => 'Org owners with super-admin role']);
     $imposter->roles()->attach(Role::findByName(RoleEnum::SuperAdmin->value));
     $user->groups()->attach($imposter);
 
     expect($resolver->isSuperAdmin($user))->toBeFalse()
-        ->and($imposter->name)->not->toBe(InstanceSuperAdminGroupService::GROUP_NAME);
+        ->and($imposter->is_instance)->toBeFalse();
 
     grantInstanceSuperAdmin($user);
     $resolver->forget($user);
 
-    expect($resolver->isSuperAdmin($user))->toBeTrue();
+    $instanceGroup = UserGroup::query()->where('is_instance', true)->sole();
+
+    expect($resolver->isSuperAdmin($user))->toBeTrue()
+        ->and($instanceGroup->organisation_id)->toBeNull()
+        ->and($instanceGroup->name)->toBe(InstanceSuperAdminGroupService::GROUP_NAME);
+});
+
+test('an organisation A admin cannot update a group that belongs to organisation B', function (): void {
+    $organisationA = Organisation::factory()->create();
+    $organisationB = Organisation::factory()->create();
+    $adminA = assignOrganisationRole(User::factory()->create(), RoleEnum::Admin, $organisationA->id);
+    $groupB = UserGroup::factory()->create([
+        'name' => 'Org B editors',
+        'organisation_id' => $organisationB->id,
+    ]);
+    $groupB->roles()->attach(Role::findByName(RoleEnum::Admin->value));
+
+    app(PermissionsTeamContextService::class)->setOrganisation($organisationA->id, $adminA);
+
+    expect(Gate::forUser($adminA)->allows('update', $groupB))->toBeFalse()
+        ->and(Gate::forUser($adminA)->allows('delete', $groupB))->toBeFalse();
+
+    $this->actingAs($adminA)
+        ->put(route('groups.update', $groupB), [
+            'name' => 'Hijacked',
+            'user_ids' => [$adminA->public_id],
+            'role_ids' => [Role::findByName(RoleEnum::Admin->value)->id],
+        ])
+        ->assertForbidden();
+
+    expect($groupB->fresh()->name)->toBe('Org B editors')
+        ->and($groupB->users()->count())->toBe(0);
+});
+
+test('the reserved instance super-admin name cannot be claimed when creating or renaming a group', function (): void {
+    $organisation = Organisation::factory()->create();
+    $admin = assignOrganisationRole(User::factory()->create(), RoleEnum::Admin, $organisation->id);
+
+    $this->actingAs($admin)
+        ->post(route('groups.store'), ['name' => InstanceSuperAdminGroupService::GROUP_NAME])
+        ->assertSessionHasErrors('name');
+
+    $group = UserGroup::factory()->create([
+        'name' => 'Editors',
+        'organisation_id' => $organisation->id,
+    ]);
+
+    $this->actingAs($admin)
+        ->put(route('groups.update', $group), ['name' => InstanceSuperAdminGroupService::GROUP_NAME])
+        ->assertSessionHasErrors('name');
+
+    expect(UserGroup::query()->where('name', InstanceSuperAdminGroupService::GROUP_NAME)->where('is_instance', false)->exists())->toBeFalse();
 });

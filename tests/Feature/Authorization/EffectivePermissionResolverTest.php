@@ -12,7 +12,6 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\UserGroup;
 use App\Services\Authorization\EffectivePermissionResolverService;
-use App\Services\Authorization\InstanceSuperAdminGroupService;
 use App\Services\Authorization\PermissionsTeamContextService;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
@@ -33,7 +32,10 @@ test('the resolver unites direct roles and group roles', function (): void {
     $groupRole = Role::query()->create(['name' => 'group-viewer', 'guard_name' => 'web', 'organisation_id' => null]);
     $groupRole->syncPermissions([PermissionEnum::CanShowGroups->value]);
 
-    $group = UserGroup::factory()->create(['name' => 'Editors']);
+    $group = UserGroup::factory()->create([
+        'name' => 'Editors',
+        'organisation_id' => $organisation->id,
+    ]);
     $group->roles()->attach($groupRole);
     $group->brainAccess()->create([
         'organisation_id' => $organisation->id,
@@ -55,7 +57,7 @@ test('the resolver unites direct roles and group roles', function (): void {
 
 test('a permission inherited through a group passes the gate, the route middleware and the shared props', function (): void {
     $organisation = Organisation::factory()->create();
-    $group = UserGroup::factory()->create();
+    $group = UserGroup::factory()->create(['organisation_id' => $organisation->id]);
     $group->roles()->attach(Role::findByName(RoleEnum::Reader->value));
     $group->brainAccess()->create([
         'organisation_id' => $organisation->id,
@@ -84,7 +86,7 @@ test('a permission inherited through a group passes the gate, the route middlewa
 
 test('a soft-deleted instance super-admin group grants nothing', function (): void {
     $user = grantInstanceSuperAdmin(User::factory()->create());
-    $group = UserGroup::query()->where('name', InstanceSuperAdminGroupService::GROUP_NAME)->sole();
+    $group = UserGroup::query()->where('is_instance', true)->sole();
 
     expect($this->resolver->isSuperAdmin($user))->toBeTrue()
         ->and($this->resolver->permissionsFor($user))->toBe(PermissionEnum::values());

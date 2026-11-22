@@ -65,12 +65,12 @@ class SuperAdminGuardService
      */
     private function activeSuperAdmins(): Builder
     {
-        // Only membership in the fixed instance group counts (not any group with the role).
+        // Only membership in an is_instance group counts (not any group with the role).
         return User::query()
             ->where('is_active', true)
             ->whereHas(
                 'groups',
-                static fn (Builder $groups) => $groups->where('name', InstanceSuperAdminGroupService::GROUP_NAME),
+                static fn (Builder $groups) => $groups->where('is_instance', true),
             );
     }
 }
