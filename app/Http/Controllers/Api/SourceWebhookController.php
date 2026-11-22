@@ -56,14 +56,12 @@ final class SourceWebhookController extends Controller
                 (string) $request->header('webhook-signature'),
             );
         } catch (WebhookException $exception) {
-            $message = $exception->getMessage();
-
-            if ($message === 'Webhook id has already been processed.' || $message === 'Duplicate webhook id within tolerance window.') {
-                return response()->json(['status' => 'duplicate']);
+            if ($this->isReplayStoreFailure($exception)) {
+                return response()->json(['message' => 'Webhook replay store unavailable.'], 503);
             }
 
-            if ($message === 'Webhook id dedupe store failed.') {
-                return response()->json(['message' => 'Webhook replay store unavailable.'], 503);
+            if ($this->isDuplicateWebhookException($exception)) {
+                return response()->json(['status' => 'duplicate']);
             }
 
             abort(401);
@@ -73,7 +71,13 @@ final class SourceWebhookController extends Controller
             return response()->json(['message' => 'pong']);
         }
 
-        SyncSourceJob::dispatch($source->id, isForced: false);
+        try {
+            SyncSourceJob::dispatch($source->id, isForced: false);
+        } catch (\Throwable) {
+            $this->webhooks->releaseDeliveryId($source, (string) $request->header('webhook-id'));
+
+            return response()->json(['message' => 'Webhook dispatch failed.'], 503);
+        }
 
         return response()->json(['message' => 'Sync queued.'], 202);
     }
@@ -93,12 +97,13 @@ final class SourceWebhookController extends Controller
         abort_unless($this->webhooks->isSignatureValid($source, $payload, $request->header('X-Hub-Signature-256')), 401);
 
         try {
-            $claimed = $this->webhooks->claimDeliveryId($source, $deliveryId);
+            $payloadClaimed = $this->webhooks->claimPayloadHash($source, $payload);
+            $deliveryClaimed = $payloadClaimed && $this->webhooks->claimDeliveryId($source, $deliveryId);
         } catch (WebhookException) {
             return response()->json(['message' => 'Webhook replay store unavailable.'], 503);
         }
 
-        if (! $claimed) {
+        if (! $payloadClaimed || ! $deliveryClaimed) {
             return response()->json(['status' => 'duplicate']);
         }
 
@@ -106,7 +111,14 @@ final class SourceWebhookController extends Controller
             return response()->json(['message' => 'pong']);
         }
 
-        SyncSourceJob::dispatch($source->id, isForced: false);
+        try {
+            SyncSourceJob::dispatch($source->id, isForced: false);
+        } catch (\Throwable $exception) {
+            $this->webhooks->releaseDeliveryId($source, $deliveryId);
+            $this->webhooks->releasePayloadHash($source, $payload);
+
+            return response()->json(['message' => 'Webhook dispatch failed.'], 503);
+        }
 
         return response()->json(['message' => 'Sync queued.'], 202);
     }
@@ -117,5 +129,22 @@ final class SourceWebhookController extends Controller
             || $request->header('X-Gitea-Event') === 'ping'
             || $request->header('X-Forgejo-Event') === 'ping'
             || $request->header('webhook-event') === 'ping';
+    }
+
+    /**
+     * laravel-outbound v0.1.0 exposes only WebhookException without typed codes/subclasses;
+     * store failures wrap the underlying storage throwable as previous.
+     */
+    private function isReplayStoreFailure(WebhookException $exception): bool
+    {
+        return $exception->getPrevious() !== null;
+    }
+
+    /**
+     * laravel-outbound v0.1.0 exposes only WebhookException without typed codes/subclasses.
+     */
+    private function isDuplicateWebhookException(WebhookException $exception): bool
+    {
+        return $exception->getMessage() === 'Webhook id has already been processed.';
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Source;
+use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Str;
 use Qiick\Outbound\Webhooks\SeenWebhookIdStore;
 use Qiick\Outbound\Webhooks\StandardWebhookVerifier;
@@ -70,8 +71,54 @@ final class SourceWebhookService
         return $this->seenWebhookIds->claim(
             $source->id,
             $deliveryId,
-            max(1, (int) config('instituta.webhooks.replay_ttl_seconds', 86400)),
+            $this->replayTtlSeconds(),
         );
+    }
+
+    /**
+     * Claims a payload hash for the replay window on the GitHub/Gitea/Forgejo HMAC path.
+     * Identical signed bodies re-sent under a new delivery id are treated as duplicates.
+     *
+     * @throws WebhookException when the store cannot record the claim
+     */
+    public function claimPayloadHash(Source $source, string $payload): bool
+    {
+        return $this->seenWebhookIds->claim(
+            $source->id.':payload',
+            hash('sha256', $payload),
+            $this->replayTtlSeconds(),
+        );
+    }
+
+    public function releaseDeliveryId(Source $source, string $deliveryId): void
+    {
+        $this->releaseClaim($source->id, $deliveryId);
+    }
+
+    public function releasePayloadHash(Source $source, string $payload): void
+    {
+        $this->releaseClaim($source->id.':payload', hash('sha256', $payload));
+    }
+
+    /**
+     * Best-effort release for claim stores that cannot be rolled back through SeenWebhookIdStore v0.1.0.
+     */
+    private function releaseClaim(string $scope, string $webhookId): void
+    {
+        $store = $this->seenWebhookIds;
+
+        if (method_exists($store, 'release')) {
+            $store->release($scope, $webhookId);
+
+            return;
+        }
+
+        app(Repository::class)->forget('outbound:whid:'.hash('sha256', $scope."\0".$webhookId));
+    }
+
+    private function replayTtlSeconds(): int
+    {
+        return max(1, (int) config('instituta.webhooks.replay_ttl_seconds', 86400));
     }
 
     public function hasStandardWebhookHeaders(?string $webhookId, ?string $webhookTimestamp, ?string $webhookSignature): bool
@@ -96,16 +143,19 @@ final class SourceWebhookService
             $webhookId,
             $webhookTimestamp,
             $webhookSignature,
-            [$this->webhookSecret($source)],
+            [$this->standardWebhookSecret($source)],
             now()->toImmutable(),
             $scope,
         );
     }
 
     /**
+     * Standard Webhooks use a derived key so a captured Standard signature cannot be replayed
+     * through the GitHub HMAC path, which verifies over the raw request body with the source secret.
+     *
      * @throws WebhookException when the source secret cannot be represented as a webhook secret
      */
-    private function webhookSecret(Source $source): WebhookSecret
+    private function standardWebhookSecret(Source $source): WebhookSecret
     {
         $secret = $source->webhook_secret;
 
@@ -113,10 +163,8 @@ final class SourceWebhookService
             throw new WebhookException('Webhook secret is missing.');
         }
 
-        if (str_starts_with($secret, 'whsec_')) {
-            return WebhookSecret::parse($secret);
-        }
+        $derivedKey = hash_hmac('sha256', 'instituta-standard-webhooks-v1', $secret, true);
 
-        return WebhookSecret::parseAllowingLegacyRaw(base64_encode($secret), true);
+        return WebhookSecret::parse('whsec_'.base64_encode($derivedKey));
     }
 }
