@@ -135,3 +135,21 @@ it('refuses guests from accepting proposals', function (): void {
 it('requires authentication for proposals', function (): void {
     $this->get(route('review.proposals.index'))->assertRedirect();
 });
+
+it('caps the proposals screen at 100 proposals', function (): void {
+    $seed = proposalsUiSeed();
+    Proposal::factory()->count(105)->create([
+        'organisation_id' => $seed['org']->id,
+        'scope_type' => ScopeTypeEnum::Organisation,
+        'scope_id' => $seed['org']->id,
+        'proposed_by_principal_id' => $seed['principal']->id,
+        'status' => ProposalStatusEnum::Open,
+    ]);
+
+    $this->actingAs($seed['user'])
+        ->get(route('review.proposals.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('brain/proposals')
+            ->has('proposals', 100));
+});

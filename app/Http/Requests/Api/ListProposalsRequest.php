@@ -23,7 +23,7 @@ final class ListProposalsRequest extends FormRequest
     {
         return [
             'status' => ['nullable', 'string', 'in:open,accepted,rejected'],
-            'cursor' => ['nullable', 'string'],
+            'cursor' => ['nullable', 'uuid'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
     }

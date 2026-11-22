@@ -25,11 +25,17 @@ final class ProposalQueryService
     /**
      * @return Collection<int, Proposal>
      */
-    public function modelsInPerimeter(PerimeterData $perimeter, ?ProposalStatusEnum $status = null): Collection
+    public function modelsInPerimeter(PerimeterData $perimeter, ?ProposalStatusEnum $status = null, int $limit = 100): Collection
     {
         return $this->baseQuery($perimeter, $status)
             ->orderByDesc('created_at')
+            ->limit($limit)
             ->get();
+    }
+
+    public function countInPerimeter(PerimeterData $perimeter, ?ProposalStatusEnum $status = null): int
+    {
+        return $this->baseQuery($perimeter, $status)->count();
     }
 
     /**
