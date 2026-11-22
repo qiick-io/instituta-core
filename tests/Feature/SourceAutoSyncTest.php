@@ -24,6 +24,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Queue;
+use Qiick\Outbound\Testing\FakeSeenWebhookIdStore;
+use Qiick\Outbound\Webhooks\SeenWebhookIdStore;
+use Qiick\Outbound\Webhooks\StandardWebhookSigner;
+use Qiick\Outbound\Webhooks\StandardWebhookVerifier;
+use Qiick\Outbound\Webhooks\WebhookSecret;
 
 /**
  * The index stays fresh without a person running `instituta:sync` (#199).
@@ -128,15 +133,15 @@ it('queues an unforced sync for a correctly signed push webhook only', function 
     $sign = fn (string $key): string => 'sha256='.hash_hmac('sha256', $payload, $key);
     $url = route('webhooks.sources', $source->id);
 
-    $this->call('POST', $url, [], [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_X_HUB_SIGNATURE_256' => $sign('wrong')], $payload)
+    $this->call('POST', $url, [], [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_X_HUB_SIGNATURE_256' => $sign('wrong'), 'HTTP_X_GITHUB_DELIVERY' => 'delivery-bad-signature'], $payload)
         ->assertUnauthorized();
-    $this->call('POST', $url, [], [], [], ['CONTENT_TYPE' => 'application/json'], $payload)
+    $this->call('POST', $url, [], [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_X_GITHUB_DELIVERY' => 'delivery-missing-signature'], $payload)
         ->assertUnauthorized();
-    $this->call('POST', $url, [], [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_X_HUB_SIGNATURE_256' => $sign($secret), 'HTTP_X_GITHUB_EVENT' => 'ping'], $payload)
+    $this->call('POST', $url, [], [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_X_HUB_SIGNATURE_256' => $sign($secret), 'HTTP_X_GITHUB_EVENT' => 'ping', 'HTTP_X_GITHUB_DELIVERY' => 'delivery-ping'], $payload)
         ->assertOk();
     Queue::assertNothingPushed();
 
-    $this->call('POST', $url, [], [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_X_HUB_SIGNATURE_256' => $sign($secret), 'HTTP_X_GITHUB_EVENT' => 'push'], $payload)
+    $this->call('POST', $url, [], [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_X_HUB_SIGNATURE_256' => $sign($secret), 'HTTP_X_GITHUB_EVENT' => 'push', 'HTTP_X_GITHUB_DELIVERY' => 'delivery-push'], $payload)
         ->assertAccepted();
     Queue::assertPushed(SyncSourceJob::class, fn (SyncSourceJob $job): bool => $job->sourceId === $source->id && ! $job->isForced);
 });
@@ -146,6 +151,138 @@ it('answers 404 for an unknown source or one without a webhook secret', function
 
     $this->postJson(route('webhooks.sources', $source->id))->assertNotFound();
     $this->postJson(route('webhooks.sources', '01jzzzzzzzzzzzzzzzzzzzzzzz'))->assertNotFound();
+});
+
+it('rejects a replayed delivery id without queuing another sync', function (): void {
+    Queue::fake();
+    $source = Source::factory()->create();
+    $secret = app(SourceWebhookService::class)->rotateSecret($source);
+    $payload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
+    $signature = 'sha256='.hash_hmac('sha256', $payload, $secret);
+    $url = route('webhooks.sources', $source->id);
+    $headers = [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_X_HUB_SIGNATURE_256' => $signature,
+        'HTTP_X_GITHUB_DELIVERY' => 'delivery-replay',
+        'HTTP_X_GITHUB_EVENT' => 'push',
+    ];
+
+    $this->call('POST', $url, [], [], [], $headers, $payload)->assertAccepted();
+    $this->call('POST', $url, [], [], [], $headers, $payload)
+        ->assertOk()
+        ->assertJson(['status' => 'duplicate']);
+
+    Queue::assertPushed(SyncSourceJob::class, 1);
+});
+
+it('does not burn a delivery id when the signature is invalid', function (): void {
+    Queue::fake();
+    $source = Source::factory()->create();
+    $secret = app(SourceWebhookService::class)->rotateSecret($source);
+    $payload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
+    $url = route('webhooks.sources', $source->id);
+
+    $this->call('POST', $url, [], [], [], [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_X_HUB_SIGNATURE_256' => 'sha256='.hash_hmac('sha256', $payload, 'wrong-secret'),
+        'HTTP_X_GITHUB_DELIVERY' => 'delivery-burn-check',
+        'HTTP_X_GITHUB_EVENT' => 'push',
+    ], $payload)->assertUnauthorized();
+
+    $this->call('POST', $url, [], [], [], [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_X_HUB_SIGNATURE_256' => 'sha256='.hash_hmac('sha256', $payload, $secret),
+        'HTTP_X_GITHUB_DELIVERY' => 'delivery-burn-check',
+        'HTTP_X_GITHUB_EVENT' => 'push',
+    ], $payload)->assertAccepted();
+
+    Queue::assertPushed(SyncSourceJob::class, 1);
+});
+
+it('refuses a signed webhook without a delivery id', function (): void {
+    Queue::fake();
+    $source = Source::factory()->create();
+    $secret = app(SourceWebhookService::class)->rotateSecret($source);
+    $payload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
+
+    $this->call('POST', route('webhooks.sources', $source->id), [], [], [], [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_X_HUB_SIGNATURE_256' => 'sha256='.hash_hmac('sha256', $payload, $secret),
+        'HTTP_X_GITHUB_EVENT' => 'push',
+    ], $payload)->assertBadRequest();
+
+    Queue::assertNothingPushed();
+});
+
+it('accepts a valid Gitea delivery id header', function (): void {
+    Queue::fake();
+    $source = Source::factory()->create();
+    $secret = app(SourceWebhookService::class)->rotateSecret($source);
+    $payload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
+
+    $this->call('POST', route('webhooks.sources', $source->id), [], [], [], [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_X_HUB_SIGNATURE_256' => 'sha256='.hash_hmac('sha256', $payload, $secret),
+        'HTTP_X_GITEA_DELIVERY' => 'gitea-delivery-1',
+        'HTTP_X_GITEA_EVENT' => 'push',
+    ], $payload)->assertAccepted();
+
+    Queue::assertPushed(SyncSourceJob::class, 1);
+});
+
+it('accepts a valid Standard Webhook and rejects expired timestamps and replays', function (): void {
+    Queue::fake();
+    $source = Source::factory()->create();
+    $secret = app(SourceWebhookService::class)->rotateSecret($source);
+    $payload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
+    $signer = new StandardWebhookSigner;
+    $webhookSecret = WebhookSecret::parseAllowingLegacyRaw(base64_encode($secret), true);
+    $url = route('webhooks.sources', $source->id);
+
+    $signed = $signer->sign('msg_valid_1', now()->getTimestamp(), $payload, [$webhookSecret]);
+    $this->call('POST', $url, [], [], [], [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_WEBHOOK_ID' => $signed->headers['webhook-id'],
+        'HTTP_WEBHOOK_TIMESTAMP' => $signed->headers['webhook-timestamp'],
+        'HTTP_WEBHOOK_SIGNATURE' => $signed->headers['webhook-signature'],
+    ], $payload)->assertAccepted();
+
+    $expired = $signer->sign('msg_expired_1', now()->subMinutes(10)->getTimestamp(), $payload, [$webhookSecret]);
+    $this->call('POST', $url, [], [], [], [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_WEBHOOK_ID' => $expired->headers['webhook-id'],
+        'HTTP_WEBHOOK_TIMESTAMP' => $expired->headers['webhook-timestamp'],
+        'HTTP_WEBHOOK_SIGNATURE' => $expired->headers['webhook-signature'],
+    ], $payload)->assertUnauthorized();
+
+    $this->call('POST', $url, [], [], [], [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_WEBHOOK_ID' => $signed->headers['webhook-id'],
+        'HTTP_WEBHOOK_TIMESTAMP' => $signed->headers['webhook-timestamp'],
+        'HTTP_WEBHOOK_SIGNATURE' => $signed->headers['webhook-signature'],
+    ], $payload)->assertOk()->assertJson(['status' => 'duplicate']);
+
+    Queue::assertPushed(SyncSourceJob::class, 1);
+});
+
+it('fails closed with 503 when the replay store cannot claim a delivery id', function (): void {
+    Queue::fake();
+    $source = Source::factory()->create();
+    $secret = app(SourceWebhookService::class)->rotateSecret($source);
+    $payload = json_encode(['ref' => 'refs/heads/main'], JSON_THROW_ON_ERROR);
+    $store = new FakeSeenWebhookIdStore;
+    $store->failNextWrite();
+    app()->instance(SeenWebhookIdStore::class, $store);
+    app()->forgetInstance(StandardWebhookVerifier::class);
+
+    $this->call('POST', route('webhooks.sources', $source->id), [], [], [], [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_X_HUB_SIGNATURE_256' => 'sha256='.hash_hmac('sha256', $payload, $secret),
+        'HTTP_X_GITHUB_DELIVERY' => 'delivery-store-failure',
+        'HTTP_X_GITHUB_EVENT' => 'push',
+    ], $payload)->assertStatus(503);
+
+    Queue::assertNothingPushed();
 });
 
 it('creates, stores encrypted and disables the webhook secret from the CLI', function (): void {
