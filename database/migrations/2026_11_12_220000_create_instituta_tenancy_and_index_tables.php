@@ -74,10 +74,11 @@ return new class extends Migration
             // Self-FK added after create: PostgreSQL rejects inline self-references on UUID PKs.
             $table->uuid('owner_principal_id')->nullable();
             $table->string('name');
-            $table->timestamp('expires_at')->nullable();
+            $table->dateTime('expires_at')->nullable();
             $table->timestamp('deactivated_at')->nullable();
             $table->timestamps();
 
+            $table->unique(['organisation_id', 'user_id']);
             $table->index(['organisation_id', 'type']);
             $table->index('user_id');
             $table->index('deactivated_at');
@@ -99,7 +100,7 @@ return new class extends Migration
             $table->string('max_visibility');
             $table->json('areas')->nullable();
             $table->json('path_prefixes')->nullable();
-            $table->timestamp('expires_at')->nullable();
+            $table->dateTime('expires_at')->nullable();
             $table->timestamps();
 
             $table->index(['scope_type', 'scope_id']);

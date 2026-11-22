@@ -702,6 +702,17 @@ paths:
                   schema:
                       type: string
                       enum: [open, accepted, rejected]
+                - name: cursor
+                  in: query
+                  schema:
+                      type: string
+                - name: limit
+                  in: query
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 25
             responses:
                 '200':
                     description: Proposal summaries (no bodies)
@@ -1065,3 +1076,5 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/ProposalSummary'
+                next_cursor:
+                    type: ['string', 'null']

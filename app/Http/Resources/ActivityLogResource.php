@@ -9,9 +9,12 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Str;
 
 /**
  * Serialize an activity log entry for the Activity UI.
+ *
+ * Only public UUIDs cross the resource boundary; database keys never do.
  *
  * @mixin Activity
  */
@@ -28,20 +31,20 @@ class ActivityLogResource extends JsonResource
             ->all();
 
         return [
-            'id' => $this->id,
+            'id' => $this->public_id,
             'organisation_id' => $this->organisation_id,
             'event' => $this->event,
             'description' => $this->description,
             'log_name' => $this->log_name,
             'created_at' => $this->created_at?->toIso8601String(),
             'causer' => $this->whenLoaded('causer', fn () => $this->causer instanceof User ? [
-                'id' => $this->causer->id,
-                'name' => $this->causer->name,
-                'email' => $this->causer->email,
+                'id' => $this->publicIdFor($this->causer),
+                'name' => $this->causer->trashed() ? 'Deleted user' : $this->causer->name,
+                'email' => $this->causer->trashed() ? null : $this->causer->email,
             ] : null),
             'subject' => $this->whenLoaded('subject', fn () => $this->subject !== null ? [
                 'type' => class_basename((string) $this->subject_type),
-                'id' => $this->subject_id,
+                'id' => $this->publicIdFor($this->subject),
                 'label' => $this->resolveSubjectLabel($this->subject),
             ] : null),
             'changes' => $this->attribute_changes?->toArray() ?? [],
@@ -67,6 +70,24 @@ class ActivityLogResource extends JsonResource
             return trim($subject->title);
         }
 
-        return '#'.$subject->getKey();
+        return $this->publicIdFor($subject) ?? 'record';
+    }
+
+    /**
+     * A public UUID from the model's public_id or from a UUID primary key.
+     */
+    private function publicIdFor(Model $subject): ?string
+    {
+        if (array_key_exists('public_id', $subject->getAttributes())) {
+            $publicId = $subject->getAttribute('public_id');
+
+            if (is_string($publicId) && Str::isUuid($publicId)) {
+                return $publicId;
+            }
+        }
+
+        $databaseKey = $subject->getKey();
+
+        return is_string($databaseKey) && Str::isUuid($databaseKey) ? $databaseKey : null;
     }
 }

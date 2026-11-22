@@ -8,6 +8,7 @@ use App\Brain\Data\PerimeterData;
 use App\Enums\ProposalStatusEnum;
 use App\Models\ApiKey;
 use App\Models\Proposal;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
@@ -26,30 +27,35 @@ final class ProposalQueryService
      */
     public function modelsInPerimeter(PerimeterData $perimeter, ?ProposalStatusEnum $status = null): Collection
     {
-        return Proposal::query()
-            ->visibleIn($perimeter)
-            ->when(
-                $status instanceof ProposalStatusEnum,
-                fn ($query) => $query->where('status', $status),
-            )
+        return $this->baseQuery($perimeter, $status)
             ->orderByDesc('created_at')
-            ->limit(100)
             ->get();
     }
 
     /**
-     * @return array{proposals: list<array<string, mixed>>}
+     * @return array{proposals: list<array<string, mixed>>, next_cursor: string|null}
      */
     public function list(
         PerimeterData $perimeter,
         ApiKey $apiKey,
         ?ProposalStatusEnum $status,
         string $surface,
+        ?string $cursor = null,
+        int $limit = 25,
     ): array {
-        $proposals = $this->modelsInPerimeter($perimeter, $status);
+        $query = $this->baseQuery($perimeter, $status)->orderBy('id');
+
+        if ($cursor !== null && $cursor !== '') {
+            $query->where('id', '>', $cursor);
+        }
+
+        /** @var Collection<int, Proposal> $proposals */
+        $proposals = $query->limit($limit + 1)->get();
+        $hasMore = $proposals->count() > $limit;
+        $page = $proposals->take($limit);
 
         /** @var list<string> $itemIds */
-        $itemIds = array_values($proposals->pluck('id')->all());
+        $itemIds = array_values($page->pluck('id')->all());
 
         $this->audit->record(
             toolOrEndpoint: $surface === 'mcp' ? 'instituta_list_proposals' : 'GET /proposals',
@@ -60,8 +66,9 @@ final class ProposalQueryService
 
         return [
             'proposals' => array_values(
-                $proposals->map(fn (Proposal $proposal): array => $this->toSummary($proposal))->all(),
+                $page->map(fn (Proposal $proposal): array => $this->toSummary($proposal))->all(),
             ),
+            'next_cursor' => $hasMore ? $page->last()?->id : null,
         ];
     }
 
@@ -77,6 +84,19 @@ final class ProposalQueryService
                 ->map(fn (Proposal $proposal): array => $this->toUiRow($proposal, includeBody: false))
                 ->all(),
         );
+    }
+
+    /**
+     * @return Builder<Proposal>
+     */
+    private function baseQuery(PerimeterData $perimeter, ?ProposalStatusEnum $status): Builder
+    {
+        return Proposal::query()
+            ->visibleIn($perimeter)
+            ->when(
+                $status instanceof ProposalStatusEnum,
+                fn ($query) => $query->where('status', $status),
+            );
     }
 
     /**

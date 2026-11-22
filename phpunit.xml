@@ -14,7 +14,17 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+        <testsuite name="Conformance">
+            <directory>tests/Conformance</directory>
+        </testsuite>
     </testsuites>
+    <!-- The fleet conformance suite runs on PostgreSQL and MySQL through conformance.yml;
+         engine-dependent checks (C3/C5/C11/C15) are red on SQLite by design. -->
+    <groups>
+        <exclude>
+            <group>conformance</group>
+        </exclude>
+    </groups>
     <source>
         <include>
             <directory>app</directory>

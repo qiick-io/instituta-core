@@ -1,6 +1,6 @@
 {
     "$comment": "qiick standards pack: https://github.com/qiick-io/app-ui/tree/develop/standards. Sync: node <app-ui>/scripts/sync-standards.mjs --target .",
-    "ref": "v0.11.0",
+    "ref": "v0.12.0",
     "uiPreset": "Teal",
     "php": true,
     "frontendRoots": ["resources/js"],
@@ -8,5 +8,64 @@
     "app": true,
     "patterns": ["command-palette", "keyboard-shortcuts"],
     "requiredItems": [],
-    "divergences": {}
+    "conformance": {
+        "userModel": "App\\Models\\User",
+        "publicIdColumn": "public_id",
+        "apiPrefix": "api/v1",
+        "openApiPath": "resources/openapi/instituta-v1.yaml",
+        "usesSpatieTeams": false,
+        "hasOrganisations": true,
+        "hasUserGroups": true,
+        "hasPrincipals": true,
+        "hasApiKeys": true,
+        "hasSettings": true,
+        "hasUserIdentities": false
+    },
+    "divergences": {
+        "C2": {
+            "reason": "principals is the membership table (unique org+user); there is no separate membership table. Note: principals.organisation_id is NOT NULL while the decision says nullable (orchestrator is asking Luca).",
+            "decision": "knowledge/decisions/2026-11-19-fleet-core-schema",
+            "review_by": "2027-01-19"
+        },
+        "C3": {
+            "reason": "SSO (#355, qiick/laravel-oidc) is not merged yet, so Instituta has no user_identities table and no users.oidc_sub column.",
+            "decision": "knowledge/decisions/2026-11-19-fleet-core-schema",
+            "review_by": "2027-01-19"
+        },
+        "C11": {
+            "reason": "Instituta follows the full-UUID decision (knowledge/decisions/2026-11-19-fleet-core-schema): api_keys uses its UUID primary key `id` as the public identifier, so a separate `uuid` column would duplicate it.",
+            "decision": "knowledge/decisions/2026-11-19-fleet-core-schema",
+            "review_by": "2027-01-19"
+        },
+        "C21": {
+            "reason": "There is no Content-Language negotiation today; locale is stored per user and translated client-side.",
+            "decision": "knowledge/decisions/2026-11-20-fleet-contracts",
+            "review_by": "2027-01-19"
+        },
+        "C22": {
+            "reason": "API lists use next_cursor pagination, documented in OpenAPI, but responses use collection envelopes instead of the data/links/meta page envelope.",
+            "decision": "knowledge/decisions/2026-11-20-core-hardening",
+            "review_by": "2027-01-19"
+        },
+        "C24": {
+            "reason": "There is no X-Request-Id middleware today and request ids are not present in logs.",
+            "decision": "knowledge/decisions/2026-11-20-fleet-contracts",
+            "review_by": "2027-01-19"
+        },
+        "C25": {
+            "reason": "There is no Idempotency-Key replay today and no natural-key uniqueness for these creates, so a retried POST can duplicate.",
+            "decision": "knowledge/decisions/2026-11-20-fleet-contracts",
+            "review_by": "2027-01-19"
+        },
+        "C27": {
+            "reason": "Outbound webhooks are not part of the current product surface; Instituta does not emit Standard Webhooks envelopes yet.",
+            "decision": "knowledge/decisions/2026-11-19-shared-packages-for-api-keys-and-outbound-http",
+            "review_by": "2027-01-19"
+        },
+        "C28": {
+            "reason": "Instituta's outbound HTTP calls still use Laravel Http/curl directly and do not yet route through the fleet SSRF pinning helper. Temporary security divergence; every call site is enumerated in https://github.com/qiick-io/instituta-core/issues/385.",
+            "decision": "knowledge/decisions/2026-11-19-shared-packages-for-api-keys-and-outbound-http",
+            "review_by": "2026-12-20"
+        }
+    }
 }

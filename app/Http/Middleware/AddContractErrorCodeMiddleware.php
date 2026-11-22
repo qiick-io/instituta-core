@@ -25,6 +25,10 @@ final class AddContractErrorCodeMiddleware
     {
         $response = $next($request);
 
+        if (! $request->is('api/*') && ! $request->is('mcp') && ! $request->is('mcp/*')) {
+            return $response;
+        }
+
         if (! $response instanceof JsonResponse || $response->getStatusCode() < 400) {
             return $response;
         }
