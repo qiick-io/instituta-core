@@ -7,6 +7,7 @@ use App\Enums\RoleEnum;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserGroup;
+use App\Services\Authorization\InstanceSuperAdminGroupService;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -258,13 +259,11 @@ it('keeps the user form from joining groups with roles the actor cannot grant', 
 });
 
 it('protects the last super-admin when it holds the role through a group', function (): void {
-    $owner = User::factory()->create();
-    $owners = UserGroup::factory()->create(['name' => 'Owners']);
-    $owners->roles()->sync([Role::findByName(RoleEnum::SuperAdmin->value)->id]);
-    $owners->users()->sync([$owner->id]);
+    $owner = grantInstanceSuperAdmin(User::factory()->create());
+    $owners = UserGroup::query()->where('name', InstanceSuperAdminGroupService::GROUP_NAME)->sole();
 
     $this->actingAs($owner)
-        ->put(route('groups.update', $owners), ['name' => 'Owners', 'user_ids' => []])
+        ->put(route('groups.update', $owners), ['name' => $owners->name, 'user_ids' => []])
         ->assertSessionHasErrors('user_ids');
 
     $this->actingAs($owner)

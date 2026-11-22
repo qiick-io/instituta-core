@@ -124,22 +124,19 @@ return [
         (new RoleSeeder)->run();
 
         $resolver = app(EffectivePermissionResolverService::class);
-
-        /** @var UserGroup $group */
-        $group = UserGroup::factory()->create();
-        $group->roles()->attach(Role::findByName(RoleEnum::SuperAdmin->value));
         $user = User::factory()->create();
-        $user->groups()->attach($group);
+        app(InstanceSuperAdminGroupService::class)->grant($user);
+        $group = UserGroup::query()->where('name', InstanceSuperAdminGroupService::GROUP_NAME)->sole();
 
-        $assert($resolver->isSuperAdmin($user), 'A group with the super-admin role must grant super-admin.');
-        $assert($resolver->permissionsFor($user) === PermissionEnum::values(), 'A group role must grant its permissions.');
+        $assert($resolver->isSuperAdmin($user), 'The instance super-admin group must grant super-admin.');
+        $assert($resolver->permissionsFor($user) === PermissionEnum::values(), 'The instance super-admin group must grant every permission.');
 
         $group->delete();
         $resolver->forget($user);
 
-        $assert(! $resolver->isSuperAdmin($user), 'A soft-deleted group must not grant super-admin.');
-        $assert($resolver->permissionsFor($user) === [], 'A soft-deleted group must grant no permissions.');
-        $assert(! Gate::forUser($user)->allows(PermissionEnum::CanShowUsers->value), 'A soft-deleted group must not pass the gate.');
+        $assert(! $resolver->isSuperAdmin($user), 'A soft-deleted instance super-admin group must not grant super-admin.');
+        $assert($resolver->permissionsFor($user) === [], 'A soft-deleted instance super-admin group must grant no permissions.');
+        $assert(! Gate::forUser($user)->allows(PermissionEnum::CanShowUsers->value), 'A soft-deleted instance super-admin group must not pass the gate.');
     },
 
     'assertGlobalRoleGuard' => static function () use ($assert): void {

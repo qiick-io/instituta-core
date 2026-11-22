@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Authorization;
 
-use App\Enums\RoleEnum;
 use App\Models\User;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,8 +12,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Keeps at least one active super-admin, so the instance never locks itself out. A user counts
- * as super-admin through a direct role or through a user group that carries the role, so group
- * changes (members, roles, deletion) run through {@see preventLosingLastSuperAdmin()} too.
+ * as super-admin only through the instance super-admin group, so group changes (members,
+ * roles, deletion) run through {@see preventLosingLastSuperAdmin()} too.
  *
  * Copied from excubia-app; group inheritance as in externa-core.
  */
@@ -66,12 +65,12 @@ class SuperAdminGuardService
      */
     private function activeSuperAdmins(): Builder
     {
-        // Instance super-admin is group-only when Spatie teams are on (no team pivot row).
+        // Only membership in the fixed instance group counts (not any group with the role).
         return User::query()
             ->where('is_active', true)
             ->whereHas(
-                'groups.roles',
-                static fn (Builder $roles) => $roles->where('name', RoleEnum::SuperAdmin->value),
+                'groups',
+                static fn (Builder $groups) => $groups->where('name', InstanceSuperAdminGroupService::GROUP_NAME),
             );
     }
 }

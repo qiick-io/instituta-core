@@ -47,7 +47,7 @@ final class SetPermissionsTeamFromOrganisationMiddleware
 
         $principal = $request->attributes->get('instituta.principal');
 
-        if ($principal instanceof Principal && is_string($principal->organisation_id) && $principal->organisation_id !== '') {
+        if ($principal instanceof Principal && $principal->organisation_id !== '') {
             return $principal->organisation_id;
         }
 
@@ -68,10 +68,10 @@ final class SetPermissionsTeamFromOrganisationMiddleware
         }
 
         // No session scope yet: use the person principal's organisation (same default as the UI).
-        $principal = $this->sessions->personPrincipal($user);
+        $personPrincipal = $this->sessions->personPrincipal($user);
 
-        if ($principal !== null && is_string($principal->organisation_id) && $principal->organisation_id !== '') {
-            return $principal->organisation_id;
+        if ($personPrincipal !== null && $personPrincipal->organisation_id !== '') {
+            return $personPrincipal->organisation_id;
         }
 
         return null;

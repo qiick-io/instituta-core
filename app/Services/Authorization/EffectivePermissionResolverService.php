@@ -15,8 +15,12 @@ use Spatie\Permission\Models\Permission;
 /**
  * Resolves effective permissions and roles: the user's direct Spatie roles and permissions
  * united with the roles of every group the user belongs to (soft-deleted groups grant nothing).
- * Super-admin, directly or through a group, holds every permission for shared Inertia props
- * and Gate checks.
+ * Super-admin, through the instance super-admin group only, holds every permission for shared
+ * Inertia props and Gate checks.
+ *
+ * With Spatie teams on, non-instance group roles apply only when the current permissions team
+ * matches an organisation on the group's brain access. The instance super-admin group is the
+ * sole exception that ignores the team filter ({@see isSuperAdmin()}).
  *
  * Group inheritance ported from externa-core. Relations are eager loaded once per user
  * instance (strict models forbid lazy loads); callers that change memberships in the same
@@ -36,7 +40,7 @@ class EffectivePermissionResolverService
         }
 
         // Spatie reads both relations; load them once (strict models forbid lazy loads).
-        $user->loadMissing(['permissions', 'roles.permissions', 'groups.roles.permissions']);
+        $user->loadMissing(['permissions', 'roles.permissions', 'groups.roles.permissions', 'groups.brainAccess']);
 
         $groupPermissionNames = $this->groupRoles($user)
             ->toBase()
@@ -69,11 +73,16 @@ class EffectivePermissionResolverService
 
     /**
      * Role names from direct assignment and from the user's groups.
+     * Instance super-admins report the super-admin role name even though it is not a team pivot.
      *
      * @return list<string>
      */
     public function roleNamesFor(User $user): array
     {
+        if ($this->isSuperAdmin($user)) {
+            return [RoleEnum::SuperAdmin->value];
+        }
+
         return array_values(array_unique(array_map(
             static fn (Role $role): string => $role->name,
             $this->effectiveRoles($user),
@@ -97,19 +106,20 @@ class EffectivePermissionResolverService
     }
 
     /**
-     * Whether the user holds the instance super-admin role through a group.
+     * Whether the user is a member of the instance super-admin group.
      *
      * With Spatie teams on, direct `model_has_roles` rows are always organisation-scoped,
-     * so instance super-admin is never read from `$user->roles` (team-filtered). Groups are
-     * instance-level and ignore the team filter (core hardening).
+     * so instance super-admin is never read from `$user->roles` (team-filtered). Only the
+     * fixed {@see InstanceSuperAdminGroupService::GROUP_NAME} group bypasses the team filter;
+     * any other group that happens to carry the super-admin role does not.
      */
     public function isSuperAdmin(User $user): bool
     {
-        $user->loadMissing(['groups.roles']);
+        $user->loadMissing(['groups']);
 
-        return $user->groups
-            ->flatMap(static fn (UserGroup $group) => $group->roles)
-            ->contains(static fn (Role $role): bool => $role->name === RoleEnum::SuperAdmin->value);
+        return $user->groups->contains(
+            static fn (UserGroup $group): bool => $group->name === InstanceSuperAdminGroupService::GROUP_NAME,
+        );
     }
 
     /**
@@ -129,7 +139,7 @@ class EffectivePermissionResolverService
      */
     private function effectiveRoles(User $user): array
     {
-        $user->loadMissing(['roles', 'groups.roles']);
+        $user->loadMissing(['roles', 'groups.roles', 'groups.brainAccess']);
 
         /** @var Collection<int, Role> $directRoles */
         $directRoles = $user->roles;
@@ -143,14 +153,32 @@ class EffectivePermissionResolverService
     }
 
     /**
-     * Roles attached to the user's (non-trashed) groups. Expects `groups.roles` to be loaded.
+     * Organisation-scoped roles attached to the user's (non-trashed) groups for the current
+     * permissions team. Expects `groups.roles` and `groups.brainAccess` to be loaded.
+     * The instance super-admin group is excluded (handled by {@see isSuperAdmin()}).
      *
      * @return Collection<int, Role>
      */
     private function groupRoles(User $user): Collection
     {
+        $teamId = getPermissionsTeamId();
+        $teamId = is_string($teamId) && $teamId !== '' ? $teamId : null;
+
         return $user->groups
+            ->filter(function (UserGroup $group) use ($teamId): bool {
+                if ($group->name === InstanceSuperAdminGroupService::GROUP_NAME) {
+                    return false;
+                }
+
+                if ($teamId === null) {
+                    return false;
+                }
+
+                return $group->brainAccess
+                    ->contains(static fn ($access): bool => $access->organisation_id === $teamId);
+            })
             ->flatMap(static fn (UserGroup $group) => $group->roles)
+            ->reject(static fn (Role $role): bool => $role->name === RoleEnum::SuperAdmin->value)
             ->values();
     }
 }

@@ -3,15 +3,10 @@
     "ref": "f13f39d9d6d26438faaa20ccaa0f1886a9f26ff8",
     "uiPreset": "Teal",
     "php": true,
-    "frontendRoots": [
-        "resources/js"
-    ],
+    "frontendRoots": ["resources/js"],
     "oxlint": true,
     "app": true,
-    "patterns": [
-        "command-palette",
-        "keyboard-shortcuts"
-    ],
+    "patterns": ["command-palette", "keyboard-shortcuts"],
     "requiredItems": [],
     "conformance": {
         "userModel": "App\\Models\\User",
