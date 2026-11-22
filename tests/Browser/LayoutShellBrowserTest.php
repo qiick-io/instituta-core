@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Actions\GrantOrganisationAccessAction;
 use App\Brain\Enums\RoleEnum;
 use App\Enums\CompanyKindEnum;
-use App\Enums\RoleEnum as AppRoleEnum;
 use App\Models\Company;
 use App\Models\Organisation;
 use App\Models\User;
@@ -22,7 +21,7 @@ it('renders one shell with header actions on lists that have rows, in light and 
 
     $organisation = Organisation::factory()->create();
     Company::factory()->create(['organisation_id' => $organisation->id, 'kind' => CompanyKindEnum::Client, 'name' => 'Acme Client']);
-    $owner = User::factory()->create()->assignRole(AppRoleEnum::SuperAdmin->value);
+    $owner = grantInstanceSuperAdmin(User::factory()->create());
     app(GrantOrganisationAccessAction::class)->execute($owner, $organisation, RoleEnum::Owner);
     $this->actingAs($owner);
 

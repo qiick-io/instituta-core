@@ -2,11 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Brain\Enums\RoleEnum as BrainRoleEnum;
+use App\Brain\Enums\ScopeTypeEnum;
 use App\Enums\PermissionEnum;
 use App\Enums\RoleEnum;
+use App\Models\Organisation;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserGroup;
+use App\Services\Authorization\PermissionsTeamContextService;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\Gate;
@@ -14,13 +18,21 @@ use Illuminate\Support\Facades\Gate;
 beforeEach(function (): void {
     $this->seed([PermissionSeeder::class, RoleSeeder::class]);
 
-    $this->superAdmin = User::factory()->create()->assignRole(RoleEnum::SuperAdmin->value);
+    $this->organisation = Organisation::factory()->create();
+    $this->superAdmin = grantInstanceSuperAdmin(User::factory()->create());
+    app(PermissionsTeamContextService::class)->setOrganisation($this->organisation->id);
 
-    $this->group = UserGroup::factory()->create(['name' => 'Editors']);
-    $this->superAdminGroup = UserGroup::factory()->create(['name' => 'Owners']);
+    $this->group = UserGroup::factory()->create([
+        'name' => 'Editors',
+        'organisation_id' => $this->organisation->id,
+    ]);
+    $this->superAdminGroup = UserGroup::factory()->create([
+        'name' => 'Owners',
+        'organisation_id' => $this->organisation->id,
+    ]);
     $this->superAdminGroup->roles()->sync([Role::findByName(RoleEnum::SuperAdmin->value)->id]);
 
-    $managerRole = Role::query()->create(['name' => 'groups-manager', 'guard_name' => 'web']);
+    $managerRole = Role::query()->create(['name' => 'groups-manager', 'guard_name' => 'web', 'organisation_id' => null]);
     $managerRole->syncPermissions([
         PermissionEnum::CanShowGroups->value,
         PermissionEnum::CanCreateGroups->value,
@@ -29,7 +41,7 @@ beforeEach(function (): void {
         PermissionEnum::CanRestoreGroups->value,
         PermissionEnum::CanForceDeleteGroups->value,
     ]);
-    $this->manager = User::factory()->create()->assignRole($managerRole);
+    $this->manager = assignOrganisationRole(User::factory()->create(), $managerRole, $this->organisation->id);
     $this->outsider = User::factory()->create();
 });
 
@@ -52,10 +64,23 @@ test('only a super-admin may touch a group that grants super-admin', function (s
 })->with(['update', 'delete', 'restore', 'forceDelete']);
 
 test('a group manager inheriting the permissions through a group passes too', function (): void {
-    $managers = UserGroup::factory()->create(['name' => 'Managers']);
+    $managers = UserGroup::factory()->create([
+        'name' => 'Managers',
+        'organisation_id' => $this->organisation->id,
+    ]);
     $managers->roles()->sync([Role::findByName('groups-manager')->id]);
+    $managers->brainAccess()->create([
+        'organisation_id' => $this->organisation->id,
+        'scope_type' => ScopeTypeEnum::Organisation,
+        'scope_id' => $this->organisation->id,
+        'role' => BrainRoleEnum::Member->value,
+        'max_visibility' => null,
+        'areas' => [],
+        'path_prefixes' => [],
+    ]);
     $viaGroup = User::factory()->create();
     $viaGroup->groups()->sync([$managers->id]);
+    app(PermissionsTeamContextService::class)->setOrganisation($this->organisation->id, $viaGroup);
 
     expect(Gate::forUser($viaGroup)->allows('update', $this->group))->toBeTrue()
         ->and(Gate::forUser($viaGroup)->allows('update', $this->superAdminGroup))->toBeFalse();

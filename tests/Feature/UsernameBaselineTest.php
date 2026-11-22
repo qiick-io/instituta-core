@@ -68,7 +68,7 @@ it('trims and lowercases usernames on the model and stores an empty string as nu
 });
 
 it('creates admin users with and without a username', function (): void {
-    $admin = User::factory()->create()->assignRole(RoleEnum::Admin->value);
+    $admin = assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value);
 
     $this->actingAs($admin)
         ->postJson(route('users.store'), usernameUserPayload(['username' => '  Grace.Hopper  ']))
@@ -85,7 +85,7 @@ it('creates admin users with and without a username', function (): void {
 });
 
 it('updates an admin username and clears it with an empty string', function (): void {
-    $admin = User::factory()->create()->assignRole(RoleEnum::Admin->value);
+    $admin = assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value);
     $target = User::factory()->create(['username' => 'grace.hopper']);
 
     $this->actingAs($admin)
@@ -106,7 +106,7 @@ it('updates an admin username and clears it with an empty string', function (): 
 });
 
 it('rejects a duplicate username regardless of case on create and update', function (): void {
-    $admin = User::factory()->create()->assignRole(RoleEnum::Admin->value);
+    $admin = assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value);
     User::factory()->create(['username' => 'luca']);
     $target = User::factory()->create(['username' => 'grace.hopper']);
 
@@ -124,7 +124,7 @@ it('rejects a duplicate username regardless of case on create and update', funct
 });
 
 it('rejects invalid username characters', function (): void {
-    $admin = User::factory()->create()->assignRole(RoleEnum::Admin->value);
+    $admin = assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value);
 
     $this->actingAs($admin)
         ->postJson(route('users.store'), usernameUserPayload(['username' => 'Bad Name!']))

@@ -7,7 +7,6 @@ use App\Actions\SyncUserGroupsAction;
 use App\Brain\Enums\RoleEnum as BrainRoleEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Enums\CompanyKindEnum;
-use App\Enums\RoleEnum;
 use App\Models\Company;
 use App\Models\Grant;
 use App\Models\Organisation;
@@ -26,7 +25,7 @@ beforeEach(function (): void {
     $this->seed([PermissionSeeder::class, RoleSeeder::class]);
     $this->organisation = Organisation::factory()->create(['name' => 'Qiick']);
     $this->client = Company::factory()->create(['organisation_id' => $this->organisation->id, 'kind' => CompanyKindEnum::Client, 'name' => 'Acme']);
-    $this->admin = User::factory()->create()->assignRole(RoleEnum::SuperAdmin->value);
+    $this->admin = grantInstanceSuperAdmin(User::factory()->create());
     app(GrantOrganisationAccessAction::class)->execute($this->admin, $this->organisation, BrainRoleEnum::Owner);
 });
 

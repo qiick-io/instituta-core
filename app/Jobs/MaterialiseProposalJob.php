@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Actions\MaterialiseProposalAction;
+use App\Jobs\Middleware\SetPermissionsTeamJobMiddleware;
 use App\Models\Proposal;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -31,6 +32,21 @@ final class MaterialiseProposalJob implements ShouldBeUnique, ShouldQueue
     public function uniqueId(): string
     {
         return $this->proposalId;
+    }
+
+    /**
+     * @return list<class-string>
+     */
+    public function middleware(): array
+    {
+        return [SetPermissionsTeamJobMiddleware::class];
+    }
+
+    public function organisationIdForPermissions(): ?string
+    {
+        $organisationId = Proposal::query()->whereKey($this->proposalId)->value('organisation_id');
+
+        return is_string($organisationId) && $organisationId !== '' ? $organisationId : null;
     }
 
     public function handle(MaterialiseProposalAction $materialise): void

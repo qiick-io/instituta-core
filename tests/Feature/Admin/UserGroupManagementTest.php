@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\PermissionEnum;
 use App\Enums\RoleEnum;
+use App\Models\Organisation;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserGroup;
@@ -17,16 +18,21 @@ beforeEach(function (): void {
 });
 
 /**
- * A user whose only access is a custom role with the given permissions.
+ * A user whose only access is a custom role with the given permissions, in a known organisation.
  *
  * @param  list<PermissionEnum>  $permissions
+ * @return array{0: User, 1: string}
  */
-function groupManager(array $permissions): User
+function groupManager(array $permissions): array
 {
-    $role = Role::query()->firstOrCreate(['name' => 'groups-manager', 'guard_name' => 'web']);
+    $organisation = Organisation::factory()->create();
+    $role = Role::query()->firstOrCreate(['name' => 'groups-manager', 'guard_name' => 'web', 'organisation_id' => null]);
     $role->syncPermissions(array_map(fn (PermissionEnum $permission): string => $permission->value, $permissions));
 
-    return User::factory()->create()->assignRole($role);
+    return [
+        assignOrganisationRole(User::factory()->create(), $role, $organisation->id),
+        $organisation->id,
+    ];
 }
 
 /**
@@ -60,12 +66,13 @@ it('forbids users without group permissions', function (): void {
 });
 
 it('lists groups with search, members and the trash filter', function (): void {
+    [$manager, $organisationId] = groupManager([PermissionEnum::CanShowGroups]);
     $member = User::factory()->create();
-    $editors = UserGroup::factory()->create(['name' => 'Editors']);
+    $editors = UserGroup::factory()->create(['name' => 'Editors', 'organisation_id' => $organisationId]);
     $editors->users()->sync([$member->id]);
-    UserGroup::factory()->create(['name' => 'Support team']);
+    UserGroup::factory()->create(['name' => 'Support team', 'organisation_id' => $organisationId]);
 
-    $this->actingAs(groupManager([PermissionEnum::CanShowGroups]))
+    $this->actingAs($manager)
         ->get(route('groups.index', ['search' => 'editor']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
@@ -79,9 +86,9 @@ it('lists groups with search, members and the trash filter', function (): void {
 });
 
 it('sorts groups by name and update time', function (): void {
-    $zebra = UserGroup::factory()->create(['name' => 'Zebra', 'updated_at' => now()->subDay()]);
-    $alpha = UserGroup::factory()->create(['name' => 'Alpha', 'updated_at' => now()]);
-    $manager = groupManager([PermissionEnum::CanShowGroups]);
+    [$manager, $organisationId] = groupManager([PermissionEnum::CanShowGroups]);
+    $zebra = UserGroup::factory()->create(['name' => 'Zebra', 'organisation_id' => $organisationId, 'updated_at' => now()->subDay()]);
+    $alpha = UserGroup::factory()->create(['name' => 'Alpha', 'organisation_id' => $organisationId, 'updated_at' => now()]);
 
     $this->actingAs($manager)->get(route('groups.index', ['sort' => 'name', 'direction' => 'asc']))
         ->assertInertia(fn (Assert $page) => $page
@@ -97,9 +104,10 @@ it('sorts groups by name and update time', function (): void {
 });
 
 it('returns json for the group pickers', function (): void {
-    $group = UserGroup::factory()->create(['name' => 'Picker Group']);
+    [$manager, $organisationId] = groupManager([PermissionEnum::CanShowGroups]);
+    $group = UserGroup::factory()->create(['name' => 'Picker Group', 'organisation_id' => $organisationId]);
 
-    $this->actingAs(groupManager([PermissionEnum::CanShowGroups]))
+    $this->actingAs($manager)
         ->getJson(route('groups.index', ['search' => 'Picker Group']))
         ->assertOk()
         ->assertJsonPath('data.0.id', $group->id)
@@ -110,7 +118,8 @@ it('returns json for the group pickers', function (): void {
 it('creates, updates and soft deletes a group with members and roles', function (): void {
     $member = User::factory()->create();
     $reader = Role::findByName(RoleEnum::Reader->value);
-    $this->actingAs(User::factory()->create()->assignRole(RoleEnum::Admin->value));
+    $organisation = Organisation::factory()->create();
+    $this->actingAs(assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value, $organisation->id));
 
     $this->post(route('groups.store'), [
         'name' => 'Content',
@@ -121,7 +130,9 @@ it('creates, updates and soft deletes a group with members and roles', function 
 
     $group = UserGroup::query()->where('name', 'Content')->sole();
 
-    expect($group->users()->pluck('users.id')->all())->toBe([$member->id])
+    expect($group->organisation_id)->toBe($organisation->id)
+        ->and($group->is_instance)->toBeFalse()
+        ->and($group->users()->pluck('users.id')->all())->toBe([$member->id])
         ->and($group->roles()->pluck('roles.id')->all())->toBe([$reader->id]);
 
     $this->put(route('groups.update', $group), [
@@ -142,13 +153,18 @@ it('creates, updates and soft deletes a group with members and roles', function 
 });
 
 it('keeps members and roles when the update omits them', function (): void {
+    $organisation = Organisation::factory()->create();
     $member = User::factory()->create();
     $reader = Role::findByName(RoleEnum::Reader->value);
-    $group = UserGroup::factory()->create(['name' => 'Stable', 'description' => 'Before']);
+    $group = UserGroup::factory()->create([
+        'name' => 'Stable',
+        'description' => 'Before',
+        'organisation_id' => $organisation->id,
+    ]);
     $group->users()->sync([$member->id]);
     $group->roles()->sync([$reader->id]);
 
-    $this->actingAs(User::factory()->create()->assignRole(RoleEnum::Admin->value))
+    $this->actingAs(assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value, $organisation->id))
         ->put(route('groups.update', $group), ['name' => 'Stable', 'description' => 'After'])
         ->assertRedirect(route('groups.index'));
 
@@ -158,9 +174,10 @@ it('keeps members and roles when the update omits them', function (): void {
 });
 
 it('soft deletes, restores, force deletes and bulk manages groups', function (): void {
-    $this->actingAs(groupManager(allGroupPermissions()));
-    $victim = UserGroup::factory()->create(['name' => 'Victim']);
-    $bulkGroups = UserGroup::factory()->count(2)->create();
+    [$manager, $organisationId] = groupManager(allGroupPermissions());
+    $this->actingAs($manager);
+    $victim = UserGroup::factory()->create(['name' => 'Victim', 'organisation_id' => $organisationId]);
+    $bulkGroups = UserGroup::factory()->count(2)->create(['organisation_id' => $organisationId]);
     $bulkIds = $bulkGroups->pluck('id')->all();
 
     $this->delete(route('groups.destroy', $victim))->assertRedirect(route('groups.index'));
@@ -196,8 +213,8 @@ it('soft deletes, restores, force deletes and bulk manages groups', function ():
 
 it('rejects roles the group manager could not grant', function (): void {
     $member = User::factory()->create();
-    $manager = groupManager(allGroupPermissions());
-    $superAdminGroup = UserGroup::factory()->create();
+    [$manager, $organisationId] = groupManager(allGroupPermissions());
+    $superAdminGroup = UserGroup::factory()->create(['organisation_id' => $organisationId]);
     $superAdminGroup->roles()->sync([Role::findByName(RoleEnum::SuperAdmin->value)->id]);
 
     $this->actingAs($manager)
@@ -222,11 +239,12 @@ it('rejects roles the group manager could not grant', function (): void {
 });
 
 it('assigns user groups from the user form', function (): void {
-    $group = UserGroup::factory()->create();
+    $organisation = Organisation::factory()->create();
+    $group = UserGroup::factory()->create(['organisation_id' => $organisation->id]);
     $group->roles()->sync([Role::findByName(RoleEnum::Reader->value)->id]);
-    $user = User::factory()->create()->assignRole(RoleEnum::Reader->value);
+    $user = assignOrganisationRole(User::factory()->create(), RoleEnum::Reader->value, $organisation->id);
 
-    $this->actingAs(User::factory()->create()->assignRole(RoleEnum::Admin->value))
+    $this->actingAs(assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value, $organisation->id))
         ->put(route('users.update', $user), [
             'first_name' => 'Grace',
             'email' => 'grace@example.com',
@@ -240,11 +258,12 @@ it('assigns user groups from the user form', function (): void {
 });
 
 it('keeps the user form from joining groups with roles the actor cannot grant', function (): void {
-    $superAdminGroup = UserGroup::factory()->create();
+    $organisation = Organisation::factory()->create();
+    $superAdminGroup = UserGroup::factory()->create(['organisation_id' => $organisation->id]);
     $superAdminGroup->roles()->sync([Role::findByName(RoleEnum::SuperAdmin->value)->id]);
-    $user = User::factory()->create()->assignRole(RoleEnum::Reader->value);
+    $user = assignOrganisationRole(User::factory()->create(), RoleEnum::Reader->value, $organisation->id);
 
-    $this->actingAs(User::factory()->create()->assignRole(RoleEnum::Admin->value))
+    $this->actingAs(assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value, $organisation->id))
         ->put(route('users.update', $user), [
             'first_name' => 'Grace',
             'email' => 'grace@example.com',
@@ -258,13 +277,11 @@ it('keeps the user form from joining groups with roles the actor cannot grant', 
 });
 
 it('protects the last super-admin when it holds the role through a group', function (): void {
-    $owner = User::factory()->create();
-    $owners = UserGroup::factory()->create(['name' => 'Owners']);
-    $owners->roles()->sync([Role::findByName(RoleEnum::SuperAdmin->value)->id]);
-    $owners->users()->sync([$owner->id]);
+    $owner = grantInstanceSuperAdmin(User::factory()->create());
+    $owners = UserGroup::query()->where('is_instance', true)->sole();
 
     $this->actingAs($owner)
-        ->put(route('groups.update', $owners), ['name' => 'Owners', 'user_ids' => []])
+        ->put(route('groups.update', $owners), ['name' => $owners->name, 'user_ids' => []])
         ->assertSessionHasErrors('user_ids');
 
     $this->actingAs($owner)

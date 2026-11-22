@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Actions\GrantOrganisationAccessAction;
 use App\Ai\Agents\ProposalDraftWriter;
-use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Enums\RoleEnum as AppRoleEnum;
 use App\Models\Activity;
@@ -25,8 +23,11 @@ beforeEach(function (): void {
     config(['ai.assistant.enabled' => true]);
 
     $this->organisation = Organisation::factory()->create();
-    $this->user = User::factory()->create()->assignRole(AppRoleEnum::Admin->value);
-    app(GrantOrganisationAccessAction::class)->execute($this->user, $this->organisation, RoleEnum::Member);
+    $this->user = assignOrganisationRole(
+        User::factory()->create(),
+        AppRoleEnum::Admin->value,
+        $this->organisation->id,
+    );
 
     $source = Source::factory()->create(['organisation_id' => $this->organisation->id]);
     $this->item = Item::factory()->create([

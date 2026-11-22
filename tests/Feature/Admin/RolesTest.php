@@ -18,7 +18,7 @@ beforeEach(function (): void {
 
 function userWithRole(RoleEnum|string $role): User
 {
-    return User::factory()->create()->assignRole($role instanceof RoleEnum ? $role->value : $role);
+    return assignOrganisationRole(User::factory()->create(), $role instanceof RoleEnum ? $role->value : $role);
 }
 
 it('serves the role pages under settings', function (): void {
@@ -29,7 +29,7 @@ it('serves the role pages under settings', function (): void {
 it('lets a reader list roles but not write', function (): void {
     // RoleSeeder grants can-show-roles to reader.
     $user = userWithRole(RoleEnum::Reader);
-    $custom = Role::query()->create(['name' => 'auditor', 'guard_name' => 'web']);
+    $custom = Role::query()->create(['name' => 'auditor', 'guard_name' => 'web', 'organisation_id' => null]);
 
     $this->actingAs($user)->get(route('roles.index'))->assertOk();
     $this->actingAs($user)->get(route('roles.create'))->assertForbidden();
@@ -74,7 +74,7 @@ it('creates, updates and deletes a custom role', function (): void {
 
 it('validates custom roles', function (): void {
     $this->actingAs(userWithRole(RoleEnum::SuperAdmin));
-    Role::query()->create(['name' => 'operator', 'guard_name' => 'web']);
+    Role::query()->create(['name' => 'operator', 'guard_name' => 'web', 'organisation_id' => null]);
 
     $this->post(route('roles.store'), ['name' => 'operator', 'permissions' => []])->assertSessionHasErrors('name');
     $this->post(route('roles.store'), ['name' => 'admin', 'permissions' => []])->assertSessionHasErrors('name');

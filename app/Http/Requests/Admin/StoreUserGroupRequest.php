@@ -10,6 +10,7 @@ use App\Http\Requests\Concerns\ValidatesAreaLimitsTrait;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserGroup;
+use App\Services\Authorization\InstanceSuperAdminGroupService;
 use App\Services\Authorization\RoleGrantService;
 use App\Services\GroupBrainScopesService;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -43,7 +44,13 @@ class StoreUserGroupRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:'.self::NAME_MAX_LENGTH, $this->uniqueNameRule()],
+            'name' => [
+                'required',
+                'string',
+                'max:'.self::NAME_MAX_LENGTH,
+                $this->uniqueNameRule(),
+                $this->reservedNameRule(),
+            ],
             'description' => ['nullable', 'string', 'max:'.self::DESCRIPTION_MAX_LENGTH],
             'user_ids' => ['sometimes', 'array'],
             'user_ids.*' => ['uuid', 'distinct', Rule::exists('users', 'public_id')],
@@ -56,6 +63,31 @@ class StoreUserGroupRequest extends FormRequest
             'brain_max_visibility' => ['sometimes', 'nullable', Rule::enum(VisibilityEnum::class)],
             ...self::areaLimitRules('brain_areas', 'brain_path_prefix', $this->brainAreaOptions()),
         ];
+    }
+
+    /**
+     * The instance super-admin group's display name cannot be claimed by organisation groups.
+     * Updating the existing instance group may keep the reserved name.
+     *
+     * @return \Closure(string, mixed, \Closure(string): void): void
+     */
+    protected function reservedNameRule(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            if (! is_string($value) || $value !== InstanceSuperAdminGroupService::GROUP_NAME) {
+                return;
+            }
+
+            if ($this instanceof UpdateUserGroupRequest) {
+                $group = $this->route('group');
+
+                if ($group instanceof UserGroup && $group->is_instance) {
+                    return;
+                }
+            }
+
+            $fail(__('This group name is reserved for the instance super-admin group.'));
+        };
     }
 
     /**

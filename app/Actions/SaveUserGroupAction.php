@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\UserGroup;
+use App\Services\Authorization\EffectivePermissionResolverService;
 use App\Services\Authorization\SuperAdminGuardService;
 use Illuminate\Validation\ValidationException;
 
@@ -12,6 +13,9 @@ use Illuminate\Validation\ValidationException;
  * Creates or updates a user group and, when given, replaces its members and roles. The group
  * change is logged by the model, member and role changes as `members_synced` /
  * `roles_synced` activities (pivots are not model attributes).
+ *
+ * New organisation groups take the current Spatie permissions team as `organisation_id`.
+ * Instance groups (`is_instance`) are never created here.
  *
  * Runs inside the last-super-admin guard: removing the last super-admin from a group that
  * carries the role, or the role from the group, is refused.
@@ -23,6 +27,7 @@ class SaveUserGroupAction
     public function __construct(
         private SuperAdminGuardService $superAdminGuard,
         private ReconcileGroupBrainAccessAction $reconcileBrainAccess,
+        private EffectivePermissionResolverService $permissionResolver,
     ) {}
 
     /**
@@ -37,6 +42,21 @@ class SaveUserGroupAction
         return $this->superAdminGuard->preventLosingLastSuperAdmin(function () use ($group, $name, $description, $userIds, $roleIds, $brainAccess): UserGroup {
             // Members before and after the save: everyone whose group grants may change.
             $previousMembers = $group->exists ? $group->users()->get() : collect();
+
+            if (! $group->exists) {
+                $teamId = getPermissionsTeamId();
+
+                if (! is_string($teamId) || $teamId === '') {
+                    throw ValidationException::withMessages([
+                        'name' => __('An organisation context is required to create a group.'),
+                    ]);
+                }
+
+                $group->forceFill([
+                    'organisation_id' => $teamId,
+                    'is_instance' => false,
+                ]);
+            }
 
             $group->fill(['name' => $name, 'description' => $description])->save();
 
@@ -74,8 +94,15 @@ class SaveUserGroupAction
                     ->log('Group brain access synced');
             }
 
+            $affectedMembers = $previousMembers->merge($group->users()->get())->unique('id');
+
             if ($userIds !== null || $brainAccess !== null) {
-                $this->reconcileBrainAccess->execute($previousMembers->merge($group->users()->get())->unique('id'));
+                $this->reconcileBrainAccess->execute($affectedMembers);
+            }
+
+            // Drop warm permission relations so Gate checks in the same process see the new membership.
+            foreach ($affectedMembers as $member) {
+                $this->permissionResolver->forget($member);
             }
 
             return $group;

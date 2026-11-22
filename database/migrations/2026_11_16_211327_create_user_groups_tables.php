@@ -19,10 +19,15 @@ return new class extends Migration
     {
         Schema::create('user_groups', function (Blueprint $table): void {
             $table->id();
+            // Null + is_instance=true: instance-wide groups (super-admin). Org groups always have an organisation_id.
+            $table->foreignUuid('organisation_id')->nullable()->constrained('organisations')->cascadeOnDelete();
+            $table->boolean('is_instance')->default(false);
             $table->string('name')->unique();
             $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index(['organisation_id', 'is_instance']);
         });
 
         Schema::create('user_group_user', function (Blueprint $table): void {

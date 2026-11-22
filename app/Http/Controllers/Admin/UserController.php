@@ -113,8 +113,15 @@ class UserController extends Controller
         return to_route('users.index');
     }
 
-    public function update(UpdateUserRequest $request, User $user, UpdateUserAction $updateUser): RedirectResponse
-    {
+    public function update(
+        UpdateUserRequest $request,
+        User $user,
+        UpdateUserAction $updateUser,
+        SessionPerimeterService $sessionPerimeters,
+    ): RedirectResponse {
+        $actor = $request->user();
+        $actorPrincipal = $actor instanceof User ? $sessionPerimeters->personPrincipal($actor) : null;
+
         $updateUser->execute(
             $user,
             $request->string('first_name')->toString(),
@@ -125,6 +132,7 @@ class UserController extends Controller
             $request->roles(),
             $request->boolean('is_active'),
             $request->groupIds(),
+            $actorPrincipal?->organisation_id,
         );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('User updated.')]);

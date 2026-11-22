@@ -53,7 +53,7 @@ class CreateUserAction
                 'email_verified_at' => now(),
             ]);
             $user->save();
-            $this->syncRoles->execute($user, $roles);
+            $this->syncRoles->execute($user, $roles, $organisation?->id);
 
             if ($groupIds !== null) {
                 $this->syncGroups->execute($user, $groupIds);

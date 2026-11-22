@@ -24,7 +24,7 @@ beforeEach(function (): void {
  */
 function settingsManager(): User
 {
-    return User::factory()->create()->assignRole(RoleEnum::Admin->value);
+    return assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value);
 }
 
 /**
@@ -132,7 +132,7 @@ it('falls back to Salvia for a removed sibling preset', function (string $remove
 })->with(['teal', 'blue']);
 
 it('shows personal appearance without instance form to readers', function (): void {
-    $reader = User::factory()->create()->assignRole(RoleEnum::Reader->value);
+    $reader = assignOrganisationRole(User::factory()->create(), RoleEnum::Reader->value);
 
     $this->actingAs($reader)->get(route('appearance.edit'))
         ->assertOk()
@@ -142,13 +142,13 @@ it('shows personal appearance without instance form to readers', function (): vo
 });
 
 it('keeps every instance settings page from users without can-manage-settings', function (string $route): void {
-    $reader = User::factory()->create()->assignRole(RoleEnum::Reader->value);
+    $reader = assignOrganisationRole(User::factory()->create(), RoleEnum::Reader->value);
 
     $this->actingAs($reader)->get(route($route))->assertForbidden();
 })->with('instance settings pages');
 
 it('keeps every instance settings write from users without can-manage-settings', function (string $method, string $route): void {
-    $reader = User::factory()->create()->assignRole(RoleEnum::Reader->value);
+    $reader = assignOrganisationRole(User::factory()->create(), RoleEnum::Reader->value);
 
     $this->actingAs($reader)
         ->{$method}(route($route), [...generalSettingsPayload(), ...securitySettingsPayload(), 'default_language' => 'de', 'default_appearance' => 'dark'])

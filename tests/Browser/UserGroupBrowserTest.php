@@ -15,7 +15,7 @@ use Database\Seeders\RoleSeeder;
 it('creates a user group from the drawer, in light and dark', function (string $mode): void {
     $this->seed([PermissionSeeder::class, RoleSeeder::class]);
     UserGroup::factory()->create(['name' => 'Support team']);
-    $admin = User::factory()->create()->assignRole(RoleEnum::Admin->value);
+    $admin = assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value);
 
     $this->actingAs($admin);
     $start = visit(route('groups.index', absolute: false));

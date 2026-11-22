@@ -18,7 +18,7 @@ beforeEach(function (): void {
 
 function permissionsPageUser(RoleEnum|string $role): User
 {
-    return User::factory()->create()->assignRole($role instanceof RoleEnum ? $role->value : $role);
+    return assignOrganisationRole(User::factory()->create(), $role instanceof RoleEnum ? $role->value : $role);
 }
 
 it('serves the permissions page under settings', function (): void {
@@ -39,7 +39,7 @@ it('sends guests to the login page', function (): void {
 });
 
 it('lets a custom role with permission access open the permissions page', function (): void {
-    Role::query()->create(['name' => 'access-manager', 'guard_name' => 'web'])->givePermissionTo([
+    Role::query()->create(['name' => 'access-manager', 'guard_name' => 'web', 'organisation_id' => null])->givePermissionTo([
         PermissionEnum::CanShowPermissions->value,
         PermissionEnum::CanEditPermissions->value,
     ]);
@@ -70,7 +70,7 @@ it('syncs the permissions from the enum idempotently', function (): void {
         PermissionEnum::CanShowUsers->value,
         PermissionEnum::CanCreateUsers->value,
     ]);
-    $custom = Role::query()->create(['name' => 'auditor', 'guard_name' => 'web']);
+    $custom = Role::query()->create(['name' => 'auditor', 'guard_name' => 'web', 'organisation_id' => null]);
     $custom->givePermissionTo(PermissionEnum::CanShowUsers->value);
 
     $manager = permissionsPageUser(RoleEnum::SuperAdmin);

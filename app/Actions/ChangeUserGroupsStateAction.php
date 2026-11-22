@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\UserGroup;
+use App\Services\Authorization\EffectivePermissionResolverService;
 use App\Services\Authorization\SuperAdminGuardService;
 use Illuminate\Validation\ValidationException;
 
@@ -21,6 +22,7 @@ class ChangeUserGroupsStateAction
     public function __construct(
         private SuperAdminGuardService $superAdminGuard,
         private ReconcileGroupBrainAccessAction $reconcileBrainAccess,
+        private EffectivePermissionResolverService $permissionResolver,
     ) {}
 
     /**
@@ -49,6 +51,10 @@ class ChangeUserGroupsStateAction
             }
 
             $this->reconcileBrainAccess->execute($members);
+
+            foreach ($members as $member) {
+                $this->permissionResolver->forget($member);
+            }
         }, 'ids');
     }
 }

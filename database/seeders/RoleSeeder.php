@@ -26,19 +26,24 @@ class RoleSeeder extends Seeder
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         $guard = config('auth.defaults.guard', 'web');
+        // Global role definitions: organisation_id null (fleet schema). Assignments are per org.
+        $teamKey = config('permission.column_names.team_foreign_key', 'organisation_id');
+        $definition = static fn (string $name): array => config('permission.teams')
+            ? ['name' => $name, 'guard_name' => $guard, $teamKey => null]
+            : ['name' => $name, 'guard_name' => $guard];
 
         $superAdmin = Role::query()->firstOrCreate(
-            ['name' => RoleEnum::SuperAdmin->value, 'guard_name' => $guard],
+            $definition(RoleEnum::SuperAdmin->value),
             ['is_system' => true, 'is_assignable' => true],
         );
 
         $admin = Role::query()->firstOrCreate(
-            ['name' => RoleEnum::Admin->value, 'guard_name' => $guard],
+            $definition(RoleEnum::Admin->value),
             ['is_system' => false, 'is_assignable' => true],
         );
 
         $reader = Role::query()->firstOrCreate(
-            ['name' => RoleEnum::Reader->value, 'guard_name' => $guard],
+            $definition(RoleEnum::Reader->value),
             ['is_system' => false, 'is_assignable' => true],
         );
 

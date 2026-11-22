@@ -15,11 +15,10 @@ use App\Services\Authorization\RoleGrantService;
  *
  * Each ability requires the same permission as its `permission:` route middleware
  * (super-admins pass through the resolver). Record abilities also keep groups out of reach
- * when they carry a role the actor could not grant ({@see RoleGrantService}): otherwise a
- * group manager could add themselves to such a group and inherit its roles. That covers the
- * super-admin role, which only super-admins grant.
+ * when they carry a role the actor could not grant ({@see RoleGrantService}), and when the
+ * group belongs to another organisation than the current permissions team.
  *
- * Copied from externa-core; the reach rule is Instituta's "grant only what you hold".
+ * Copied from externa-core; the organisation boundary is Instituta's team hardening.
  */
 final class UserGroupPolicy
 {
@@ -68,11 +67,40 @@ final class UserGroupPolicy
     }
 
     /**
-     * The actor could grant every role the group carries (super-admins pass).
+     * The actor could grant every role the group carries, and the group is in their
+     * organisation (or they are an instance super-admin).
      */
     private function canTouch(?User $user, UserGroup $group): bool
     {
-        return $user !== null
-            && $this->roleGrants->canGrantRoles($user, array_values($group->roles()->pluck('name')->all()));
+        if ($user === null) {
+            return false;
+        }
+
+        if (! $this->belongsToActorOrganisation($user, $group)) {
+            return false;
+        }
+
+        return $this->roleGrants->canGrantRoles($user, array_values($group->roles()->pluck('name')->all()));
+    }
+
+    /**
+     * Instance groups are only manageable by instance super-admins. Organisation groups must
+     * match the current Spatie permissions team.
+     */
+    private function belongsToActorOrganisation(User $user, UserGroup $group): bool
+    {
+        if ($this->permissionResolver->isSuperAdmin($user)) {
+            return true;
+        }
+
+        if ($group->is_instance) {
+            return false;
+        }
+
+        $teamId = getPermissionsTeamId();
+
+        return is_string($teamId)
+            && $teamId !== ''
+            && $group->organisation_id === $teamId;
     }
 }

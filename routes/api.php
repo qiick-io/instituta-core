@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V1\SectionBatchController;
 use App\Http\Controllers\Api\V1\SimilarSearchController;
 use App\Http\Middleware\AuthenticateApiKeyMiddleware;
 use App\Http\Middleware\RequireBrainWriteMiddleware;
+use App\Http\Middleware\SetPermissionsTeamFromOrganisationMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')
@@ -32,6 +33,7 @@ Route::prefix('v1')
 Route::prefix('v1')
     ->middleware([
         AuthenticateApiKeyMiddleware::class,
+        SetPermissionsTeamFromOrganisationMiddleware::class,
         'throttle:instituta-api',
     ])
     ->group(function (): void {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\RoleEnum;
 use App\Models\User;
+use App\Services\Authorization\EffectivePermissionResolverService;
 use Database\Seeders\CreateSuperAdminSeeder;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DemoAgencySeeder;
@@ -34,7 +35,7 @@ it('seeds a verified, active super admin with the configured password', function
 
     $superAdmin = User::query()->where('email', 'superadmin@example.com')->sole();
 
-    expect($superAdmin->hasRole(RoleEnum::SuperAdmin->value))->toBeTrue()
+    expect(app(EffectivePermissionResolverService::class)->isSuperAdmin($superAdmin))->toBeTrue()
         ->and($superAdmin->is_active)->toBeTrue()
         ->and($superAdmin->email_verified_at)->not->toBeNull()
         ->and(Hash::check('Fleet-Secret-9x', $superAdmin->password))->toBeTrue()
@@ -70,7 +71,7 @@ it('seeds the local default password in local and testing', function (string $en
 
     $superAdmin = User::query()->where('email', 'superadmin@example.com')->sole();
 
-    expect($superAdmin->hasRole(RoleEnum::SuperAdmin->value))->toBeTrue()
+    expect(app(EffectivePermissionResolverService::class)->isSuperAdmin($superAdmin))->toBeTrue()
         ->and(Hash::check('password', $superAdmin->password))->toBeTrue();
 })->with(['local', 'testing']);
 
@@ -82,7 +83,7 @@ it('creates a super admin outside local and testing with a strong password', fun
 
     $superAdmin = User::query()->where('email', 'superadmin@example.com')->sole();
 
-    expect($superAdmin->hasRole(RoleEnum::SuperAdmin->value))->toBeTrue()
+    expect(app(EffectivePermissionResolverService::class)->isSuperAdmin($superAdmin))->toBeTrue()
         ->and($superAdmin->is_active)->toBeTrue()
         ->and($superAdmin->email_verified_at)->not->toBeNull()
         ->and(Hash::check('Fleet-Secret-9x', $superAdmin->password))->toBeTrue()
@@ -134,7 +135,7 @@ it('never modifies an existing user outside local and testing', function (): voi
         'is_active' => false,
         'email_verified_at' => null,
     ]);
-    $existing->assignRole(RoleEnum::Admin->value);
+    assignOrganisationRole($existing, RoleEnum::Admin->value);
 
     $this->artisan('db:seed', ['--class' => CreateSuperAdminSeeder::class, '--force' => true])->assertSuccessful();
 
@@ -147,7 +148,7 @@ it('never modifies an existing user outside local and testing', function (): voi
         ->and($existing->email_verified_at)->toBeNull()
         ->and(Hash::check('original-secret-password', $existing->password))->toBeTrue()
         ->and($existing->hasRole(RoleEnum::Admin->value))->toBeTrue()
-        ->and($existing->hasRole(RoleEnum::SuperAdmin->value))->toBeFalse();
+        ->and(app(EffectivePermissionResolverService::class)->isSuperAdmin($existing))->toBeFalse();
 });
 
 it('gives the super admin owner access to the demo brain', function (): void {
@@ -159,7 +160,7 @@ it('gives the super admin owner access to the demo brain', function (): void {
     $superAdmin = User::query()->where('email', 'superadmin@example.com')->sole();
     $grant = $superAdmin->principals()->sole()->grants()->sole();
 
-    expect($superAdmin->hasRole(RoleEnum::SuperAdmin->value))->toBeTrue()
+    expect(app(EffectivePermissionResolverService::class)->isSuperAdmin($superAdmin))->toBeTrue()
         ->and($grant->role->value)->toBe('owner');
     $this->actingAs($superAdmin)->get(route('explorer.show', 'rules/coding'))->assertOk();
 });

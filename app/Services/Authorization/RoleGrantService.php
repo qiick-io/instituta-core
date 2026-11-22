@@ -90,9 +90,14 @@ class RoleGrantService
 
     /**
      * Whether the actor could grant every role the target holds.
+     * Instance super-admins are only manageable by other instance super-admins.
      */
     public function isAtOrBelow(User $actor, User $target): bool
     {
+        if ($this->permissionResolver->isSuperAdmin($target)) {
+            return $this->permissionResolver->isSuperAdmin($actor);
+        }
+
         return $this->canGrantRoles($actor, $this->permissionResolver->roleNamesFor($target));
     }
 }
