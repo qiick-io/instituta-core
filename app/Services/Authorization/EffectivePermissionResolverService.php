@@ -110,15 +110,16 @@ class EffectivePermissionResolverService
      *
      * With Spatie teams on, direct `model_has_roles` rows are always organisation-scoped,
      * so instance super-admin is never read from `$user->roles` (team-filtered). Membership
-     * in a group with `is_instance=true` (and null organisation_id) is the only bypass; the
-     * display name alone never grants it.
+     * requires `is_instance=true` and `organisation_id` null (the DB XOR check mirrors this);
+     * the display name alone never grants it.
      */
     public function isSuperAdmin(User $user): bool
     {
         $user->loadMissing(['groups']);
 
         return $user->groups->contains(
-            static fn (UserGroup $group): bool => $group->is_instance === true,
+            static fn (UserGroup $group): bool => $group->is_instance === true
+                && $group->organisation_id === null,
         );
     }
 
