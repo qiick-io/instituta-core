@@ -97,11 +97,19 @@ class EffectivePermissionResolverService
     }
 
     /**
-     * Whether the user holds the super-admin role, directly or through a group.
+     * Whether the user holds the instance super-admin role through a group.
+     *
+     * With Spatie teams on, direct `model_has_roles` rows are always organisation-scoped,
+     * so instance super-admin is never read from `$user->roles` (team-filtered). Groups are
+     * instance-level and ignore the team filter (core hardening).
      */
     public function isSuperAdmin(User $user): bool
     {
-        return in_array(RoleEnum::SuperAdmin->value, $this->roleNamesFor($user), true);
+        $user->loadMissing(['groups.roles']);
+
+        return $user->groups
+            ->flatMap(static fn (UserGroup $group) => $group->roles)
+            ->contains(static fn (Role $role): bool => $role->name === RoleEnum::SuperAdmin->value);
     }
 
     /**

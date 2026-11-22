@@ -95,8 +95,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Setting::class, SettingPolicy::class);
         Gate::policy(UserGroup::class, UserGroupPolicy::class);
 
-        Gate::before(function (?User $user, string $ability, array $arguments): ?bool {
-            if ($user === null) {
+        // Typed as mixed so a Spatie-shaped non-User actor (C71 probe) is denied, not TypeError'd.
+        Gate::before(function (mixed $user, string $ability, array $arguments): ?bool {
+            if (! $user instanceof User) {
                 return null;
             }
 
@@ -110,8 +111,8 @@ class AppServiceProvider extends ServiceProvider
                 return true;
             }
 
-            // Spatie's own check sees direct roles only; permissions inherited through a user
-            // group pass here, so `$user->can('can-…')` in policies matches the route middleware.
+            // Spatie's Gate check is off (register_permission_check_method=false). Direct and
+            // group-inherited permissions for the current organisation team pass here.
             if ($arguments === [] && PermissionEnum::tryFrom($ability) !== null && $permissionResolver->hasPermission($user, $ability)) {
                 return true;
             }

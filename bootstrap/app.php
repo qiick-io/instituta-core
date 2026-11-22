@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureUserHasPermissionMiddleware;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetLocaleMiddleware;
+use App\Http\Middleware\SetPermissionsTeamFromOrganisationMiddleware;
 use App\Http\Middleware\SetSecurityHeadersMiddleware;
 use App\Http\Responses\RenderHttpErrorResponse;
 use Illuminate\Foundation\Application;
@@ -38,6 +39,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(AddContractErrorCodeMiddleware::class);
 
         $middleware->web(append: [
+            // Before permission / Inertia shared props: Spatie team = current organisation.
+            SetPermissionsTeamFromOrganisationMiddleware::class,
             HandleAppearance::class,
             SetLocaleMiddleware::class,
             HandleInertiaRequests::class,

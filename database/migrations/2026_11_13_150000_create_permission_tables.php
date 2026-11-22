@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Spatie permission tables (adapted from externa-core / package stub).
+ *
+ * Teams are on with `organisation_id` as a UUID (fleet core schema: exactly three
+ * edits from Spatie's unsignedBigInteger team column). Instance super-admin is not
+ * stored on these pivots; see InstanceSuperAdminGroupService.
  */
 return new class extends Migration
 {
@@ -35,7 +39,8 @@ return new class extends Migration
             $table->id();
 
             if ($teams || config('permission.testing')) {
-                $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable();
+                // knowledge/decisions/2026-11-19-fleet-core-schema: uuid, not unsignedBigInteger.
+                $table->uuid($columnNames['team_foreign_key'])->nullable();
                 $table->index($columnNames['team_foreign_key'], 'roles_team_foreign_key_index');
             }
 
@@ -64,7 +69,8 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             if ($teams) {
-                $table->unsignedBigInteger($columnNames['team_foreign_key']);
+                // knowledge/decisions/2026-11-19-fleet-core-schema: uuid, not unsignedBigInteger.
+                $table->uuid($columnNames['team_foreign_key']);
                 $table->index($columnNames['team_foreign_key'], 'model_has_permissions_team_foreign_key_index');
 
                 $table->primary(
@@ -91,7 +97,8 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             if ($teams) {
-                $table->unsignedBigInteger($columnNames['team_foreign_key']);
+                // knowledge/decisions/2026-11-19-fleet-core-schema: uuid, not unsignedBigInteger.
+                $table->uuid($columnNames['team_foreign_key']);
                 $table->index($columnNames['team_foreign_key'], 'model_has_roles_team_foreign_key_index');
 
                 $table->primary(

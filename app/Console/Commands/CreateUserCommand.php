@@ -97,6 +97,12 @@ class CreateUserCommand extends Command
             return self::FAILURE;
         }
 
+        if ($validated['role'] !== RoleEnum::SuperAdmin->value && ! $organisation instanceof Organisation) {
+            $this->error('Organisation-scoped roles require an organisation. Pass --organisation or run instituta:install first.');
+
+            return self::FAILURE;
+        }
+
         $brainRole = BrainRoleEnum::Member;
 
         if ($organisation instanceof Organisation) {

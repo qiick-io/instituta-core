@@ -1,19 +1,25 @@
 {
     "$comment": "qiick standards pack: https://github.com/qiick-io/app-ui/tree/develop/standards. Sync: node <app-ui>/scripts/sync-standards.mjs --target .",
-    "ref": "v0.12.0",
+    "ref": "f13f39d9d6d26438faaa20ccaa0f1886a9f26ff8",
     "uiPreset": "Teal",
     "php": true,
-    "frontendRoots": ["resources/js"],
+    "frontendRoots": [
+        "resources/js"
+    ],
     "oxlint": true,
     "app": true,
-    "patterns": ["command-palette", "keyboard-shortcuts"],
+    "patterns": [
+        "command-palette",
+        "keyboard-shortcuts"
+    ],
     "requiredItems": [],
     "conformance": {
         "userModel": "App\\Models\\User",
         "publicIdColumn": "public_id",
         "apiPrefix": "api/v1",
         "openApiPath": "resources/openapi/instituta-v1.yaml",
-        "usesSpatieTeams": false,
+        "usesSpatieTeams": true,
+        "usesLaravelAccess": false,
         "hasOrganisations": true,
         "hasUserGroups": true,
         "hasPrincipals": true,

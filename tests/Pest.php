@@ -1,7 +1,14 @@
 <?php
 
+use App\Actions\GrantOrganisationAccessAction;
+use App\Brain\Enums\RoleEnum as BrainRoleEnum;
+use App\Enums\RoleEnum;
+use App\Models\Organisation;
+use App\Models\User;
+use App\Services\Authorization\InstanceSuperAdminGroupService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Contracts\Role;
 use Tests\TestCase;
 
 /*
@@ -68,4 +75,60 @@ function skipUnlessKeywordSearchSupported(): void
     if (! in_array(DB::connection()->getDriverName(), ['sqlite', 'pgsql'], true)) {
         test()->markTestSkipped('Keyword search runs on SQLite and PostgreSQL only (#313).');
     }
+}
+
+/**
+ * Set Spatie's permissions team to an organisation (creates one when omitted).
+ */
+function permissionsOrganisation(?string $organisationId = null): string
+{
+    $organisationId ??= Organisation::factory()->create()->id;
+    setPermissionsTeamId($organisationId);
+
+    return $organisationId;
+}
+
+/**
+ * Grant instance super-admin through the instance group (not a Spatie team pivot).
+ */
+function grantInstanceSuperAdmin(User $user): User
+{
+    app(InstanceSuperAdminGroupService::class)->grant($user);
+
+    return $user;
+}
+
+/**
+ * Assign a Spatie role in an organisation team context. Super-admin uses the instance group.
+ */
+function assignOrganisationRole(
+    User $user,
+    string|BackedEnum|Role $role,
+    ?string $organisationId = null,
+    bool $withPerimeter = true,
+): User {
+    if ($role instanceof Role) {
+        $roleName = (string) $role->name;
+    } elseif ($role instanceof BackedEnum) {
+        $roleName = (string) $role->value;
+    } else {
+        $roleName = $role;
+    }
+
+    if ($roleName === RoleEnum::SuperAdmin->value) {
+        return grantInstanceSuperAdmin($user);
+    }
+
+    $organisationId = permissionsOrganisation($organisationId);
+    $user->assignRole($role);
+
+    if ($withPerimeter) {
+        $organisation = Organisation::query()->findOrFail($organisationId);
+
+        if (! $user->principals()->where('organisation_id', $organisationId)->exists()) {
+            app(GrantOrganisationAccessAction::class)->execute($user, $organisation, BrainRoleEnum::Member);
+        }
+    }
+
+    return $user;
 }

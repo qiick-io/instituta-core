@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Actions\GrantOrganisationAccessAction;
 use App\Ai\Agents\AppAssistant;
-use App\Brain\Enums\RoleEnum;
 use App\Enums\RoleEnum as AppRoleEnum;
 use App\Models\Organisation;
 use App\Models\User;
@@ -20,8 +18,11 @@ use Database\Seeders\RoleSeeder;
 beforeEach(function (): void {
     $this->seed([PermissionSeeder::class, RoleSeeder::class]);
     $organisation = Organisation::factory()->create();
-    $this->user = User::factory()->create()->assignRole(AppRoleEnum::Admin->value);
-    app(GrantOrganisationAccessAction::class)->execute($this->user, $organisation, RoleEnum::Member);
+    $this->user = assignOrganisationRole(
+        User::factory()->create(),
+        AppRoleEnum::Admin->value,
+        $organisation->id,
+    );
     $this->actingAs($this->user);
 });
 

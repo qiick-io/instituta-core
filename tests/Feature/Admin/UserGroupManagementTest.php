@@ -23,10 +23,10 @@ beforeEach(function (): void {
  */
 function groupManager(array $permissions): User
 {
-    $role = Role::query()->firstOrCreate(['name' => 'groups-manager', 'guard_name' => 'web']);
+    $role = Role::query()->firstOrCreate(['name' => 'groups-manager', 'guard_name' => 'web', 'organisation_id' => null]);
     $role->syncPermissions(array_map(fn (PermissionEnum $permission): string => $permission->value, $permissions));
 
-    return User::factory()->create()->assignRole($role);
+    return assignOrganisationRole(User::factory()->create(), $role);
 }
 
 /**
@@ -110,7 +110,7 @@ it('returns json for the group pickers', function (): void {
 it('creates, updates and soft deletes a group with members and roles', function (): void {
     $member = User::factory()->create();
     $reader = Role::findByName(RoleEnum::Reader->value);
-    $this->actingAs(User::factory()->create()->assignRole(RoleEnum::Admin->value));
+    $this->actingAs(assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value));
 
     $this->post(route('groups.store'), [
         'name' => 'Content',
@@ -148,7 +148,7 @@ it('keeps members and roles when the update omits them', function (): void {
     $group->users()->sync([$member->id]);
     $group->roles()->sync([$reader->id]);
 
-    $this->actingAs(User::factory()->create()->assignRole(RoleEnum::Admin->value))
+    $this->actingAs(assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value))
         ->put(route('groups.update', $group), ['name' => 'Stable', 'description' => 'After'])
         ->assertRedirect(route('groups.index'));
 
@@ -224,9 +224,9 @@ it('rejects roles the group manager could not grant', function (): void {
 it('assigns user groups from the user form', function (): void {
     $group = UserGroup::factory()->create();
     $group->roles()->sync([Role::findByName(RoleEnum::Reader->value)->id]);
-    $user = User::factory()->create()->assignRole(RoleEnum::Reader->value);
+    $user = assignOrganisationRole(User::factory()->create(), RoleEnum::Reader->value);
 
-    $this->actingAs(User::factory()->create()->assignRole(RoleEnum::Admin->value))
+    $this->actingAs(assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value))
         ->put(route('users.update', $user), [
             'first_name' => 'Grace',
             'email' => 'grace@example.com',
@@ -242,9 +242,9 @@ it('assigns user groups from the user form', function (): void {
 it('keeps the user form from joining groups with roles the actor cannot grant', function (): void {
     $superAdminGroup = UserGroup::factory()->create();
     $superAdminGroup->roles()->sync([Role::findByName(RoleEnum::SuperAdmin->value)->id]);
-    $user = User::factory()->create()->assignRole(RoleEnum::Reader->value);
+    $user = assignOrganisationRole(User::factory()->create(), RoleEnum::Reader->value);
 
-    $this->actingAs(User::factory()->create()->assignRole(RoleEnum::Admin->value))
+    $this->actingAs(assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value))
         ->put(route('users.update', $user), [
             'first_name' => 'Grace',
             'email' => 'grace@example.com',

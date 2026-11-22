@@ -23,11 +23,14 @@ use App\Models\Source;
 use App\Models\User;
 use App\Models\UserGroup;
 use App\Services\Authorization\EffectivePermissionResolverService;
+use App\Services\Authorization\InstanceSuperAdminGroupService;
+use App\Services\Authorization\PermissionsTeamContextService;
 use App\Services\Authorization\SuperAdminGuardService;
 use App\Services\InitialSuperAdminPasswordService;
 use Database\Seeders\CreateSuperAdminSeeder;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
+use Spatie\Permission\PermissionRegistrar;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Http\Kernel;
@@ -145,7 +148,13 @@ return [
         $guardNameColumn = collect(Schema::getColumns('roles'))->firstWhere('name', 'guard_name');
         $assert($guardNameColumn !== null && $guardNameColumn['nullable'] === false, 'roles.guard_name must be NOT NULL to close the Spatie hole.');
 
-        $hasUniqueNameAndGuard = collect(Schema::getIndexes('roles'))->contains(static function (array $index): bool {
+        $teamKey = (string) config('permission.column_names.team_foreign_key', 'organisation_id');
+        $expectedUnique = config('permission.teams')
+            ? [$teamKey, 'guard_name', 'name']
+            : ['guard_name', 'name'];
+        sort($expectedUnique);
+
+        $hasUniqueNameAndGuard = collect(Schema::getIndexes('roles'))->contains(static function (array $index) use ($expectedUnique): bool {
             if (! ($index['unique'] ?? false)) {
                 return false;
             }
@@ -153,16 +162,26 @@ return [
             $columns = $index['columns'] ?? [];
             sort($columns);
 
-            return $columns === ['guard_name', 'name'];
+            return $columns === $expectedUnique;
         });
-        $assert($hasUniqueNameAndGuard, 'roles must have a unique (name, guard_name) index.');
+        $assert(
+            $hasUniqueNameAndGuard,
+            config('permission.teams')
+                ? "roles must have a unique ({$teamKey}, name, guard_name) index when teams are on."
+                : 'roles must have a unique (name, guard_name) index.',
+        );
 
-        Role::query()->create(['name' => 'conformance-global-role', 'guard_name' => 'web']);
+        Role::query()->create([
+            'name' => 'conformance-global-role',
+            'guard_name' => 'web',
+            config('permission.column_names.team_foreign_key') => null,
+        ]);
 
         (new PermissionSeeder)->run();
         (new RoleSeeder)->run();
 
-        $superAdmin = User::factory()->create()->assignRole(RoleEnum::SuperAdmin->value);
+        $superAdmin = User::factory()->create();
+        app(InstanceSuperAdminGroupService::class)->grant($superAdmin);
 
         $duplicateRequest = \App\Http\Requests\Admin\RoleRequest::create('/settings/roles', 'POST', [
             'name' => 'conformance-global-role',
@@ -398,7 +417,10 @@ return [
         app(CreateSuperAdminSeeder::class)->run(app(InitialSuperAdminPasswordService::class));
 
         $superAdmin = User::query()->where('email', 'conformance-superadmin@example.test')->sole();
-        $assert($superAdmin->hasRole(RoleEnum::SuperAdmin->value), 'The seeder must assign the super-admin role.');
+        $assert(
+            app(EffectivePermissionResolverService::class)->isSuperAdmin($superAdmin),
+            'The seeder must grant instance super-admin (group membership).',
+        );
         $assert($superAdmin->is_active, 'The seeder must create an active user.');
         $assert($superAdmin->email_verified_at !== null, 'The seeder must create a verified user.');
         $assert(Hash::check('Fleet-Secret-9x', $superAdmin->password), 'The seeder must hash the explicit password.');
@@ -529,90 +551,57 @@ return [
 
         $assert(Organisation::query()->count() === 0, 'The super-admin check requires an empty organisation table.');
 
-        $user = User::factory()->create()->assignRole(RoleEnum::SuperAdmin->value);
+        $user = User::factory()->create();
+        app(InstanceSuperAdminGroupService::class)->grant($user);
         $resolver = app(EffectivePermissionResolverService::class);
 
         $assert(Gate::forUser($user)->allows('non-existent-ability'), 'A super-admin must pass every gate.');
         $assert($resolver->isSuperAdmin($user), 'The resolver must recognise the instance super-admin.');
         $assert($resolver->permissionsFor($user) === PermissionEnum::values(), 'A super-admin must hold every permission.');
         $assert(app(SuperAdminGuardService::class)->isLastSuperAdmin($user), 'The only super-admin must be protected.');
-        $assert(! Schema::hasColumn('model_has_roles', 'organisation_id'), 'Instance super-admin must not be a Spatie team assignment.');
+
+        $superAdminRoleId = Role::findByName(RoleEnum::SuperAdmin->value)->getKey();
+        $hasTeamPivot = DB::table('model_has_roles')
+            ->where('role_id', $superAdminRoleId)
+            ->where('model_type', $user->getMorphClass())
+            ->where('model_id', $user->getKey())
+            ->exists();
+        $assert(! $hasTeamPivot, 'Instance super-admin must not be a Spatie team assignment.');
     },
 
     'assertTeamSwitch' => static function () use ($assert): void {
+        (new PermissionSeeder)->run();
+        (new RoleSeeder)->run();
+
         $organisationA = Organisation::factory()->create();
         $organisationB = Organisation::factory()->create();
         $user = User::factory()->create();
+        $teamContext = app(PermissionsTeamContextService::class);
 
-        $principalA = Principal::factory()->create([
-            'organisation_id' => $organisationA->id,
-            'user_id' => $user->id,
-        ]);
-        $principalB = Principal::factory()->create([
-            'organisation_id' => $organisationB->id,
-            'user_id' => $user->id,
-        ]);
+        $teamContext->setOrganisation($organisationA->id, $user);
+        $user->assignRole(RoleEnum::Admin->value);
+        $assert($user->hasRole(RoleEnum::Admin->value), 'Admin role must be visible in organisation A.');
 
-        Grant::factory()->create([
-            'principal_id' => $principalA->id,
-            'scope_type' => ScopeTypeEnum::Organisation,
-            'scope_id' => $organisationA->id,
-            'role' => App\Brain\Enums\RoleEnum::Owner,
-            'max_visibility' => VisibilityEnum::Restricted,
-        ]);
-        Grant::factory()->create([
-            'principal_id' => $principalB->id,
-            'scope_type' => ScopeTypeEnum::Organisation,
-            'scope_id' => $organisationB->id,
-            'role' => App\Brain\Enums\RoleEnum::Owner,
-            'max_visibility' => VisibilityEnum::Restricted,
-        ]);
-
-        $proposalB = \App\Models\Proposal::factory()->create([
-            'organisation_id' => $organisationB->id,
-            'company_id' => null,
-            'product_id' => null,
-            'scope_type' => ScopeTypeEnum::Organisation,
-            'scope_id' => $organisationB->id,
-            'proposed_by_principal_id' => $principalB->id,
-        ]);
-
-        $resolver = app(\App\Services\PerimeterResolverService::class);
-        $grantsForB = $resolver->grantsCovering($principalA, ScopeTypeEnum::Organisation, $organisationB->id);
-        $assert($grantsForB->isEmpty(), 'A principal from organisation A must not receive grants covering organisation B.');
-
-        $threw = false;
-        try {
-            $resolver->fromGrants($principalA, $grantsForB, ScopeTypeEnum::Organisation, $organisationB->id);
-        } catch (\Throwable) {
-            $threw = true;
-        }
-        $assert($threw, 'Resolving organisation B with organisation A grants must fail.');
-
-        $issued = app(CreateApiKeyAction::class)->execute(
-            principal: $principalA,
-            name: 'org-a-isolation',
-            scopeType: ScopeTypeEnum::Organisation,
-            scopeId: $organisationA->id,
-            role: App\Brain\Enums\RoleEnum::Owner,
-            maxVisibility: VisibilityEnum::Restricted,
-            scopes: [ApiKeyScopeEnum::BrainRead->value],
+        $teamContext->setOrganisation($organisationB->id, $user);
+        $assert(! $user->hasRole(RoleEnum::Admin->value), 'Admin role from organisation A must not be visible in organisation B.');
+        $assert(
+            ! Gate::forUser($user)->allows(PermissionEnum::CanShowUsers->value),
+            'Permissions from organisation A must not apply in organisation B.',
         );
 
-        $perimeterA = $resolver->fromApiKey($issued['key']->fresh('principal'));
-        $assert($perimeterA->scopeId === $organisationA->id, 'A key for organisation A must resolve to organisation A scope.');
-
-        $visible = \App\Models\Proposal::query()->visibleIn($perimeterA)->whereKey($proposalB->id)->exists();
-        $assert(! $visible, 'A proposal in organisation B must not be visible in organisation A perimeter.');
-
-        $list = app(\App\Services\ProposalQueryService::class)->list(
-            $perimeterA,
-            $issued['key']->fresh('principal'),
-            null,
-            'api',
+        $teamContext->setOrganisation($organisationA->id, $user);
+        $assert($user->hasRole(RoleEnum::Admin->value), 'Switching back to organisation A must restore the Admin role.');
+        $assert(
+            Gate::forUser($user)->allows(PermissionEnum::CanShowUsers->value),
+            'Permissions from organisation A must apply again after switching back.',
         );
-        $ids = array_column($list['proposals'], 'id');
-        $assert(! in_array($proposalB->id, $ids, true), 'The proposal list for organisation A must not include organisation B proposals.');
+
+        // Registrar helpers used by products must match the service.
+        setPermissionsTeamId($organisationB->id);
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $user->unsetRelation('roles');
+        $user->unsetRelation('permissions');
+        $assert(! $user->hasRole(RoleEnum::Admin->value), 'setPermissionsTeamId must isolate roles across organisations.');
     },
 
     'assertApiResourcesHideBigints' => static function () use ($assert, $resolveResource): void {

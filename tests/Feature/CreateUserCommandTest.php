@@ -12,6 +12,7 @@ use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\Source;
 use App\Models\User;
+use App\Services\Authorization\EffectivePermissionResolverService;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -32,7 +33,7 @@ it('creates the first CLI user as super-admin who can log in', function (): void
 
     expect($user->is_active)->toBeTrue()
         ->and($user->hasVerifiedEmail())->toBeTrue()
-        ->and($user->hasRole(RoleEnum::SuperAdmin->value))->toBeTrue();
+        ->and(app(EffectivePermissionResolverService::class)->isSuperAdmin($user))->toBeTrue();
 
     $this->post(route('login.store'), [
         'email' => 'ada@example.com',
@@ -44,6 +45,7 @@ it('creates the first CLI user as super-admin who can log in', function (): void
 
 it('defaults later users to the reader role', function (): void {
     User::factory()->create();
+    $organisation = Organisation::factory()->create();
 
     $this->artisan('instituta:create-user', [
         '--first-name' => 'Bob',
@@ -55,11 +57,14 @@ it('defaults later users to the reader role', function (): void {
         ->assertSuccessful();
 
     $user = User::query()->where('email', 'bob@example.com')->firstOrFail();
+    setPermissionsTeamId($organisation->id);
 
     expect($user->hasRole(RoleEnum::Reader->value))->toBeTrue();
 });
 
 it('normalizes and validates the optional CLI username', function (): void {
+    Organisation::factory()->create();
+
     $this->artisan('instituta:create-user', [
         '--first-name' => 'Ada',
         '--last-name' => 'Lovelace',
@@ -218,15 +223,19 @@ it('refuses an unknown organisation or brain role without creating the user', fu
 ]);
 
 it('warns that a user created before any organisation has no perimeter', function (): void {
+    // Org-scoped roles need an organisation; only instance super-admin can be created without one.
     $this->artisan('instituta:create-user', [
         '--first-name' => 'Ada',
         '--last-name' => 'Lovelace',
         '--email' => 'ada@example.com',
-        '--role' => 'reader',
+        '--role' => 'super-admin',
     ])
         ->expectsQuestion('Password', 'correct-horse-battery')
         ->expectsOutputToContain('Run instituta:install')
         ->assertSuccessful();
 
-    expect(Principal::query()->count())->toBe(0);
+    expect(Principal::query()->count())->toBe(0)
+        ->and(app(EffectivePermissionResolverService::class)->isSuperAdmin(
+            User::query()->where('email', 'ada@example.com')->sole(),
+        ))->toBeTrue();
 });

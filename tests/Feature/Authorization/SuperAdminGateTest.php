@@ -2,10 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Actions\GrantOrganisationAccessAction;
+use App\Brain\Enums\RoleEnum as BrainRoleEnum;
+use App\Brain\Enums\ScopeTypeEnum;
 use App\Enums\PermissionEnum;
 use App\Enums\RoleEnum;
+use App\Models\Organisation;
 use App\Models\User;
 use App\Services\Authorization\EffectivePermissionResolverService;
+use App\Services\SessionPerimeterService;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\Gate;
@@ -14,14 +19,11 @@ use Inertia\Testing\AssertableInertia as Assert;
 beforeEach(function (): void {
     $this->seed([PermissionSeeder::class, RoleSeeder::class]);
 
-    $this->superAdmin = User::factory()->create();
-    $this->superAdmin->assignRole(RoleEnum::SuperAdmin->value);
-
-    $this->admin = User::factory()->create();
-    $this->admin->assignRole(RoleEnum::Admin->value);
-
-    $this->reader = User::factory()->create();
-    $this->reader->assignRole(RoleEnum::Reader->value);
+    $this->organisation = Organisation::factory()->create();
+    $organisationId = permissionsOrganisation($this->organisation->id);
+    $this->superAdmin = grantInstanceSuperAdmin(User::factory()->create());
+    $this->admin = assignOrganisationRole(User::factory()->create(), RoleEnum::Admin, $organisationId);
+    $this->reader = assignOrganisationRole(User::factory()->create(), RoleEnum::Reader, $organisationId);
 });
 
 test('super admin bypasses gate permission checks', function (): void {
@@ -44,8 +46,14 @@ test('effective permission resolver lists every permission for super admin', fun
 });
 
 test('inertia shares auth.permissions for the signed-in user', function (): void {
+    app(GrantOrganisationAccessAction::class)->execute($this->reader, $this->organisation, BrainRoleEnum::Member);
+
     $this->withoutVite()
         ->actingAs($this->reader)
+        ->withSession([
+            SessionPerimeterService::SESSION_SCOPE_TYPE => ScopeTypeEnum::Organisation->value,
+            SessionPerimeterService::SESSION_SCOPE_ID => $this->organisation->id,
+        ])
         ->get(route('dashboard'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page

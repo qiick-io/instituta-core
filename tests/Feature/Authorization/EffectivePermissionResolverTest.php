@@ -19,14 +19,14 @@ beforeEach(function (): void {
 });
 
 test('the resolver unites direct roles and group roles', function (): void {
-    $directRole = Role::query()->create(['name' => 'direct-editor', 'guard_name' => 'web']);
+    $directRole = Role::query()->create(['name' => 'direct-editor', 'guard_name' => 'web', 'organisation_id' => null]);
     $directRole->syncPermissions([PermissionEnum::CanEditUsers->value]);
-    $groupRole = Role::query()->create(['name' => 'group-viewer', 'guard_name' => 'web']);
+    $groupRole = Role::query()->create(['name' => 'group-viewer', 'guard_name' => 'web', 'organisation_id' => null]);
     $groupRole->syncPermissions([PermissionEnum::CanShowGroups->value]);
 
     $group = UserGroup::factory()->create(['name' => 'Editors']);
     $group->roles()->attach($groupRole);
-    $user = User::factory()->create()->assignRole($directRole);
+    $user = assignOrganisationRole(User::factory()->create(), $directRole);
     $user->groups()->attach($group);
 
     expect($this->resolver->permissionsFor($user))->toBe([PermissionEnum::CanEditUsers->value, PermissionEnum::CanShowGroups->value])

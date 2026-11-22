@@ -110,15 +110,18 @@ return [
          * foreign key is other than `team_id`.
          */
 
-        'team_foreign_key' => 'team_id',
+        // Fleet core schema: Spatie teams key the pivot on organisation_id (UUID), not team_id.
+        'team_foreign_key' => 'organisation_id',
     ],
 
     /*
      * When set to true, the method for checking permissions will be registered on the gate.
      * Set this to false if you want to implement custom logic for checking permissions.
+     *
+     * Off: laravel-access / Instituta Gate::before owns permission checks (Spatie's must not run).
      */
 
-    'register_permission_check_method' => true,
+    'register_permission_check_method' => false,
 
     /*
      * When set to true, Laravel\Octane\Events\OperationTerminated event listener will be registered
@@ -136,7 +139,7 @@ return [
      *
      * To enable, set to true, and then create listeners to watch these events.
      */
-    'events_enabled' => false,
+    'events_enabled' => true,
 
     /*
      * Teams Feature.
@@ -146,9 +149,12 @@ return [
      * If you already did the migration then you must make a new migration to also
      * add 'team_foreign_key' to 'roles', 'model_has_roles', and 'model_has_permissions'
      * (view the latest version of this package's migration file)
+     *
+     * On: per-organisation Spatie roles (decision 2026-11-22). Instance super-admin
+     * is not a team assignment; it goes through the instance group.
      */
 
-    'teams' => false,
+    'teams' => true,
 
     /*
      * The class to use to resolve the permissions team id

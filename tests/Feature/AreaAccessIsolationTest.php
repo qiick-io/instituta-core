@@ -78,10 +78,15 @@ beforeEach(function (): void {
     $this->visibleItem = Item::query()->where('stable_key', 'rules/handbook')->sole();
     $this->hiddenItem = Item::query()->where('stable_key', 'style/voice')->sole();
 
-    $this->admin = User::factory()->create()->assignRole(RoleEnum::SuperAdmin->value);
+    $this->admin = grantInstanceSuperAdmin(User::factory()->create());
     app(GrantOrganisationAccessAction::class)->execute($this->admin, $this->organisation, BrainRoleEnum::Owner);
 
-    $this->developer = User::factory()->create()->assignRole(RoleEnum::Reader->value);
+    $this->developer = assignOrganisationRole(
+        User::factory()->create(),
+        RoleEnum::Reader->value,
+        $this->organisation->id,
+        withPerimeter: false,
+    );
     $this->actingAs($this->admin)->post(route('groups.store'), [
         'name' => 'Developers',
         'user_ids' => [$this->developer->public_id],

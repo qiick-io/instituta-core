@@ -10,6 +10,7 @@ use App\Models\Grant;
 use App\Models\Organisation;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Authorization\EffectivePermissionResolverService;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -21,9 +22,9 @@ beforeEach(function (): void {
     $this->seed([PermissionSeeder::class, RoleSeeder::class]);
 });
 
-function managedUser(RoleEnum $role = RoleEnum::Reader, array $attributes = []): User
+function managedUser(RoleEnum $role = RoleEnum::Reader, array $attributes = [], bool $withPerimeter = true): User
 {
-    return User::factory()->create($attributes)->assignRole($role->value);
+    return assignOrganisationRole(User::factory()->create($attributes), $role->value, withPerimeter: $withPerimeter);
 }
 
 /**
@@ -164,22 +165,29 @@ it('blocks deleting or deactivating yourself', function (): void {
 });
 
 it('protects the last super-admin', function (): void {
-    $superAdmin = managedUser(RoleEnum::SuperAdmin);
-    managedUser(RoleEnum::SuperAdmin, ['is_active' => false]);
+    $organisation = Organisation::factory()->create();
+    $superAdmin = grantInstanceSuperAdmin(User::factory()->create());
+    app(GrantOrganisationAccessAction::class)->execute($superAdmin, $organisation, BrainRoleEnum::Owner);
+    assignOrganisationRole($superAdmin, RoleEnum::Admin, $organisation->id, withPerimeter: false);
+
+    $inactive = grantInstanceSuperAdmin(User::factory()->create(['is_active' => false]));
+    app(GrantOrganisationAccessAction::class)->execute($inactive, $organisation, BrainRoleEnum::Member);
 
     $this->actingAs($superAdmin)
         ->put(route('users.update', $superAdmin), userPayload(['email' => $superAdmin->email, 'roles' => [RoleEnum::Admin->value]]))
         ->assertSessionHasErrors('roles');
 
-    expect($superAdmin->fresh()->hasRole(RoleEnum::SuperAdmin->value))->toBeTrue();
+    expect(app(EffectivePermissionResolverService::class)->isSuperAdmin($superAdmin->fresh()))->toBeTrue();
 
-    $second = managedUser(RoleEnum::SuperAdmin);
+    $second = grantInstanceSuperAdmin(User::factory()->create());
+    app(GrantOrganisationAccessAction::class)->execute($second, $organisation, BrainRoleEnum::Owner);
+    assignOrganisationRole($second, RoleEnum::Admin, $organisation->id, withPerimeter: false);
 
     $this->actingAs($second)
         ->put(route('users.update', $superAdmin), userPayload(['email' => $superAdmin->email, 'roles' => [RoleEnum::Admin->value]]))
         ->assertSessionHasNoErrors();
 
-    expect($superAdmin->fresh()->hasRole(RoleEnum::SuperAdmin->value))->toBeFalse();
+    expect(app(EffectivePermissionResolverService::class)->isSuperAdmin($superAdmin->fresh()))->toBeFalse();
 
     $this->actingAs($second)->delete(route('users.destroy', $second))->assertForbidden();
 });
@@ -215,22 +223,22 @@ it('sends a password-reset email through Fortify', function (): void {
 });
 
 it('splits user permissions per operation', function (): void {
-    Role::query()->create(['name' => 'user-viewer', 'guard_name' => 'web'])
+    Role::query()->create(['name' => 'user-viewer', 'guard_name' => 'web', 'organisation_id' => null])
         ->givePermissionTo(PermissionEnum::CanShowUsers->value);
 
     // Editor holds every permission of `limited-reader`, so RoleGrantService lets them touch it.
-    Role::query()->create(['name' => 'user-editor', 'guard_name' => 'web'])
+    Role::query()->create(['name' => 'user-editor', 'guard_name' => 'web', 'organisation_id' => null])
         ->givePermissionTo([
             PermissionEnum::CanShowUsers->value,
             PermissionEnum::CanEditUsers->value,
         ]);
 
-    Role::query()->create(['name' => 'limited-reader', 'guard_name' => 'web'])
+    Role::query()->create(['name' => 'limited-reader', 'guard_name' => 'web', 'organisation_id' => null])
         ->givePermissionTo(PermissionEnum::CanShowUsers->value);
 
-    $viewer = User::factory()->create()->assignRole('user-viewer');
-    $editor = User::factory()->create()->assignRole('user-editor');
-    $target = User::factory()->create()->assignRole('limited-reader');
+    $viewer = assignOrganisationRole(User::factory()->create(), 'user-viewer');
+    $editor = assignOrganisationRole(User::factory()->create(), 'user-editor');
+    $target = assignOrganisationRole(User::factory()->create(), 'limited-reader');
 
     $this->actingAs($viewer)->get(route('users.index'))->assertOk();
     $this->actingAs($viewer)->post(route('users.store'), userPayload())->assertForbidden();
@@ -266,9 +274,8 @@ it('lists the roles the user may grant for the role picker', function (): void {
 });
 
 it('makes a user created by an admin a member of the admin organisation', function (): void {
-    $admin = managedUser(RoleEnum::Admin);
     $organisation = Organisation::factory()->create();
-    app(GrantOrganisationAccessAction::class)->execute($admin, $organisation, BrainRoleEnum::Owner);
+    $admin = assignOrganisationRole(User::factory()->create(), RoleEnum::Admin, $organisation->id);
 
     $this->actingAs($admin)->post(route('users.store'), userPayload())->assertRedirect(route('users.index'));
 
@@ -280,9 +287,13 @@ it('makes a user created by an admin a member of the admin organisation', functi
 });
 
 it('creates a user without a perimeter when the admin has none', function (): void {
-    $admin = managedUser(RoleEnum::Admin);
+    // Instance super-admin has no organisation perimeter; CreateUser must not invent one.
+    // Org-scoped roles need an organisation_id, so this path creates an instance super-admin only.
+    $admin = grantInstanceSuperAdmin(User::factory()->create());
 
-    $this->actingAs($admin)->post(route('users.store'), userPayload())->assertRedirect(route('users.index'));
+    $this->actingAs($admin)
+        ->post(route('users.store'), userPayload(['roles' => [RoleEnum::SuperAdmin->value]]))
+        ->assertRedirect(route('users.index'));
 
     expect(User::query()->where('email', 'grace@example.com')->firstOrFail()->principals()->count())->toBe(0);
 });

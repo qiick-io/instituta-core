@@ -11,11 +11,11 @@ use App\Brain\Enums\ScopeTypeEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Console\Concerns\ManagesDotEnvTrait;
 use App\Enums\CompanyKindEnum;
-use App\Enums\RoleEnum;
 use App\Models\Company;
 use App\Models\Organisation;
 use App\Models\Principal;
 use App\Models\User;
+use App\Services\Authorization\InstanceSuperAdminGroupService;
 use App\Services\InitialSuperAdminPasswordService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Console\Command;
@@ -242,7 +242,7 @@ class InstallCommand extends Command
 
             $principal = $grantOrganisationAccess->execute($user, $org, BrainRoleEnum::Owner);
 
-            $user->assignRole(RoleEnum::SuperAdmin->value);
+            app(InstanceSuperAdminGroupService::class)->grant($user);
 
             $issued = $createApiKey->execute(
                 principal: $principal,

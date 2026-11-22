@@ -170,9 +170,14 @@ it('returns users only to who may list them', function () {
 
     expect(globalSearchLabels($withoutPermission, 'users'))->toBe([]);
 
-    $adminRole = Role::query()->firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+    $adminRole = Role::query()->firstOrCreate(['name' => 'admin', 'guard_name' => 'web', 'organisation_id' => null]);
     $adminRole->givePermissionTo(PermissionEnum::CanShowUsers->value);
-    $seed['user']->assignRole($adminRole);
+    assignOrganisationRole(
+        $seed['user'],
+        $adminRole,
+        $seed['itemA']->organisation_id,
+        withPerimeter: false,
+    );
 
     $withPermission = $this->actingAs($seed['user']->fresh())
         ->getJson(route('search', ['query' => 'ada']))

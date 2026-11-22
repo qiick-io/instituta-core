@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Middleware\SetPermissionsTeamJobMiddleware;
 use App\Models\Source;
 use App\Services\SourceSyncService;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -31,6 +32,21 @@ final class SyncSourceJob implements ShouldBeUnique, ShouldQueue
     public function uniqueId(): string
     {
         return $this->sourceId;
+    }
+
+    /**
+     * @return list<class-string>
+     */
+    public function middleware(): array
+    {
+        return [SetPermissionsTeamJobMiddleware::class];
+    }
+
+    public function organisationIdForPermissions(): ?string
+    {
+        $organisationId = Source::query()->whereKey($this->sourceId)->value('organisation_id');
+
+        return is_string($organisationId) && $organisationId !== '' ? $organisationId : null;
     }
 
     public function handle(SourceSyncService $sync): void

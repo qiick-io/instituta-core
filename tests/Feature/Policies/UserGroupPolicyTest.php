@@ -14,13 +14,13 @@ use Illuminate\Support\Facades\Gate;
 beforeEach(function (): void {
     $this->seed([PermissionSeeder::class, RoleSeeder::class]);
 
-    $this->superAdmin = User::factory()->create()->assignRole(RoleEnum::SuperAdmin->value);
+    $this->superAdmin = grantInstanceSuperAdmin(User::factory()->create());
 
     $this->group = UserGroup::factory()->create(['name' => 'Editors']);
     $this->superAdminGroup = UserGroup::factory()->create(['name' => 'Owners']);
     $this->superAdminGroup->roles()->sync([Role::findByName(RoleEnum::SuperAdmin->value)->id]);
 
-    $managerRole = Role::query()->create(['name' => 'groups-manager', 'guard_name' => 'web']);
+    $managerRole = Role::query()->create(['name' => 'groups-manager', 'guard_name' => 'web', 'organisation_id' => null]);
     $managerRole->syncPermissions([
         PermissionEnum::CanShowGroups->value,
         PermissionEnum::CanCreateGroups->value,
@@ -29,7 +29,7 @@ beforeEach(function (): void {
         PermissionEnum::CanRestoreGroups->value,
         PermissionEnum::CanForceDeleteGroups->value,
     ]);
-    $this->manager = User::factory()->create()->assignRole($managerRole);
+    $this->manager = assignOrganisationRole(User::factory()->create(), $managerRole);
     $this->outsider = User::factory()->create();
 });
 

@@ -16,7 +16,7 @@ beforeEach(function (): void {
  * Fleet users baseline: public_id UUID v7 is the external id; password may be null.
  */
 it('assigns a uuid v7 public_id and never exposes the bigint id in the admin resource', function (): void {
-    $admin = User::factory()->create()->assignRole(RoleEnum::Admin->value);
+    $admin = assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value);
     $user = User::factory()->create();
 
     expect(Str::isUuid($user->public_id))->toBeTrue()

@@ -49,6 +49,10 @@ return [
             // Search drivers live under Services\Search and use the Driver suffix.
             'App\Services\Search',
         ],
+        'Jobs' => [
+            // Laravel job middleware lives under Jobs\Middleware and ends with Middleware.
+            'App\Jobs\Middleware',
+        ],
         'traits' => [
             // Starter-kit validation-rule traits, never renamed.
             'App\Concerns',

@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Actions\GrantOrganisationAccessAction;
 use App\Ai\Agents\AppAssistant;
 use App\Ai\Tools\OutlineBrainItemTool;
 use App\Ai\Tools\SearchBrainTool;
-use App\Brain\Enums\RoleEnum;
 use App\Brain\Enums\VisibilityEnum;
 use App\Enums\RoleEnum as AppRoleEnum;
 use App\Models\Activity;
@@ -33,8 +31,11 @@ beforeEach(function (): void {
     config(['ai.assistant.enabled' => true, 'ai.daily_prompt_limit' => 0, 'ai.daily_token_budget' => 0]);
 
     $this->organisation = Organisation::factory()->create();
-    $this->user = User::factory()->create()->assignRole(AppRoleEnum::Admin->value);
-    app(GrantOrganisationAccessAction::class)->execute($this->user, $this->organisation, RoleEnum::Member);
+    $this->user = assignOrganisationRole(
+        User::factory()->create(),
+        AppRoleEnum::Admin->value,
+        $this->organisation->id,
+    );
 });
 
 it('reports the assistant off by default and never probes a provider then', function (): void {
@@ -64,7 +65,7 @@ it('probes the local provider when the assistant is on', function (): void {
 });
 
 it('needs the can-use-ai permission', function (): void {
-    $reader = User::factory()->create()->assignRole(AppRoleEnum::Reader->value);
+    $reader = assignOrganisationRole(User::factory()->create(), AppRoleEnum::Reader->value);
 
     $this->actingAs($reader)->getJson(route('ai.status'))->assertForbidden();
     $this->actingAs($reader)->postJson(route('ai.chat'), ['message' => 'Hello'])->assertForbidden();
@@ -124,8 +125,11 @@ it('keeps conversations private to their owner', function (): void {
         'participant_id' => $this->user->id,
         'title' => 'Brand questions',
     ]);
-    $other = User::factory()->create()->assignRole(AppRoleEnum::Admin->value);
-    app(GrantOrganisationAccessAction::class)->execute($other, $this->organisation, RoleEnum::Member);
+    $other = assignOrganisationRole(
+        User::factory()->create(),
+        AppRoleEnum::Admin->value,
+        $this->organisation->id,
+    );
 
     $this->actingAs($other)->getJson(route('ai.conversations.show', $conversationId))->assertNotFound();
     $this->actingAs($other)->deleteJson(route('ai.conversations.destroy', $conversationId))->assertNotFound();
@@ -136,7 +140,8 @@ it('keeps conversations private to their owner', function (): void {
 });
 
 it('answers 404 to a user without a brain perimeter', function (): void {
-    $outsider = User::factory()->create()->assignRole(AppRoleEnum::Admin->value);
+    // Instance super-admin passes the permission gate without a team; requirePerimeter still 404s.
+    $outsider = grantInstanceSuperAdmin(User::factory()->create());
     AppAssistant::fake(['Never sent']);
 
     $this->actingAs($outsider)->postJson(route('ai.chat'), ['message' => 'Hi'])->assertNotFound();
@@ -175,6 +180,6 @@ it('renders the assistant page with its status, also while the assistant is off'
             ->where('status.enabled', false)
             ->where('conversations', []));
 
-    $reader = User::factory()->create()->assignRole(AppRoleEnum::Reader->value);
+    $reader = assignOrganisationRole(User::factory()->create(), AppRoleEnum::Reader->value);
     $this->actingAs($reader)->get(route('ai.index'))->assertForbidden();
 });

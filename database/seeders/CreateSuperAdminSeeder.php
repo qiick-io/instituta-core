@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Enums\RoleEnum;
 use App\Models\User;
+use App\Services\Authorization\InstanceSuperAdminGroupService;
 use App\Services\InitialSuperAdminPasswordService;
 use Illuminate\Database\Seeder;
 
@@ -15,6 +15,8 @@ use Illuminate\Database\Seeder;
  * In `local` and `testing` the password may be the known default. Elsewhere a strong,
  * explicitly configured password is required. When the configured email already exists the
  * seeder is a no-op in every environment: it never forceFills an existing user.
+ *
+ * Super-admin membership is the instance group, not a Spatie team pivot row.
  */
 class CreateSuperAdminSeeder extends Seeder
 {
@@ -29,8 +31,11 @@ class CreateSuperAdminSeeder extends Seeder
     /**
      * The seeded super admin, or null when the environment, password or existing user forbids it.
      */
-    public function seedSuperAdmin(InitialSuperAdminPasswordService $passwordValidation): ?User
-    {
+    public function seedSuperAdmin(
+        InitialSuperAdminPasswordService $passwordValidation,
+        ?InstanceSuperAdminGroupService $instanceSuperAdmins = null,
+    ): ?User {
+        $instanceSuperAdmins ??= app(InstanceSuperAdminGroupService::class);
         $environment = app()->environment();
         $configuredPassword = config('super_admin.password');
         $password = is_string($configuredPassword) ? $configuredPassword : null;
@@ -60,7 +65,7 @@ class CreateSuperAdminSeeder extends Seeder
             'is_active' => true,
         ]);
         $user->save();
-        $user->assignRole(RoleEnum::SuperAdmin->value);
+        $instanceSuperAdmins->grant($user);
 
         return $user;
     }

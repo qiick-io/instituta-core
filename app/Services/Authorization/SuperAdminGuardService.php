@@ -66,13 +66,12 @@ class SuperAdminGuardService
      */
     private function activeSuperAdmins(): Builder
     {
-        $isSuperAdminRole = fn (Builder $roles) => $roles->where('name', RoleEnum::SuperAdmin->value);
-
-        // Same sources as EffectivePermissionResolverService; `groups` skips soft-deleted groups.
+        // Instance super-admin is group-only when Spatie teams are on (no team pivot row).
         return User::query()
             ->where('is_active', true)
-            ->where(fn (Builder $users) => $users
-                ->whereHas('roles', $isSuperAdminRole)
-                ->orWhereHas('groups.roles', $isSuperAdminRole));
+            ->whereHas(
+                'groups.roles',
+                static fn (Builder $roles) => $roles->where('name', RoleEnum::SuperAdmin->value),
+            );
     }
 }

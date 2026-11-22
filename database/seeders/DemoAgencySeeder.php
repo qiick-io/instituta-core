@@ -31,6 +31,7 @@ use App\Models\Proposal;
 use App\Models\Source;
 use App\Models\User;
 use App\Models\UserGroup;
+use App\Services\Authorization\InstanceSuperAdminGroupService;
 use App\Services\InitialSuperAdminPasswordService;
 use App\Services\SourceRegistryService;
 use App\Services\SourceSyncService;
@@ -184,7 +185,15 @@ final class DemoAgencySeeder extends Seeder
             'password' => Hash::make(self::PASSWORD),
         ]);
         $user->forceFill(['email_verified_at' => now()])->save();
-        $user->assignRole($role->value);
+
+        if ($role === RoleEnum::SuperAdmin) {
+            app(InstanceSuperAdminGroupService::class)->grant($user);
+        } else {
+            // Demo people are always members of the Northwind organisation (created above).
+            $organisationId = Organisation::query()->where('slug', 'northwind')->value('id');
+            setPermissionsTeamId($organisationId);
+            $user->assignRole($role->value);
+        }
 
         return $user;
     }
