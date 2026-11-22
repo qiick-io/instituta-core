@@ -106,15 +106,12 @@ final class DashboardOverviewMetricsService
      */
     public function openProposals(PerimeterData $perimeter): array
     {
-        $openProposals = $this->proposals
-            ->modelsInPerimeter($perimeter, ProposalStatusEnum::Open)
-            ->sortByDesc('created_at')
-            ->values();
+        $recentProposals = $this->proposals
+            ->modelsInPerimeter($perimeter, ProposalStatusEnum::Open, self::RECENT_LIMIT);
 
         return [
-            'open_count' => $openProposals->count(),
-            'recent' => array_values($openProposals
-                ->take(self::RECENT_LIMIT)
+            'open_count' => $this->proposals->countInPerimeter($perimeter, ProposalStatusEnum::Open),
+            'recent' => array_values($recentProposals
                 ->map(fn (Proposal $proposal): array => [
                     'id' => $proposal->id,
                     'title' => $proposal->title,
