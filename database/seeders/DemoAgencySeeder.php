@@ -115,12 +115,24 @@ final class DemoAgencySeeder extends Seeder
             $grantAccess->execute($superAdmin, $organisation, BrainRoleEnum::Owner);
         }
 
-        $team = UserGroup::query()->create(['name' => 'Delivery team', 'description' => 'Developers who ship client releases']);
+        $team = new UserGroup;
+        $team->forceFill([
+            'name' => 'Delivery team',
+            'description' => 'Developers who ship client releases',
+            'organisation_id' => $organisation->id,
+            'is_instance' => false,
+        ])->save();
         $team->users()->attach([$marco->id, $priya->id]);
 
         // Per-area access (#334): Giulia reads the brain only through Marketing, limited to its areas.
         $giulia = $this->person('Giulia', 'Ferri', 'giulia@northwind.example', RoleEnum::Reader);
-        $marketing = UserGroup::query()->create(['name' => 'Marketing', 'description' => 'Brand, style and the glossary only']);
+        $marketing = new UserGroup;
+        $marketing->forceFill([
+            'name' => 'Marketing',
+            'description' => 'Brand, style and the glossary only',
+            'organisation_id' => $organisation->id,
+            'is_instance' => false,
+        ])->save();
         $marketing->users()->attach([$giulia->id]);
         $marketing->brainAccess()->create([
             'organisation_id' => $organisation->id,

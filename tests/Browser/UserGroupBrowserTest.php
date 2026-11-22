@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\RoleEnum;
+use App\Models\Organisation;
 use App\Models\User;
 use App\Models\UserGroup;
 use Database\Seeders\PermissionSeeder;
@@ -14,9 +15,9 @@ use Database\Seeders\RoleSeeder;
  */
 it('creates a user group from the drawer, in light and dark', function (string $mode): void {
     $this->seed([PermissionSeeder::class, RoleSeeder::class]);
-    UserGroup::factory()->create(['name' => 'Support team']);
-    $admin = assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value);
-
+    $organisation = Organisation::factory()->create();
+    UserGroup::factory()->create(['name' => 'Support team', 'organisation_id' => $organisation->id]);
+    $admin = assignOrganisationRole(User::factory()->create(), RoleEnum::Admin->value, $organisation->id);
     $this->actingAs($admin);
     $start = visit(route('groups.index', absolute: false));
     $page = $mode === 'dark' ? $start->inDarkMode() : $start->inLightMode();
