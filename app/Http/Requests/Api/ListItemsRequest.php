@@ -25,7 +25,7 @@ final class ListItemsRequest extends FormRequest
             'scope' => ['required', 'string'],
             'area' => ['nullable', 'string'],
             'type' => ['nullable', 'string'],
-            'cursor' => ['nullable', 'string'],
+            'cursor' => ['nullable', 'uuid'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
     }

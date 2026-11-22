@@ -10,6 +10,7 @@ use App\Mcp\Support\HttpBrainContext;
 use App\Services\BrainWriteGateService;
 use App\Services\ProposalQueryService;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Str;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
@@ -53,6 +54,13 @@ class InstitutaListProposalsTool extends Tool
         }
 
         $cursor = $request->get('cursor');
+        if (is_string($cursor) && trim($cursor) === '') {
+            $cursor = null;
+        }
+        if ($cursor !== null && (! is_string($cursor) || ! Str::isUuid($cursor))) {
+            return Response::error(ContractErrorCodeEnum::ValidationFailed->mcpText('cursor must be a valid UUID.'));
+        }
+
         $limit = $request->get('limit');
 
         return Response::structured(
@@ -61,7 +69,7 @@ class InstitutaListProposalsTool extends Tool
                 $this->brain->apiKey(),
                 $status,
                 'mcp',
-                is_string($cursor) && $cursor !== '' ? $cursor : null,
+                is_string($cursor) ? $cursor : null,
                 is_numeric($limit) ? max(1, min(100, (int) $limit)) : 25,
             ),
         );

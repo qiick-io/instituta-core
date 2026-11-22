@@ -25,7 +25,7 @@ final class ListChangesRequest extends FormRequest
             'scope' => ['required', 'string'],
             'since' => ['required', 'string', 'max:64'],
             'area' => ['nullable', 'string'],
-            'cursor' => ['nullable', 'string'],
+            'cursor' => ['nullable', 'uuid'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:200'],
         ];
     }
