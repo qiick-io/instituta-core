@@ -69,8 +69,10 @@ paths:
                       type: string
                 - name: cursor
                   in: query
+                  description: Opaque pagination cursor from a previous response (the last item id).
                   schema:
                       type: string
+                      format: uuid
                 - name: limit
                   in: query
                   schema:
@@ -366,8 +368,10 @@ paths:
                       type: string
                 - name: cursor
                   in: query
+                  description: Opaque pagination cursor from a previous response (the last change id).
                   schema:
                       type: string
+                      format: uuid
                 - name: limit
                   in: query
                   schema:
@@ -693,6 +697,10 @@ paths:
         get:
             tags: [Contract]
             summary: List write proposals in the key perimeter
+            description: >-
+                Returns proposal summaries ordered oldest first by id. Pass `next_cursor` from the
+                previous response as `cursor` to fetch the next page; the cursor is stable because
+                ordering is by id.
             operationId: listProposals
             security:
                 - ApiKeyBearer: []
@@ -704,8 +712,10 @@ paths:
                       enum: [open, accepted, rejected]
                 - name: cursor
                   in: query
+                  description: Opaque pagination cursor from a previous response (the last proposal id).
                   schema:
                       type: string
+                      format: uuid
                 - name: limit
                   in: query
                   schema:
