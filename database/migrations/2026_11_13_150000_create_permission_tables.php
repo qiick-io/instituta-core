@@ -72,6 +72,7 @@ return new class extends Migration
                 // knowledge/decisions/2026-11-19-fleet-core-schema: uuid, not unsignedBigInteger.
                 $table->uuid($columnNames['team_foreign_key']);
                 $table->index($columnNames['team_foreign_key'], 'model_has_permissions_team_foreign_key_index');
+                $table->index($pivotPermission);
 
                 $table->primary(
                     [$columnNames['team_foreign_key'], $pivotPermission, $columnNames['model_morph_key'], 'model_type'],
@@ -100,6 +101,7 @@ return new class extends Migration
                 // knowledge/decisions/2026-11-19-fleet-core-schema: uuid, not unsignedBigInteger.
                 $table->uuid($columnNames['team_foreign_key']);
                 $table->index($columnNames['team_foreign_key'], 'model_has_roles_team_foreign_key_index');
+                $table->index($pivotRole);
 
                 $table->primary(
                     [$columnNames['team_foreign_key'], $pivotRole, $columnNames['model_morph_key'], 'model_type'],
@@ -115,7 +117,7 @@ return new class extends Migration
 
         Schema::create($tableNames['role_has_permissions'], static function (Blueprint $table) use ($tableNames, $pivotRole, $pivotPermission): void {
             $table->unsignedBigInteger($pivotPermission);
-            $table->unsignedBigInteger($pivotRole);
+            $table->unsignedBigInteger($pivotRole)->index();
 
             $table->foreign($pivotPermission)
                 ->references('id')

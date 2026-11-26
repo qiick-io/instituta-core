@@ -16,9 +16,9 @@ return new class extends Migration
     {
         Schema::create('gap_reports', function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
-            $table->foreignUuid('company_id')->nullable()->constrained('companies')->cascadeOnDelete();
-            $table->foreignUuid('product_id')->nullable()->constrained('products')->cascadeOnDelete();
+            $table->foreignUuid('organisation_id')->index()->constrained('organisations')->cascadeOnDelete();
+            $table->foreignUuid('company_id')->nullable()->index()->constrained('companies')->cascadeOnDelete();
+            $table->foreignUuid('product_id')->nullable()->index()->constrained('products')->cascadeOnDelete();
             $table->string('scope_type', 16);
             $table->uuid('scope_id');
             $table->string('kind', 16);
@@ -26,11 +26,11 @@ return new class extends Migration
             $table->text('summary');
             $table->text('question')->nullable();
             $table->json('related')->nullable();
-            $table->foreignUuid('reported_by_principal_id')->constrained('principals')->cascadeOnDelete();
-            $table->foreignUuid('api_key_id')->nullable()->constrained('api_keys')->nullOnDelete();
-            $table->foreignId('decided_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUuid('reported_by_principal_id')->index()->constrained('principals')->cascadeOnDelete();
+            $table->foreignUuid('api_key_id')->nullable()->index()->constrained('api_keys')->nullOnDelete();
+            $table->foreignId('decided_by_user_id')->nullable()->index()->constrained('users')->nullOnDelete();
             $table->timestamp('decided_at')->nullable();
-            $table->foreignUuid('proposal_id')->nullable()->constrained('proposals')->nullOnDelete();
+            $table->foreignUuid('proposal_id')->nullable()->index()->constrained('proposals')->nullOnDelete();
             $table->timestamps();
 
             $table->index(['scope_type', 'scope_id']);

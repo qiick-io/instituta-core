@@ -37,7 +37,7 @@ return new class extends Migration
 
         Schema::create('user_group_user', function (Blueprint $table): void {
             $table->foreignId('user_group_id')->constrained('user_groups')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->index()->constrained('users')->cascadeOnDelete();
             $table->timestamps();
 
             $table->unique(['user_group_id', 'user_id']);
@@ -45,7 +45,7 @@ return new class extends Migration
 
         Schema::create('user_group_role', function (Blueprint $table): void {
             $table->foreignId('user_group_id')->constrained('user_groups')->cascadeOnDelete();
-            $table->unsignedBigInteger('role_id');
+            $table->unsignedBigInteger('role_id')->index();
             $table->timestamps();
 
             $table->unique(['user_group_id', 'role_id']);
@@ -59,7 +59,7 @@ return new class extends Migration
         Schema::create('user_group_brain_access', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('user_group_id')->constrained('user_groups')->cascadeOnDelete();
-            $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
+            $table->foreignUuid('organisation_id')->index()->constrained('organisations')->cascadeOnDelete();
             $table->string('scope_type', 16);
             $table->uuid('scope_id');
             $table->string('role', 16);
@@ -72,7 +72,7 @@ return new class extends Migration
         });
 
         Schema::table('grants', function (Blueprint $table): void {
-            $table->foreignId('user_group_id')->nullable()->after('principal_id')->constrained('user_groups')->cascadeOnDelete();
+            $table->foreignId('user_group_id')->nullable()->after('principal_id')->index()->constrained('user_groups')->cascadeOnDelete();
         });
     }
 

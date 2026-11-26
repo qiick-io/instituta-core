@@ -19,9 +19,9 @@ return new class extends Migration
         Schema::create('item_changes', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organisation_id')->constrained('organisations')->cascadeOnDelete();
-            $table->foreignUuid('company_id')->nullable()->constrained('companies')->cascadeOnDelete();
-            $table->foreignUuid('product_id')->nullable()->constrained('products')->cascadeOnDelete();
-            $table->foreignUuid('source_id')->constrained('sources')->cascadeOnDelete();
+            $table->foreignUuid('company_id')->nullable()->index()->constrained('companies')->cascadeOnDelete();
+            $table->foreignUuid('product_id')->nullable()->index()->constrained('products')->cascadeOnDelete();
+            $table->foreignUuid('source_id')->index()->constrained('sources')->cascadeOnDelete();
             $table->uuid('item_id');
             $table->string('kind', 16);
             $table->string('stable_key');

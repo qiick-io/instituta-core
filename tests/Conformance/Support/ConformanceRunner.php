@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace Qiick\Standards\Conformance\Support;
 
+use Illuminate\Contracts\Auth\Access\Authorizable;
+use Illuminate\Database\QueryException;
+use Illuminate\Foundation\Auth\Access\Authorizable as AuthorizableTrait;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
@@ -91,8 +96,21 @@ final class ConformanceRunner
             'C73' => $this->c73AccessExpiredMembership(),
             'C74' => $this->c74AccessActivityUuids(),
             'C75' => $this->c75AccessGroupMigrations(),
+            'C76' => $this->c76ForeignKeysIndexed(),
             default => throw new \RuntimeException("No runner for {$check['id']}."),
         };
+    }
+
+    private function c76ForeignKeysIndexed(): void
+    {
+        $unindexedForeignKeys = $this->schema->foreignKeysWithoutIndex();
+
+        if ($unindexedForeignKeys !== []) {
+            throw new \RuntimeException(
+                'Foreign keys without an index (add ->index() or make the column lead an existing index): '
+                .implode('; ', $unindexedForeignKeys).'.',
+            );
+        }
     }
 
     private function c1UsersBaseline(): void
@@ -765,9 +783,36 @@ final class ConformanceRunner
             );
         }
 
+        // Runtime proof: config alone is not enough if a grant-all / Spatie before was re-registered.
+        $this->assertSpatiePermissionGateBeforeIsInactive();
+
         $this->hooks->requireProved('assertRoleDetachClearsResolver');
         // API actors (keys) must never receive the super-admin Gate::before pass.
         $this->hooks->requireProved('assertApiActorDeniedSuperAdmin');
+    }
+
+    /**
+     * Fail when a Gate::before grants to a Spatie-shaped non-user actor (Spatie's
+     * register_permission_check_method before, or an unconditional grant-all).
+     * A product super-admin before that only passes for the User model stays green.
+     */
+    private function assertSpatiePermissionGateBeforeIsInactive(): void
+    {
+        $spatieShapedActor = new class implements Authorizable
+        {
+            use AuthorizableTrait;
+
+            public function checkPermissionTo(mixed $permission, mixed $guardName = null): bool
+            {
+                return true;
+            }
+        };
+
+        if (Gate::forUser($spatieShapedActor)->allows('__qiick_conformance_spatie_gate_probe__')) {
+            throw new \RuntimeException(
+                'A Gate::before callback granted a permission to a non-user Spatie-shaped actor; keep register_permission_check_method off and do not re-register a grant-all before after boot.',
+            );
+        }
     }
 
     /**
@@ -830,8 +875,8 @@ final class ConformanceRunner
     }
 
     /**
-     * AC17 → C75: package group-table shape; Spatie tables match the allowlist on the
-     * live schema; migration text is only an extra signal.
+     * AC17 → C75: package group-table shape (incl. organisation_id / is_instance XOR);
+     * Spatie tables match the allowlist on the live schema; migration text is an extra signal.
      */
     private function c75AccessGroupMigrations(): void
     {
@@ -844,6 +889,30 @@ final class ConformanceRunner
         $this->schema->assertColumnExists('user_groups', 'metadata');
         $this->schema->assertColumnExists('user_groups', 'deleted_at');
         $this->schema->assertColumnExists('user_groups', 'name');
+        // laravel-access#8 / AC17: instance vs organisation scoping (externa leaves both unused).
+        $this->schema->assertColumnExists('user_groups', 'organisation_id');
+        $this->schema->assertColumnExists('user_groups', 'is_instance');
+
+        if (! $this->schema->isNullable('user_groups', 'organisation_id')) {
+            throw new \RuntimeException('user_groups.organisation_id must be nullable.');
+        }
+
+        if ($this->schema->isNullable('user_groups', 'is_instance')) {
+            throw new \RuntimeException('user_groups.is_instance must not be nullable.');
+        }
+
+        if (! $this->schema->columnTypeContains('user_groups', 'organisation_id', 'uuid')
+            && ! $this->schema->columnTypeContains('user_groups', 'organisation_id', 'char')
+            && ! $this->schema->columnTypeContains('user_groups', 'organisation_id', 'guid')) {
+            throw new \RuntimeException('user_groups.organisation_id must be UUID-typed.');
+        }
+
+        if (! $this->schema->hasIndexCovering('user_groups', 'organisation_id')
+            && ! $this->indexMentionsColumn('user_groups', 'organisation_id')) {
+            throw new \RuntimeException('user_groups.organisation_id must be indexed.');
+        }
+
+        $this->assertUserGroupsInstanceOrganisationXor();
 
         if (! $this->schema->hasUniqueIndexCovering('user_groups', 'public_id')
             && ! $this->schema->hasUniqueIndexCovering('user_groups', 'public_id', 'deleted_at')) {
@@ -927,33 +996,96 @@ final class ConformanceRunner
     }
 
     /**
-     * Fail when a Spatie table has a column outside the fleet allowlist (catches
-     * ALTER / Schema::table($var) that already ran on the database).
+     * Bidirectional Spatie schema allowlist: unexpected columns fail, required
+     * columns/types/indexes must still be present (drops and type changes go red).
+     *
+     * @return array<string, array{
+     *     required: array<string, list<string>>,
+     *     optional: list<string>,
+     *     required_unique_indexes: list<list<string>>
+     * }>
+     */
+    private function spatieTableAllowlists(): array
+    {
+        $stringTypes = ['varchar', 'string', 'character varying', 'char'];
+        $integerTypes = ['bigint', 'integer', 'int', 'int8', 'int4'];
+        $datetimeTypes = ['datetime', 'timestamp', 'date'];
+
+        return [
+            'roles' => [
+                'required' => [
+                    'id' => $integerTypes,
+                    'name' => $stringTypes,
+                    'guard_name' => $stringTypes,
+                    'created_at' => $datetimeTypes,
+                    'updated_at' => $datetimeTypes,
+                ],
+                'optional' => [
+                    'organisation_id', 'team_id', // team_id: externa 1.x until v2
+                    'public_id', 'is_system', 'is_assignable', 'description', 'metadata',
+                ],
+                'required_unique_indexes' => [
+                    ['name', 'guard_name'],
+                    ['organisation_id', 'name', 'guard_name'],
+                    ['team_id', 'name', 'guard_name'],
+                ],
+            ],
+            'permissions' => [
+                'required' => [
+                    'id' => $integerTypes,
+                    'name' => $stringTypes,
+                    'guard_name' => $stringTypes,
+                    'created_at' => $datetimeTypes,
+                    'updated_at' => $datetimeTypes,
+                ],
+                'optional' => [],
+                'required_unique_indexes' => [
+                    ['name', 'guard_name'],
+                ],
+            ],
+            'model_has_roles' => [
+                'required' => [
+                    'role_id' => $integerTypes,
+                    'model_type' => $stringTypes,
+                    'model_id' => $integerTypes,
+                ],
+                'optional' => ['organisation_id', 'team_id'],
+                'required_unique_indexes' => [],
+            ],
+            'model_has_permissions' => [
+                'required' => [
+                    'permission_id' => $integerTypes,
+                    'model_type' => $stringTypes,
+                    'model_id' => $integerTypes,
+                ],
+                'optional' => ['organisation_id', 'team_id'],
+                'required_unique_indexes' => [],
+            ],
+            'role_has_permissions' => [
+                'required' => [
+                    'permission_id' => $integerTypes,
+                    'role_id' => $integerTypes,
+                ],
+                'optional' => [],
+                'required_unique_indexes' => [],
+            ],
+        ];
+    }
+
+    /**
+     * Fail when the migrated Spatie schema diverges from the allowlist in either direction.
      */
     private function assertSpatieTablesMatchAllowlist(): void
     {
-        $allowlists = [
-            'roles' => [
-                'id', 'name', 'guard_name', 'created_at', 'updated_at',
-                'organisation_id', 'team_id', // team_id: externa 1.x until v2
-                'public_id', 'is_system', 'is_assignable', 'description', 'metadata',
-            ],
-            'permissions' => ['id', 'name', 'guard_name', 'created_at', 'updated_at'],
-            'model_has_roles' => [
-                'role_id', 'model_type', 'model_id', 'organisation_id', 'team_id',
-            ],
-            'model_has_permissions' => [
-                'permission_id', 'model_type', 'model_id', 'organisation_id', 'team_id',
-            ],
-            'role_has_permissions' => ['permission_id', 'role_id'],
-        ];
-
-        foreach ($allowlists as $table => $allowed) {
+        foreach ($this->spatieTableAllowlists() as $table => $definition) {
             if (! $this->schema->hasTable($table)) {
                 throw new \RuntimeException("Expected Spatie table \"{$table}\" to exist when usesLaravelAccess is set.");
             }
 
-            $allowedLookup = array_flip($allowed);
+            $allowedLookup = array_flip(array_merge(
+                array_keys($definition['required']),
+                $definition['optional'],
+            ));
 
             foreach ($this->schema->columnNames($table) as $column) {
                 if (! isset($allowedLookup[$column])) {
@@ -962,7 +1094,62 @@ final class ConformanceRunner
                     );
                 }
             }
+
+            foreach ($definition['required'] as $column => $typeNeedles) {
+                if (! in_array($column, $this->schema->columnNames($table), true)) {
+                    throw new \RuntimeException(
+                        "Spatie table {$table} is missing required column \"{$column}\".",
+                    );
+                }
+
+                $this->assertSpatieColumnType($table, $column, $typeNeedles);
+            }
+
+            foreach (['organisation_id', 'team_id', 'public_id'] as $uuidColumn) {
+                if (in_array($uuidColumn, $this->schema->columnNames($table), true)) {
+                    $this->assertSpatieColumnType($table, $uuidColumn, ['uuid', 'char', 'guid', 'uniqueidentifier']);
+                }
+            }
+
+            if ($definition['required_unique_indexes'] !== []) {
+                $hasRequiredUnique = false;
+
+                foreach ($definition['required_unique_indexes'] as $columns) {
+                    if ($this->schema->hasUniqueIndexCovering($table, ...$columns)) {
+                        $hasRequiredUnique = true;
+                        break;
+                    }
+                }
+
+                if (! $hasRequiredUnique) {
+                    $patterns = array_map(
+                        static fn (array $columns): string => '('.implode(', ', $columns).')',
+                        $definition['required_unique_indexes'],
+                    );
+
+                    throw new \RuntimeException(
+                        "Spatie table {$table} is missing a required unique index; expected one of: "
+                        .implode(', ', $patterns).'.',
+                    );
+                }
+            }
         }
+    }
+
+    /**
+     * @param list<string> $typeNeedles
+     */
+    private function assertSpatieColumnType(string $table, string $column, array $typeNeedles): void
+    {
+        foreach ($typeNeedles as $needle) {
+            if ($this->schema->columnTypeContains($table, $column, $needle)) {
+                return;
+            }
+        }
+
+        throw new \RuntimeException(
+            "Spatie table {$table}.{$column} has an unexpected type; laravel-access must not alter Spatie column types.",
+        );
     }
 
     private function indexMentionsColumn(string $table, string $column): bool
@@ -977,8 +1164,38 @@ final class ConformanceRunner
     }
 
     /**
+     * Prove AC17 XOR: is_instance=true only with organisation_id NULL. A rolled-back
+     * insert of the forbidden combo must fail (CHECK or SQLite trigger).
+     */
+    private function assertUserGroupsInstanceOrganisationXor(): void
+    {
+        $connection = DB::connection();
+        $connection->beginTransaction();
+
+        try {
+            $connection->table('user_groups')->insert([
+                'public_id' => (string) Str::uuid(),
+                'name' => '__c75_instance_org_xor__',
+                'organisation_id' => (string) Str::uuid(),
+                'is_instance' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $connection->rollBack();
+
+            throw new \RuntimeException(
+                'user_groups must CHECK that is_instance=true only when organisation_id IS NULL (is_instance with organisation_id set must be rejected).',
+            );
+        } catch (QueryException) {
+            $connection->rollBack();
+        }
+    }
+
+    /**
      * Extra signal: migration sources that alter Spatie tables (literal Schema::table,
-     * variable Schema::table after assignment, or ALTER TABLE). Comments are stripped.
+     * variable Schema::table after assignment, ALTER TABLE, or constructed DDL via
+     * sprintf / concatenation). Comments are stripped. Constructed DDL is a
+     * best-effort heuristic — the live-schema allowlist remains the primary proof.
      *
      * @return list<string>
      */
@@ -1009,7 +1226,19 @@ final class ConformanceRunner
                     if (preg_match('/Schema::table\(\s*[\'"]'.$quoted.'[\'"]/', $contents) === 1
                         || preg_match('/ALTER\s+TABLE\s+[\'"`]?'.$quoted.'[\'"`]?/i', $contents) === 1
                         || preg_match(
-                            '/\$\w+\s*=\s*[\'"]'.$quoted.'[\'"]\s*;[^;]*Schema::table\(\s*\$\w+/s',
+                            '/\$(\w+)\s*=\s*[\'"]'.$quoted.'[\'"]\s*;[\s\S]*?Schema::table\(\s*\$\1\b/',
+                            $contents,
+                        ) === 1
+                        || preg_match(
+                            '/sprintf\s*\(\s*[\'"][^\'"]*ALTER\s+TABLE[^\'"]*[\'"]\s*,\s*[\'"]'.$quoted.'[\'"]/i',
+                            $contents,
+                        ) === 1
+                        || preg_match(
+                            '/[\'"]ALTER\s+TABLE\s+[\'"]\s*\.\s*[\'"]'.$quoted.'[\'"]/i',
+                            $contents,
+                        ) === 1
+                        || preg_match(
+                            '/[\'"]ALTER\s+TABLE\s+'.$quoted.'\b/i',
                             $contents,
                         ) === 1) {
                         $offenders[] = $file->getFilename();
@@ -1035,9 +1264,25 @@ final class ConformanceRunner
     /**
      * Insert a real users row for probe FKs (C3). Hard-coding user_id=1 aborts
      * PostgreSQL when the row is missing.
+     *
+     * The product's own user factory (`conformance.userModel`) comes first, then
+     * the `fixtureUser` hook, because only the product knows its extra NOT NULL
+     * columns (excubia's `first_name`); a raw minimal row is the last resort.
      */
     private function insertFixtureUser(): int|string
     {
+        $userModel = $this->hooks->userModel();
+
+        if (class_exists($userModel) && method_exists($userModel, 'factory')) {
+            return $userModel::factory()->create()->getKey();
+        }
+
+        $hookedUserKey = $this->hooks->fixtureUserKey();
+
+        if ($hookedUserKey !== null) {
+            return $hookedUserKey;
+        }
+
         $publicIdColumn = $this->hooks->publicIdColumn();
         $attributes = [
             $publicIdColumn => (string) Str::uuid(),
@@ -1062,7 +1307,7 @@ final class ConformanceRunner
             return $this->schema->connection()->table('users')->insertGetId($attributes);
         } catch (\Throwable $exception) {
             throw new \RuntimeException(
-                'C3 could not insert a fixture user (extra NOT NULL columns without defaults?). '.$exception->getMessage(),
+                'C3 could not insert a fixture user: give conformance.userModel a factory or add a fixtureUser hook in tests/Conformance/hooks.php (extra NOT NULL columns without defaults?). '.$exception->getMessage(),
                 0,
                 $exception,
             );
