@@ -6,16 +6,6 @@ on:
     tags: ["v*"]
   pull_request:
     branches: [develop, main]
-    paths:
-      - Dockerfile
-      - docker-bake.hcl
-      - docker/**
-      - compose.yaml
-      - .env.docker*
-      - .github/workflows/docker.yml
-      - package.json
-      - package-lock.json
-      - vite.config.ts
   workflow_dispatch:
 
 permissions:
@@ -30,8 +20,24 @@ jobs:
   compose-config:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      has-image-changes: ${{ steps.image-changes.outputs.has-changes }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+      # Branch protection requires compose-config on every PR. Only image builds
+      # can be skipped when the merge commit leaves the image inputs untouched.
+      - name: Detect image input changes
+        id: image-changes
+        if: github.event_name == 'pull_request' && github.base_ref == 'develop'
+        run: |
+          changed_files=$(git diff --name-only HEAD^1 HEAD -- Dockerfile docker-bake.hcl docker/ \
+            compose.yaml '.env.docker*' .github/workflows/docker.yml composer.json composer.lock \
+            package.json package-lock.json vite.config.ts)
+          if [[ -n "$changed_files" ]]; then
+            echo 'has-changes=true' >> "$GITHUB_OUTPUT"
+          fi
       - name: Prepare env
         run: |
           cp .env.docker.example .env
@@ -40,6 +46,10 @@ jobs:
         run: docker compose -f compose.yaml config --quiet
 
   image-build:
+    if: >-
+      github.event_name != 'pull_request'
+      || github.base_ref == 'main'
+      || needs.compose-config.outputs.has-image-changes == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: compose-config
@@ -49,11 +59,8 @@ jobs:
         run: docker build --target development -t instituta:dev .
       - name: Build production target
         run: docker build --target production -t instituta:prod .
-      - name: Assert PHP 8.4+
-        run: |
-          set -euo pipefail
-          docker run --rm --entrypoint php instituta:prod -v | tee /tmp/php-v.txt
-          grep -E 'PHP 8\.(4|5)\.' /tmp/php-v.txt
+      - name: Check production PHP platform
+        run: docker run --rm --entrypoint composer instituta:prod check-platform-reqs --no-dev
 
   # arm64 needs QEMU emulation and costs ~39 billable minutes, so the full
   # linux/amd64,linux/arm64 manifest is baked on a release only: a v* tag, a

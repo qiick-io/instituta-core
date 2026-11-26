@@ -30,14 +30,22 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 # -----------------------------------------------------------------------------
-# Build: composer --no-dev + npm build (Wayfinder needs vendor)
+# Node for the frontend build and the Compose Vite server
 # -----------------------------------------------------------------------------
-FROM php-base AS build
+FROM php-base AS node-base
 
+# The Node binary copied from node:26-bookworm links against libatomic.
+RUN apt-get update && apt-get install -y --no-install-recommends libatomic1 \
+    && rm -rf /var/lib/apt/lists/*
 COPY --from=node:26-bookworm /usr/local/bin/node /usr/local/bin/node
 COPY --from=node:26-bookworm /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
+# -----------------------------------------------------------------------------
+# Build: composer --no-dev + npm build (Wayfinder needs vendor)
+# -----------------------------------------------------------------------------
+FROM node-base AS build
 
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader --no-scripts
@@ -55,12 +63,7 @@ RUN composer dump-autoload --optimize --no-dev \
 # -----------------------------------------------------------------------------
 # Vite (Compose): PHP for Wayfinder + Node for npm run dev
 # -----------------------------------------------------------------------------
-FROM php-base AS vite
-
-COPY --from=node:26-bookworm /usr/local/bin/node /usr/local/bin/node
-COPY --from=node:26-bookworm /usr/local/lib/node_modules /usr/local/lib/node_modules
-RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
-    && ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+FROM node-base AS vite
 
 WORKDIR /var/www/html
 
