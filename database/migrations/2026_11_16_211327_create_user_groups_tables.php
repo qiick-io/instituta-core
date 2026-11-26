@@ -68,7 +68,7 @@ return new class extends Migration
             $table->json('path_prefixes')->nullable();
             $table->timestamps();
 
-            $table->unique(['user_group_id', 'scope_type', 'scope_id']);
+            $table->unique(['user_group_id', 'scope_type', 'scope_id'], 'user_group_brain_access_user_group_scope_unique');
         });
 
         Schema::table('grants', function (Blueprint $table): void {
