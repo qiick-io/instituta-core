@@ -13,6 +13,8 @@ on:
       - compose.yaml
       - .env.docker*
       - .github/workflows/docker.yml
+      - composer.json
+      - composer.lock
       - package.json
       - package-lock.json
       - vite.config.ts
@@ -49,11 +51,8 @@ jobs:
         run: docker build --target development -t instituta:dev .
       - name: Build production target
         run: docker build --target production -t instituta:prod .
-      - name: Assert PHP 8.4+
-        run: |
-          set -euo pipefail
-          docker run --rm --entrypoint php instituta:prod -v | tee /tmp/php-v.txt
-          grep -E 'PHP 8\.(4|5)\.' /tmp/php-v.txt
+      - name: Check production PHP platform
+        run: docker run --rm --entrypoint composer instituta:prod check-platform-reqs --no-dev
 
   # arm64 needs QEMU emulation and costs ~39 billable minutes, so the full
   # linux/amd64,linux/arm64 manifest is baked on a release only: a v* tag, a

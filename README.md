@@ -16,6 +16,8 @@ Private beta toward `v1.0.0-beta.1`. Contracts: [`docs/FORMAT.md`](docs/FORMAT.m
 
 ## Install and upgrade (self-hosted)
 
+Instituta requires PHP 8.4 or newer. See the [installation requirements](docs/installation.md) for runtime setup.
+
 Day-to-day local development uses Laravel Herd (`https://instituta-core.test` after `herd link` / `herd secure`) and `composer run dev`.
 
 For a fresh install (once Packagist publish is allowed by the maintainer):
