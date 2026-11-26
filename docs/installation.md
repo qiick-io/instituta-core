@@ -43,7 +43,13 @@ cp .env.docker.example .env
 docker compose up --build -d
 ```
 
+The Dockerfile supplies a patched PHP 8.4 runtime. If you override the `PHP_VERSION` build argument, use a supported PHP release at or above 8.4.
+
 See the README Docker section and `docker-bake.hcl`. Image publish to GHCR is maintainer-only on a `v*` tag.
+
+## Laravel Cloud
+
+In each environment, select PHP 8.4 or newer under **General Settings → Runtime** before deploying. Redeploy the environment to apply a runtime change. [Laravel Cloud runtime settings](https://laravel.com/cloud/docs/environments#php-runtime)
 
 ## Keeping the brain fresh
 

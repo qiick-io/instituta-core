@@ -1,5 +1,7 @@
 # Upgrade
 
+Upgrade the PHP runtime to 8.4 or newer before installing the updated Composer dependencies. On Laravel Cloud, set the environment's PHP version before deploying.
+
 Never use `composer create-project` to update an existing install. Fetch the new code (git pull / release archive), install Composer and npm dependencies as needed, then:
 
 ```bash
