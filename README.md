@@ -1,5 +1,9 @@
 # Instituta
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/qiick-io/instituta-core/badge)](https://scorecard.dev/viewer/?uri=github.com/qiick-io/instituta-core)
+
+PHPStan at `max` runs as an advisory check for PHP alongside the existing PHP quality gate. CodeQL covers GitHub Actions and JavaScript/TypeScript.
+
 > **Working name.** "Instituta" is a working name pending legal clearance. Do not use it publicly, and do not register, publish or file anything under it, until the maintainer says the name is cleared. This repository is private.
 
 Instituta is a qiick product: the operating **company brain**. It holds a company's (or a freelancer's, or one person's) brand, coding rules, design systems and shadcn registries, ideas and plans, so that agents and humans query the same content under one contract. It is AI-first, and the human view is first-class too: a map of the whole brain, a reading view, the resolved view per product and a scoped graph. Content is owned by the user: qiick supplies the product, not the corpus. Intended for open source and self-hosted installs (and later qiick Cloud); **nothing is published to Packagist, GHCR, npm or a public domain until the maintainer says so**.
